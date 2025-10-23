@@ -78,7 +78,7 @@ public record LastLoginAt(Instant value) {
      * @since 1.0.0
      */
     public static LastLoginAt fromString(final String isoString) {
-        if (isoString == null || isoString.trim().isEmpty()) {
+        if (isoString == null || isoString.isBlank()) {
             throw new IllegalArgumentException("ISO string cannot be null or empty");
         }
         try {
