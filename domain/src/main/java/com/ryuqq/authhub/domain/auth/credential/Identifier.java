@@ -72,25 +72,26 @@ public record Identifier(String value) {
 
         String trimmedValue = value.trim();
 
-        switch (type) {
-            case EMAIL:
+        return switch (type) {
+            case EMAIL -> {
                 if (!EMAIL_PATTERN.matcher(trimmedValue).matches()) {
                     throw new IllegalArgumentException("Invalid email format: " + value);
                 }
-                return new Identifier(trimmedValue.toLowerCase()); // 이메일은 소문자로 정규화
-            case PHONE:
+                yield new Identifier(trimmedValue.toLowerCase()); // 이메일은 소문자로 정규화
+            }
+            case PHONE -> {
                 if (!PHONE_PATTERN.matcher(trimmedValue).matches()) {
                     throw new IllegalArgumentException("Invalid phone format (10-11 digits required): " + value);
                 }
-                return new Identifier(trimmedValue);
-            case USERNAME:
+                yield new Identifier(trimmedValue);
+            }
+            case USERNAME -> {
                 if (!USERNAME_PATTERN.matcher(trimmedValue).matches()) {
                     throw new IllegalArgumentException("Invalid username format (4-20 alphanumeric or underscore): " + value);
                 }
-                return new Identifier(trimmedValue.toLowerCase()); // 사용자명은 소문자로 정규화
-            default:
-                throw new IllegalArgumentException("Unsupported credential type: " + type);
-        }
+                yield new Identifier(trimmedValue.toLowerCase()); // 사용자명은 소문자로 정규화
+            }
+        };
     }
 
     /**
@@ -146,19 +147,10 @@ public record Identifier(String value) {
             return false;
         }
 
-        try {
-            switch (type) {
-                case EMAIL:
-                    return EMAIL_PATTERN.matcher(this.value).matches();
-                case PHONE:
-                    return PHONE_PATTERN.matcher(this.value).matches();
-                case USERNAME:
-                    return USERNAME_PATTERN.matcher(this.value).matches();
-                default:
-                    return false;
-            }
-        } catch (Exception e) {
-            return false;
-        }
+        return switch (type) {
+            case EMAIL -> EMAIL_PATTERN.matcher(this.value).matches();
+            case PHONE -> PHONE_PATTERN.matcher(this.value).matches();
+            case USERNAME -> USERNAME_PATTERN.matcher(this.value).matches();
+        };
     }
 }
