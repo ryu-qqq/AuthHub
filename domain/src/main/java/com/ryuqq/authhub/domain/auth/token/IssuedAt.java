@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.auth.token;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -45,13 +46,31 @@ public record IssuedAt(Instant value) {
 
     /**
      * 현재 시각으로 IssuedAt을 생성합니다.
+     * 시스템 기본 Clock(UTC)을 사용합니다.
      *
      * @return IssuedAt 인스턴스
      * @author AuthHub Team
      * @since 1.0.0
      */
     public static IssuedAt now() {
-        return new IssuedAt(Instant.now());
+        return now(Clock.systemUTC());
+    }
+
+    /**
+     * 지정된 Clock의 현재 시각으로 IssuedAt을 생성합니다.
+     * 테스트 시 Clock을 고정하여 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param clock 시각 제공자 (null 불가)
+     * @return IssuedAt 인스턴스
+     * @throws IllegalArgumentException clock이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public static IssuedAt now(final Clock clock) {
+        if (clock == null) {
+            throw new IllegalArgumentException("Clock cannot be null");
+        }
+        return new IssuedAt(Instant.now(clock));
     }
 
     /**
@@ -83,6 +102,7 @@ public record IssuedAt(Instant value) {
 
     /**
      * 발급 시각으로부터 현재까지 경과한 시간을 계산합니다.
+     * 시스템 기본 Clock(UTC)을 사용합니다.
      * Law of Demeter 준수 - 외부에서 Duration.between() 직접 호출하지 않고 여기서 제공
      *
      * @return 경과 시간 Duration (항상 양수)
@@ -90,7 +110,24 @@ public record IssuedAt(Instant value) {
      * @since 1.0.0
      */
     public Duration age() {
-        return Duration.between(this.value, Instant.now());
+        return age(Clock.systemUTC());
+    }
+
+    /**
+     * 발급 시각으로부터 지정된 Clock의 현재 시각까지 경과한 시간을 계산합니다.
+     * 테스트 시 Clock을 고정하여 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param clock 현재 시각을 제공하는 Clock (null 불가)
+     * @return 경과 시간 Duration
+     * @throws IllegalArgumentException clock이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public Duration age(final Clock clock) {
+        if (clock == null) {
+            throw new IllegalArgumentException("Clock cannot be null");
+        }
+        return Duration.between(this.value, Instant.now(clock));
     }
 
     /**

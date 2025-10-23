@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.auth.token;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -62,6 +63,7 @@ public record ExpiresAt(Instant value) {
 
     /**
      * 현재 시각으로부터 지정된 기간 후의 만료 시각을 생성합니다.
+     * 시스템 기본 Clock(UTC)을 사용합니다.
      *
      * @param validity 유효 기간 (null 불가, 양수)
      * @return ExpiresAt 인스턴스
@@ -70,7 +72,25 @@ public record ExpiresAt(Instant value) {
      * @since 1.0.0
      */
     public static ExpiresAt fromNow(final Duration validity) {
-        return fromIssuedAt(Instant.now(), validity);
+        return fromNow(validity, Clock.systemUTC());
+    }
+
+    /**
+     * 지정된 Clock의 현재 시각으로부터 지정된 기간 후의 만료 시각을 생성합니다.
+     * 테스트 시 Clock을 고정하여 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param validity 유효 기간 (null 불가, 양수)
+     * @param clock 시각 제공자 (null 불가)
+     * @return ExpiresAt 인스턴스
+     * @throws IllegalArgumentException validity 또는 clock이 null이거나 validity가 음수인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public static ExpiresAt fromNow(final Duration validity, final Clock clock) {
+        if (clock == null) {
+            throw new IllegalArgumentException("Clock cannot be null");
+        }
+        return fromIssuedAt(Instant.now(clock), validity);
     }
 
     /**
@@ -88,6 +108,7 @@ public record ExpiresAt(Instant value) {
 
     /**
      * 토큰이 현재 시각 기준으로 만료되었는지 확인합니다.
+     * 시스템 기본 Clock(UTC)을 사용합니다.
      * Law of Demeter 준수 - 외부에서 value.isBefore(Instant.now()) 호출하지 않고 여기서 제공
      *
      * @return 만료되었으면 true, 아니면 false
@@ -95,7 +116,24 @@ public record ExpiresAt(Instant value) {
      * @since 1.0.0
      */
     public boolean isExpired() {
-        return this.value.isBefore(Instant.now());
+        return isExpired(Clock.systemUTC());
+    }
+
+    /**
+     * 토큰이 지정된 Clock의 현재 시각 기준으로 만료되었는지 확인합니다.
+     * 테스트 시 Clock을 고정하여 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param clock 현재 시각을 제공하는 Clock (null 불가)
+     * @return 만료되었으면 true, 아니면 false
+     * @throws IllegalArgumentException clock이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public boolean isExpired(final Clock clock) {
+        if (clock == null) {
+            throw new IllegalArgumentException("Clock cannot be null");
+        }
+        return this.value.isBefore(Instant.now(clock));
     }
 
     /**
@@ -127,13 +165,31 @@ public record ExpiresAt(Instant value) {
 
     /**
      * 현재 시각으로부터 만료까지 남은 시간을 계산합니다.
+     * 시스템 기본 Clock(UTC)을 사용합니다.
      *
      * @return 남은 시간 Duration (이미 만료된 경우 음수 Duration)
      * @author AuthHub Team
      * @since 1.0.0
      */
     public Duration remainingTime() {
-        return Duration.between(Instant.now(), this.value);
+        return remainingTime(Clock.systemUTC());
+    }
+
+    /**
+     * 지정된 Clock의 현재 시각으로부터 만료까지 남은 시간을 계산합니다.
+     * 테스트 시 Clock을 고정하여 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param clock 현재 시각을 제공하는 Clock (null 불가)
+     * @return 남은 시간 Duration (이미 만료된 경우 음수 Duration)
+     * @throws IllegalArgumentException clock이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public Duration remainingTime(final Clock clock) {
+        if (clock == null) {
+            throw new IllegalArgumentException("Clock cannot be null");
+        }
+        return Duration.between(Instant.now(clock), this.value);
     }
 
     /**
