@@ -1,5 +1,9 @@
 package com.ryuqq.authhub.domain.auth.credential;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * 인증 정보의 타입을 나타내는 Enum.
  *
@@ -41,6 +45,9 @@ public enum CredentialType {
      * 사용자는 임의의 사용자명과 비밀번호로 인증합니다.
      */
     USERNAME("username", "사용자명");
+
+    private static final Map<String, CredentialType> CODE_MAP = Stream.of(values())
+            .collect(Collectors.toUnmodifiableMap(CredentialType::getCode, type -> type));
 
     private final String code;
     private final String description;
@@ -93,14 +100,11 @@ public enum CredentialType {
             throw new IllegalArgumentException("Credential type code cannot be null or empty");
         }
 
-        String normalizedCode = code.trim().toLowerCase();
-        for (CredentialType type : values()) {
-            if (type.code.equals(normalizedCode)) {
-                return type;
-            }
+        final CredentialType result = CODE_MAP.get(code.trim().toLowerCase());
+        if (result == null) {
+            throw new IllegalArgumentException("Unknown credential type code: " + code);
         }
-
-        throw new IllegalArgumentException("Unknown credential type code: " + code);
+        return result;
     }
 
     /**
