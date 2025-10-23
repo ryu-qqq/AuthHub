@@ -215,8 +215,9 @@ public final class User {
     /**
      * 사용자를 활성화합니다.
      * INACTIVE 또는 SUSPENDED 상태에서 ACTIVE로 전환합니다.
+     * 이미 ACTIVE 상태인 경우 현재 인스턴스를 반환합니다.
      *
-     * @return 활성화된 새로운 User 인스턴스
+     * @return 활성화된 새로운 User 인스턴스 또는 이미 ACTIVE인 경우 현재 인스턴스
      */
     public User activate() {
         if (this.status == UserStatus.ACTIVE) {
@@ -234,8 +235,9 @@ public final class User {
     /**
      * 사용자를 비활성화합니다.
      * 장기간 미사용 등의 사유로 계정을 휴면 처리합니다.
+     * 이미 INACTIVE 상태인 경우 현재 인스턴스를 반환합니다.
      *
-     * @return 비활성화된 새로운 User 인스턴스
+     * @return 비활성화된 새로운 User 인스턴스 또는 이미 INACTIVE인 경우 현재 인스턴스
      */
     public User deactivate() {
         if (this.status == UserStatus.INACTIVE) {
@@ -253,8 +255,9 @@ public final class User {
     /**
      * 사용자를 정지합니다.
      * 관리자에 의해 계정 사용이 일시적 또는 영구적으로 차단됩니다.
+     * 이미 SUSPENDED 상태인 경우 현재 인스턴스를 반환합니다.
      *
-     * @return 정지된 새로운 User 인스턴스
+     * @return 정지된 새로운 User 인스턴스 또는 이미 SUSPENDED인 경우 현재 인스턴스
      */
     public User suspend() {
         if (this.status == UserStatus.SUSPENDED) {

@@ -125,13 +125,15 @@ public record LastLoginAt(Instant value) {
     /**
      * 특정 시점 이후에 로그인했는지 확인합니다.
      *
-     * @param other 비교 대상 시각
+     * @param other 비교 대상 시각 (null 불가)
      * @return 로그인 기록이 있고, other 이후에 로그인했으면 true, 아니면 false
+     * @throws NullPointerException other가 null인 경우
      * @author AuthHub Team
      * @since 1.0.0
      */
     public boolean isAfter(final Instant other) {
-        if (value == null || other == null) {
+        java.util.Objects.requireNonNull(other, "other instant cannot be null");
+        if (value == null) {
             return false;
         }
         return value.isAfter(other);
@@ -140,13 +142,15 @@ public record LastLoginAt(Instant value) {
     /**
      * 특정 시점 이전에 로그인했는지 확인합니다.
      *
-     * @param other 비교 대상 시각
+     * @param other 비교 대상 시각 (null 불가)
      * @return 로그인 기록이 있고, other 이전에 로그인했으면 true, 아니면 false
+     * @throws NullPointerException other가 null인 경우
      * @author AuthHub Team
      * @since 1.0.0
      */
     public boolean isBefore(final Instant other) {
-        if (value == null || other == null) {
+        java.util.Objects.requireNonNull(other, "other instant cannot be null");
+        if (value == null) {
             return false;
         }
         return value.isBefore(other);
@@ -155,12 +159,15 @@ public record LastLoginAt(Instant value) {
     /**
      * epoch milliseconds 값을 반환합니다.
      *
-     * @return epoch milliseconds (로그인 기록이 없으면 0)
+     * @return epoch milliseconds
+     * @throws IllegalStateException 로그인 기록이 없는 경우
      * @author AuthHub Team
      * @since 1.0.0
      */
     public long toEpochMilli() {
-        return value != null ? value.toEpochMilli() : 0L;
+        return getValue()
+                .map(Instant::toEpochMilli)
+                .orElseThrow(() -> new IllegalStateException("Cannot get epochMilli for a user who has never logged in."));
     }
 
     /**

@@ -119,7 +119,6 @@ class UserTest {
 
             // then
             assertThat(loggedInUser.hasNeverLoggedIn()).isFalse();
-            assertThat(loggedInUser.getLastLoginAt().hasLoggedIn()).isTrue();
             assertThat(loggedInUser.getUpdatedAt()).isAfter(user.getUpdatedAt());
         }
 

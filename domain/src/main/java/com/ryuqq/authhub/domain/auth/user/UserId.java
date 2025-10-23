@@ -77,19 +77,6 @@ public record UserId(UUID value) {
     }
 
     /**
-     * UserId의 UUID 값을 반환합니다.
-     * Record의 자동 생성된 accessor 메서드입니다.
-     *
-     * @return UUID 값 (UUID는 불변 객체)
-     * @author AuthHub Team
-     * @since 1.0.0
-     */
-    @Override
-    public UUID value() {
-        return value;
-    }
-
-    /**
      * UserId를 문자열로 변환합니다.
      *
      * @return UUID 문자열 표현
