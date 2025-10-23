@@ -50,7 +50,7 @@ public final class User {
      *
      * @param id 사용자 식별자 (null 불가)
      * @param status 사용자 상태 (null 불가)
-     * @param lastLoginAt 마지막 로그인 시각 (null 허용)
+     * @param lastLoginAt 마지막 로그인 시각 (null 불가, 로그인 기록이 없는 경우 {@code LastLoginAt.neverLoggedIn()} 사용)
      * @param createdAt 생성 시각 (null 불가)
      * @param updatedAt 수정 시각 (null 불가)
      */

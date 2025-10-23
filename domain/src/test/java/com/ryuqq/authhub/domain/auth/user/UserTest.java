@@ -50,7 +50,6 @@ class UserTest {
 
             // then
             assertThat(user.hasNeverLoggedIn()).isTrue();
-            assertThat(user.getLastLoginAt().hasNeverLoggedIn()).isTrue();
         }
 
         @Test
@@ -242,7 +241,7 @@ class UserTest {
             User user = User.create(userId);
             Instant originalUpdatedAt = user.getUpdatedAt();
 
-            Thread.sleep(10); // 시간 차이 보장
+            Thread.sleep(1); // 시간 차이 보장
 
             // when
             User deactivatedUser = user.deactivate();

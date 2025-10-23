@@ -83,7 +83,7 @@ public record LastLoginAt(Instant value) {
         }
         try {
             return new LastLoginAt(Instant.parse(isoString));
-        } catch (Exception e) {
+        } catch (java.time.format.DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid ISO-8601 format: " + isoString, e);
         }
     }
