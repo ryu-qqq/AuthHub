@@ -5,8 +5,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
@@ -248,22 +250,24 @@ class TokenTest {
         }
 
         @Test
-        @DisplayName("토큰의 age를 계산한다")
-        void age_ShouldCalculateCorrectly() throws InterruptedException {
+        @DisplayName("토큰의 age를 정확하게 계산한다")
+        void age_ShouldCalculateCorrectly() {
             // given
+            Instant creationTime = Instant.parse("2023-01-01T10:00:00Z");
+            Clock fixedClock = Clock.fixed(creationTime, ZoneId.systemDefault());
+
             UserId userId = UserId.newId();
             JwtToken jwtToken = JwtToken.from("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature");
-            Token token = Token.create(userId, TokenType.ACCESS, jwtToken, Duration.ofMinutes(15));
-
-            // 약간의 시간 경과
-            Thread.sleep(100);
+            Token token = Token.create(userId, TokenType.ACCESS, jwtToken, Duration.ofMinutes(15), fixedClock);
 
             // when
-            Duration age = token.age();
+            // 10초 후의 시간을 시뮬레이션
+            Instant futureTime = creationTime.plusSeconds(10);
+            Clock futureClock = Clock.fixed(futureTime, ZoneId.systemDefault());
+            Duration age = token.age(futureClock);
 
             // then
-            assertThat(age).isGreaterThan(Duration.ZERO);
-            assertThat(age).isLessThan(Duration.ofSeconds(1)); // 테스트 실행 시간은 1초 미만
+            assertThat(age).isEqualTo(Duration.ofSeconds(10));
         }
     }
 
