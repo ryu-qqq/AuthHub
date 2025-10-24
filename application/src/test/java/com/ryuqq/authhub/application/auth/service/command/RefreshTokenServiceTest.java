@@ -177,11 +177,9 @@ class RefreshTokenServiceTest {
     @Test
     @DisplayName("Refresh Token 재발급 실패 - Token 만료")
     void refresh_Failure_ExpiredToken() {
-        // Given
-        Token mockExpiredToken = createMockExpiredRefreshToken();
-
+        // Given - ValidateTokenPort가 계약대로 ExpiredTokenException을 던짐
         given(validateTokenPort.validate(validRefreshTokenString))
-                .willReturn(mockExpiredToken);
+                .willThrow(new ExpiredTokenException("Refresh token has expired"));
 
         // When & Then
         assertThatThrownBy(() -> refreshTokenService.refresh(validCommand))
@@ -295,6 +293,7 @@ class RefreshTokenServiceTest {
 
         lenient().when(token.getJwtToken()).thenReturn(jwtToken);
         lenient().when(jwtToken.value()).thenReturn("new-access-token");
+        lenient().when(token.getJwtValue()).thenReturn("new-access-token");  // Law of Demeter 준수
         lenient().when(token.getType()).thenReturn(TokenType.ACCESS);
         lenient().when(token.isAccessToken()).thenReturn(true);
         lenient().when(token.isRefreshToken()).thenReturn(false);

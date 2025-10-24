@@ -219,6 +219,18 @@ public final class Token {
     }
 
     /**
+     * JWT 토큰의 문자열 값을 반환합니다.
+     * Law of Demeter 준수 - 외부에서 getJwtToken().value() 체이닝을 방지
+     *
+     * @return JWT 토큰 문자열 값
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public String getJwtValue() {
+        return this.jwtToken.value();
+    }
+
+    /**
      * 발급 시각을 반환합니다.
      *
      * @return IssuedAt 인스턴스

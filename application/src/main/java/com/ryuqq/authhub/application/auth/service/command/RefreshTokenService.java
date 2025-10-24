@@ -145,8 +145,7 @@ public class RefreshTokenService implements RefreshTokenUseCase {
      *
      * <p><strong>검증 단계:</strong></p>
      * <ol>
-     *   <li>JWT 서명 및 형식 검증</li>
-     *   <li>만료 시각 확인</li>
+     *   <li>JWT 서명, 형식, 만료 시각 검증 (ValidateTokenPort 위임)</li>
      *   <li>Token 타입 확인 (REFRESH 타입이어야 함)</li>
      *   <li>Redis 존재 여부 확인</li>
      *   <li>Blacklist 등록 여부 확인</li>
@@ -155,7 +154,7 @@ public class RefreshTokenService implements RefreshTokenUseCase {
      * @param jwtTokenString JWT 형식의 Refresh Token 문자열
      * @return 검증된 Refresh Token Domain Aggregate
      * @throws InvalidTokenException Token 형식이 잘못되었거나 REFRESH 타입이 아닌 경우
-     * @throws ExpiredTokenException Token이 만료된 경우
+     * @throws ExpiredTokenException ValidateTokenPort에서 만료된 Token 감지 시 (Port 계약)
      * @throws TokenNotFoundException Redis에 존재하지 않는 경우
      * @throws BlacklistedTokenException Blacklist에 등록된 경우
      */
@@ -170,21 +169,14 @@ public class RefreshTokenService implements RefreshTokenUseCase {
             );
         }
 
-        // 3. Token 만료 확인 (이미 ValidateTokenPort에서 검증했지만, 도메인 규칙으로 재확인)
-        if (token.isExpired()) {
-            throw new ExpiredTokenException(
-                    "Refresh token has expired at: " + token.getExpiresAt().value()
-            );
-        }
-
-        // 4. Redis에서 Refresh Token 존재 여부 확인
+        // 3. Redis에서 Refresh Token 존재 여부 확인
         final TokenId tokenId = token.getId();
         loadRefreshTokenPort.load(tokenId)
                 .orElseThrow(() -> new TokenNotFoundException(
                         "Refresh token not found in Redis: " + tokenId.value()
                 ));
 
-        // 5. Blacklist 확인 (로그아웃된 Token인지 확인)
+        // 4. Blacklist 확인 (로그아웃된 Token인지 확인)
         if (checkBlacklistPort.isBlacklisted(tokenId)) {
             throw new BlacklistedTokenException(
                     "Refresh token is blacklisted (logged out): " + tokenId.value()
@@ -213,8 +205,8 @@ public class RefreshTokenService implements RefreshTokenUseCase {
             throw new IllegalArgumentException("Token must be ACCESS type");
         }
 
-        // ✅ Value Object에서 Primitive 타입 추출
-        final String accessTokenValue = accessToken.getJwtToken().value();
+        // ✅ Law of Demeter 준수 - Token.getJwtValue() 사용
+        final String accessTokenValue = accessToken.getJwtValue();
 
         // ✅ Token의 행위 메서드 활용 - remainingValidity()
         // Math.toIntExact() 사용으로 오버플로우 시 ArithmeticException 발생 (안전한 변환)
