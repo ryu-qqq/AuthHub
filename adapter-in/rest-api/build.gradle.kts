@@ -14,7 +14,6 @@ dependencies {
 
     // Test
     testImplementation(libs.spring.boot.starter.test)
-    testImplementation(libs.spring.restdocs.mockmvc)
     testImplementation(libs.rest.assured)
 }
 

@@ -40,7 +40,7 @@ class PersistenceLayerArchitectureTest {
     @BeforeAll
     static void setUp() {
         persistenceClasses = new ClassFileImporter()
-                .importPackages("com.ryuqq.authhub.adapter.out.persistence");
+                .importPackages("com.ryuqq.authhub.adapter.out.persistence.auth");
     }
 
     @Test

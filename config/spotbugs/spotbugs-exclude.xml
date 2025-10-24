@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Exclude auto-generated code -->
+    <Match>
+        <Class name="~.*\.Q.*"/>
+    </Match>
+
+    <!-- Exclude configuration classes -->
+    <Match>
+        <Class name="~.*\.config\..*"/>
+    </Match>
+
+    <!-- Exclude Application entry point -->
+    <Match>
+        <Class name="~.*Application"/>
+    </Match>
+
+    <!-- Exclude test code -->
+    <Match>
+        <Class name="~.*Test"/>
+    </Match>
+
+    <!-- Exclude Spring Boot auto-configuration -->
+    <Match>
+        <Package name="~org\.springframework\..*"/>
+    </Match>
+
+    <!-- Specific exclusions -->
+    <!-- EI_EXPOSE_REP: Returning reference to mutable object -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- NP_NULL_ON_SOME_PATH: Null pointer dereference -->
+    <!-- Suppress for Spring @Autowired fields -->
+    <Match>
+        <Bug pattern="NP_NULL_ON_SOME_PATH"/>
+        <Field annotation="~org\.springframework\.beans\.factory\.annotation\.Autowired"/>
+    </Match>
+
+    <!-- UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR: Field not initialized -->
+    <!-- Suppress for JPA entities and Spring beans -->
+    <Match>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+        <Or>
+            <Class annotation="~javax\.persistence\.Entity"/>
+            <Class annotation="~jakarta\.persistence\.Entity"/>
+            <Class annotation="~org\.springframework\.stereotype\..*"/>
+        </Or>
+    </Match>
+</FindBugsFilter>

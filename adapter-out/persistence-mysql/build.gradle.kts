@@ -18,7 +18,7 @@ dependencies {
     // annotationProcessor("jakarta.persistence:jakarta.persistence-api")
 
     // Database
-    runtimeOnly(libs.postgresql)
+    runtimeOnly(libs.mysql.connector)
     runtimeOnly(libs.h2)
 
     // Test

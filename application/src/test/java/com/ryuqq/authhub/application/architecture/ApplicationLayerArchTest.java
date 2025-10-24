@@ -79,6 +79,7 @@ class ApplicationLayerArchTest {
                             "..port..",
                             "..domain..",
                             "..assembler..",
+                            "..config..",
                             "java..",
                             "org.springframework.."
                     );

@@ -145,7 +145,7 @@ public class UserPersistenceAdapter implements LoadUserPort, SaveUserPort {
     public User save(final User user) {
         Objects.requireNonNull(user, "User cannot be null");
 
-        final String uid = user.getUserId().value().toString();
+        final String uid = user.getId().asString();
 
         // 1. 기존 Entity 조회
         final Optional<UserJpaEntity> existingEntityOpt = userJpaRepository.findByUid(uid);

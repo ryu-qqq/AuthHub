@@ -62,3 +62,6 @@ hs_err_pid*
 
 # Serena MCP
 .serena/
+
+# Claude Code Hooks
+.claude/hooks/logs/

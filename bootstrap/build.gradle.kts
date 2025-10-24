@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":application"))
     implementation(project(":adapter-in:rest-api"))
     implementation(project(":adapter-out:persistence-mysql"))
+    implementation(project(":adapter-out:persistence-redis"))
 
     // Spring Boot Starters
     implementation(libs.spring.boot.starter.web)
