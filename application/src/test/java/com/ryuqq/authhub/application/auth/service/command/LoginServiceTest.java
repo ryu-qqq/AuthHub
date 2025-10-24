@@ -18,6 +18,8 @@ import com.ryuqq.authhub.domain.auth.token.TokenType;
 import com.ryuqq.authhub.domain.auth.user.User;
 import com.ryuqq.authhub.domain.auth.user.UserId;
 import com.ryuqq.authhub.domain.auth.user.UserStatus;
+import com.ryuqq.authhub.domain.auth.user.exception.InvalidUserStatusException;
+import com.ryuqq.authhub.domain.auth.user.exception.UserNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -154,6 +156,28 @@ class LoginServiceTest {
     }
 
     @Test
+    @DisplayName("로그인 실패 - 잘못된 CredentialType")
+    void login_Failure_InvalidCredentialType() {
+        // Given: 잘못된 credentialType (INVALID_TYPE)
+        LoginUseCase.Command invalidCommand = new LoginUseCase.Command(
+                "INVALID_TYPE",
+                "test@example.com",
+                "password123",
+                "WEB"
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> loginService.login(invalidCommand))
+                .isInstanceOf(InvalidCredentialException.class)
+                .hasMessageContaining("Invalid credentialType")
+                .hasMessageContaining("INVALID_TYPE");
+
+        // Verify - Credential 조회조차 되지 않아야 함
+        then(loadCredentialByIdentifierPort).should(never()).loadByIdentifier(any(CredentialType.class), any(Identifier.class));
+        then(generateTokenPort).should(never()).generate(any(UserId.class), any(TokenType.class), any(Duration.class));
+    }
+
+    @Test
     @DisplayName("로그인 실패 - 비밀번호 불일치")
     void login_Failure_InvalidPassword() {
         // Given
@@ -189,7 +213,7 @@ class LoginServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> loginService.login(validCommand))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(UserNotFoundException.class)
                 .hasMessageContaining("User not found");
 
         // Verify - Token 생성이 호출되지 않아야 함
@@ -216,7 +240,7 @@ class LoginServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> loginService.login(validCommand))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InvalidUserStatusException.class)
                 .hasMessageContaining("User is not in ACTIVE status")
                 .hasMessageContaining("SUSPENDED");
 

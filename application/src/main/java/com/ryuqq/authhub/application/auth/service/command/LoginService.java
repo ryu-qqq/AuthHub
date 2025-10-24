@@ -15,6 +15,8 @@ import com.ryuqq.authhub.domain.auth.credential.exception.InvalidCredentialExcep
 import com.ryuqq.authhub.domain.auth.token.Token;
 import com.ryuqq.authhub.domain.auth.token.TokenType;
 import com.ryuqq.authhub.domain.auth.user.User;
+import com.ryuqq.authhub.domain.auth.user.exception.InvalidUserStatusException;
+import com.ryuqq.authhub.domain.auth.user.exception.UserNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -161,11 +163,16 @@ public class LoginService implements LoginUseCase {
      * @param command 로그인 Command
      * @return 검증된 UserCredential
      * @throws CredentialNotFoundException 인증 정보가 존재하지 않는 경우
-     * @throws InvalidCredentialException 비밀번호가 일치하지 않는 경우
+     * @throws InvalidCredentialException 비밀번호가 일치하지 않거나 credentialType이 유효하지 않은 경우
      */
     private UserCredential loadAndValidateCredential(final Command command) {
         // Command → Domain Value Object 변환
-        final CredentialType credentialType = CredentialType.valueOf(command.credentialType());
+        final CredentialType credentialType;
+        try {
+            credentialType = CredentialType.valueOf(command.credentialType().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCredentialException("Invalid credentialType: " + command.credentialType());
+        }
         final Identifier identifier = Identifier.of(credentialType, command.identifier());
 
         // Credential 조회
@@ -188,18 +195,22 @@ public class LoginService implements LoginUseCase {
      *
      * @param credential 검증된 UserCredential
      * @return 검증된 User
-     * @throws IllegalStateException User가 존재하지 않거나 ACTIVE 상태가 아닌 경우
+     * @throws UserNotFoundException User가 존재하지 않는 경우
+     * @throws InvalidUserStatusException User가 ACTIVE 상태가 아닌 경우
      */
     private User loadAndValidateUser(final UserCredential credential) {
         final User user = loadUserPort
                 .load(credential.getUserId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "User not found for userId: " + credential.getUserId()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User not found for userId: " + credential.getUserId(),
+                        credential.getUserId()
                 ));
 
         if (!user.canUseSystem()) {
-            throw new IllegalStateException(
-                    "User is not in ACTIVE status. Current status: " + user.getStatus()
+            throw new InvalidUserStatusException(
+                    "User is not in ACTIVE status. Current status: " + user.getStatus(),
+                    user.getId(),
+                    user.getStatus()
             );
         }
 
