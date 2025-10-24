@@ -21,7 +21,7 @@ subprojects {
 
     configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.0")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:${rootProject.libs.versions.springBoot.get()}")
         }
     }
 
