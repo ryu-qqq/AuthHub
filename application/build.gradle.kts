@@ -16,9 +16,12 @@ dependencies {
     implementation(libs.hibernate.validator)
 
     // Test
+    testImplementation(libs.junit.jupiter)
     testImplementation(libs.spring.test)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.junit)
+    testImplementation(libs.archunit.junit5)
+    testImplementation(libs.assertj.core)
 }
 
 description = "AuthHub Application Layer - Use cases and application services"
