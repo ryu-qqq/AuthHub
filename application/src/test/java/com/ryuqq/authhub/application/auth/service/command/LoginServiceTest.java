@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.application.auth.service.command;
 
 import com.ryuqq.authhub.application.auth.assembler.TokenAssembler;
+import com.ryuqq.authhub.application.auth.config.JwtProperties;
 import com.ryuqq.authhub.application.auth.port.in.LoginUseCase;
 import com.ryuqq.authhub.application.auth.port.out.GenerateTokenPort;
 import com.ryuqq.authhub.application.auth.port.out.LoadCredentialByIdentifierPort;
@@ -80,6 +81,9 @@ class LoginServiceTest {
     @Mock
     private PasswordHash.PasswordEncoder passwordEncoder;
 
+    @Mock
+    private JwtProperties jwtProperties;
+
     @InjectMocks
     private LoginService loginService;
 
@@ -87,6 +91,10 @@ class LoginServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Given: JWT Properties Mock 설정
+        lenient().when(jwtProperties.accessTokenValidity()).thenReturn(Duration.ofMinutes(15));
+        lenient().when(jwtProperties.refreshTokenValidity()).thenReturn(Duration.ofDays(7));
+
         // Given: 유효한 로그인 Command
         validCommand = new LoginUseCase.Command(
                 "EMAIL",

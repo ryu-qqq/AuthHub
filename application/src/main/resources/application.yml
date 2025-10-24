@@ -1,0 +1,9 @@
+# AuthHub Application Configuration
+
+# JWT 토큰 설정
+auth:
+  jwt:
+    # Access Token 유효 기간 (기본값: 15분)
+    access-token-validity: 15m
+    # Refresh Token 유효 기간 (기본값: 7일)
+    refresh-token-validity: 7d

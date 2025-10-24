@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.application.auth.service.command;
 
 import com.ryuqq.authhub.application.auth.assembler.TokenAssembler;
+import com.ryuqq.authhub.application.auth.config.JwtProperties;
 import com.ryuqq.authhub.application.auth.port.in.LoginUseCase;
 import com.ryuqq.authhub.application.auth.port.out.GenerateTokenPort;
 import com.ryuqq.authhub.application.auth.port.out.LoadCredentialByIdentifierPort;
@@ -19,8 +20,6 @@ import com.ryuqq.authhub.domain.auth.user.exception.InvalidUserStatusException;
 import com.ryuqq.authhub.domain.auth.user.exception.UserNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
 
 /**
  * Login Service - LoginUseCase 구현체.
@@ -60,10 +59,6 @@ import java.time.Duration;
 @Service
 public class LoginService implements LoginUseCase {
 
-    // ✅ JWT 토큰 유효 기간 설정
-    private static final Duration ACCESS_TOKEN_VALIDITY = Duration.ofMinutes(15);
-    private static final Duration REFRESH_TOKEN_VALIDITY = Duration.ofDays(7);
-
     // 인증 관련 의존성
     private final LoadCredentialByIdentifierPort loadCredentialByIdentifierPort;
     private final PasswordHash.PasswordEncoder passwordEncoder;
@@ -78,6 +73,9 @@ public class LoginService implements LoginUseCase {
     // 응답 변환 의존성
     private final TokenAssembler tokenAssembler;
 
+    // ✅ JWT 토큰 유효 기간 설정 (외부 설정 파일에서 주입)
+    private final JwtProperties jwtProperties;
+
     /**
      * LoginService 생성자.
      * Spring의 생성자 주입을 통해 의존성을 주입받습니다.
@@ -88,6 +86,7 @@ public class LoginService implements LoginUseCase {
      * @param generateTokenPort Token 생성 Port
      * @param saveRefreshTokenPort Refresh Token 저장 Port
      * @param tokenAssembler Token Assembler
+     * @param jwtProperties JWT 토큰 유효 기간 설정
      * @author AuthHub Team
      * @since 1.0.0
      */
@@ -97,7 +96,8 @@ public class LoginService implements LoginUseCase {
             final LoadUserPort loadUserPort,
             final GenerateTokenPort generateTokenPort,
             final SaveRefreshTokenPort saveRefreshTokenPort,
-            final TokenAssembler tokenAssembler
+            final TokenAssembler tokenAssembler,
+            final JwtProperties jwtProperties
     ) {
         this.loadCredentialByIdentifierPort = loadCredentialByIdentifierPort;
         this.passwordEncoder = passwordEncoder;
@@ -105,6 +105,7 @@ public class LoginService implements LoginUseCase {
         this.generateTokenPort = generateTokenPort;
         this.saveRefreshTokenPort = saveRefreshTokenPort;
         this.tokenAssembler = tokenAssembler;
+        this.jwtProperties = jwtProperties;
     }
 
     /**
@@ -141,14 +142,14 @@ public class LoginService implements LoginUseCase {
         final Token accessToken = generateTokenPort.generate(
                 user.getId(),
                 TokenType.ACCESS,
-                ACCESS_TOKEN_VALIDITY
+                jwtProperties.accessTokenValidity()
         );
 
         // ✅ 4. Refresh Token 생성 (JWT 서명 - 내부 계산 작업)
         final Token refreshToken = generateTokenPort.generate(
                 user.getId(),
                 TokenType.REFRESH,
-                REFRESH_TOKEN_VALIDITY
+                jwtProperties.refreshTokenValidity()
         );
 
         // ✅ 5. Refresh Token을 Redis에 저장 (내부 I/O)
