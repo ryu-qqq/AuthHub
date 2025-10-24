@@ -122,8 +122,9 @@ public class LoginService implements LoginUseCase {
      * @param command 로그인 요청 정보
      * @return Response JWT 토큰 정보
      * @throws CredentialNotFoundException 인증 정보가 존재하지 않는 경우
-     * @throws InvalidCredentialException 비밀번호가 일치하지 않는 경우
-     * @throws IllegalStateException 사용자가 존재하지 않거나 ACTIVE 상태가 아닌 경우
+     * @throws InvalidCredentialException 비밀번호가 일치하지 않거나 잘못된 CredentialType인 경우
+     * @throws UserNotFoundException 사용자가 존재하지 않는 경우
+     * @throws InvalidUserStatusException 사용자가 ACTIVE 상태가 아닌 경우
      * @author AuthHub Team
      * @since 1.0.0
      */

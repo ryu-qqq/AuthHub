@@ -76,7 +76,8 @@ public class TokenAssembler {
 
         // ✅ Token의 행위 메서드 활용 - remainingValidity()
         // Law of Demeter 준수 - Token이 직접 제공하는 메서드 사용
-        final int expiresInSeconds = (int) accessToken.remainingValidity().toSeconds();
+        // Math.toIntExact() 사용으로 오버플로우 시 ArithmeticException 발생 (안전한 변환)
+        final int expiresInSeconds = Math.toIntExact(accessToken.remainingValidity().toSeconds());
 
         return new LoginUseCase.Response(
                 accessTokenValue,
