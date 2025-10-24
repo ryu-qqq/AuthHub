@@ -127,8 +127,15 @@ public record PasswordHash(String value) {
      * @author AuthHub Team
      * @since 1.0.0
      */
-    @FunctionalInterface
     public interface PasswordEncoder {
+        /**
+         * 평문 비밀번호를 BCrypt 해시로 인코딩합니다.
+         *
+         * @param rawPassword 평문 비밀번호
+         * @return BCrypt 해시 문자열
+         */
+        String encode(String rawPassword);
+
         /**
          * 평문 비밀번호와 해시값이 매칭되는지 검증합니다.
          *

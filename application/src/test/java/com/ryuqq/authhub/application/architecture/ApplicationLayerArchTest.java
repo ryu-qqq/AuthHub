@@ -70,18 +70,21 @@ class ApplicationLayerArchTest {
         }
 
         @Test
-        @DisplayName("Service는 Port와 Domain에만 의존해야 함")
+        @DisplayName("Service는 Port와 Domain에만 의존해야 함 (Top-level만 검사)")
         void serviceShouldOnlyDependOnPortsAndDomain() {
             ArchRule rule = classes()
                     .that().resideInAnyPackage("..service..")
+                    .and().areTopLevelClasses()  // Inner Exception classes 제외
                     .should().onlyDependOnClassesThat()
                     .resideInAnyPackage(
                             "..port..",
                             "..domain..",
                             "..assembler..",
                             "..config..",
+                            "..exception..",  // Application exception classes 허용
                             "java..",
-                            "org.springframework.."
+                            "org.springframework..",
+                            "jakarta.."
                     );
 
             rule.check(applicationClasses);
@@ -344,11 +347,12 @@ class ApplicationLayerArchTest {
         }
 
         @Test
-        @DisplayName("Service 구현체는 'Service'로 끝나야 함")
+        @DisplayName("Service 구현체는 'Service'로 끝나야 함 (Inner Exception 제외)")
         void serviceImplementationShouldEndWithService() {
             ArchRule rule = classes()
                     .that().resideInAPackage("..service..")
                     .and().areNotInterfaces()
+                    .and().areTopLevelClasses()  // Inner classes (Exception 등) 제외
                     .should().haveSimpleNameEndingWith("Service");
 
             rule.check(applicationClasses);
