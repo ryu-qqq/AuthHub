@@ -162,16 +162,19 @@ class UserJpaRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        // when - 새로운 Entity 객체 생성하여 업데이트 (package-private setter 사용 불가)
+        // when - updateFrom() 메서드를 사용하여 업데이트
         UserJpaEntity found = userJpaRepository.findByUid(testUid).orElseThrow();
-        UserJpaEntity updated = UserJpaEntity.create(
+        Instant loginTime = Instant.now();
+
+        UserJpaEntity updatedSource = UserJpaEntity.create(
                 testUid,
                 UserJpaEntity.UserStatusEnum.SUSPENDED,
-                Instant.now(),
+                loginTime,
                 found.getCreatedAt(),
                 Instant.now()
         );
-        userJpaRepository.save(updated);
+
+        found.updateFrom(updatedSource);
         entityManager.flush();
         entityManager.clear();
 
@@ -179,6 +182,7 @@ class UserJpaRepositoryTest {
         UserJpaEntity result = userJpaRepository.findByUid(testUid).orElseThrow();
         assertThat(result.getStatus()).isEqualTo(UserJpaEntity.UserStatusEnum.SUSPENDED);
         assertThat(result.getLastLoginAt()).isNotNull();
+        assertThat(result.getLastLoginAt()).isEqualTo(loginTime);
     }
 
     @Test

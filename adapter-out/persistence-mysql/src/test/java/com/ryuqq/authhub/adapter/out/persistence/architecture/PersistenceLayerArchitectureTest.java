@@ -157,13 +157,15 @@ class PersistenceLayerArchitectureTest {
     }
 
     @Test
-    @DisplayName("Persistence Layer는 Application Layer에 의존하지 않아야 한다")
-    void persistenceLayer_ShouldNotDependOn_ApplicationLayer() {
+    @DisplayName("Persistence Layer는 Application Layer의 Service에 의존하지 않아야 한다")
+    void persistenceLayer_ShouldNotDependOn_ApplicationLayerServices() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("com.ryuqq.authhub.adapter.out.persistence..")
-                .should().dependOnClassesThat().resideInAPackage("com.ryuqq.authhub.application..")
-                .because("Persistence Layer는 Application Layer의 Port 인터페이스만 구현하며, " +
-                        "Application Layer의 Service나 UseCase에 의존해서는 안 됩니다.");
+                .should().dependOnClassesThat().resideInAPackage("com.ryuqq.authhub.application..service..")
+                .orShould().dependOnClassesThat().resideInAPackage("com.ryuqq.authhub.application..usecase..")
+                .because("Persistence Layer는 Application Layer의 Port 인터페이스는 구현할 수 있지만, " +
+                        "Application Layer의 Service나 UseCase에 직접 의존해서는 안 됩니다. " +
+                        "Port 인터페이스(LoadUserPort, SaveUserPort 등)에 대한 의존성은 허용됩니다.");
 
         rule.check(persistenceClasses);
     }

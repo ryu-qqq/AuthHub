@@ -262,6 +262,27 @@ public class UserJpaEntity {
     }
 
     /**
+     * 다른 UserJpaEntity의 값으로 현재 엔티티를 업데이트합니다.
+     * JPA Dirty Checking을 활용하여 변경된 필드만 UPDATE 쿼리로 반영됩니다.
+     *
+     * <p>이 메서드는 Persistence Adapter의 save() 메서드에서 사용되며,
+     * 기존 엔티티의 상태를 유지하면서 변경된 값만 업데이트합니다.</p>
+     *
+     * @param source 업데이트할 값을 가진 UserJpaEntity (null 불가)
+     * @throws NullPointerException source가 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public void updateFrom(final UserJpaEntity source) {
+        Objects.requireNonNull(source, "source cannot be null");
+
+        // uid는 불변이므로 업데이트하지 않음
+        this.setStatus(source.getStatus());
+        this.setLastLoginAt(source.getLastLoginAt());
+        this.setUpdatedAt(source.getUpdatedAt());
+    }
+
+    /**
      * 두 UserJpaEntity 객체의 동등성을 비교합니다.
      * uid가 같으면 같은 엔티티로 간주합니다.
      *

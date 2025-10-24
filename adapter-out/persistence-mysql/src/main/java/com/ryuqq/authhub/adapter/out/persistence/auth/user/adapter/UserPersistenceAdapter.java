@@ -114,17 +114,25 @@ public class UserPersistenceAdapter implements LoadUserPort, SaveUserPort {
      *
      * <p><strong>동작 순서:</strong></p>
      * <ol>
-     *   <li>User를 UserEntityMapper.toEntity()로 변환</li>
-     *   <li>UserJpaRepository.save() 호출 (INSERT 또는 UPDATE)</li>
+     *   <li>uid로 기존 Entity 조회</li>
+     *   <li>기존 Entity가 있으면 updateFrom()으로 업데이트 (JPA Dirty Checking)</li>
+     *   <li>기존 Entity가 없으면 새로운 Entity 생성 후 INSERT</li>
      *   <li>저장된 Entity를 UserEntityMapper.toDomain()으로 변환</li>
      *   <li>Domain User 반환 (JPA ID 포함)</li>
      * </ol>
      *
-     * <p><strong>INSERT vs UPDATE:</strong></p>
+     * <p><strong>UPDATE 전략:</strong></p>
      * <ul>
-     *   <li>Entity의 id가 null이면 INSERT</li>
-     *   <li>Entity의 id가 존재하면 UPDATE</li>
-     *   <li>JPA의 save() 메서드가 자동으로 판단</li>
+     *   <li>기존 Entity를 조회하여 updateFrom()으로 필드 업데이트</li>
+     *   <li>JPA Dirty Checking이 자동으로 UPDATE 쿼리 생성</li>
+     *   <li>명시적인 save() 호출 없이도 트랜잭션 커밋 시 자동 저장</li>
+     *   <li>package-private setter를 활용하여 캡슐화 유지</li>
+     * </ul>
+     *
+     * <p><strong>INSERT 전략:</strong></p>
+     * <ul>
+     *   <li>기존 Entity가 없으면 새로운 Entity 생성</li>
+     *   <li>UserJpaRepository.save()로 명시적 INSERT</li>
      * </ul>
      *
      * @param user 저장할 Domain User (null 불가)
@@ -137,8 +145,23 @@ public class UserPersistenceAdapter implements LoadUserPort, SaveUserPort {
     public User save(final User user) {
         Objects.requireNonNull(user, "User cannot be null");
 
-        UserJpaEntity entity = userEntityMapper.toEntity(user);
-        UserJpaEntity savedEntity = userJpaRepository.save(entity);
+        final String uid = user.getUserId().value().toString();
+
+        // 1. 기존 Entity 조회
+        final Optional<UserJpaEntity> existingEntityOpt = userJpaRepository.findByUid(uid);
+
+        final UserJpaEntity savedEntity;
+        if (existingEntityOpt.isPresent()) {
+            // 2. 기존 Entity가 있으면 updateFrom()으로 업데이트 (JPA Dirty Checking)
+            final UserJpaEntity existingEntity = existingEntityOpt.get();
+            final UserJpaEntity updatedEntity = userEntityMapper.toEntity(user);
+            existingEntity.updateFrom(updatedEntity);
+            savedEntity = existingEntity; // JPA가 자동으로 UPDATE 쿼리 생성
+        } else {
+            // 3. 기존 Entity가 없으면 새로운 Entity 생성 후 INSERT
+            final UserJpaEntity newEntity = userEntityMapper.toEntity(user);
+            savedEntity = userJpaRepository.save(newEntity);
+        }
 
         return userEntityMapper.toDomain(savedEntity);
     }
