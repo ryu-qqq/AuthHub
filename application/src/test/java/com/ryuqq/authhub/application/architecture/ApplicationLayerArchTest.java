@@ -81,7 +81,7 @@ class ApplicationLayerArchTest {
                             "..domain..",
                             "..assembler..",
                             "..config..",
-                            "..service..",  // Inner Exception 허용
+                            "..exception..",  // Application exception classes 허용
                             "java..",
                             "org.springframework..",
                             "jakarta.."

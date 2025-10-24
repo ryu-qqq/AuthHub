@@ -45,8 +45,8 @@ public interface RegisterUserUseCase {
      *
      * @param command 사용자 등록 요청 정보 (credentialType, identifier, password, nickname)
      * @return Response 생성된 사용자 정보 (userId, credentialId)
-     * @throws com.ryuqq.authhub.domain.identity.user.exception.DuplicateIdentifierException identifier가 이미 존재하는 경우
-     * @throws com.ryuqq.authhub.domain.identity.user.exception.DuplicateNicknameException nickname이 이미 존재하는 경우
+     * @throws com.ryuqq.authhub.application.identity.exception.DuplicateIdentifierException identifier가 이미 존재하는 경우
+     * @throws com.ryuqq.authhub.application.identity.exception.DuplicateNicknameException nickname이 이미 존재하는 경우
      * @throws IllegalArgumentException 입력값이 유효하지 않은 경우
      * @author AuthHub Team
      * @since 1.0.0

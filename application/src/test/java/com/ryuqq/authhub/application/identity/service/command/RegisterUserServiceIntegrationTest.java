@@ -1,6 +1,8 @@
 package com.ryuqq.authhub.application.identity.service.command;
 
 import com.ryuqq.authhub.application.auth.port.out.SaveUserPort;
+import com.ryuqq.authhub.application.identity.exception.DuplicateIdentifierException;
+import com.ryuqq.authhub.application.identity.exception.DuplicateNicknameException;
 import com.ryuqq.authhub.application.identity.port.in.RegisterUserUseCase;
 import com.ryuqq.authhub.application.identity.port.out.CheckDuplicateIdentifierPort;
 import com.ryuqq.authhub.application.identity.port.out.CheckDuplicateNicknamePort;
@@ -20,7 +22,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.UUID;
@@ -229,7 +230,7 @@ class RegisterUserServiceIntegrationTest {
 
         // When & Then: 예외 발생
         assertThatThrownBy(() -> registerUserUseCase.register(validCommand))
-                .isInstanceOf(RegisterUserService.DuplicateIdentifierException.class)
+                .isInstanceOf(DuplicateIdentifierException.class)
                 .hasMessageContaining("Identifier already exists")
                 .hasMessageContaining("integration@example.com");
 
@@ -253,7 +254,7 @@ class RegisterUserServiceIntegrationTest {
 
         // When & Then: 예외 발생
         assertThatThrownBy(() -> registerUserUseCase.register(validCommand))
-                .isInstanceOf(RegisterUserService.DuplicateNicknameException.class)
+                .isInstanceOf(DuplicateNicknameException.class)
                 .hasMessageContaining("Nickname already exists")
                 .hasMessageContaining("IntegrationUser");
 

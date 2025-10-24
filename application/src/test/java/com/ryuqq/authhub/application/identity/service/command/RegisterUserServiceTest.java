@@ -1,6 +1,8 @@
 package com.ryuqq.authhub.application.identity.service.command;
 
 import com.ryuqq.authhub.application.auth.port.out.SaveUserPort;
+import com.ryuqq.authhub.application.identity.exception.DuplicateIdentifierException;
+import com.ryuqq.authhub.application.identity.exception.DuplicateNicknameException;
 import com.ryuqq.authhub.application.identity.port.in.RegisterUserUseCase;
 import com.ryuqq.authhub.application.identity.port.out.CheckDuplicateIdentifierPort;
 import com.ryuqq.authhub.application.identity.port.out.CheckDuplicateNicknamePort;
@@ -159,7 +161,7 @@ class RegisterUserServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> registerUserService.register(validCommand))
-                .isInstanceOf(RegisterUserService.DuplicateIdentifierException.class)
+                .isInstanceOf(DuplicateIdentifierException.class)
                 .hasMessageContaining("Identifier already exists")
                 .hasMessageContaining("newuser@example.com");
 
@@ -183,7 +185,7 @@ class RegisterUserServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> registerUserService.register(validCommand))
-                .isInstanceOf(RegisterUserService.DuplicateNicknameException.class)
+                .isInstanceOf(DuplicateNicknameException.class)
                 .hasMessageContaining("Nickname already exists")
                 .hasMessageContaining("NewUser");
 

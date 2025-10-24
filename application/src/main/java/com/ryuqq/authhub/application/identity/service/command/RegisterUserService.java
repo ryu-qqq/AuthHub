@@ -6,6 +6,8 @@ import com.ryuqq.authhub.application.identity.port.out.CheckDuplicateIdentifierP
 import com.ryuqq.authhub.application.identity.port.out.CheckDuplicateNicknamePort;
 import com.ryuqq.authhub.application.identity.port.out.SaveUserCredentialPort;
 import com.ryuqq.authhub.application.identity.port.out.SaveUserProfilePort;
+import com.ryuqq.authhub.application.identity.exception.DuplicateIdentifierException;
+import com.ryuqq.authhub.application.identity.exception.DuplicateNicknameException;
 import com.ryuqq.authhub.domain.auth.credential.CredentialId;
 import com.ryuqq.authhub.domain.auth.credential.CredentialType;
 import com.ryuqq.authhub.domain.auth.credential.Identifier;
@@ -15,7 +17,6 @@ import com.ryuqq.authhub.domain.auth.user.User;
 import com.ryuqq.authhub.domain.auth.user.UserId;
 import com.ryuqq.authhub.domain.identity.profile.UserProfile;
 import com.ryuqq.authhub.domain.identity.profile.vo.Nickname;
-import com.ryuqq.authhub.domain.identity.profile.vo.UserProfileId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -209,27 +210,4 @@ public class RegisterUserService implements RegisterUserUseCase {
         );
     }
 
-    /**
-     * Identifier 중복 예외.
-     *
-     * @author AuthHub Team
-     * @since 1.0.0
-     */
-    public static class DuplicateIdentifierException extends RuntimeException {
-        public DuplicateIdentifierException(final String message) {
-            super(message);
-        }
-    }
-
-    /**
-     * Nickname 중복 예외.
-     *
-     * @author AuthHub Team
-     * @since 1.0.0
-     */
-    public static class DuplicateNicknameException extends RuntimeException {
-        public DuplicateNicknameException(final String message) {
-            super(message);
-        }
-    }
 }
