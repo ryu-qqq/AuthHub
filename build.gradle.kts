@@ -25,18 +25,6 @@ allprojects {
 // Subproject Configuration
 // ========================================
 subprojects {
-    // persistence-redis는 별도 설정 (Netty 의존성 충돌 방지)
-    if (name == "persistence-redis") {
-        apply(plugin = "java")
-
-        java {
-            sourceCompatibility = JavaVersion.VERSION_21
-            targetCompatibility = JavaVersion.VERSION_21
-        }
-
-        return@subprojects
-    }
-
     apply(plugin = "java")
     apply(plugin = "checkstyle")
     apply(plugin = "com.github.spotbugs")
