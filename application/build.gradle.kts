@@ -28,7 +28,16 @@ dependencies {
 tasks.named<Test>("test") {
     useJUnitPlatform {
         // Test tag filtering: Set via -Dtest.tags=unit,integration in gradlew command
-        // Example: ./gradlew test -Dtest.tags=unit
+        // CLI Example: ./gradlew test -Dtest.tags=unit
+        //
+        // IDE Setup (IntelliJ IDEA):
+        //   1. Run → Edit Configurations
+        //   2. Select JUnit configuration
+        //   3. VM options: -Dtest.tags=unit
+        //
+        // IDE Setup (Eclipse):
+        //   1. Run → Run Configurations
+        //   2. Arguments tab → VM arguments: -Dtest.tags=unit
         val testTags = System.getProperty("test.tags")
         if (!testTags.isNullOrBlank()) {
             includeTags(testTags)

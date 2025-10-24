@@ -160,14 +160,14 @@ public class RegisterUserService implements RegisterUserUseCase {
                 command.identifier()
         )) {
             throw new DuplicateIdentifierException(
-                    "Identifier already exists: " + command.credentialType() + " - " + command.identifier()
+                    "Identifier already exists: credentialType=" + command.credentialType() + ", identifier=" + command.identifier()
             );
         }
 
         // Nickname 중복 확인
         if (checkDuplicateNicknamePort.existsByNickname(command.nickname())) {
             throw new DuplicateNicknameException(
-                    "Nickname already exists: " + command.nickname()
+                    "Nickname already exists: nickname=" + command.nickname()
             );
         }
     }
