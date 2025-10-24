@@ -168,13 +168,8 @@ public class LoginService implements LoginUseCase {
      * @throws InvalidCredentialException 비밀번호가 일치하지 않거나 credentialType이 유효하지 않은 경우
      */
     private UserCredential loadAndValidateCredential(final Command command) {
-        // Command → Domain Value Object 변환
-        final CredentialType credentialType;
-        try {
-            credentialType = CredentialType.valueOf(command.credentialType().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new InvalidCredentialException("Invalid credentialType: " + command.credentialType());
-        }
+        // Command → Domain Value Object 변환 (CredentialType.fromString()으로 위임)
+        final CredentialType credentialType = CredentialType.fromString(command.credentialType());
         final Identifier identifier = Identifier.of(credentialType, command.identifier());
 
         // Credential 조회
