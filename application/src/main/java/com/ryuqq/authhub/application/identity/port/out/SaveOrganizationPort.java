@@ -49,12 +49,12 @@ public interface SaveOrganizationPort {
      * Organization Aggregate를 저장합니다.
      *
      * <p>신규 Organization을 생성하거나 기존 Organization을 업데이트합니다.
-     * JPA의 경우 ID 존재 여부로 INSERT/UPDATE를 자동 판단합니다.</p>
+     * 영속성 기술의 경우 ID 존재 여부로 INSERT/UPDATE를 자동 판단합니다.</p>
      *
      * @param organization 저장할 Organization Aggregate (null 불가)
      * @return 저장된 Organization Aggregate (ID가 할당된 상태)
      * @throws IllegalArgumentException organization이 null인 경우
-     * @throws DataIntegrityViolationException 조직명 중복 등 제약 조건 위반 시
+     * @throws RuntimeException 조직명 중복 등 데이터 무결성 제약 조건 위반 시
      * @author AuthHub Team
      * @since 1.0.0
      */

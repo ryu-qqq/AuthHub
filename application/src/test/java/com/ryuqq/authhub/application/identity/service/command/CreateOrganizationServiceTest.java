@@ -201,7 +201,7 @@ class CreateOrganizationServiceTest {
         // When & Then: UserId 파싱 실패
         assertThatThrownBy(() -> createOrganizationService.create(invalidCommand))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid userId format")
+                .hasMessageContaining("Invalid UUID format")
                 .hasMessageContaining("invalid-uuid-format");
 
         // Then: 저장 Port는 호출되지 않음
@@ -237,14 +237,25 @@ class CreateOrganizationServiceTest {
     @Test
     @DisplayName("❌ 예외: 너무 짧은 organizationName으로 IllegalArgumentException 발생")
     void create_WithTooShortOrganizationName_ShouldThrowIllegalArgumentException() {
-        // When & Then: 1자 organizationName으로 Command 생성 시도
-        assertThatThrownBy(() -> new CreateOrganizationUseCase.Command(
+        // Given: 1자 조직명 Command
+        final CreateOrganizationUseCase.Command invalidCommand = new CreateOrganizationUseCase.Command(
                 "123e4567-e89b-12d3-a456-426614174000",
                 "SELLER",
                 "A"
-        ))
+        );
+
+        // Given: 조직명 중복 없음
+        given(checkDuplicateOrganizationNamePort.existsByName(eq("A")))
+                .willReturn(false);
+
+        // When & Then: OrganizationName VO에서 길이 검증 실패 (Domain Layer 책임)
+        assertThatThrownBy(() -> createOrganizationService.create(invalidCommand))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("organizationName must be between 2 and 100 characters");
+                .hasMessageContaining("Organization name length must be between")
+                .hasMessageContaining("2 and 100 characters");
+
+        // Then: 저장 Port는 호출되지 않음
+        then(saveOrganizationPort).should(never()).save(any(Organization.class));
     }
 
     @Test
@@ -253,14 +264,25 @@ class CreateOrganizationServiceTest {
         // Given: 101자 조직명
         final String longName = "A".repeat(101);
 
-        // When & Then: 101자 organizationName으로 Command 생성 시도
-        assertThatThrownBy(() -> new CreateOrganizationUseCase.Command(
+        // Given: 101자 조직명 Command
+        final CreateOrganizationUseCase.Command invalidCommand = new CreateOrganizationUseCase.Command(
                 "123e4567-e89b-12d3-a456-426614174000",
                 "SELLER",
                 longName
-        ))
+        );
+
+        // Given: 조직명 중복 없음
+        given(checkDuplicateOrganizationNamePort.existsByName(eq(longName)))
+                .willReturn(false);
+
+        // When & Then: OrganizationName VO에서 길이 검증 실패 (Domain Layer 책임)
+        assertThatThrownBy(() -> createOrganizationService.create(invalidCommand))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("organizationName must be between 2 and 100 characters");
+                .hasMessageContaining("Organization name length must be between")
+                .hasMessageContaining("2 and 100 characters");
+
+        // Then: 저장 Port는 호출되지 않음
+        then(saveOrganizationPort).should(never()).save(any(Organization.class));
     }
 
     @Test

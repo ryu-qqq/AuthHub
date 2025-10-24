@@ -75,10 +75,13 @@ public interface CreateOrganizationUseCase {
             String organizationType,
             String organizationName
     ) {
+        private static final int MAX_ORGANIZATION_TYPE_LENGTH = 50;
+
         /**
          * Compact Constructor - 입력값 검증.
+         * Domain Layer에서 수행하는 길이 검증과 중복을 방지하기 위해 null/blank만 검증합니다.
          *
-         * @throws IllegalArgumentException 필수 파라미터가 null이거나 형식이 잘못된 경우
+         * @throws IllegalArgumentException 필수 파라미터가 null이거나 공백인 경우
          */
         public Command {
             if (userId == null || userId.isBlank()) {
@@ -89,16 +92,12 @@ public interface CreateOrganizationUseCase {
                 throw new IllegalArgumentException("organizationType cannot be null or blank");
             }
 
-            if (organizationType.length() > 50) {
-                throw new IllegalArgumentException("organizationType cannot exceed 50 characters");
+            if (organizationType.length() > MAX_ORGANIZATION_TYPE_LENGTH) {
+                throw new IllegalArgumentException("organizationType cannot exceed " + MAX_ORGANIZATION_TYPE_LENGTH + " characters");
             }
 
             if (organizationName == null || organizationName.isBlank()) {
                 throw new IllegalArgumentException("organizationName cannot be null or blank");
-            }
-
-            if (organizationName.length() < 2 || organizationName.length() > 100) {
-                throw new IllegalArgumentException("organizationName must be between 2 and 100 characters");
             }
         }
     }

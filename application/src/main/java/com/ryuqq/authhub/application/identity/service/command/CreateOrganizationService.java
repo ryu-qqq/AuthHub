@@ -11,8 +11,6 @@ import com.ryuqq.authhub.domain.identity.organization.vo.OrganizationType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 /**
  * CreateOrganization Service - CreateOrganizationUseCase 구현체.
  *
@@ -106,10 +104,10 @@ public class CreateOrganizationService implements CreateOrganizationUseCase {
     @Transactional
     public Response create(final Command command) {
         // ✅ 1. 조직명 중복 확인
-        validateNoDuplicates(command);
+        validateNoDuplicates(command.organizationName());
 
         // ✅ 2. UserId 변환
-        final UserId ownerId = parseUserId(command.userId());
+        final UserId ownerId = UserId.fromString(command.userId());
 
         // ✅ 3. OrganizationType 검증 및 변환
         final OrganizationType organizationType = OrganizationType.fromString(command.organizationType());
@@ -124,37 +122,21 @@ public class CreateOrganizationService implements CreateOrganizationUseCase {
         final Organization savedOrganization = saveOrganizationPort.save(organization);
 
         // ✅ 7. Response 생성 및 반환
-        return new Response(savedOrganization.getId().asString());
+        return new Response(savedOrganization.getIdAsString());
     }
 
     /**
      * 조직명 중복 여부를 확인합니다.
      *
-     * @param command 조직 생성 Command
+     * @param organizationName 조직명
      * @throws DuplicateOrganizationNameException 조직명이 이미 존재하는 경우
      */
-    private void validateNoDuplicates(final Command command) {
+    private void validateNoDuplicates(final String organizationName) {
         // 조직명 중복 확인
-        if (checkDuplicateOrganizationNamePort.existsByName(command.organizationName())) {
+        if (checkDuplicateOrganizationNamePort.existsByName(organizationName)) {
             throw new DuplicateOrganizationNameException(
-                    "Organization name already exists: organizationName=" + command.organizationName()
+                    "Organization name already exists: organizationName=" + organizationName
             );
-        }
-    }
-
-    /**
-     * UserId를 문자열에서 파싱합니다.
-     *
-     * @param userIdString UserId 문자열 (UUID)
-     * @return UserId Value Object
-     * @throws IllegalArgumentException userId가 유효하지 않은 UUID 형식인 경우
-     */
-    private UserId parseUserId(final String userIdString) {
-        try {
-            final UUID uuid = UUID.fromString(userIdString);
-            return UserId.from(uuid);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid userId format: " + userIdString, e);
         }
     }
 
