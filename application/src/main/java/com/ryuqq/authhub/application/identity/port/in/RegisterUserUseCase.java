@@ -45,8 +45,8 @@ public interface RegisterUserUseCase {
      *
      * @param command 사용자 등록 요청 정보 (credentialType, identifier, password, nickname)
      * @return Response 생성된 사용자 정보 (userId, credentialId)
-     * @throws com.ryuqq.authhub.application.identity.exception.DuplicateIdentifierException identifier가 이미 존재하는 경우
-     * @throws com.ryuqq.authhub.application.identity.exception.DuplicateNicknameException nickname이 이미 존재하는 경우
+     * @throws DuplicateIdentifierException identifier가 이미 존재하는 경우
+     * @throws DuplicateNicknameException nickname이 이미 존재하는 경우
      * @throws IllegalArgumentException 입력값이 유효하지 않은 경우
      * @author AuthHub Team
      * @since 1.0.0
@@ -82,8 +82,16 @@ public interface RegisterUserUseCase {
                 throw new IllegalArgumentException("credentialType cannot be null or blank");
             }
 
+            if (credentialType.length() > 50) {
+                throw new IllegalArgumentException("credentialType cannot exceed 50 characters");
+            }
+
             if (identifier == null || identifier.isBlank()) {
                 throw new IllegalArgumentException("identifier cannot be null or blank");
+            }
+
+            if (identifier.length() > 100) {
+                throw new IllegalArgumentException("identifier cannot exceed 100 characters");
             }
 
             if (password == null || password.isBlank()) {
@@ -92,6 +100,10 @@ public interface RegisterUserUseCase {
 
             if (password.length() < 8) {
                 throw new IllegalArgumentException("password must be at least 8 characters");
+            }
+
+            if (password.length() > 100) {
+                throw new IllegalArgumentException("password cannot exceed 100 characters");
             }
 
             if (nickname == null || nickname.isBlank()) {

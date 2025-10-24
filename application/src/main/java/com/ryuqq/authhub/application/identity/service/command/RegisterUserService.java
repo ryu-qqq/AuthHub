@@ -160,7 +160,7 @@ public class RegisterUserService implements RegisterUserUseCase {
                 command.identifier()
         )) {
             throw new DuplicateIdentifierException(
-                    "Identifier already exists: " + command.identifier()
+                    "Identifier already exists: " + command.credentialType() + " - " + command.identifier()
             );
         }
 

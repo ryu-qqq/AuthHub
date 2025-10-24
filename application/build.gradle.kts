@@ -27,6 +27,8 @@ dependencies {
 // Test 태그 구분 (Unit vs Integration)
 tasks.named<Test>("test") {
     useJUnitPlatform {
+        // Test tag filtering: Set via -Dtest.tags=unit,integration in gradlew command
+        // Example: ./gradlew test -Dtest.tags=unit
         val testTags = System.getProperty("test.tags")
         if (!testTags.isNullOrBlank()) {
             includeTags(testTags)
