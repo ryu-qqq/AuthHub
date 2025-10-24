@@ -53,7 +53,7 @@ class TokenEntityMapperTest {
         Token token = Token.create(
                 testUserId,
                 TokenType.REFRESH,
-                JwtToken.of("TEST_JWT_TOKEN"),
+                JwtToken.from("TEST_JWT_TOKEN"),
                 Duration.ofDays(14)
         );
 
@@ -76,7 +76,7 @@ class TokenEntityMapperTest {
         Token accessToken = Token.create(
                 testUserId,
                 TokenType.ACCESS,
-                JwtToken.of("TEST_ACCESS_TOKEN"),
+                JwtToken.from("TEST_ACCESS_TOKEN"),
                 Duration.ofMinutes(15)
         );
 
@@ -139,7 +139,7 @@ class TokenEntityMapperTest {
         Token originalToken = Token.create(
                 testUserId,
                 TokenType.REFRESH,
-                JwtToken.of("TEST_JWT_TOKEN"),
+                JwtToken.from("TEST_JWT_TOKEN"),
                 Duration.ofDays(14)
         );
 

@@ -108,9 +108,9 @@ public class TokenEntityMapper {
                 TokenId.fromString(entity.getTokenId()),
                 UserId.fromString(entity.getUserId()),
                 TokenType.REFRESH,
-                JwtToken.of(entity.getJwtToken()),
-                fromEpochMillis(entity.getIssuedAt()),
-                fromEpochMillis(entity.getExpiresAt())
+                JwtToken.from(entity.getJwtToken()),
+                fromEpochMillisToIssuedAt(entity.getIssuedAt()),
+                fromEpochMillisToExpiresAt(entity.getExpiresAt())
         );
     }
 
@@ -151,7 +151,7 @@ public class TokenEntityMapper {
      * @author AuthHub Team
      * @since 1.0.0
      */
-    private IssuedAt fromEpochMillis(final Long epochMillis) {
+    private IssuedAt fromEpochMillisToIssuedAt(final Long epochMillis) {
         Objects.requireNonNull(epochMillis, "IssuedAt epoch millis cannot be null");
         return IssuedAt.from(Instant.ofEpochMilli(epochMillis));
     }
@@ -165,7 +165,7 @@ public class TokenEntityMapper {
      * @author AuthHub Team
      * @since 1.0.0
      */
-    private ExpiresAt fromEpochMillis(final Long epochMillis) {
+    private ExpiresAt fromEpochMillisToExpiresAt(final Long epochMillis) {
         Objects.requireNonNull(epochMillis, "ExpiresAt epoch millis cannot be null");
         return ExpiresAt.from(Instant.ofEpochMilli(epochMillis));
     }

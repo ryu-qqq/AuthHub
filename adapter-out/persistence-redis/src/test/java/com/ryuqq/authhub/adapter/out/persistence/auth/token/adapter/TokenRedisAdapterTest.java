@@ -69,7 +69,7 @@ class TokenRedisAdapterTest {
         testToken = Token.create(
                 testUserId,
                 TokenType.REFRESH,
-                JwtToken.of("TEST_JWT_TOKEN"),
+                JwtToken.from("TEST_JWT_TOKEN"),
                 Duration.ofDays(14)
         );
 
