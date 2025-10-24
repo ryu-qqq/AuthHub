@@ -46,8 +46,17 @@ import java.util.UUID;
  * @author AuthHub Team
  * @since 1.0.0
  */
-@RedisHash(value = "refresh_token", timeToLive = 1209600) // 14 days (60 * 60 * 24 * 14)
+@RedisHash(value = "refresh_token", timeToLive = 1_209_600) // RefreshTokenRedisEntity.REFRESH_TOKEN_TTL_SECONDS
 public class RefreshTokenRedisEntity {
+
+    /**
+     * Refresh Token의 TTL(Time To Live) 값.
+     * 14일 = 14 * 24 * 60 * 60 = 1,209,600초
+     *
+     * <p>주의: {@code @RedisHash} 어노테이션의 timeToLive 속성은 컴파일 타임 상수만 허용하므로,
+     * 어노테이션에는 직접 숫자를 사용하고 테스트 코드에서는 이 상수를 참조합니다.</p>
+     */
+    public static final long REFRESH_TOKEN_TTL_SECONDS = 14 * 24 * 60 * 60L;
 
     @Id
     private String tokenId;
