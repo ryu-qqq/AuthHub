@@ -135,6 +135,7 @@ public record OrganizationName(String value) {
 
     /**
      * 주어진 문자열이 유효한 조직명 형식인지 검증합니다 (정적 헬퍼 메서드).
+     * 생성자의 유효성 검증 로직을 재사용하여 중복을 제거합니다.
      *
      * @param value 검증 대상 문자열
      * @return 유효하면 true, 그렇지 않으면 false
@@ -142,19 +143,11 @@ public record OrganizationName(String value) {
      * @since 1.0.0
      */
     public static boolean isValid(final String value) {
-        if (value == null || value.trim().isEmpty()) {
+        try {
+            new OrganizationName(value);
+            return true;
+        } catch (final IllegalArgumentException e) {
             return false;
         }
-        if (!value.equals(value.trim())) {
-            return false;
-        }
-        if (value.contains("  ")) {
-            return false;
-        }
-        final int length = value.length();
-        if (length < MIN_LENGTH || length > MAX_LENGTH) {
-            return false;
-        }
-        return value.matches(NAME_PATTERN);
     }
 }

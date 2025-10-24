@@ -107,16 +107,7 @@ public final class Organization {
      * @since 1.0.0
      */
     public static Organization createSeller(final UserId ownerId, final OrganizationName name) {
-        final Instant now = Instant.now();
-        return new Organization(
-                OrganizationId.newId(),
-                ownerId,
-                name,
-                OrganizationType.SELLER,
-                OrganizationStatus.ACTIVE,
-                now,
-                now
-        );
+        return create(ownerId, name, OrganizationType.SELLER);
     }
 
     /**
@@ -131,12 +122,32 @@ public final class Organization {
      * @since 1.0.0
      */
     public static Organization createCompany(final UserId ownerId, final OrganizationName name) {
+        return create(ownerId, name, OrganizationType.COMPANY);
+    }
+
+    /**
+     * 지정된 타입의 조직을 생성하는 공통 헬퍼 메서드.
+     * 조직 생성 로직의 중복을 제거하고 일관성을 보장합니다.
+     *
+     * @param ownerId 소유자 식별자 (null 불가)
+     * @param name 조직명 (null 불가)
+     * @param type 조직 타입 (null 불가)
+     * @return 지정된 타입의 새로운 Organization 인스턴스
+     * @throws NullPointerException ownerId, name 또는 type이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    private static Organization create(
+            final UserId ownerId,
+            final OrganizationName name,
+            final OrganizationType type
+    ) {
         final Instant now = Instant.now();
         return new Organization(
                 OrganizationId.newId(),
                 ownerId,
                 name,
-                OrganizationType.COMPANY,
+                type,
                 OrganizationStatus.ACTIVE,
                 now,
                 now
