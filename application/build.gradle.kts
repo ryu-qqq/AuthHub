@@ -24,4 +24,14 @@ dependencies {
     testImplementation(libs.assertj.core)
 }
 
+// Test 태그 구분 (Unit vs Integration)
+tasks.named<Test>("test") {
+    useJUnitPlatform {
+        val testTags = System.getProperty("test.tags")
+        if (!testTags.isNullOrBlank()) {
+            includeTags(testTags)
+        }
+    }
+}
+
 description = "AuthHub Application Layer - Use cases and application services"
