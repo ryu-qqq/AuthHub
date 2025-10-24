@@ -44,22 +44,23 @@ public class AuthApiMapper {
      * <p>API Layer의 요청 DTO를 Application Layer의 Command Record로 변환합니다.
      * 필드명이 동일하므로 단순 매핑만 수행합니다.</p>
      *
-     * @param request 로그인 API 요청 DTO
+     * <p><strong>Record 패턴:</strong></p>
+     * <ul>
+     *   <li>Record는 자동으로 null-safe 생성자를 제공하므로 명시적 null 체크 불필요</li>
+     *   <li>Getter 메서드명이 필드명과 동일 (getXxx() → xxx())</li>
+     * </ul>
+     *
+     * @param request 로그인 API 요청 DTO (Record)
      * @return LoginUseCase.Command
-     * @throws NullPointerException request가 null인 경우
      * @author AuthHub Team
      * @since 1.0.0
      */
     public LoginUseCase.Command toCommand(final LoginApiRequest request) {
-        if (request == null) {
-            throw new NullPointerException("LoginApiRequest cannot be null");
-        }
-
         return new LoginUseCase.Command(
-                request.getCredentialType(),
-                request.getIdentifier(),
-                request.getPassword(),
-                request.getPlatform()
+                request.credentialType(),
+                request.identifier(),
+                request.password(),
+                request.platform()
         );
     }
 
@@ -69,17 +70,18 @@ public class AuthApiMapper {
      * <p>Application Layer의 Response Record를 API Layer의 응답 DTO로 변환합니다.
      * 필드명이 동일하므로 단순 매핑만 수행합니다.</p>
      *
-     * @param response 로그인 UseCase 응답
-     * @return LoginApiResponse
-     * @throws NullPointerException response가 null인 경우
+     * <p><strong>Record 패턴:</strong></p>
+     * <ul>
+     *   <li>Record는 자동으로 null-safe 생성자를 제공하므로 명시적 null 체크 불필요</li>
+     *   <li>Record끼리 변환 시 필드명과 타입이 동일하면 직접 매핑</li>
+     * </ul>
+     *
+     * @param response 로그인 UseCase 응답 (Record)
+     * @return LoginApiResponse (Record)
      * @author AuthHub Team
      * @since 1.0.0
      */
     public LoginApiResponse toApiResponse(final LoginUseCase.Response response) {
-        if (response == null) {
-            throw new NullPointerException("LoginUseCase.Response cannot be null");
-        }
-
         return new LoginApiResponse(
                 response.accessToken(),
                 response.refreshToken(),
