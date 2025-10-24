@@ -2,6 +2,7 @@ package com.ryuqq.authhub.domain.auth.token;
 
 import com.ryuqq.authhub.domain.auth.user.UserId;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
@@ -88,7 +89,7 @@ public final class Token {
 
     /**
      * 새로운 Token을 생성합니다.
-     * 발급 시각은 현재 시각으로 설정되고, 만료 시각은 유효 기간을 더한 값으로 계산됩니다.
+     * 발급 시각은 현재 시각(시스템 기본 Clock UTC)으로 설정되고, 만료 시각은 유효 기간을 더한 값으로 계산됩니다.
      *
      * @param userId 사용자 식별자 (null 불가)
      * @param type 토큰 타입 (null 불가)
@@ -106,7 +107,36 @@ public final class Token {
             final JwtToken jwtToken,
             final Duration validity
     ) {
-        final IssuedAt issuedAt = IssuedAt.now();
+        return create(userId, type, jwtToken, validity, Clock.systemUTC());
+    }
+
+    /**
+     * 새로운 Token을 생성합니다.
+     * 지정된 Clock의 현재 시각을 발급 시각으로 사용하며, 테스트 시 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param userId 사용자 식별자 (null 불가)
+     * @param type 토큰 타입 (null 불가)
+     * @param jwtToken JWT 토큰 값 (null 불가)
+     * @param validity 유효 기간 (null 불가, 양수)
+     * @param clock 시각 제공자 (null 불가)
+     * @return 새로 생성된 Token 인스턴스
+     * @throws NullPointerException 인자가 null인 경우
+     * @throws IllegalArgumentException validity가 음수이거나 clock이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public static Token create(
+            final UserId userId,
+            final TokenType type,
+            final JwtToken jwtToken,
+            final Duration validity,
+            final Clock clock
+    ) {
+        if (clock == null) {
+            throw new IllegalArgumentException("Clock cannot be null");
+        }
+
+        final IssuedAt issuedAt = IssuedAt.now(clock);
         final ExpiresAt expiresAt = issuedAt.calculateExpiresAt(validity);
 
         return new Token(
@@ -212,6 +242,7 @@ public final class Token {
 
     /**
      * 토큰이 만료되었는지 확인합니다.
+     * 시스템 기본 Clock(UTC)을 사용합니다.
      * Law of Demeter 준수 - expiresAt.isExpired()를 직접 호출하지 않고 Token에서 제공
      *
      * @return 만료되었으면 true, 아니면 false
@@ -220,6 +251,20 @@ public final class Token {
      */
     public boolean isExpired() {
         return this.expiresAt.isExpired();
+    }
+
+    /**
+     * 토큰이 지정된 Clock의 현재 시각 기준으로 만료되었는지 확인합니다.
+     * 테스트 시 Clock을 고정하여 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param clock 현재 시각을 제공하는 Clock (null 불가)
+     * @return 만료되었으면 true, 아니면 false
+     * @throws IllegalArgumentException clock이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public boolean isExpired(final Clock clock) {
+        return this.expiresAt.isExpired(clock);
     }
 
     /**
@@ -259,6 +304,7 @@ public final class Token {
 
     /**
      * 토큰의 남은 유효 시간을 계산합니다.
+     * 시스템 기본 Clock(UTC)을 사용합니다.
      *
      * @return 남은 시간 Duration (만료된 경우 음수)
      * @author AuthHub Team
@@ -269,7 +315,22 @@ public final class Token {
     }
 
     /**
+     * 지정된 Clock의 현재 시각 기준으로 토큰의 남은 유효 시간을 계산합니다.
+     * 테스트 시 Clock을 고정하여 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param clock 현재 시각을 제공하는 Clock (null 불가)
+     * @return 남은 시간 Duration (만료된 경우 음수)
+     * @throws IllegalArgumentException clock이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public Duration remainingValidity(final Clock clock) {
+        return this.expiresAt.remainingTime(clock);
+    }
+
+    /**
      * 토큰 발급 후 경과 시간을 계산합니다.
+     * 시스템 기본 Clock(UTC)을 사용합니다.
      *
      * @return 경과 시간 Duration (항상 양수)
      * @author AuthHub Team
@@ -277,6 +338,20 @@ public final class Token {
      */
     public Duration age() {
         return this.issuedAt.age();
+    }
+
+    /**
+     * 지정된 Clock의 현재 시각 기준으로 토큰 발급 후 경과 시간을 계산합니다.
+     * 테스트 시 Clock을 고정하여 시간 의존성을 제어할 수 있습니다.
+     *
+     * @param clock 현재 시각을 제공하는 Clock (null 불가)
+     * @return 경과 시간 Duration
+     * @throws IllegalArgumentException clock이 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public Duration age(final Clock clock) {
+        return this.issuedAt.age(clock);
     }
 
     /**

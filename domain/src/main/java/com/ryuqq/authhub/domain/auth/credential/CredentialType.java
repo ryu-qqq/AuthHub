@@ -108,6 +108,50 @@ public enum CredentialType {
     }
 
     /**
+     * 문자열로부터 CredentialType을 생성합니다.
+     *
+     * <p>Enum 상수 이름(EMAIL, PHONE, USERNAME)으로부터 CredentialType을 생성합니다.
+     * 대소문자를 구분하지 않으며, 앞뒤 공백은 제거됩니다.</p>
+     *
+     * <p><strong>사용 예시:</strong></p>
+     * <pre>
+     * CredentialType.fromString("EMAIL")     → CredentialType.EMAIL
+     * CredentialType.fromString("email")     → CredentialType.EMAIL
+     * CredentialType.fromString(" phone ")   → CredentialType.PHONE
+     * CredentialType.fromString("INVALID")   → InvalidCredentialException
+     * </pre>
+     *
+     * @param type Enum 상수 이름 (EMAIL, PHONE, USERNAME - 대소문자 무관)
+     * @return 매칭되는 CredentialType
+     * @throws com.ryuqq.authhub.domain.auth.credential.exception.InvalidCredentialException
+     *         type이 null이거나 유효하지 않은 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public static CredentialType fromString(final String type) {
+        if (type == null) {
+            throw new com.ryuqq.authhub.domain.auth.credential.exception.InvalidCredentialException(
+                    "credentialType cannot be null"
+            );
+        }
+
+        final String normalizedType = type.trim().toUpperCase();
+        if (normalizedType.isEmpty()) {
+            throw new com.ryuqq.authhub.domain.auth.credential.exception.InvalidCredentialException(
+                    "credentialType cannot be empty"
+            );
+        }
+
+        try {
+            return CredentialType.valueOf(normalizedType);
+        } catch (final IllegalArgumentException e) {
+            throw new com.ryuqq.authhub.domain.auth.credential.exception.InvalidCredentialException(
+                    "Invalid credentialType: " + type + " (expected: EMAIL, PHONE, USERNAME)"
+            );
+        }
+    }
+
+    /**
      * 이메일 기반 인증 타입인지 확인합니다.
      *
      * @return EMAIL 타입이면 true, 아니면 false
