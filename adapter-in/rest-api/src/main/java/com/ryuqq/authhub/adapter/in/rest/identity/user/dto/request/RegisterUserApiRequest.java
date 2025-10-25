@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.identity.user.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -21,7 +22,7 @@ import jakarta.validation.constraints.Size;
  *
  * <p><strong>Validation 규칙:</strong></p>
  * <ul>
- *   <li>credentialType: null 불가, 공백 불가, 최대 50자 (예: "EMAIL", "PHONE", "USERNAME")</li>
+ *   <li>credentialType: EMAIL, PHONE, USERNAME 중 하나 (대소문자 구분 없음)</li>
  *   <li>identifier: null 불가, 공백 불가, 최대 100자 (예: "user@example.com", "01012345678")</li>
  *   <li>password: null 불가, 공백 불가, 8~100자 (평문 비밀번호, 서버에서 암호화)</li>
  *   <li>nickname: null 불가, 공백 불가, 2~20자 (중복 불가, 서버에서 검증)</li>
@@ -44,7 +45,8 @@ import jakarta.validation.constraints.Size;
  */
 public record RegisterUserApiRequest(
         @NotBlank(message = "credentialType cannot be null or blank")
-        @Size(max = 50, message = "credentialType cannot exceed 50 characters")
+        @Pattern(regexp = "^(EMAIL|PHONE|USERNAME)$", flags = Pattern.Flag.CASE_INSENSITIVE,
+                message = "credentialType must be one of: EMAIL, PHONE, USERNAME")
         String credentialType,
 
         @NotBlank(message = "identifier cannot be null or blank")

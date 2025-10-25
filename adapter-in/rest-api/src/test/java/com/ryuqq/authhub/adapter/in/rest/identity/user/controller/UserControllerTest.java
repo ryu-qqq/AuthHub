@@ -277,4 +277,29 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
+
+    /**
+     * credentialType이 허용되지 않은 값이면 400 Bad Request를 반환하는지 검증합니다.
+     *
+     * @throws Exception MockMvc 요청 실행 중 발생하는 예외
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    @Test
+    @DisplayName("credentialType이 허용되지 않은 값이면 400 Bad Request를 반환한다")
+    void register_InvalidCredentialType_ReturnsBadRequest() throws Exception {
+        // Given
+        final RegisterUserApiRequest request = new RegisterUserApiRequest(
+                "INVALID_TYPE",  // 허용되지 않은 credentialType
+                "test@example.com",
+                "password123!",
+                "testuser"
+        );
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
 }
