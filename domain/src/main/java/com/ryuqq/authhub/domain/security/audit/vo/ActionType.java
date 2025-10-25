@@ -1,5 +1,7 @@
 package com.ryuqq.authhub.domain.security.audit.vo;
 
+import java.util.EnumSet;
+
 /**
  * 감사 로그의 액션 타입을 나타내는 Enum.
  * 시스템에서 발생하는 주요 행위를 분류합니다.
@@ -18,6 +20,7 @@ package com.ryuqq.authhub.domain.security.audit.vo;
  *   <li>✅ Lombok 금지 - Plain Java Enum</li>
  *   <li>✅ 불변성 보장 - Enum의 본질적 불변성</li>
  *   <li>✅ Law of Demeter 준수</li>
+ *   <li>✅ EnumSet 활용 - 성능 최적화</li>
  * </ul>
  *
  * @author AuthHub Team
@@ -142,6 +145,20 @@ public enum ActionType {
     }
 
     /**
+     * 데이터 변경 액션 그룹.
+     * EnumSet을 사용하여 비트 벡터 기반으로 빠르고 효율적으로 관리합니다.
+     */
+    private static final EnumSet<ActionType> DATA_MODIFICATION_ACTIONS =
+            EnumSet.of(CREATE, UPDATE, DELETE);
+
+    /**
+     * 인증 관련 액션 그룹.
+     * EnumSet을 사용하여 비트 벡터 기반으로 빠르고 효율적으로 관리합니다.
+     */
+    private static final EnumSet<ActionType> AUTHENTICATION_ACTIONS =
+            EnumSet.of(LOGIN, LOGOUT);
+
+    /**
      * 데이터 변경 액션인지 확인합니다.
      * CREATE, UPDATE, DELETE를 데이터 변경 액션으로 간주합니다.
      *
@@ -150,7 +167,7 @@ public enum ActionType {
      * @since 1.0.0
      */
     public boolean isDataModification() {
-        return this == CREATE || this == UPDATE || this == DELETE;
+        return DATA_MODIFICATION_ACTIONS.contains(this);
     }
 
     /**
@@ -162,6 +179,6 @@ public enum ActionType {
      * @since 1.0.0
      */
     public boolean isAuthenticationAction() {
-        return this == LOGIN || this == LOGOUT;
+        return AUTHENTICATION_ACTIONS.contains(this);
     }
 }

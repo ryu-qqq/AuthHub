@@ -406,9 +406,19 @@ class AuditLogTest {
                 UserAgent.of("Mozilla/5.0")
         );
 
+        AuditLog withBlankResourceId = AuditLog.create(
+                UserId.newId(),
+                ActionType.UPDATE,
+                ResourceType.USER,
+                "   ",
+                IpAddress.of("192.168.0.1"),
+                UserAgent.of("Mozilla/5.0")
+        );
+
         // when & then
         assertThat(withResourceId.hasResourceId()).isTrue();
         assertThat(withoutResourceId.hasResourceId()).isFalse();
+        assertThat(withBlankResourceId.hasResourceId()).isFalse();
     }
 
     @Test

@@ -282,6 +282,8 @@ class ApplicationLayerArchTest {
                     .and().areDeclaredInClassesThat().resideInAPackage("..service.command..")
                     .and().arePublic()
                     .and().areNotStatic()
+                    // RateLimitService 예외: Redis 기반 서비스는 @Transactional 불필요 (자체 원자성 보장)
+                    .and().areDeclaredInClassesThat().haveNameNotMatching(".*RateLimitService")
                     .should().beAnnotatedWith(org.springframework.transaction.annotation.Transactional.class);
 
             rule.check(applicationClasses);
