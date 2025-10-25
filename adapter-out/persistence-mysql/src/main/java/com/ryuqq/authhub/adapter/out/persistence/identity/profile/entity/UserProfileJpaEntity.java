@@ -286,7 +286,6 @@ public class UserProfileJpaEntity {
      */
     void setNickname(final String nickname) {
         this.nickname = Objects.requireNonNull(nickname, "nickname cannot be null");
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -299,7 +298,6 @@ public class UserProfileJpaEntity {
      */
     void setProfileImageUrl(final String profileImageUrl) {
         this.profileImageUrl = profileImageUrl; // nullable
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -312,7 +310,6 @@ public class UserProfileJpaEntity {
      */
     void setBio(final String bio) {
         this.bio = bio; // nullable
-        this.updatedAt = Instant.now();
     }
 
     /**

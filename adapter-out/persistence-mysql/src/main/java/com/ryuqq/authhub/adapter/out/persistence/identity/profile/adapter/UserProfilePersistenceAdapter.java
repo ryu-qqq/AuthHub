@@ -113,17 +113,15 @@ public class UserProfilePersistenceAdapter implements SaveUserProfilePort, Check
         final String uid = profile.getId().asString();
         final Long userIdAsLong = userIdResolver.resolveToLongId(profile.getUserId());
 
+        // toEntity() 중복 호출 방지를 위해 한 번만 호출
+        final UserProfileJpaEntity newOrUpdatedEntity = userProfileEntityMapper.toEntity(profile, userIdAsLong);
         final UserProfileJpaEntity entity = userProfileJpaRepository.findByUid(uid)
                 .map(existingEntity -> {
                     // 기존 Entity 업데이트 (JPA Dirty Checking 활용)
-                    final UserProfileJpaEntity updatedEntity = userProfileEntityMapper.toEntity(profile, userIdAsLong);
-                    existingEntity.updateFrom(updatedEntity);
+                    existingEntity.updateFrom(newOrUpdatedEntity);
                     return existingEntity;
                 })
-                .orElseGet(() -> {
-                    // 신규 Entity 생성
-                    return userProfileEntityMapper.toEntity(profile, userIdAsLong);
-                });
+                .orElse(newOrUpdatedEntity);
 
         final UserProfileJpaEntity savedEntity = userProfileJpaRepository.save(entity);
         return userProfileEntityMapper.toDomain(savedEntity);
