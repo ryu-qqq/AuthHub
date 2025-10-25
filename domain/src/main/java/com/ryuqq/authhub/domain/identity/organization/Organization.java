@@ -259,6 +259,18 @@ public final class Organization {
     }
 
     /**
+     * 조직 ID를 문자열로 반환합니다 (Law of Demeter 준수).
+     * getter chaining 방지 - id.asString() 대신 사용.
+     *
+     * @return 조직 ID 문자열
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public String getIdAsString() {
+        return this.id.asString();
+    }
+
+    /**
      * 조직명 문자열을 반환합니다 (Law of Demeter 준수).
      * getter chaining 방지 - name.getValue() 대신 사용.
      *
