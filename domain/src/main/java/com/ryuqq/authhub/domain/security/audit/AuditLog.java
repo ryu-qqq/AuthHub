@@ -460,13 +460,14 @@ public final class AuditLog {
 
     /**
      * 리소스 ID가 있는지 확인합니다.
+     * Java 11의 {@link String#isBlank()}를 사용하여 코드 간결성과 가독성을 개선합니다.
      *
      * @return 리소스 ID가 있으면 true, 아니면 false
      * @author AuthHub Team
      * @since 1.0.0
      */
     public boolean hasResourceId() {
-        return this.resourceId != null && !this.resourceId.trim().isEmpty();
+        return this.resourceId != null && !this.resourceId.isBlank();
     }
 
     /**
