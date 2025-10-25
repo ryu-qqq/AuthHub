@@ -110,7 +110,7 @@ public record UserAgent(String value) {
 
     /**
      * 모바일 User-Agent인지 간단히 추정합니다.
-     * "Mobile", "Android", "iPhone" 키워드 포함 여부로 판단합니다.
+     * "Mobile", "Android", "iPhone", "iPad" 키워드 포함 여부로 판단합니다.
      *
      * @return 모바일로 추정되면 true, 아니면 false
      * @author AuthHub Team
@@ -120,22 +120,27 @@ public record UserAgent(String value) {
         final String lowerCaseValue = this.value.toLowerCase();
         return lowerCaseValue.contains("mobile")
                 || lowerCaseValue.contains("android")
-                || lowerCaseValue.contains("iphone");
+                || lowerCaseValue.contains("iphone")
+                || lowerCaseValue.contains("ipad");
     }
 
     /**
      * 데스크톱 User-Agent인지 간단히 추정합니다.
      * 모바일이 아니고 "Windows", "Mac", "Linux" 키워드 포함 여부로 판단합니다.
+     * toLowerCase() 중복 호출을 제거하여 성능을 최적화합니다.
      *
      * @return 데스크톱으로 추정되면 true, 아니면 false
      * @author AuthHub Team
      * @since 1.0.0
      */
     public boolean isDesktop() {
-        if (isMobile()) {
+        final String lowerCaseValue = this.value.toLowerCase();
+        if (lowerCaseValue.contains("mobile") ||
+            lowerCaseValue.contains("android") ||
+            lowerCaseValue.contains("iphone") ||
+            lowerCaseValue.contains("ipad")) {
             return false;
         }
-        final String lowerCaseValue = this.value.toLowerCase();
         return lowerCaseValue.contains("windows")
                 || lowerCaseValue.contains("mac")
                 || lowerCaseValue.contains("linux");
