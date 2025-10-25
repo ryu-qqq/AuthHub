@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.application.security.ratelimit.service.command;
 
+import com.ryuqq.authhub.application.security.ratelimit.assembler.RateLimitAssembler;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.CheckRateLimitUseCase;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.IncrementRateLimitUseCase;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.ResetRateLimitUseCase;
@@ -73,6 +74,9 @@ class RateLimitServiceTest {
     @Mock
     private ResetRateLimitPort resetRateLimitPort;
 
+    @Mock
+    private RateLimitAssembler rateLimitAssembler;
+
     @InjectMocks
     private RateLimitService rateLimitService;
 
@@ -101,6 +105,12 @@ class RateLimitServiceTest {
                     eq(RateLimitType.IP_BASED)
             )).willReturn(50);
 
+            CheckRateLimitUseCase.Result expectedResult = new CheckRateLimitUseCase.Result(
+                    false, 50, 100, 50, 60
+            );
+            given(rateLimitAssembler.toCheckResult(any(), eq(50)))
+                    .willReturn(expectedResult);
+
             // When: Rate Limit 확인
             CheckRateLimitUseCase.Result result = rateLimitService.checkRateLimit(command);
 
@@ -112,9 +122,11 @@ class RateLimitServiceTest {
             assertThat(result.getRemainingCount()).isEqualTo(50);  // 100 - 50
             assertThat(result.getTimeWindowSeconds()).isEqualTo(60);  // 60초
 
-            // Verify: Port 호출 검증
+            // Verify: Port 및 Assembler 호출 검증
             then(loadRateLimitPort).should(times(1))
                     .loadCurrentCount(anyString(), anyString(), any(RateLimitType.class));
+            then(rateLimitAssembler).should(times(1))
+                    .toCheckResult(any(), eq(50));
         }
 
         @Test
@@ -127,6 +139,12 @@ class RateLimitServiceTest {
                     eq(RateLimitType.IP_BASED)
             )).willReturn(105);
 
+            CheckRateLimitUseCase.Result expectedResult = new CheckRateLimitUseCase.Result(
+                    true, 105, 100, 0, 60
+            );
+            given(rateLimitAssembler.toCheckResult(any(), eq(105)))
+                    .willReturn(expectedResult);
+
             // When: Rate Limit 확인
             CheckRateLimitUseCase.Result result = rateLimitService.checkRateLimit(command);
 
@@ -138,9 +156,11 @@ class RateLimitServiceTest {
             assertThat(result.getRemainingCount()).isEqualTo(0);  // 초과 시 0
             assertThat(result.getTimeWindowSeconds()).isEqualTo(60);
 
-            // Verify: Port 호출 검증
+            // Verify: Port 및 Assembler 호출 검증
             then(loadRateLimitPort).should(times(1))
                     .loadCurrentCount(anyString(), anyString(), any(RateLimitType.class));
+            then(rateLimitAssembler).should(times(1))
+                    .toCheckResult(any(), eq(105));
         }
 
         @Test
@@ -152,6 +172,12 @@ class RateLimitServiceTest {
                     eq("/api/v1/login"),
                     eq(RateLimitType.IP_BASED)
             )).willReturn(100);
+
+            CheckRateLimitUseCase.Result expectedResult = new CheckRateLimitUseCase.Result(
+                    true, 100, 100, 0, 60
+            );
+            given(rateLimitAssembler.toCheckResult(any(), eq(100)))
+                    .willReturn(expectedResult);
 
             // When: Rate Limit 확인
             CheckRateLimitUseCase.Result result = rateLimitService.checkRateLimit(command);
@@ -171,6 +197,12 @@ class RateLimitServiceTest {
                     eq("/api/v1/login"),
                     eq(RateLimitType.IP_BASED)
             )).willReturn(0);
+
+            CheckRateLimitUseCase.Result expectedResult = new CheckRateLimitUseCase.Result(
+                    false, 0, 100, 100, 60
+            );
+            given(rateLimitAssembler.toCheckResult(any(), eq(0)))
+                    .willReturn(expectedResult);
 
             // When: Rate Limit 확인
             CheckRateLimitUseCase.Result result = rateLimitService.checkRateLimit(command);
@@ -332,6 +364,12 @@ class RateLimitServiceTest {
             given(loadRateLimitPort.loadCurrentCount(anyString(), anyString(), any(RateLimitType.class)))
                     .willReturn(99);
 
+            CheckRateLimitUseCase.Result expectedResult = new CheckRateLimitUseCase.Result(
+                    false, 99, 100, 1, 60
+            );
+            given(rateLimitAssembler.toCheckResult(any(), eq(99)))
+                    .willReturn(expectedResult);
+
             // When: Rate Limit 확인
             CheckRateLimitUseCase.Result result = rateLimitService.checkRateLimit(command);
 
@@ -339,6 +377,10 @@ class RateLimitServiceTest {
             assertThat(result.getLimitCount()).isEqualTo(100);
             assertThat(result.getTimeWindowSeconds()).isEqualTo(60);
             assertThat(result.isExceeded()).isFalse();
+
+            // Verify: Assembler 호출 검증
+            then(rateLimitAssembler).should(times(1))
+                    .toCheckResult(any(), eq(99));
         }
 
         @Test
@@ -354,6 +396,12 @@ class RateLimitServiceTest {
             given(loadRateLimitPort.loadCurrentCount(anyString(), anyString(), any(RateLimitType.class)))
                     .willReturn(999);
 
+            CheckRateLimitUseCase.Result expectedResult = new CheckRateLimitUseCase.Result(
+                    false, 999, 1000, 1, 60
+            );
+            given(rateLimitAssembler.toCheckResult(any(), eq(999)))
+                    .willReturn(expectedResult);
+
             // When: Rate Limit 확인
             CheckRateLimitUseCase.Result result = rateLimitService.checkRateLimit(command);
 
@@ -361,6 +409,10 @@ class RateLimitServiceTest {
             assertThat(result.getLimitCount()).isEqualTo(1000);
             assertThat(result.getTimeWindowSeconds()).isEqualTo(60);
             assertThat(result.isExceeded()).isFalse();
+
+            // Verify: Assembler 호출 검증
+            then(rateLimitAssembler).should(times(1))
+                    .toCheckResult(any(), eq(999));
         }
 
         @Test
@@ -376,6 +428,12 @@ class RateLimitServiceTest {
             given(loadRateLimitPort.loadCurrentCount(anyString(), anyString(), any(RateLimitType.class)))
                     .willReturn(4999);
 
+            CheckRateLimitUseCase.Result expectedResult = new CheckRateLimitUseCase.Result(
+                    false, 4999, 5000, 1, 60
+            );
+            given(rateLimitAssembler.toCheckResult(any(), eq(4999)))
+                    .willReturn(expectedResult);
+
             // When: Rate Limit 확인
             CheckRateLimitUseCase.Result result = rateLimitService.checkRateLimit(command);
 
@@ -383,6 +441,10 @@ class RateLimitServiceTest {
             assertThat(result.getLimitCount()).isEqualTo(5000);
             assertThat(result.getTimeWindowSeconds()).isEqualTo(60);
             assertThat(result.isExceeded()).isFalse();
+
+            // Verify: Assembler 호출 검증
+            then(rateLimitAssembler).should(times(1))
+                    .toCheckResult(any(), eq(4999));
         }
     }
 }

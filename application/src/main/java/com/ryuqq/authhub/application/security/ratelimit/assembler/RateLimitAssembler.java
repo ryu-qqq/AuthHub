@@ -37,6 +37,22 @@ import org.springframework.stereotype.Component;
 public class RateLimitAssembler {
 
     /**
+     * RateLimitRule과 currentCount의 유효성을 검증합니다.
+     *
+     * @param rule RateLimitRule Domain Aggregate
+     * @param currentCount 현재 요청 횟수
+     * @throws IllegalArgumentException rule이 null이거나 currentCount가 음수인 경우
+     */
+    private void validateInput(final RateLimitRule rule, final int currentCount) {
+        if (rule == null) {
+            throw new IllegalArgumentException("RateLimitRule cannot be null");
+        }
+        if (currentCount < 0) {
+            throw new IllegalArgumentException("Current count cannot be negative");
+        }
+    }
+
+    /**
      * RateLimitRule과 현재 카운트를 기반으로 CheckRateLimitUseCase.Result를 생성합니다.
      *
      * <p><strong>Law of Demeter 준수:</strong></p>
@@ -56,12 +72,7 @@ public class RateLimitAssembler {
             final RateLimitRule rule,
             final int currentCount
     ) {
-        if (rule == null) {
-            throw new IllegalArgumentException("RateLimitRule cannot be null");
-        }
-        if (currentCount < 0) {
-            throw new IllegalArgumentException("Current count cannot be negative");
-        }
+        validateInput(rule, currentCount);
 
         // ✅ Law of Demeter 준수 - RateLimitRule의 행위 메서드 활용
         final boolean exceeded = rule.isExceeded(currentCount);
@@ -93,12 +104,7 @@ public class RateLimitAssembler {
             final RateLimitRule rule,
             final int currentCount
     ) {
-        if (rule == null) {
-            throw new IllegalArgumentException("RateLimitRule cannot be null");
-        }
-        if (currentCount < 0) {
-            throw new IllegalArgumentException("Current count cannot be negative");
-        }
+        validateInput(rule, currentCount);
 
         return new CheckRateLimitUseCase.Result(
                 true,  // exceeded
@@ -122,12 +128,7 @@ public class RateLimitAssembler {
             final RateLimitRule rule,
             final int currentCount
     ) {
-        if (rule == null) {
-            throw new IllegalArgumentException("RateLimitRule cannot be null");
-        }
-        if (currentCount < 0) {
-            throw new IllegalArgumentException("Current count cannot be negative");
-        }
+        validateInput(rule, currentCount);
 
         return new CheckRateLimitUseCase.Result(
                 false,  // exceeded
