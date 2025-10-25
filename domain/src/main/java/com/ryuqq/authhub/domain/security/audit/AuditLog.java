@@ -460,13 +460,14 @@ public final class AuditLog {
 
     /**
      * 리소스 ID가 있는지 확인합니다.
+     * Java 11의 {@link String#isBlank()}를 사용하여 코드 간결성과 가독성을 개선합니다.
      *
      * @return 리소스 ID가 있으면 true, 아니면 false
      * @author AuthHub Team
      * @since 1.0.0
      */
     public boolean hasResourceId() {
-        return this.resourceId != null && !this.resourceId.trim().isEmpty();
+        return this.resourceId != null && !this.resourceId.isBlank();
     }
 
     /**
@@ -505,6 +506,7 @@ public final class AuditLog {
 
     /**
      * AuditLog의 문자열 표현을 반환합니다.
+     * String.format()을 사용하여 가독성과 성능을 개선합니다.
      *
      * @return "AuditLog{id=..., userId=..., ...}" 형식의 문자열
      * @author AuthHub Team
@@ -512,15 +514,15 @@ public final class AuditLog {
      */
     @Override
     public String toString() {
-        return "AuditLog{" +
-                "id=" + this.id +
-                ", userId=" + this.userId +
-                ", actionType=" + this.actionType +
-                ", resourceType=" + this.resourceType +
-                ", resourceId='" + this.resourceId + '\'' +
-                ", ipAddress=" + this.ipAddress +
-                ", userAgent=" + this.userAgent +
-                ", occurredAt=" + this.occurredAt +
-                '}';
+        return String.format("AuditLog{id=%s, userId=%s, actionType=%s, resourceType=%s, resourceId='%s', ipAddress=%s, userAgent=%s, occurredAt=%s}",
+                this.id,
+                this.userId,
+                this.actionType,
+                this.resourceType,
+                this.resourceId,
+                this.ipAddress,
+                this.userAgent,
+                this.occurredAt
+        );
     }
 }

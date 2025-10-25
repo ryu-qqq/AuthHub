@@ -69,14 +69,11 @@ public record IpAddress(String value) {
         final String trimmedValue = value.trim();
 
         // UNKNOWN은 허용
-        if (UNKNOWN.equals(trimmedValue)) {
-            value = UNKNOWN;
-            return;
-        }
-
-        // IPv4 또는 IPv6 형식 검증
-        if (!isValidIpv4(trimmedValue) && !isValidIpv6(trimmedValue)) {
-            throw new IllegalArgumentException("Invalid IP address format: " + trimmedValue);
+        if (!UNKNOWN.equals(trimmedValue)) {
+            // IPv4 또는 IPv6 형식 검증
+            if (!isValidIpv4(trimmedValue) && !isValidIpv6(trimmedValue)) {
+                throw new IllegalArgumentException("Invalid IP address format: " + trimmedValue);
+            }
         }
 
         value = trimmedValue;
