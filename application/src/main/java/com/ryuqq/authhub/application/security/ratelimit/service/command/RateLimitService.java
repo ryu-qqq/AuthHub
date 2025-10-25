@@ -87,6 +87,26 @@ public class RateLimitService implements
         IncrementRateLimitUseCase,
         ResetRateLimitUseCase {
 
+    /**
+     * Rate Limit 정책 상수 - IP 기반 제한 (요청/분).
+     */
+    private static final int IP_BASED_LIMIT = 100;
+
+    /**
+     * Rate Limit 정책 상수 - 사용자 기반 제한 (요청/분).
+     */
+    private static final int USER_BASED_LIMIT = 1000;
+
+    /**
+     * Rate Limit 정책 상수 - 엔드포인트 기반 제한 (요청/분).
+     */
+    private static final int ENDPOINT_BASED_LIMIT = 5000;
+
+    /**
+     * Rate Limit 정책 상수 - 기본 시간 윈도우 (초).
+     */
+    private static final long DEFAULT_TIME_WINDOW_SECONDS = 60L;
+
     private final LoadRateLimitPort loadRateLimitPort;
     private final IncrementRateLimitPort incrementRateLimitPort;
     private final ResetRateLimitPort resetRateLimitPort;
@@ -233,18 +253,18 @@ public class RateLimitService implements
         return switch (type) {
             case IP_BASED -> RateLimitRule.create(
                     type,
-                    LimitCount.of(100),  // IP당 100회
-                    TimeWindow.ofSeconds(60)  // 60초
+                    LimitCount.of(IP_BASED_LIMIT),
+                    TimeWindow.ofSeconds(DEFAULT_TIME_WINDOW_SECONDS)
             );
             case USER_BASED -> RateLimitRule.create(
                     type,
-                    LimitCount.of(1000),  // 사용자당 1000회
-                    TimeWindow.ofSeconds(60)
+                    LimitCount.of(USER_BASED_LIMIT),
+                    TimeWindow.ofSeconds(DEFAULT_TIME_WINDOW_SECONDS)
             );
             case ENDPOINT_BASED -> RateLimitRule.create(
                     type,
-                    LimitCount.of(5000),  // 엔드포인트당 5000회
-                    TimeWindow.ofSeconds(60)
+                    LimitCount.of(ENDPOINT_BASED_LIMIT),
+                    TimeWindow.ofSeconds(DEFAULT_TIME_WINDOW_SECONDS)
             );
         };
     }
