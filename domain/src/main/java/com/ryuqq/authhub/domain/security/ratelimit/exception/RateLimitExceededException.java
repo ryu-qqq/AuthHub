@@ -49,15 +49,17 @@ public class RateLimitExceededException extends RateLimitDomainException {
             final int limitCount,
             final long timeWindowSeconds
     ) {
-        super(String.format(
-                "Rate limit exceeded: %d requests in %d seconds (limit: %d)",
+        this(
+                String.format(
+                        "Rate limit exceeded: %d requests in %d seconds (limit: %d)",
+                        currentCount,
+                        timeWindowSeconds,
+                        limitCount
+                ),
                 currentCount,
-                timeWindowSeconds,
-                limitCount
-        ));
-        this.currentCount = currentCount;
-        this.limitCount = limitCount;
-        this.timeWindowSeconds = timeWindowSeconds;
+                limitCount,
+                timeWindowSeconds
+        );
     }
 
     /**

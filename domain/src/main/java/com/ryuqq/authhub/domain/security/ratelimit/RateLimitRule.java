@@ -285,6 +285,19 @@ public final class RateLimitRule {
     }
 
     /**
+     * 현재 요청 횟수의 유효성을 검증합니다.
+     * 음수 값을 거부하여 논리적 무결성을 보장합니다.
+     *
+     * @param currentCount 검증할 현재 요청 횟수
+     * @throws IllegalArgumentException currentCount가 음수인 경우
+     */
+    private void validateCurrentCount(final int currentCount) {
+        if (currentCount < 0) {
+            throw new IllegalArgumentException("Current count cannot be negative: " + currentCount);
+        }
+    }
+
+    /**
      * 현재 요청 횟수가 제한을 초과했는지 확인합니다 (핵심 비즈니스 로직).
      *
      * <p>이 메서드는 Rate Limiting의 핵심 도메인 로직으로,
@@ -303,9 +316,7 @@ public final class RateLimitRule {
      * @since 1.0.0
      */
     public boolean isExceeded(final int currentCount) {
-        if (currentCount < 0) {
-            throw new IllegalArgumentException("Current count cannot be negative: " + currentCount);
-        }
+        validateCurrentCount(currentCount);
         return this.limitCount.isExceeded(currentCount);
     }
 
@@ -319,9 +330,7 @@ public final class RateLimitRule {
      * @since 1.0.0
      */
     public boolean isWithinLimit(final int currentCount) {
-        if (currentCount < 0) {
-            throw new IllegalArgumentException("Current count cannot be negative: " + currentCount);
-        }
+        validateCurrentCount(currentCount);
         return this.limitCount.isWithinLimit(currentCount);
     }
 
@@ -335,9 +344,7 @@ public final class RateLimitRule {
      * @since 1.0.0
      */
     public int getRemainingCount(final int currentCount) {
-        if (currentCount < 0) {
-            throw new IllegalArgumentException("Current count cannot be negative: " + currentCount);
-        }
+        validateCurrentCount(currentCount);
         return this.limitCount.remainingCount(currentCount);
     }
 
