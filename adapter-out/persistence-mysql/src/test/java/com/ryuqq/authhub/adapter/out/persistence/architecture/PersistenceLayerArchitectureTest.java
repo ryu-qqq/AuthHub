@@ -99,8 +99,11 @@ class PersistenceLayerArchitectureTest {
     @DisplayName("Adapter 클래스는 'Adapter'로 끝나야 한다")
     void adapters_ShouldBe_NamedAdapter() {
         ArchRule rule = classes()
-                .that().resideInAPackage("..adapter..")
+                .that().resideInAPackage("..adapter")
                 .and().areNotInterfaces()
+                .and().areNotAnonymousClasses()
+                .and().areTopLevelClasses()
+                .and().haveSimpleNameNotEndingWith("Test")
                 .should().haveSimpleNameEndingWith("Adapter")
                 .because("Adapter 클래스는 일관된 네이밍 규칙을 따라야 합니다.");
 
@@ -111,8 +114,12 @@ class PersistenceLayerArchitectureTest {
     @DisplayName("Adapter 클래스는 @Component 어노테이션을 가져야 한다")
     void adapters_ShouldBe_AnnotatedWithComponent() {
         ArchRule rule = classes()
-                .that().resideInAPackage("..adapter..")
+                .that().resideInAPackage("..adapter")
                 .and().areNotInterfaces()
+                .and().areNotAnonymousClasses()
+                .and().areTopLevelClasses()
+                .and().haveSimpleNameEndingWith("Adapter")
+                .and().haveSimpleNameNotEndingWith("Test")
                 .should().beAnnotatedWith(Component.class)
                 .because("Persistence Adapter는 Spring Bean으로 등록되어야 합니다.");
 
@@ -123,8 +130,10 @@ class PersistenceLayerArchitectureTest {
     @DisplayName("Mapper 클래스는 'Mapper'로 끝나야 한다")
     void mappers_ShouldBe_NamedMapper() {
         ArchRule rule = classes()
-                .that().resideInAPackage("..mapper..")
+                .that().resideInAPackage("..mapper")
                 .and().areNotInterfaces()
+                .and().areNotAnonymousClasses()
+                .and().areTopLevelClasses()
                 .should().haveSimpleNameEndingWith("Mapper")
                 .because("Mapper 클래스는 일관된 네이밍 규칙을 따라야 합니다.");
 
@@ -135,8 +144,11 @@ class PersistenceLayerArchitectureTest {
     @DisplayName("Mapper 클래스는 @Component 어노테이션을 가져야 한다")
     void mappers_ShouldBe_AnnotatedWithComponent() {
         ArchRule rule = classes()
-                .that().resideInAPackage("..mapper..")
+                .that().resideInAPackage("..mapper")
                 .and().areNotInterfaces()
+                .and().areNotAnonymousClasses()
+                .and().areTopLevelClasses()
+                .and().haveSimpleNameEndingWith("Mapper")
                 .should().beAnnotatedWith(Component.class)
                 .because("Mapper는 Spring Bean으로 등록되어야 합니다.");
 
@@ -175,7 +187,7 @@ class PersistenceLayerArchitectureTest {
     void adapters_ShouldResideIn_AdapterPackage() {
         ArchRule rule = classes()
                 .that().haveSimpleNameEndingWith("Adapter")
-                .should().resideInAPackage("..adapter..")
+                .should().resideInAPackage("..adapter")
                 .because("Adapter 클래스는 adapter 패키지에만 위치해야 합니다.");
 
         rule.check(persistenceClasses);

@@ -122,7 +122,7 @@ public class BlacklistService implements
      * </ul>
      *
      * @param command 블랙리스트 추가 Command
-     * @throws IllegalArgumentException command가 null인 경우
+     * @throws NullPointerException command가 null인 경우
      * @author AuthHub Team
      * @since 1.0.0
      */
@@ -148,7 +148,7 @@ public class BlacklistService implements
      *
      * @param query 블랙리스트 확인 Query
      * @return 블랙리스트에 등록되어 있으면 true, 아니면 false
-     * @throws IllegalArgumentException query가 null인 경우
+     * @throws NullPointerException query가 null인 경우
      * @author AuthHub Team
      * @since 1.0.0
      */

@@ -2,11 +2,11 @@ package com.ryuqq.authhub.application.security.blacklist.service.command;
 
 import com.ryuqq.authhub.application.security.blacklist.port.in.CleanupBlacklistUseCase;
 import com.ryuqq.authhub.application.security.blacklist.port.out.RemoveFromBlacklistPort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -60,8 +61,13 @@ class BlacklistCleanupServiceTest {
     @Mock
     private RemoveFromBlacklistPort removeFromBlacklistPort;
 
-    @InjectMocks
     private BlacklistCleanupService blacklistCleanupService;
+
+    @BeforeEach
+    void setUp() {
+        // 배치 크기 1000으로 BlacklistCleanupService 생성
+        blacklistCleanupService = new BlacklistCleanupService(removeFromBlacklistPort, 1000);
+    }
 
     @Test
     @DisplayName("정리 성공 - 만료된 토큰 10개 삭제")
@@ -167,10 +173,9 @@ class BlacklistCleanupServiceTest {
     @DisplayName("Result Validation 실패 - deletedCount가 음수")
     void result_Validation_Failure_NegativeDeletedCount() {
         // When & Then
-        assertThat(org.junit.jupiter.api.Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> new CleanupBlacklistUseCase.Result(-1)
-        )).hasMessageContaining("Deleted count cannot be negative");
+        assertThatThrownBy(() -> new CleanupBlacklistUseCase.Result(-1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Deleted count cannot be negative");
     }
 
     @Test

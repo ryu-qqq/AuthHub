@@ -121,7 +121,7 @@ class ExpiresAtTest {
 
         // when & then
         assertThatThrownBy(() -> expiresAt.isBefore(null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Comparison time cannot be null");
     }
 
