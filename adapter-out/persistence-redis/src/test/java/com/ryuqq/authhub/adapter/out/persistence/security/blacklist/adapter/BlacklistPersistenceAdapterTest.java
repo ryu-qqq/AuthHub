@@ -78,8 +78,8 @@ class BlacklistPersistenceAdapterTest {
     @InjectMocks
     private BlacklistPersistenceAdapter adapter;
 
-    private static final String TEST_JTI = "550e8400-e29b-41d4-a716-446655440000";
-    private static final String TEST_JTI_2 = "550e8400-e29b-41d4-a716-446655440001";
+    private static final String TEST_JTI = "00000000-0000-0000-0000-000000000001";
+    private static final String TEST_JTI_2 = "00000000-0000-0000-0000-000000000002";
     private static final long TEST_EXPIRES_AT_EPOCH_SECONDS = 1704067200L; // 2024-01-01 00:00:00 UTC
     private static final String SET_KEY = "blacklist:tokens";
     private static final String ZSET_KEY = "blacklist:expiry";
