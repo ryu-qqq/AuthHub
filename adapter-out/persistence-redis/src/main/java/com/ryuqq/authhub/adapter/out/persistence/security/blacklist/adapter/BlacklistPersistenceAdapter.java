@@ -63,7 +63,6 @@ public class BlacklistPersistenceAdapter implements
 
     private static final String SET_KEY = "blacklist:tokens";
     private static final String ZSET_KEY = "blacklist:expiry";
-    private static final int DEFAULT_BATCH_SIZE = 1000;
 
     private final BlacklistRedisRepository repository;
     private final BlacklistEntityMapper mapper;
@@ -216,13 +215,8 @@ public class BlacklistPersistenceAdapter implements
             throw new IllegalArgumentException("JTI set cannot be null or empty");
         }
 
-        int removedCount = 0;
-
-        for (String jti : jtis) {
-            // 1. Redis Hash 삭제
-            this.repository.deleteById(jti);
-            removedCount++;
-        }
+        // 1. Redis Hash 삭제 (배치)
+        this.repository.deleteAllById(jtis);
 
         // 2. Redis SET에서 JTI 제거 (배치)
         final String[] jtiArray = jtis.toArray(new String[0]);
@@ -231,7 +225,7 @@ public class BlacklistPersistenceAdapter implements
         // 3. Redis ZSET에서 만료 정보 제거 (배치)
         this.redisTemplate.opsForZSet().remove(ZSET_KEY, (Object[]) jtiArray);
 
-        return removedCount;
+        return jtis.size();
     }
 
     /**
