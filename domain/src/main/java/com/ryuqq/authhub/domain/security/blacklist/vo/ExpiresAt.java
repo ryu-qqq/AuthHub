@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.domain.security.blacklist.vo;
 
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * 토큰의 만료 시간을 나타내는 Value Object.
@@ -90,14 +91,12 @@ public record ExpiresAt(Instant value) {
      *
      * @param now 기준 시간 (null 불가)
      * @return 만료되었으면 true, 아니면 false
-     * @throws IllegalArgumentException now가 null인 경우
+     * @throws NullPointerException now가 null인 경우
      * @author AuthHub Team
      * @since 1.0.0
      */
     public boolean isExpired(final Instant now) {
-        if (now == null) {
-            throw new IllegalArgumentException("Comparison time cannot be null");
-        }
+        Objects.requireNonNull(now, "Comparison time cannot be null");
         return this.value.isBefore(now);
     }
 
@@ -106,13 +105,12 @@ public record ExpiresAt(Instant value) {
      *
      * @param other 비교할 시간
      * @return 이전이면 true, 아니면 false
+     * @throws NullPointerException other가 null인 경우
      * @author AuthHub Team
      * @since 1.0.0
      */
     public boolean isBefore(final Instant other) {
-        if (other == null) {
-            throw new IllegalArgumentException("Comparison time cannot be null");
-        }
+        Objects.requireNonNull(other, "Comparison time cannot be null");
         return this.value.isBefore(other);
     }
 

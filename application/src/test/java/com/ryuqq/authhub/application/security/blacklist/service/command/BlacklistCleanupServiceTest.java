@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -172,10 +173,9 @@ class BlacklistCleanupServiceTest {
     @DisplayName("Result Validation 실패 - deletedCount가 음수")
     void result_Validation_Failure_NegativeDeletedCount() {
         // When & Then
-        assertThat(org.junit.jupiter.api.Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> new CleanupBlacklistUseCase.Result(-1)
-        )).hasMessageContaining("Deleted count cannot be negative");
+        assertThatThrownBy(() -> new CleanupBlacklistUseCase.Result(-1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Deleted count cannot be negative");
     }
 
     @Test

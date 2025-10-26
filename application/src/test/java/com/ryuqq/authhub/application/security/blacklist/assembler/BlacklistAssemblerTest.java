@@ -121,9 +121,9 @@ class BlacklistAssemblerTest {
     @Test
     @DisplayName("Domain 변환 실패 - Command가 null")
     void toDomain_Failure_NullCommand() {
-        // When & Then: null Command는 IllegalArgumentException 발생
+        // When & Then: null Command는 NullPointerException 발생
         assertThatThrownBy(() -> blacklistAssembler.toDomain(null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Command cannot be null");
     }
 

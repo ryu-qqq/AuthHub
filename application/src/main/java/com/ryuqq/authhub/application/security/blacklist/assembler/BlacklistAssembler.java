@@ -6,6 +6,8 @@ import com.ryuqq.authhub.domain.security.blacklist.vo.ExpiresAt;
 import com.ryuqq.authhub.domain.security.blacklist.vo.Jti;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 /**
  * Blacklist Assembler - BlacklistedToken Domain ↔ UseCase Command 변환.
  *
@@ -45,14 +47,12 @@ public class BlacklistAssembler {
      *
      * @param command AddToBlacklistUseCase.Command (null 불가)
      * @return BlacklistedToken Aggregate
-     * @throws IllegalArgumentException command가 null인 경우
+     * @throws NullPointerException command가 null인 경우
      * @author AuthHub Team
      * @since 1.0.0
      */
     public BlacklistedToken toDomain(final AddToBlacklistUseCase.Command command) {
-        if (command == null) {
-            throw new IllegalArgumentException("Command cannot be null");
-        }
+        Objects.requireNonNull(command, "Command cannot be null");
 
         // Primitive → Value Object 변환
         final Jti jti = Jti.of(command.getJti());
