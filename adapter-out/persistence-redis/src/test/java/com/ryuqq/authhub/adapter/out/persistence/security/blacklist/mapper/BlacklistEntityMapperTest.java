@@ -272,6 +272,72 @@ class BlacklistEntityMapperTest {
                         .isEqualTo(reason);
             }
         }
+
+        @Test
+        @DisplayName("같은 JTI를 가진 Entity는 항상 같은 BlacklistedTokenId를 생성한다 (결정적 UUID)")
+        void toDomain_SameJti_GeneratesSameId() {
+            // given
+            final BlacklistedTokenRedisEntity entity1 = BlacklistedTokenRedisEntity.create(
+                    TEST_JTI,
+                    "LOGOUT",
+                    TEST_BLACKLISTED_AT,
+                    Instant.ofEpochSecond(TEST_EXPIRES_AT_EPOCH_SECONDS)
+            );
+
+            final BlacklistedTokenRedisEntity entity2 = BlacklistedTokenRedisEntity.create(
+                    TEST_JTI,  // 같은 JTI
+                    "FORCE_LOGOUT",  // 다른 reason
+                    Instant.now(),  // 다른 blacklistedAt
+                    Instant.ofEpochSecond(TEST_EXPIRES_AT_EPOCH_SECONDS + 1000)  // 다른 expiresAt
+            );
+
+            // when
+            final BlacklistedToken domain1 = mapper.toDomain(entity1);
+            final BlacklistedToken domain2 = mapper.toDomain(entity2);
+
+            // then
+            // 같은 JTI를 가진 엔티티는 항상 같은 ID를 생성해야 함
+            assertThat(domain1.getId())
+                    .isEqualTo(domain2.getId())
+                    .withFailMessage("같은 JTI는 항상 같은 BlacklistedTokenId를 생성해야 합니다");
+
+            // Domain equals/hashCode도 동일해야 함 (ID 기반 비교)
+            assertThat(domain1).isEqualTo(domain2);
+            assertThat(domain1.hashCode()).isEqualTo(domain2.hashCode());
+        }
+
+        @Test
+        @DisplayName("다른 JTI를 가진 Entity는 다른 BlacklistedTokenId를 생성한다")
+        void toDomain_DifferentJti_GeneratesDifferentId() {
+            // given
+            final BlacklistedTokenRedisEntity entity1 = BlacklistedTokenRedisEntity.create(
+                    TEST_JTI,
+                    "LOGOUT",
+                    TEST_BLACKLISTED_AT,
+                    Instant.ofEpochSecond(TEST_EXPIRES_AT_EPOCH_SECONDS)
+            );
+
+            final BlacklistedTokenRedisEntity entity2 = BlacklistedTokenRedisEntity.create(
+                    TEST_JTI_2,  // 다른 JTI
+                    "LOGOUT",
+                    TEST_BLACKLISTED_AT,
+                    Instant.ofEpochSecond(TEST_EXPIRES_AT_EPOCH_SECONDS)
+            );
+
+            // when
+            final BlacklistedToken domain1 = mapper.toDomain(entity1);
+            final BlacklistedToken domain2 = mapper.toDomain(entity2);
+
+            // then
+            // 다른 JTI를 가진 엔티티는 다른 ID를 생성해야 함
+            assertThat(domain1.getId())
+                    .isNotEqualTo(domain2.getId())
+                    .withFailMessage("다른 JTI는 다른 BlacklistedTokenId를 생성해야 합니다");
+
+            // Domain equals/hashCode도 달라야 함
+            assertThat(domain1).isNotEqualTo(domain2);
+            assertThat(domain1.hashCode()).isNotEqualTo(domain2.hashCode());
+        }
     }
 
     @Nested

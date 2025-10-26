@@ -337,7 +337,7 @@ class BlacklistPersistenceAdapterTest {
     class RemoveAllTests {
 
         @Test
-        @DisplayName("JTI 목록을 Redis Hash, SET, ZSET에서 모두 삭제한다")
+        @DisplayName("JTI 목록을 Redis Hash, SET, ZSET에서 모두 삭제한다 (배치 삭제)")
         void removeAll_ValidJtis_RemovesSuccessfully() {
             // given
             final Set<String> jtis = Set.of(TEST_JTI, TEST_JTI_2);
@@ -347,13 +347,24 @@ class BlacklistPersistenceAdapterTest {
 
             // then
             assertThat(removedCount).isEqualTo(2);
-            then(repository).should(times(2)).deleteById(anyString());
+            // Redis Hash 배치 삭제 검증 (redisTemplate.delete() 1회 호출)
+            then(redisTemplate).should(times(1)).delete(argThat(keys ->
+                    keys instanceof java.util.Collection &&
+                    ((java.util.Collection<?>) keys).size() == 2 &&
+                    ((java.util.Collection<?>) keys).containsAll(
+                            Set.of("blacklist_token:" + TEST_JTI, "blacklist_token:" + TEST_JTI_2)
+                    )
+            ));
+            // Repository deleteById() 호출 안 함 (배치 삭제로 대체)
+            then(repository).should(never()).deleteById(anyString());
+            then(repository).should(never()).deleteAllById(any());
+            // SET, ZSET 삭제 검증
             then(setOperations).should(times(1)).remove(eq(SET_KEY), any(Object[].class));
             then(zSetOperations).should(times(1)).remove(eq(ZSET_KEY), any(Object[].class));
         }
 
         @Test
-        @DisplayName("단일 JTI를 삭제한다")
+        @DisplayName("단일 JTI를 삭제한다 (배치 삭제)")
         void removeAll_SingleJti_RemovesSuccessfully() {
             // given
             final Set<String> jtis = Set.of(TEST_JTI);
@@ -363,7 +374,14 @@ class BlacklistPersistenceAdapterTest {
 
             // then
             assertThat(removedCount).isEqualTo(1);
-            then(repository).should(times(1)).deleteById(TEST_JTI);
+            // Redis Hash 배치 삭제 검증 (단일 JTI도 배치 처리)
+            then(redisTemplate).should(times(1)).delete(argThat(keys ->
+                    keys instanceof java.util.Collection &&
+                    ((java.util.Collection<?>) keys).size() == 1 &&
+                    ((java.util.Collection<?>) keys).contains("blacklist_token:" + TEST_JTI)
+            ));
+            // Repository deleteById() 호출 안 함
+            then(repository).should(never()).deleteById(anyString());
         }
 
         @Test

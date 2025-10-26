@@ -97,15 +97,24 @@ public class BlacklistEntityMapper {
      * <p><strong>변환 과정:</strong></p>
      * <ol>
      *   <li>String → JTI VO</li>
+     *   <li>JTI 기반 결정적 UUID 생성 (nameUUIDFromBytes)</li>
      *   <li>String → BlacklistReason VO</li>
      *   <li>Unix timestamp → Instant</li>
-     *   <li>reconstruct 패턴 사용 (ID 유지)</li>
+     *   <li>reconstruct 패턴 사용 (ID 일관성 유지)</li>
      * </ol>
+     *
+     * <p><strong>ID 일관성 보장:</strong></p>
+     * <ul>
+     *   <li>같은 JTI는 항상 같은 BlacklistedTokenId를 생성</li>
+     *   <li>UUID.nameUUIDFromBytes()를 사용한 결정적 UUID 생성</li>
+     *   <li>여러 번 조회해도 동일한 Domain 객체 equals/hashCode 보장</li>
+     * </ul>
      *
      * <p><strong>주의사항:</strong></p>
      * <ul>
-     *   <li>Domain ID는 새로 생성하지 않음 (reconstruct 사용)</li>
-     *   <li>Redis에서 복원 시 기존 ID 유지</li>
+     *   <li>랜덤 UUID 생성 금지 - 일관성 깨짐</li>
+     *   <li>JTI 기반 결정적 생성 - 같은 JTI = 같은 ID</li>
+     *   <li>UTF-8 인코딩 사용 - 플랫폼 독립성 보장</li>
      * </ul>
      *
      * @param entity Redis Entity (null 불가)
@@ -117,11 +126,15 @@ public class BlacklistEntityMapper {
     public BlacklistedToken toDomain(final BlacklistedTokenRedisEntity entity) {
         Objects.requireNonNull(entity, "BlacklistedTokenRedisEntity cannot be null");
 
-        // Note: Redis Entity에는 Domain ID가 없으므로 새로 생성
-        // 실제로는 JTI를 ID로 사용하는 것이 맞지만,
-        // Domain 설계상 BlacklistedTokenId가 별도로 존재하므로 새로 생성
-        final BlacklistedTokenId id = BlacklistedTokenId.newId();
-        final Jti jti = Jti.of(entity.getJti());
+        // JTI 기반 결정적 UUID 생성 - 같은 JTI는 항상 같은 ID
+        // UUID.nameUUIDFromBytes()는 같은 입력에 대해 항상 같은 UUID 반환
+        final String jtiValue = entity.getJti();
+        final java.util.UUID deterministicUuid = java.util.UUID.nameUUIDFromBytes(
+                jtiValue.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        );
+        final BlacklistedTokenId id = BlacklistedTokenId.from(deterministicUuid);
+
+        final Jti jti = Jti.of(jtiValue);
         final ExpiresAt expiresAt = ExpiresAt.fromEpochSeconds(entity.getExpiresAt() / 1000);
         final BlacklistReason reason = BlacklistReason.valueOf(entity.getReason());
         final Instant blacklistedAt = Instant.ofEpochMilli(entity.getBlacklistedAt());

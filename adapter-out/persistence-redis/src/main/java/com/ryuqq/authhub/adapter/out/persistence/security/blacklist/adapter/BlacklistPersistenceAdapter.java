@@ -63,6 +63,7 @@ public class BlacklistPersistenceAdapter implements
 
     private static final String SET_KEY = "blacklist:tokens";
     private static final String ZSET_KEY = "blacklist:expiry";
+    private static final String HASH_KEY_PREFIX = "blacklist_token:";
 
     private final BlacklistRedisRepository repository;
     private final BlacklistEntityMapper mapper;
@@ -233,27 +234,37 @@ public class BlacklistPersistenceAdapter implements
             throw new IllegalArgumentException("JTI set cannot be null or empty");
         }
 
+        // 1. Redis Hash 키 목록 생성 (blacklist_token:{jti} 형식)
+        final java.util.Set<String> hashKeys = jtis.stream()
+                .map(jti -> HASH_KEY_PREFIX + jti)
+                .collect(java.util.stream.Collectors.toSet());
+
         final String[] jtiArray = jtis.toArray(new String[0]);
 
         try {
-            // 1. Redis Hash 삭제 (배치)
-            this.repository.deleteAllById(jtis);
+            // 2. Redis Hash 삭제 (단일 배치 명령 - 진짜 배치!)
+            this.redisTemplate.delete(hashKeys);
 
-            // 2. Redis SET + ZSET을 MULTI/EXEC 트랜잭션으로 원자적 실행
-            this.redisTemplate.execute(new org.springframework.data.redis.core.SessionCallback<java.util.List<Object>>() {
-                @Override
-                public java.util.List<Object> execute(org.springframework.data.redis.core.RedisOperations operations)
-                        throws org.springframework.dao.DataAccessException {
-                    operations.multi();
-                    // Redis SET에서 JTI 제거 (배치)
-                    operations.opsForSet().remove(SET_KEY, (Object[]) jtiArray);
-                    // Redis ZSET에서 만료 정보 제거 (배치)
-                    operations.opsForZSet().remove(ZSET_KEY, (Object[]) jtiArray);
-                    return operations.exec();
-                }
-            });
+            // 3. Redis SET + ZSET을 MULTI/EXEC 트랜잭션으로 원자적 실행
+            final java.util.List<Object> results = this.redisTemplate.execute(
+                    new org.springframework.data.redis.core.SessionCallback<java.util.List<Object>>() {
+                        @Override
+                        public java.util.List<Object> execute(org.springframework.data.redis.core.RedisOperations operations)
+                                throws org.springframework.dao.DataAccessException {
+                            operations.multi();
+                            // Redis SET에서 JTI 제거 (배치) - 실제 제거된 개수 반환
+                            operations.opsForSet().remove(SET_KEY, (Object[]) jtiArray);
+                            // Redis ZSET에서 만료 정보 제거 (배치)
+                            operations.opsForZSet().remove(ZSET_KEY, (Object[]) jtiArray);
+                            return operations.exec();
+                        }
+                    });
 
-            return jtis.size();
+            // 4. 실제 제거된 JTI 개수 반환 (SET에서 제거된 개수)
+            if (results != null && !results.isEmpty() && results.get(0) instanceof Long) {
+                return ((Long) results.get(0)).intValue();
+            }
+            return 0;
         } catch (Exception e) {
             throw new IllegalStateException("Failed to remove tokens from blacklist", e);
         }
