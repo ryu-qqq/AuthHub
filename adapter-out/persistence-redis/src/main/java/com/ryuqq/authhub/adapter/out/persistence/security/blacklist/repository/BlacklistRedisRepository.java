@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
  * <p><strong>Redis Key 패턴:</strong></p>
  * <ul>
  *   <li>Redis Key: {@code blacklist_token:{jti}}</li>
- *   <li>예시: {@code blacklist_token:550e8400-e29b-41d4-a716-446655440000}</li>
+ *   <li>예시: {@code blacklist_token:{jti}}</li>
  * </ul>
  *
  * <p><strong>Spring Data Redis 기본 제공 메서드:</strong></p>
@@ -49,13 +49,13 @@ import org.springframework.stereotype.Repository;
  * repository.save(entity);
  *
  * // 조회
- * Optional&lt;BlacklistedTokenRedisEntity&gt; found = repository.findById("jti-123");
+ * Optional&lt;BlacklistedTokenRedisEntity&gt; found = repository.findById(jti);
  *
  * // 존재 확인
- * boolean exists = repository.existsById("jti-123");
+ * boolean exists = repository.existsById(jti);
  *
  * // 삭제
- * repository.deleteById("jti-123");
+ * repository.deleteById(jti);
  * </pre>
  *
  * <p><strong>주의사항:</strong></p>

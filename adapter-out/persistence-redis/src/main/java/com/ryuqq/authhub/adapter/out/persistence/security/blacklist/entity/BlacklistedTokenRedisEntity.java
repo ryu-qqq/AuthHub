@@ -17,7 +17,7 @@ import java.util.Objects;
  * <p><strong>Key Naming Convention:</strong></p>
  * <ul>
  *   <li>Redis Key 패턴: {@code blacklist_token:{jti}}</li>
- *   <li>예시: {@code blacklist_token:550e8400-e29b-41d4-a716-446655440000}</li>
+ *   <li>예시: {@code blacklist_token:{jti}}</li>
  * </ul>
  *
  * <p><strong>Redis 구조 전략:</strong></p>
