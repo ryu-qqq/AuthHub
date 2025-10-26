@@ -4,6 +4,8 @@ import com.ryuqq.authhub.application.security.audit.assembler.AuditLogAssembler;
 import com.ryuqq.authhub.application.security.audit.port.in.CreateAuditLogUseCase;
 import com.ryuqq.authhub.application.security.audit.port.out.SaveAuditLogPort;
 import com.ryuqq.authhub.domain.security.audit.AuditLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -74,6 +76,8 @@ import java.util.Objects;
 @Service
 public class AuditLogService implements CreateAuditLogUseCase {
 
+    private static final Logger log = LoggerFactory.getLogger(AuditLogService.class);
+
     private final SaveAuditLogPort saveAuditLogPort;
     private final AuditLogAssembler auditLogAssembler;
 
@@ -134,9 +138,13 @@ public class AuditLogService implements CreateAuditLogUseCase {
 
             // 2. 비동기 저장
             this.saveAuditLogPort.save(auditLog);
+
+            log.debug("AuditLog saved successfully: userId={}, actionType={}, resourceType={}",
+                    command.getUserId(), command.getActionType(), command.getResourceType());
         } catch (Exception ex) {
-            // 3. 저장 실패 시 예외 무시 (비동기이므로 요청에 영향 없음)
-            // 프로덕션 환경에서는 로깅 프레임워크를 통해 예외 기록 필요
+            // 3. 저장 실패 시 예외 로깅 (비동기이므로 요청에 영향 없음)
+            log.error("Failed to save AuditLog: userId={}, actionType={}, resourceType={}, error={}",
+                    command.getUserId(), command.getActionType(), command.getResourceType(), ex.getMessage(), ex);
         }
     }
 
@@ -163,9 +171,11 @@ public class AuditLogService implements CreateAuditLogUseCase {
 
             // 2. 일괄 비동기 저장
             this.saveAuditLogPort.saveAll(auditLogs);
+
+            log.debug("Batch AuditLogs saved successfully");
         } catch (Exception ex) {
-            // 3. 저장 실패 시 예외 무시 (비동기이므로 요청에 영향 없음)
-            // 프로덕션 환경에서는 로깅 프레임워크를 통해 예외 기록 필요
+            // 3. 저장 실패 시 예외 로깅 (비동기이므로 요청에 영향 없음)
+            log.error("Failed to save batch AuditLogs: error={}", ex.getMessage(), ex);
         }
     }
 }

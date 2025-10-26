@@ -15,6 +15,9 @@ dependencies {
     implementation(libs.jakarta.validation.api)
     implementation(libs.hibernate.validator)
 
+    // Logging (API only, implementation provided at runtime)
+    compileOnly(libs.slf4j.api)
+
     // Test
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spring.test)
