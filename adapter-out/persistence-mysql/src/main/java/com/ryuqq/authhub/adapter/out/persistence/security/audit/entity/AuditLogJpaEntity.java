@@ -338,7 +338,7 @@ public class AuditLogJpaEntity {
      */
     @Override
     public String toString() {
-        return String.format("AuditLogJpaEntity{id=%d, auditLogId='%s', userId='%s', actionType=%s, resourceType=%s, resourceId='%s', ipAddress='%s', occurredAt=%s}",
+        return String.format("AuditLogJpaEntity{id=%d, auditLogId='%s', userId='%s', actionType=%s, resourceType=%s, resourceId='%s', ipAddress='%s', userAgent='%s', occurredAt=%s}",
                 this.id,
                 this.auditLogId,
                 this.userId,
@@ -346,6 +346,7 @@ public class AuditLogJpaEntity {
                 this.resourceType,
                 this.resourceId,
                 this.ipAddress,
+                this.userAgent,
                 this.occurredAt
         );
     }

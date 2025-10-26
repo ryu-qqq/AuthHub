@@ -221,7 +221,7 @@ public class AuditLogPersistenceAdapter implements SaveAuditLogPort, LoadAuditLo
 
         ResourceTypeEnum resourceTypeEnum;
         try {
-            resourceTypeEnum = ResourceTypeEnum.valueOf(resourceType);
+            resourceTypeEnum = ResourceTypeEnum.valueOf(resourceType.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid resourceType: " + resourceType, e);
         }
@@ -336,10 +336,16 @@ public class AuditLogPersistenceAdapter implements SaveAuditLogPort, LoadAuditLo
 
     /**
      * resourceType 검증.
+     * Enum 변환 가능 여부도 함께 검증합니다.
      */
     private void validateResourceType(final String resourceType) {
         if (resourceType == null || resourceType.isBlank()) {
             throw new IllegalArgumentException("ResourceType cannot be null or blank");
+        }
+        try {
+            ResourceTypeEnum.valueOf(resourceType.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid resourceType: " + resourceType, e);
         }
     }
 
