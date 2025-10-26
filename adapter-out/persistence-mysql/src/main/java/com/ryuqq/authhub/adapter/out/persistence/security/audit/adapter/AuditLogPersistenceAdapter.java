@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.StreamSupport;
 
 /**
  * AuditLog Persistence Adapter.
@@ -132,7 +133,7 @@ public class AuditLogPersistenceAdapter implements SaveAuditLogPort, LoadAuditLo
     public void saveAll(final Iterable<AuditLog> auditLogs) {
         Objects.requireNonNull(auditLogs, "AuditLogs cannot be null");
 
-        List<AuditLogJpaEntity> entities = ((List<AuditLog>) auditLogs).stream()
+        List<AuditLogJpaEntity> entities = StreamSupport.stream(auditLogs.spliterator(), false)
                 .map(auditLogJpaMapper::toEntity)
                 .toList();
 
@@ -169,17 +170,7 @@ public class AuditLogPersistenceAdapter implements SaveAuditLogPort, LoadAuditLo
 
         Page<AuditLogJpaEntity> page = auditLogJpaRepository.findAll(spec, pageable);
 
-        List<AuditLog> content = page.getContent().stream()
-                .map(auditLogJpaMapper::toDomain)
-                .toList();
-
-        return new PageResult(
-                content,
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages()
-        );
+        return toPageResult(page);
     }
 
     /**
@@ -263,7 +254,7 @@ public class AuditLogPersistenceAdapter implements SaveAuditLogPort, LoadAuditLo
         if (query.getIpAddress() != null) {
             spec = spec.and(AuditLogSpecifications.hasIpAddress(query.getIpAddress()));
         }
-        if (query.getStartDate() != null && query.getEndDate() != null) {
+        if (query.getStartDate() != null || query.getEndDate() != null) {
             spec = spec.and(AuditLogSpecifications.occurredBetween(query.getStartDate(), query.getEndDate()));
         }
 

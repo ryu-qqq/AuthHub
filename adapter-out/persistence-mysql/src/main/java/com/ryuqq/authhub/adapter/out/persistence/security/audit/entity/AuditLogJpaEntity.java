@@ -12,9 +12,9 @@ import java.util.Objects;
  *
  * <p><strong>인덱스 전략:</strong></p>
  * <ul>
- *   <li>idx_audit_user_action - (user_id, action_type) 복합 인덱스: 사용자별 액션 조회 최적화</li>
+ *   <li>idx_audit_user_action - (user_id, action_type, occurred_at) 복합 인덱스: 사용자별 액션 조회 및 시간순 정렬 최적화</li>
  *   <li>idx_audit_occurred_at - 발생 시각 인덱스: 시간 범위 조회 최적화</li>
- *   <li>idx_audit_resource - (resource_type, resource_id) 복합 인덱스: 리소스별 조회 최적화</li>
+ *   <li>idx_audit_resource - (resource_type, resource_id, occurred_at) 복합 인덱스: 리소스별 조회 및 시간순 정렬 최적화</li>
  * </ul>
  *
  * <p><strong>Zero-Tolerance 규칙 준수:</strong></p>
@@ -44,9 +44,9 @@ import java.util.Objects;
 @Table(
         name = "audit_logs",
         indexes = {
-                @Index(name = "idx_audit_user_action", columnList = "user_id, action_type"),
+                @Index(name = "idx_audit_user_action", columnList = "user_id, action_type, occurred_at"),
                 @Index(name = "idx_audit_occurred_at", columnList = "occurred_at"),
-                @Index(name = "idx_audit_resource", columnList = "resource_type, resource_id")
+                @Index(name = "idx_audit_resource", columnList = "resource_type, resource_id, occurred_at")
         }
 )
 public class AuditLogJpaEntity {
