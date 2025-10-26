@@ -49,6 +49,7 @@ springdoc = "2.7.0"
 # ========================================
 # Logging & Monitoring
 # ========================================
+slf4j = "2.0.9"
 logstashLogback = "7.4"
 micrometer = "1.12.4"
 
@@ -164,6 +165,11 @@ jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-dat
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.0" }
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version = "3.1.0" }
 hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version = "8.0.1.Final" }
+
+# ========================================
+# Logging
+# ========================================
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 
 [bundles]
 # ========================================
