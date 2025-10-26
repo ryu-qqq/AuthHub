@@ -69,8 +69,8 @@ public class AuditLogJpaEntity {
     /**
      * 사용자 ID (Long FK 전략).
      * ❌ {@code @ManyToOne UserJpaEntity} 금지
-     * ✅ Long userId 사용
-     * Domain의 UserId.asString()를 Long으로 변환하여 저장합니다.
+     * ✅ String userId 사용
+     * Domain의 UserId.asString()를 String으로 저장합니다.
      */
     @Column(name = "user_id", nullable = false)
     private String userId;

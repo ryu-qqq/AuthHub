@@ -299,14 +299,24 @@ public class AuditLogPersistenceAdapter implements SaveAuditLogPort, LoadAuditLo
      * Domain ActionType을 JPA ActionTypeEnum으로 변환합니다.
      */
     private ActionTypeEnum mapToActionTypeEnum(final com.ryuqq.authhub.domain.security.audit.vo.ActionType actionType) {
-        return ActionTypeEnum.valueOf(actionType.name());
+        return switch (actionType) {
+            case LOGIN -> ActionTypeEnum.LOGIN;
+            case LOGOUT -> ActionTypeEnum.LOGOUT;
+            case CREATE -> ActionTypeEnum.CREATE;
+            case UPDATE -> ActionTypeEnum.UPDATE;
+            case DELETE -> ActionTypeEnum.DELETE;
+        };
     }
 
     /**
      * Domain ResourceType을 JPA ResourceTypeEnum으로 변환합니다.
      */
     private ResourceTypeEnum mapToResourceTypeEnum(final com.ryuqq.authhub.domain.security.audit.vo.ResourceType resourceType) {
-        return ResourceTypeEnum.valueOf(resourceType.name());
+        return switch (resourceType) {
+            case USER -> ResourceTypeEnum.USER;
+            case ORGANIZATION -> ResourceTypeEnum.ORGANIZATION;
+            case COMPANY -> ResourceTypeEnum.COMPANY;
+        };
     }
 
     /**
@@ -343,8 +353,8 @@ public class AuditLogPersistenceAdapter implements SaveAuditLogPort, LoadAuditLo
         if (page < 0) {
             throw new IllegalArgumentException("Page cannot be negative");
         }
-        if (size < 0) {
-            throw new IllegalArgumentException("Size cannot be negative");
+        if (size < 1) {
+            throw new IllegalArgumentException("Size must be positive");
         }
     }
 }
