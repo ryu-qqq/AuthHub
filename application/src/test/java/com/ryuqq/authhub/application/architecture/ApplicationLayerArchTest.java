@@ -63,7 +63,8 @@ class ApplicationLayerArchTest {
                             "com.ryuqq.authhub.domain..",      // Domain layer
                             "java..",
                             "org.springframework..",
-                            "jakarta.."
+                            "jakarta..",
+                            "org.slf4j.."  // SLF4J Logger
                     );
 
             rule.check(applicationClasses);
@@ -84,7 +85,8 @@ class ApplicationLayerArchTest {
                             "..exception..",  // Application exception classes 허용
                             "java..",
                             "org.springframework..",
-                            "jakarta.."
+                            "jakarta..",
+                            "org.slf4j.."  // SLF4J Logger
                     );
 
             rule.check(applicationClasses);
@@ -282,8 +284,9 @@ class ApplicationLayerArchTest {
                     .and().areDeclaredInClassesThat().resideInAPackage("..service.command..")
                     .and().arePublic()
                     .and().areNotStatic()
-                    // RateLimitService 예외: Redis 기반 서비스는 @Transactional 불필요 (자체 원자성 보장)
-                    .and().areDeclaredInClassesThat().haveNameNotMatching(".*RateLimitService")
+                    // Redis 기반 서비스 예외: RateLimitService, BlacklistService, BlacklistCleanupService
+                    // Redis는 자체적으로 원자성을 보장하므로 @Transactional 불필요
+                    .and().areDeclaredInClassesThat().haveNameNotMatching(".*(RateLimit|Blacklist).*Service")
                     .should().beAnnotatedWith(org.springframework.transaction.annotation.Transactional.class);
 
             rule.check(applicationClasses);

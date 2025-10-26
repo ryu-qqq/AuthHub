@@ -127,12 +127,34 @@ public final class BlacklistedToken {
             final ExpiresAt expiresAt,
             final BlacklistReason reason
     ) {
+        return create(jti, expiresAt, reason, Instant.now());
+    }
+
+    /**
+     * 새로운 BlacklistedToken을 생성합니다 (Factory Method).
+     * 테스트 용이성을 위해 블랙리스트 등록 시각을 외부에서 주입받을 수 있도록 합니다.
+     *
+     * @param jti JWT ID (null 불가)
+     * @param expiresAt 만료 시간 (null 불가)
+     * @param reason 블랙리스트 등록 사유 (null 불가)
+     * @param blacklistedAt 블랙리스트 등록 시각 (null 불가)
+     * @return 생성된 BlacklistedToken 인스턴스
+     * @throws NullPointerException 필수 파라미터가 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public static BlacklistedToken create(
+            final Jti jti,
+            final ExpiresAt expiresAt,
+            final BlacklistReason reason,
+            final Instant blacklistedAt
+    ) {
         return new BlacklistedToken(
                 BlacklistedTokenId.newId(),
                 jti,
                 expiresAt,
                 reason,
-                Instant.now()
+                blacklistedAt
         );
     }
 
@@ -170,6 +192,20 @@ public final class BlacklistedToken {
      */
     public boolean isExpired() {
         return this.expiresAt.isExpired();
+    }
+
+    /**
+     * 특정 시간 기준으로 토큰이 만료되었는지 확인합니다.
+     * 테스트 용이성을 위해 시간을 외부에서 주입받을 수 있도록 합니다.
+     *
+     * @param now 기준 시간 (null 불가)
+     * @return 만료되었으면 true, 아니면 false
+     * @throws IllegalArgumentException now가 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public boolean isExpired(final Instant now) {
+        return this.expiresAt.isExpired(now);
     }
 
     /**

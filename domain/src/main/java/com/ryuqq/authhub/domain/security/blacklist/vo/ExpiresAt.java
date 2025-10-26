@@ -81,7 +81,24 @@ public record ExpiresAt(Instant value) {
      * @since 1.0.0
      */
     public boolean isExpired() {
-        return this.value.isBefore(Instant.now());
+        return isExpired(Instant.now());
+    }
+
+    /**
+     * 특정 시간 기준으로 만료되었는지 확인합니다.
+     * 테스트 용이성을 위해 시간을 외부에서 주입받을 수 있도록 합니다.
+     *
+     * @param now 기준 시간 (null 불가)
+     * @return 만료되었으면 true, 아니면 false
+     * @throws IllegalArgumentException now가 null인 경우
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public boolean isExpired(final Instant now) {
+        if (now == null) {
+            throw new IllegalArgumentException("Comparison time cannot be null");
+        }
+        return this.value.isBefore(now);
     }
 
     /**
