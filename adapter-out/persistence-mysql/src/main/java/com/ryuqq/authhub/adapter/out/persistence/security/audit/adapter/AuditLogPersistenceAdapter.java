@@ -219,7 +219,13 @@ public class AuditLogPersistenceAdapter implements SaveAuditLogPort, LoadAuditLo
         validateResourceId(resourceId);
         validatePageParameters(page, size);
 
-        ResourceTypeEnum resourceTypeEnum = ResourceTypeEnum.valueOf(resourceType);
+        ResourceTypeEnum resourceTypeEnum;
+        try {
+            resourceTypeEnum = ResourceTypeEnum.valueOf(resourceType);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid resourceType: " + resourceType, e);
+        }
+
         Specification<AuditLogJpaEntity> spec = AuditLogSpecifications.hasResource(resourceTypeEnum, resourceId);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "occurredAt"));
 
