@@ -129,6 +129,16 @@ public class AuditLogQueryService implements SearchAuditLogsUseCase {
         final LoadAuditLogsPort.PageResult pageResult = this.loadAuditLogsPort.search(query);
 
         // 2. PageResult → Result 변환
+        return toResult(pageResult);
+    }
+
+    /**
+     * PageResult를 Result로 변환합니다.
+     *
+     * @param pageResult LoadAuditLogsPort.PageResult
+     * @return SearchAuditLogsUseCase.Result
+     */
+    private Result toResult(final LoadAuditLogsPort.PageResult pageResult) {
         return new Result(
                 pageResult.getContent(),
                 pageResult.getPage(),
@@ -166,13 +176,7 @@ public class AuditLogQueryService implements SearchAuditLogsUseCase {
         // LoadAuditLogsPort를 통한 사용자별 조회
         final LoadAuditLogsPort.PageResult pageResult = this.loadAuditLogsPort.findByUserId(userId, page, size);
 
-        return new Result(
-                pageResult.getContent(),
-                pageResult.getPage(),
-                pageResult.getSize(),
-                pageResult.getTotalElements(),
-                pageResult.getTotalPages()
-        );
+        return toResult(pageResult);
     }
 
     /**
@@ -212,12 +216,6 @@ public class AuditLogQueryService implements SearchAuditLogsUseCase {
                 size
         );
 
-        return new Result(
-                pageResult.getContent(),
-                pageResult.getPage(),
-                pageResult.getSize(),
-                pageResult.getTotalElements(),
-                pageResult.getTotalPages()
-        );
+        return toResult(pageResult);
     }
 }
