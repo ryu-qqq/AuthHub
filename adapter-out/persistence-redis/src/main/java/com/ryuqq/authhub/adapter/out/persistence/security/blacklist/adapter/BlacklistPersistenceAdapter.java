@@ -118,17 +118,35 @@ public class BlacklistPersistenceAdapter implements
 
         // 1. Domain → Entity 변환
         final BlacklistedTokenRedisEntity entity = this.mapper.toEntity(token);
-
-        // 2. Redis Hash에 저장 (TTL 자동 설정)
-        this.repository.save(entity);
-
-        // 3. Redis SET에 JTI 추가 (빠른 조회용)
         final String jti = entity.getJti();
-        this.redisTemplate.opsForSet().add(SET_KEY, jti);
-
-        // 4. Redis ZSET에 만료 시간 추가 (배치 삭제용)
         final double expiresAtScore = convertToScore(entity.getExpiresAt());
-        this.redisTemplate.opsForZSet().add(ZSET_KEY, jti, expiresAtScore);
+
+        try {
+            // 2. Redis Hash에 저장 (TTL 자동 설정)
+            this.repository.save(entity);
+
+            // 3. Redis SET + ZSET을 MULTI/EXEC 트랜잭션으로 원자적 실행
+            this.redisTemplate.execute(new org.springframework.data.redis.core.SessionCallback<java.util.List<Object>>() {
+                @Override
+                public java.util.List<Object> execute(org.springframework.data.redis.core.RedisOperations operations)
+                        throws org.springframework.dao.DataAccessException {
+                    operations.multi();
+                    // Redis SET에 JTI 추가 (빠른 조회용)
+                    operations.opsForSet().add(SET_KEY, jti);
+                    // Redis ZSET에 만료 시간 추가 (배치 삭제용)
+                    operations.opsForZSet().add(ZSET_KEY, jti, expiresAtScore);
+                    return operations.exec();
+                }
+            });
+        } catch (Exception e) {
+            // 4. 예외 발생 시 Hash 롤백 시도 (Best Effort)
+            try {
+                this.repository.deleteById(jti);
+            } catch (Exception rollbackException) {
+                // 롤백 실패는 무시 (TTL로 자동 정리됨)
+            }
+            throw new IllegalStateException("Failed to add token to blacklist: " + jti, e);
+        }
     }
 
     /**
@@ -215,17 +233,30 @@ public class BlacklistPersistenceAdapter implements
             throw new IllegalArgumentException("JTI set cannot be null or empty");
         }
 
-        // 1. Redis Hash 삭제 (배치)
-        this.repository.deleteAllById(jtis);
-
-        // 2. Redis SET에서 JTI 제거 (배치)
         final String[] jtiArray = jtis.toArray(new String[0]);
-        this.redisTemplate.opsForSet().remove(SET_KEY, (Object[]) jtiArray);
 
-        // 3. Redis ZSET에서 만료 정보 제거 (배치)
-        this.redisTemplate.opsForZSet().remove(ZSET_KEY, (Object[]) jtiArray);
+        try {
+            // 1. Redis Hash 삭제 (배치)
+            this.repository.deleteAllById(jtis);
 
-        return jtis.size();
+            // 2. Redis SET + ZSET을 MULTI/EXEC 트랜잭션으로 원자적 실행
+            this.redisTemplate.execute(new org.springframework.data.redis.core.SessionCallback<java.util.List<Object>>() {
+                @Override
+                public java.util.List<Object> execute(org.springframework.data.redis.core.RedisOperations operations)
+                        throws org.springframework.dao.DataAccessException {
+                    operations.multi();
+                    // Redis SET에서 JTI 제거 (배치)
+                    operations.opsForSet().remove(SET_KEY, (Object[]) jtiArray);
+                    // Redis ZSET에서 만료 정보 제거 (배치)
+                    operations.opsForZSet().remove(ZSET_KEY, (Object[]) jtiArray);
+                    return operations.exec();
+                }
+            });
+
+            return jtis.size();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to remove tokens from blacklist", e);
+        }
     }
 
     /**
