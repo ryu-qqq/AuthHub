@@ -2,11 +2,11 @@ package com.ryuqq.authhub.application.security.blacklist.service.command;
 
 import com.ryuqq.authhub.application.security.blacklist.port.in.CleanupBlacklistUseCase;
 import com.ryuqq.authhub.application.security.blacklist.port.out.RemoveFromBlacklistPort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -60,8 +60,13 @@ class BlacklistCleanupServiceTest {
     @Mock
     private RemoveFromBlacklistPort removeFromBlacklistPort;
 
-    @InjectMocks
     private BlacklistCleanupService blacklistCleanupService;
+
+    @BeforeEach
+    void setUp() {
+        // 배치 크기 1000으로 BlacklistCleanupService 생성
+        blacklistCleanupService = new BlacklistCleanupService(removeFromBlacklistPort, 1000);
+    }
 
     @Test
     @DisplayName("정리 성공 - 만료된 토큰 10개 삭제")

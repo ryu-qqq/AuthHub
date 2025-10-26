@@ -4,6 +4,7 @@ import com.ryuqq.authhub.application.security.blacklist.port.in.CleanupBlacklist
 import com.ryuqq.authhub.application.security.blacklist.port.out.RemoveFromBlacklistPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -91,9 +92,9 @@ public class BlacklistCleanupService implements CleanupBlacklistUseCase {
     private static final Logger log = LoggerFactory.getLogger(BlacklistCleanupService.class);
 
     /**
-     * Batch 삭제 시 한 번에 조회할 최대 개수 (성능 최적화).
+     * Batch 삭제 시 한 번에 조회할 최대 개수 (외부 설정 가능, 기본값: 1000).
      */
-    private static final int BATCH_SIZE = 1000;
+    private final int batchSize;
 
     private final RemoveFromBlacklistPort removeFromBlacklistPort;
 
@@ -101,10 +102,15 @@ public class BlacklistCleanupService implements CleanupBlacklistUseCase {
      * BlacklistCleanupService 생성자.
      *
      * @param removeFromBlacklistPort Redis 제거 Port
-     * @throws NullPointerException 파라미터가 null인 경우
+     * @param batchSize 배치 삭제 시 한 번에 조회할 최대 개수 (기본값: 1000)
+     * @throws NullPointerException removeFromBlacklistPort가 null인 경우
      */
-    public BlacklistCleanupService(final RemoveFromBlacklistPort removeFromBlacklistPort) {
+    public BlacklistCleanupService(
+            final RemoveFromBlacklistPort removeFromBlacklistPort,
+            @Value("${authhub.blacklist.cleanup.batch-size:1000}") final int batchSize
+    ) {
         this.removeFromBlacklistPort = Objects.requireNonNull(removeFromBlacklistPort, "RemoveFromBlacklistPort cannot be null");
+        this.batchSize = batchSize;
     }
 
     /**
@@ -143,7 +149,7 @@ public class BlacklistCleanupService implements CleanupBlacklistUseCase {
         final long currentEpochSeconds = Instant.now().getEpochSecond();
         final Set<String> expiredJtis = this.removeFromBlacklistPort.findExpiredJtis(
                 currentEpochSeconds,
-                BATCH_SIZE
+                this.batchSize
         );
 
         // 2. 만료된 토큰이 없으면 종료
