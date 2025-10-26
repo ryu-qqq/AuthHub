@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.application.security.ratelimit.service.command;
 
+import com.ryuqq.authhub.application.security.ratelimit.assembler.RateLimitAssembler;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.CheckRateLimitUseCase;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.IncrementRateLimitUseCase;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.ResetRateLimitUseCase;
@@ -74,6 +75,7 @@ import java.util.Objects;
  *   <li>LoadRateLimitPort - Redis 카운트 조회</li>
  *   <li>IncrementRateLimitPort - Redis 카운트 증가</li>
  *   <li>ResetRateLimitPort - Redis 카운트 삭제</li>
+ *   <li>RateLimitAssembler - Domain ↔ Application 변환</li>
  * </ul>
  *
  * @author AuthHub Team
@@ -85,9 +87,30 @@ public class RateLimitService implements
         IncrementRateLimitUseCase,
         ResetRateLimitUseCase {
 
+    /**
+     * Rate Limit 정책 상수 - IP 기반 제한 (요청/분).
+     */
+    private static final int IP_BASED_LIMIT = 100;
+
+    /**
+     * Rate Limit 정책 상수 - 사용자 기반 제한 (요청/분).
+     */
+    private static final int USER_BASED_LIMIT = 1000;
+
+    /**
+     * Rate Limit 정책 상수 - 엔드포인트 기반 제한 (요청/분).
+     */
+    private static final int ENDPOINT_BASED_LIMIT = 5000;
+
+    /**
+     * Rate Limit 정책 상수 - 기본 시간 윈도우 (초).
+     */
+    private static final long DEFAULT_TIME_WINDOW_SECONDS = 60L;
+
     private final LoadRateLimitPort loadRateLimitPort;
     private final IncrementRateLimitPort incrementRateLimitPort;
     private final ResetRateLimitPort resetRateLimitPort;
+    private final RateLimitAssembler rateLimitAssembler;
 
     /**
      * RateLimitService 생성자.
@@ -95,16 +118,19 @@ public class RateLimitService implements
      * @param loadRateLimitPort Redis 조회 Port
      * @param incrementRateLimitPort Redis 증가 Port
      * @param resetRateLimitPort Redis 리셋 Port
+     * @param rateLimitAssembler Domain ↔ Application 변환 Assembler
      * @throws NullPointerException 파라미터가 null인 경우
      */
     public RateLimitService(
             final LoadRateLimitPort loadRateLimitPort,
             final IncrementRateLimitPort incrementRateLimitPort,
-            final ResetRateLimitPort resetRateLimitPort
+            final ResetRateLimitPort resetRateLimitPort,
+            final RateLimitAssembler rateLimitAssembler
     ) {
         this.loadRateLimitPort = Objects.requireNonNull(loadRateLimitPort, "LoadRateLimitPort cannot be null");
         this.incrementRateLimitPort = Objects.requireNonNull(incrementRateLimitPort, "IncrementRateLimitPort cannot be null");
         this.resetRateLimitPort = Objects.requireNonNull(resetRateLimitPort, "ResetRateLimitPort cannot be null");
+        this.rateLimitAssembler = Objects.requireNonNull(rateLimitAssembler, "RateLimitAssembler cannot be null");
     }
 
     /**
@@ -114,8 +140,7 @@ public class RateLimitService implements
      * <ol>
      *   <li>Redis에서 현재 카운트 조회</li>
      *   <li>타입별 RateLimitRule 생성</li>
-     *   <li>제한 초과 여부 검증</li>
-     *   <li>결과 반환 (초과 여부, 현재 카운트, 남은 횟수)</li>
+     *   <li>Assembler를 통해 Result 변환 및 반환</li>
      * </ol>
      *
      * @param command 확인 요청 Command
@@ -138,18 +163,8 @@ public class RateLimitService implements
         // 2. 타입별 RateLimitRule 생성
         final RateLimitRule rule = this.createRuleByType(command.getType());
 
-        // 3. 제한 초과 여부 검증
-        final boolean exceeded = rule.isExceeded(currentCount);
-        final int remainingCount = rule.getRemainingCount(currentCount);
-
-        // 4. 결과 반환
-        return new CheckRateLimitUseCase.Result(
-                exceeded,
-                currentCount,
-                rule.getLimitCountValue(),
-                remainingCount,
-                rule.getTimeWindowSeconds()
-        );
+        // 3. Assembler를 통해 Result 변환 및 반환
+        return this.rateLimitAssembler.toCheckResult(rule, currentCount);
     }
 
     /**
@@ -235,30 +250,22 @@ public class RateLimitService implements
         // TODO: 향후 DB 또는 설정 파일에서 정책 조회
         // 현재는 하드코딩된 정책 사용
 
-        switch (type) {
-            case IP_BASED:
-                return RateLimitRule.create(
-                        type,
-                        LimitCount.of(100),  // IP당 100회
-                        TimeWindow.ofSeconds(60)  // 60초
-                );
-
-            case USER_BASED:
-                return RateLimitRule.create(
-                        type,
-                        LimitCount.of(1000),  // 사용자당 1000회
-                        TimeWindow.ofSeconds(60)
-                );
-
-            case ENDPOINT_BASED:
-                return RateLimitRule.create(
-                        type,
-                        LimitCount.of(5000),  // 엔드포인트당 5000회
-                        TimeWindow.ofSeconds(60)
-                );
-
-            default:
-                throw new IllegalArgumentException("Unsupported RateLimitType: " + type);
-        }
+        return switch (type) {
+            case IP_BASED -> RateLimitRule.create(
+                    type,
+                    LimitCount.of(IP_BASED_LIMIT),
+                    TimeWindow.ofSeconds(DEFAULT_TIME_WINDOW_SECONDS)
+            );
+            case USER_BASED -> RateLimitRule.create(
+                    type,
+                    LimitCount.of(USER_BASED_LIMIT),
+                    TimeWindow.ofSeconds(DEFAULT_TIME_WINDOW_SECONDS)
+            );
+            case ENDPOINT_BASED -> RateLimitRule.create(
+                    type,
+                    LimitCount.of(ENDPOINT_BASED_LIMIT),
+                    TimeWindow.ofSeconds(DEFAULT_TIME_WINDOW_SECONDS)
+            );
+        };
     }
 }
