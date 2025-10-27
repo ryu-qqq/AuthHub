@@ -65,6 +65,11 @@ resilience4j = "2.2.0"
 # lettuce 버전은 Spring Boot BOM이 자동 관리
 
 # ========================================
+# Security & JWT
+# ========================================
+# jjwt = "0.12.6"  # Not used - JwtParser uses Base64 + Jackson instead
+
+# ========================================
 # Utilities
 # ========================================
 commonsLang3 = "3.14.0"
@@ -155,6 +160,14 @@ resilience4j-micrometer = { module = "io.github.resilience4j:resilience4j-microm
 # Redis
 # ========================================
 # lettuce-core는 spring-boot-starter-data-redis에 포함되어 자동 관리됨
+
+# ========================================
+# Security & JWT
+# ========================================
+# JJWT dependencies removed - JwtParser uses Base64 + Jackson instead
+# jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+# jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+# jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 # ========================================
 # Utilities

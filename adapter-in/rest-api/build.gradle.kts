@@ -15,6 +15,9 @@ dependencies {
     // Spring Web MVC
     implementation(libs.bundles.spring.web)
 
+    // JWT parsing - using Base64 + Jackson (from spring-boot-starter-web)
+    // No additional JWT library needed
+
     // Test
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.rest.assured)
