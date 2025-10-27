@@ -207,7 +207,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 clientIp,
                 endpoint,
                 RateLimitType.IP_BASED,
-                this.rateLimitProperties.getTimeWindowSeconds()
+                result.getTimeWindowSeconds()
         );
         this.incrementRateLimitUseCase.incrementRateLimit(incrementCommand);
 
@@ -246,13 +246,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String ip = request.getHeader(X_FORWARDED_FOR_HEADER);
 
         // X-Forwarded-For가 없거나 빈 문자열이면 RemoteAddr 사용
-        if (ip == null || ip.isEmpty()) {
-            return request.getRemoteAddr();
+        if (ip != null && !ip.isBlank()) {
+            // X-Forwarded-For에 여러 IP가 있는 경우 첫 번째 IP 사용
+            // 형식: "client, proxy1, proxy2"
+            final String clientIp = ip.split(",")[0].trim();
+            if (!clientIp.isBlank()) {
+                return clientIp;
+            }
         }
 
-        // X-Forwarded-For에 여러 IP가 있는 경우 첫 번째 IP 사용
-        // 형식: "client, proxy1, proxy2"
-        return ip.split(",")[0].trim();
+        // Fallback: RemoteAddr 사용
+        return request.getRemoteAddr();
     }
 
     /**

@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":domain"))
 
     // Persistence layer 의존 (통합 테스트용)
-    testImplementation(project(":adapter-out-persistence-redis"))
+    // testImplementation(project(":adapter-out-persistence-redis")) // TODO: Enable for integration tests
 
     // Spring Web MVC
     implementation(libs.bundles.spring.web)
