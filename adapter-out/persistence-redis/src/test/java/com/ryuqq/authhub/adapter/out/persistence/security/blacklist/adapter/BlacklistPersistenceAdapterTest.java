@@ -22,14 +22,17 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ZSetOperations;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -348,13 +351,11 @@ class BlacklistPersistenceAdapterTest {
             // then
             assertThat(removedCount).isEqualTo(2);
             // Redis Hash 배치 삭제 검증 (redisTemplate.delete() 1회 호출)
-            then(redisTemplate).should(times(1)).delete(argThat(keys ->
-                    keys instanceof java.util.Collection &&
-                    ((java.util.Collection<?>) keys).size() == 2 &&
-                    ((java.util.Collection<?>) keys).containsAll(
-                            Set.of("blacklist_token:" + TEST_JTI, "blacklist_token:" + TEST_JTI_2)
-                    )
-            ));
+            final var keysCaptor = forClass(Collection.class);
+            then(redisTemplate).should(times(1)).delete(keysCaptor.capture());
+            final Collection<String> capturedKeys = (Collection<String>) keysCaptor.getValue();
+            assertThat(capturedKeys).hasSize(2);
+            assertThat(capturedKeys).containsExactlyInAnyOrder("blacklist_token:" + TEST_JTI, "blacklist_token:" + TEST_JTI_2);
             // Repository deleteById() 호출 안 함 (배치 삭제로 대체)
             then(repository).should(never()).deleteById(anyString());
             then(repository).should(never()).deleteAllById(any());
@@ -375,11 +376,11 @@ class BlacklistPersistenceAdapterTest {
             // then
             assertThat(removedCount).isEqualTo(1);
             // Redis Hash 배치 삭제 검증 (단일 JTI도 배치 처리)
-            then(redisTemplate).should(times(1)).delete(argThat(keys ->
-                    keys instanceof java.util.Collection &&
-                    ((java.util.Collection<?>) keys).size() == 1 &&
-                    ((java.util.Collection<?>) keys).contains("blacklist_token:" + TEST_JTI)
-            ));
+            final var keysCaptor = forClass(Collection.class);
+            then(redisTemplate).should(times(1)).delete(keysCaptor.capture());
+            final Collection<String> capturedKeys = (Collection<String>) keysCaptor.getValue();
+            assertThat(capturedKeys).hasSize(1);
+            assertThat(capturedKeys).contains("blacklist_token:" + TEST_JTI);
             // Repository deleteById() 호출 안 함
             then(repository).should(never()).deleteById(anyString());
         }

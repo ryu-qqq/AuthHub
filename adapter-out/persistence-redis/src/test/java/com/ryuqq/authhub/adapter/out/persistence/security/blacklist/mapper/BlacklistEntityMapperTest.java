@@ -41,6 +41,7 @@ class BlacklistEntityMapperTest {
     private BlacklistEntityMapper mapper;
 
     private static final String TEST_JTI = "00000000-0000-0000-0000-000000000001";
+    private static final String TEST_JTI_2 = "00000000-0000-0000-0000-000000000002";
     private static final long TEST_EXPIRES_AT_EPOCH_SECONDS = 1704067200L; // 2024-01-01 00:00:00 UTC
     private static final Instant TEST_BLACKLISTED_AT = Instant.now();
 
