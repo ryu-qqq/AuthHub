@@ -15,6 +15,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Audit Log Filter - HTTP 요청 감사 로그 자동 기록 필터.
@@ -231,8 +234,8 @@ public class AuditLogFilter extends OncePerRequestFilter {
         final String method = request.getMethod();
         final String endpoint = request.getRequestURI();
 
-        // 2. 시작 시간 기록
-        final long startTime = System.currentTimeMillis();
+        // 2. 시작 시간 기록 (nanoTime은 경과 시간 측정에 최적화)
+        final long startTime = System.nanoTime();
 
         try {
             // 3. 필터 체인 실행
@@ -240,7 +243,7 @@ public class AuditLogFilter extends OncePerRequestFilter {
 
         } finally {
             // 4. 응답 정보 추출 및 로그 출력 (항상 실행)
-            final long duration = System.currentTimeMillis() - startTime;
+            final long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
             final int status = response.getStatus();
 
             // 5. 구조화된 로그 출력
@@ -397,16 +400,22 @@ public class AuditLogFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 감사 로그를 구조화된 형식으로 출력합니다.
+     * 감사 로그를 구조화된 JSON 형식으로 출력합니다.
      *
      * <p>HTTP 상태 코드에 따라 로그 레벨을 자동으로 조정합니다:
      * INFO (2xx, 3xx), WARN (4xx), ERROR (5xx).</p>
      *
-     * <p><strong>로그 형식:</strong></p>
+     * <p><strong>로그 형식 (JSON):</strong></p>
      * <pre>
-     * REQUEST_AUDIT: ip=192.168.1.100, userId=12345, method=POST,
-     *   endpoint=/api/v1/users, status=201, duration=45ms, userAgent=Mozilla/5.0...
+     * {"ip":"192.168.1.100","userId":"12345","method":"POST",
+     *  "endpoint":"/api/v1/users","status":201,"duration":45,"userAgent":"Mozilla/5.0..."}
      * </pre>
+     *
+     * <p><strong>JSON 직렬화 실패 시:</strong></p>
+     * <ul>
+     *   <li>폴백(fallback) 로깅으로 전환 - 문자열 포맷 사용</li>
+     *   <li>원본 예외 정보 포함하여 디버깅 용이</li>
+     * </ul>
      *
      * @param clientIp 클라이언트 IP 주소
      * @param userId 사용자 ID (인증된 사용자) 또는 "anonymous"
@@ -428,29 +437,40 @@ public class AuditLogFilter extends OncePerRequestFilter {
             final String userAgent
     ) {
         try {
-            // HTTP 상태 코드에 따라 로그 레벨 결정
+            // 1. Map으로 로그 데이터 구성
+            final Map<String, Object> logData = new LinkedHashMap<>();
+            logData.put("ip", clientIp);
+            logData.put("userId", userId);
+            logData.put("method", method);
+            logData.put("endpoint", endpoint);
+            logData.put("status", status);
+            logData.put("duration", duration);
+            logData.put("userAgent", userAgent);
+
+            // 2. ObjectMapper로 JSON 문자열 변환
+            final String logMessage = OBJECT_MAPPER.writeValueAsString(logData);
+
+            // 3. HTTP 상태 코드에 따라 로그 레벨 결정
             if (status >= 500) {
                 // 5xx - 서버 오류
-                AUDIT_LOGGER.error(
-                        "REQUEST_AUDIT: ip={}, userId={}, method={}, endpoint={}, status={}, duration={}ms, userAgent={}",
-                        clientIp, userId, method, endpoint, status, duration, userAgent
-                );
+                AUDIT_LOGGER.error(logMessage);
             } else if (status >= 400) {
                 // 4xx - 클라이언트 오류
-                AUDIT_LOGGER.warn(
-                        "REQUEST_AUDIT: ip={}, userId={}, method={}, endpoint={}, status={}, duration={}ms, userAgent={}",
-                        clientIp, userId, method, endpoint, status, duration, userAgent
-                );
+                AUDIT_LOGGER.warn(logMessage);
             } else {
                 // 2xx, 3xx - 정상 요청
-                AUDIT_LOGGER.info(
-                        "REQUEST_AUDIT: ip={}, userId={}, method={}, endpoint={}, status={}, duration={}ms, userAgent={}",
-                        clientIp, userId, method, endpoint, status, duration, userAgent
-                );
+                AUDIT_LOGGER.info(logMessage);
             }
 
+        } catch (final com.fasterxml.jackson.core.JsonProcessingException e) {
+            // JSON 변환 실패 시, 기존 포맷으로 폴백 로깅
+            AUDIT_LOGGER.error(
+                    "Failed to serialize audit log to JSON. Falling back to string format. " +
+                    "ip={}, userId={}, method={}, endpoint={}, status={}, duration={}ms, userAgent={}",
+                    clientIp, userId, method, endpoint, status, duration, userAgent, e
+            );
         } catch (final Exception e) {
-            // 로그 출력 실패 - 예외를 삼킴 (요청 처리에 영향 없음)
+            // 그 외 로그 출력 실패 - 예외를 삼킴 (요청 처리에 영향 없음)
             // 로그 시스템 자체 장애는 별도 모니터링으로 감지
         }
     }

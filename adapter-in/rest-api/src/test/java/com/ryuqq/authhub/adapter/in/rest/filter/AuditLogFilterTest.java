@@ -1,18 +1,25 @@
 package com.ryuqq.authhub.adapter.in.rest.filter;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
@@ -53,6 +60,8 @@ class AuditLogFilterTest {
     private FilterChain filterChain;
 
     private AuditLogFilter auditLogFilter;
+    private ListAppender<ILoggingEvent> listAppender;
+    private Logger auditLogger;
 
     /**
      * 유효한 JWT 토큰 예시 (테스트용).
@@ -74,6 +83,21 @@ class AuditLogFilterTest {
     @BeforeEach
     void setUp() {
         auditLogFilter = new AuditLogFilter();
+
+        // ListAppender 설정 - AUDIT_LOG 로거의 출력을 캡처
+        auditLogger = (Logger) LoggerFactory.getLogger("AUDIT_LOG");
+        listAppender = new ListAppender<>();
+        listAppender.start();
+        auditLogger.addAppender(listAppender);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // 테스트 후 ListAppender 제거
+        if (listAppender != null) {
+            listAppender.stop();
+            auditLogger.detachAppender(listAppender);
+        }
     }
 
     /**
@@ -116,6 +140,18 @@ class AuditLogFilterTest {
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        // 로그 출력 검증
+        final List<ILoggingEvent> logsList = listAppender.list;
+        assertThat(logsList).hasSize(1);
+
+        final ILoggingEvent loggingEvent = logsList.get(0);
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"userId\":\"12345\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"method\":\"POST\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"endpoint\":\"/api/v1/users\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"status\":200");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"ip\":\"192.168.1.100\"");
     }
 
     /**
@@ -155,6 +191,17 @@ class AuditLogFilterTest {
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        // 로그 출력 검증
+        final List<ILoggingEvent> logsList = listAppender.list;
+        assertThat(logsList).hasSize(1);
+
+        final ILoggingEvent loggingEvent = logsList.get(0);
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"userId\":\"anonymous\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"method\":\"GET\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"endpoint\":\"/api/v1/health\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"status\":200");
     }
 
     /**
@@ -195,6 +242,15 @@ class AuditLogFilterTest {
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        // 로그 출력 검증 - X-Forwarded-For의 첫 번째 IP 사용
+        final List<ILoggingEvent> logsList = listAppender.list;
+        assertThat(logsList).hasSize(1);
+
+        final ILoggingEvent loggingEvent = logsList.get(0);
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"ip\":\"203.0.113.1\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"endpoint\":\"/api/v1/users\"");
     }
 
     /**
@@ -234,6 +290,15 @@ class AuditLogFilterTest {
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        // 로그 출력 검증 - RemoteAddr 사용
+        final List<ILoggingEvent> logsList = listAppender.list;
+        assertThat(logsList).hasSize(1);
+
+        final ILoggingEvent loggingEvent = logsList.get(0);
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"ip\":\"192.168.1.100\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"endpoint\":\"/api/v1/users\"");
     }
 
     /**
@@ -269,23 +334,23 @@ class AuditLogFilterTest {
 
         // FilterChain에서 예외 발생 시뮬레이션
         final ServletException expectedException = new ServletException("Simulated exception");
+        org.mockito.Mockito.doThrow(expectedException)
+                .when(filterChain).doFilter(request, response);
 
-        try {
-            // When
-            org.mockito.Mockito.doThrow(expectedException)
-                    .when(filterChain).doFilter(request, response);
+        // When & Then
+        final ServletException thrownException = org.junit.jupiter.api.Assertions.assertThrows(
+                ServletException.class,
+                () -> auditLogFilter.doFilterInternal(request, response, filterChain)
+        );
 
-            auditLogFilter.doFilterInternal(request, response, filterChain);
+        // 예외 검증
+        assertThat(thrownException).isSameAs(expectedException);
+        verify(filterChain, times(1)).doFilter(request, response);
 
-            // 예외가 전파되어야 함
-            org.assertj.core.api.Assertions.fail("ServletException should be thrown");
-
-        } catch (final ServletException e) {
-            // Then
-            assertThat(e).isSameAs(expectedException);
-            verify(filterChain, times(1)).doFilter(request, response);
-            // finally 블록 실행됨 (로그 출력)
-        }
+        // finally 블록 실행 검증 - 로그 출력됨
+        final List<ILoggingEvent> logsList = listAppender.list;
+        assertThat(logsList).hasSize(1);
+        assertThat(logsList.get(0).getFormattedMessage()).contains("\"endpoint\":\"/api/v1/users\"");
     }
 
     /**
@@ -328,6 +393,15 @@ class AuditLogFilterTest {
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        // 로그 출력 검증 - JWT 파싱 실패 시 anonymous 처리
+        final List<ILoggingEvent> logsList = listAppender.list;
+        assertThat(logsList).hasSize(1);
+
+        final ILoggingEvent loggingEvent = logsList.get(0);
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"userId\":\"anonymous\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"endpoint\":\"/api/v1/users\"");
     }
 
     /**
@@ -369,6 +443,15 @@ class AuditLogFilterTest {
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        // 로그 출력 검증 - sub 클레임 없으면 anonymous 처리
+        final List<ILoggingEvent> logsList = listAppender.list;
+        assertThat(logsList).hasSize(1);
+
+        final ILoggingEvent loggingEvent = logsList.get(0);
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"userId\":\"anonymous\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"endpoint\":\"/api/v1/users\"");
     }
 
     /**
@@ -409,5 +492,14 @@ class AuditLogFilterTest {
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        // 로그 출력 검증 - Bearer Prefix 없으면 anonymous 처리
+        final List<ILoggingEvent> logsList = listAppender.list;
+        assertThat(logsList).hasSize(1);
+
+        final ILoggingEvent loggingEvent = logsList.get(0);
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"userId\":\"anonymous\"");
+        assertThat(loggingEvent.getFormattedMessage()).contains("\"endpoint\":\"/api/v1/users\"");
     }
 }
