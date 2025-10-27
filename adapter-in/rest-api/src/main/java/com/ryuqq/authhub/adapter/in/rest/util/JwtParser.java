@@ -2,8 +2,8 @@ package com.ryuqq.authhub.adapter.in.rest.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.JwtException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
@@ -122,7 +122,7 @@ public final class JwtParser {
      * @param token JWT 토큰 문자열 (null 불가, 빈 문자열 불가)
      * @return JTI (JWT ID) 문자열
      * @throws IllegalArgumentException token이 null이거나 빈 문자열인 경우
-     * @throws JwtException JWT 파싱 실패 (잘못된 형식, 손상된 토큰, JTI 없음)
+     * @throws JwtParsingException JWT 파싱 실패 (잘못된 형식, 손상된 토큰, JTI 없음)
      * @author AuthHub Team
      * @since 1.0.0
      */
@@ -136,13 +136,13 @@ public final class JwtParser {
             // 2. JWT를 "."으로 분리 (header.payload.signature)
             final String[] parts = token.split("\\.");
             if (parts.length < 2) {
-                throw new JwtException("Invalid JWT format: missing required parts");
+                throw new JwtParsingException("Invalid JWT format: missing required parts");
             }
 
             // 3. Payload 부분 (index 1) Base64 디코딩
             final String payload = parts[1];
             final byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
-            final String decodedPayload = new String(decodedBytes);
+            final String decodedPayload = new String(decodedBytes, StandardCharsets.UTF_8);
 
             // 4. JSON 파싱하여 "jti" 클레임 추출
             final JsonNode jsonNode = OBJECT_MAPPER.readTree(decodedPayload);
@@ -150,17 +150,47 @@ public final class JwtParser {
 
             // 5. JTI null 검증
             if (jtiNode == null || jtiNode.isNull() || jtiNode.asText().isBlank()) {
-                throw new JwtException("JWT token does not contain JTI claim");
+                throw new JwtParsingException("JWT token does not contain JTI claim");
             }
 
             return jtiNode.asText();
 
         } catch (final IllegalArgumentException e) {
             // Base64 디코딩 실패
-            throw new JwtException("Failed to decode JWT token: " + e.getMessage(), e);
+            throw new JwtParsingException("Failed to decode JWT token: " + e.getMessage(), e);
         } catch (final Exception e) {
             // JSON 파싱 실패 또는 기타 예외
-            throw new JwtException("Failed to parse JWT token: " + e.getMessage(), e);
+            throw new JwtParsingException("Failed to parse JWT token: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * JWT 파싱 실패 예외.
+     *
+     * <p>JWT 토큰 파싱 과정에서 발생하는 모든 예외를 표현합니다.
+     * 잘못된 형식, Base64 디코딩 실패, JSON 파싱 실패, JTI 누락 등을 포함합니다.</p>
+     *
+     * @author AuthHub Team
+     * @since 1.0.0
+     */
+    public static class JwtParsingException extends RuntimeException {
+        /**
+         * 메시지와 함께 예외를 생성합니다.
+         *
+         * @param message 예외 메시지
+         */
+        public JwtParsingException(final String message) {
+            super(message);
+        }
+
+        /**
+         * 메시지와 원인 예외와 함께 예외를 생성합니다.
+         *
+         * @param message 예외 메시지
+         * @param cause 원인 예외
+         */
+        public JwtParsingException(final String message, final Throwable cause) {
+            super(message, cause);
         }
     }
 }

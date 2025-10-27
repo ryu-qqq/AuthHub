@@ -2,7 +2,6 @@ package com.ryuqq.authhub.adapter.in.rest.filter;
 
 import com.ryuqq.authhub.adapter.in.rest.util.JwtParser;
 import com.ryuqq.authhub.application.security.blacklist.port.in.CheckBlacklistUseCase;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -79,7 +78,7 @@ import java.util.Objects;
  *
  * <p><strong>에러 처리:</strong></p>
  * <ul>
- *   <li>JWT 파싱 실패 (JwtException) → 다음 필터로 진행 (Spring Security에서 처리)</li>
+ *   <li>JWT 파싱 실패 (JwtParsingException) → 다음 필터로 진행 (Spring Security에서 처리)</li>
  *   <li>Redis 연결 실패 → 예외 전파 (Circuit Breaker에서 처리)</li>
  *   <li>블랙리스트 확인 실패 → 예외 전파 (안전을 위해 요청 차단)</li>
  * </ul>
@@ -214,7 +213,7 @@ public class BlacklistCheckFilter extends OncePerRequestFilter {
                     return;  // 필터 체인 중단
                 }
 
-            } catch (final JwtException e) {
+            } catch (final JwtParser.JwtParsingException e) {
                 // JWT 파싱 실패 - 다음 필터로 진행 (Spring Security에서 처리)
                 // 로그는 생략 (성능 고려, Spring Security에서 처리)
             }
