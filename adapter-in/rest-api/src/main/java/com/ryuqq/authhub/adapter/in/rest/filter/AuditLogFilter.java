@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.filter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -237,16 +238,22 @@ public class AuditLogFilter extends OncePerRequestFilter {
         // 2. 시작 시간 기록 (nanoTime은 경과 시간 측정에 최적화)
         final long startTime = System.nanoTime();
 
+        int status = HttpStatus.OK.value();
         try {
             // 3. 필터 체인 실행
             filterChain.doFilter(request, response);
+            status = response.getStatus();
+
+        } catch (final ServletException | IOException e) {
+            // 4. 필터 체인에서 예외 발생 시 500 상태로 처리
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value();
+            throw e;  // 예외 재전파 (Spring Security 등 상위 핸들러에서 처리)
 
         } finally {
-            // 4. 응답 정보 추출 및 로그 출력 (항상 실행)
+            // 5. 응답 정보 추출 및 로그 출력 (항상 실행)
             final long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-            final int status = response.getStatus();
 
-            // 5. 구조화된 로그 출력
+            // 6. 구조화된 로그 출력
             this.logAuditRecord(clientIp, userId, method, endpoint, status, duration, userAgent);
         }
     }
@@ -282,9 +289,12 @@ public class AuditLogFilter extends OncePerRequestFilter {
         if (ip != null && !ip.isBlank()) {
             // X-Forwarded-For에 여러 IP가 있는 경우 첫 번째 IP 사용
             // 형식: "client, proxy1, proxy2"
-            final String clientIp = ip.split(",")[0].trim();
-            if (!clientIp.isBlank()) {
-                return clientIp;
+            final String[] ips = ip.split(",");
+            if (ips.length > 0) {
+                final String clientIp = ips[0].trim();
+                if (!clientIp.isBlank()) {
+                    return clientIp;
+                }
             }
         }
 
@@ -350,7 +360,7 @@ public class AuditLogFilter extends OncePerRequestFilter {
 
             return subNode.asText();
 
-        } catch (final Exception e) {
+        } catch (final JsonProcessingException | IllegalArgumentException e) {
             // JWT 파싱 실패 - "anonymous" 반환
             // 로그는 생략 (성능 고려, Spring Security에서 처리)
             return ANONYMOUS_USER;
@@ -470,8 +480,8 @@ public class AuditLogFilter extends OncePerRequestFilter {
                     clientIp, userId, method, endpoint, status, duration, userAgent, e
             );
         } catch (final Exception e) {
-            // 그 외 로그 출력 실패 - 예외를 삼킴 (요청 처리에 영향 없음)
-            // 로그 시스템 자체 장애는 별도 모니터링으로 감지
+            // 그 외 로그 출력 실패 - 예외를 기록하되 요청 처리는 계속 진행
+            AUDIT_LOGGER.error("Unexpected error during audit logging: {}", e.getMessage(), e);
         }
     }
 }
