@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.filter;
 
+import com.ryuqq.authhub.adapter.in.rest.config.RateLimitProperties;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.CheckRateLimitUseCase;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.IncrementRateLimitUseCase;
 import com.ryuqq.authhub.domain.security.ratelimit.vo.RateLimitType;
@@ -57,13 +58,24 @@ class RateLimitFilterTest {
     private IncrementRateLimitUseCase incrementRateLimitUseCase;
 
     @Mock
+    private RateLimitProperties rateLimitProperties;
+
+    @Mock
     private FilterChain filterChain;
 
     private RateLimitFilter rateLimitFilter;
 
     @BeforeEach
     void setUp() {
-        rateLimitFilter = new RateLimitFilter(checkRateLimitUseCase, incrementRateLimitUseCase);
+        // RateLimitProperties Mock 기본값 설정 (lenient()로 모든 테스트에서 사용 가능)
+        lenient().when(rateLimitProperties.getTimeWindowSeconds()).thenReturn(60L);
+        lenient().when(rateLimitProperties.getIpBasedLimit()).thenReturn(100);
+
+        rateLimitFilter = new RateLimitFilter(
+                checkRateLimitUseCase,
+                incrementRateLimitUseCase,
+                rateLimitProperties
+        );
     }
 
     /**

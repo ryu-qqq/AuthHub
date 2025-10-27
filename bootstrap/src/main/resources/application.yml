@@ -126,3 +126,12 @@ springdoc:
   show-actuator: false
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+
+# ========================================
+# Rate Limit Configuration
+# ========================================
+rate-limit:
+  time-window-seconds: 60
+  ip-based-limit: 100
+  user-based-limit: 1000
+  endpoint-based-limit: 5000

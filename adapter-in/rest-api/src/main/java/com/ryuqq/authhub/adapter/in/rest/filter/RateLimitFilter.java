@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.filter;
 
+import com.ryuqq.authhub.adapter.in.rest.config.RateLimitProperties;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.CheckRateLimitUseCase;
 import com.ryuqq.authhub.application.security.ratelimit.port.in.IncrementRateLimitUseCase;
 import com.ryuqq.authhub.domain.security.ratelimit.vo.RateLimitType;
@@ -110,11 +111,6 @@ import java.util.Objects;
 public class RateLimitFilter extends OncePerRequestFilter {
 
     /**
-     * Rate Limit 정책 상수 - 기본 시간 윈도우 (초).
-     */
-    private static final long DEFAULT_TIME_WINDOW_SECONDS = 60L;
-
-    /**
      * X-Forwarded-For 헤더 이름.
      * 프록시/로드밸런서를 통한 요청 시 실제 클라이언트 IP 추출에 사용됩니다.
      */
@@ -137,17 +133,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final CheckRateLimitUseCase checkRateLimitUseCase;
     private final IncrementRateLimitUseCase incrementRateLimitUseCase;
+    private final RateLimitProperties rateLimitProperties;
 
     /**
      * RateLimitFilter 생성자.
      *
      * @param checkRateLimitUseCase Rate Limit 확인 UseCase
      * @param incrementRateLimitUseCase 카운터 증가 UseCase
+     * @param rateLimitProperties Rate Limit 설정 프로퍼티
      * @throws NullPointerException 파라미터가 null인 경우
      */
     public RateLimitFilter(
             final CheckRateLimitUseCase checkRateLimitUseCase,
-            final IncrementRateLimitUseCase incrementRateLimitUseCase
+            final IncrementRateLimitUseCase incrementRateLimitUseCase,
+            final RateLimitProperties rateLimitProperties
     ) {
         this.checkRateLimitUseCase = Objects.requireNonNull(
                 checkRateLimitUseCase,
@@ -156,6 +155,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.incrementRateLimitUseCase = Objects.requireNonNull(
                 incrementRateLimitUseCase,
                 "IncrementRateLimitUseCase cannot be null"
+        );
+        this.rateLimitProperties = Objects.requireNonNull(
+                rateLimitProperties,
+                "RateLimitProperties cannot be null"
         );
     }
 
@@ -204,7 +207,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 clientIp,
                 endpoint,
                 RateLimitType.IP_BASED,
-                DEFAULT_TIME_WINDOW_SECONDS
+                this.rateLimitProperties.getTimeWindowSeconds()
         );
         this.incrementRateLimitUseCase.incrementRateLimit(incrementCommand);
 
