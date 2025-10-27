@@ -15,6 +15,11 @@ dependencies {
     // Spring Web MVC
     implementation(libs.bundles.spring.web)
 
+    // JWT (JJWT 0.12.x)
+    implementation(libs.jjwt.api)
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
+
     // Test
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.rest.assured)
