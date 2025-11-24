@@ -1,51 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    SpotBugs Exclusion Configuration
+    Enterprise Spring Boot Standards
+
+    @author Architecture Team (arch-team@company.com)
+    @since 2024-01-01
+-->
 <FindBugsFilter>
-    <!-- Exclude auto-generated code -->
+    <!-- ========================================
+         Exclude Generated Code
+         ======================================== -->
     <Match>
-        <Class name="~.*\.Q.*"/>
+        <Class name="~.*\.Q.*"/>  <!-- QueryDSL generated classes -->
     </Match>
 
-    <!-- Exclude configuration classes -->
     <Match>
-        <Class name="~.*\.config\..*"/>
+        <Package name="~.*\.generated\..*"/>
     </Match>
 
-    <!-- Exclude Application entry point -->
-    <Match>
-        <Class name="~.*Application"/>
-    </Match>
-
-    <!-- Exclude test code -->
+    <!-- ========================================
+         Exclude Test Code from Certain Rules
+         ======================================== -->
     <Match>
         <Class name="~.*Test"/>
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
     </Match>
 
-    <!-- Exclude Spring Boot auto-configuration -->
+    <!-- ========================================
+         Configuration Classes
+         ======================================== -->
     <Match>
-        <Package name="~org\.springframework\..*"/>
-    </Match>
-
-    <!-- Specific exclusions -->
-    <!-- EI_EXPOSE_REP: Returning reference to mutable object -->
-    <Match>
-        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
-    </Match>
-
-    <!-- NP_NULL_ON_SOME_PATH: Null pointer dereference -->
-    <!-- Suppress for Spring @Autowired fields -->
-    <Match>
-        <Bug pattern="NP_NULL_ON_SOME_PATH"/>
-        <Field annotation="~org\.springframework\.beans\.factory\.annotation\.Autowired"/>
-    </Match>
-
-    <!-- UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR: Field not initialized -->
-    <!-- Suppress for JPA entities and Spring beans -->
-    <Match>
+        <Class name="~.*Configuration"/>
         <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
-        <Or>
-            <Class annotation="~javax\.persistence\.Entity"/>
-            <Class annotation="~jakarta\.persistence\.Entity"/>
-            <Class annotation="~org\.springframework\.stereotype\..*"/>
-        </Or>
     </Match>
 </FindBugsFilter>
