@@ -44,7 +44,7 @@
 
 ---
 
-### 2️⃣ User Aggregate - User Entity 설계 (Cycle 2) [IN PROGRESS] 🔄
+### 2️⃣ User Aggregate - User Entity 설계 (Cycle 2) [COMPLETED] ✅
 
 #### 🔴 Red: 테스트 작성
 - [x] `UserTest.java` 파일 생성
@@ -64,17 +64,17 @@
 - [x] 커밋: `feat: User Aggregate 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Law of Demeter 준수 확인
-- [ ] Tell Don't Ask 패턴 확인
-- [ ] Aggregate ArchUnit 테스트 추가 및 통과
-- [ ] 커밋: `struct: User Aggregate 개선 (Refactor)`
+- [x] Law of Demeter 준수 확인
+- [x] Tell Don't Ask 패턴 확인
+- [x] Aggregate ArchUnit 테스트 추가 및 통과
+- [x] 커밋: `struct: User Aggregate 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `UserFixture.java` 생성 (Object Mother 패턴)
-- [ ] `UserFixture.aUser()` 메서드 작성
-- [ ] `UserTest` → Fixture 사용으로 리팩토링
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `test: UserFixture 정리 (Tidy)`
+- [x] `UserFixture.java` 생성 (Object Mother 패턴)
+- [x] `UserFixture.aUser()` 메서드 작성
+- [x] `UserTest` → Fixture 사용으로 리팩토링
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `test: UserFixture 정리 (Tidy)`
 
 ---
 
