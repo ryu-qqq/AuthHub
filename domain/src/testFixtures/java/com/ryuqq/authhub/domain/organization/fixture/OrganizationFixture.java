@@ -1,11 +1,15 @@
 package com.ryuqq.authhub.domain.organization.fixture;
 
+import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.OrganizationStatus;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.organization.vo.fixture.OrganizationIdFixture;
 import com.ryuqq.authhub.domain.organization.vo.fixture.OrganizationNameFixture;
+import com.ryuqq.authhub.domain.tenant.vo.TenantId;
+
+import java.time.Instant;
 
 /**
  * Organization Aggregate Test Fixture
@@ -13,19 +17,22 @@ import com.ryuqq.authhub.domain.organization.vo.fixture.OrganizationNameFixture;
  */
 public class OrganizationFixture {
 
-    private static final Long DEFAULT_TENANT_ID = 1L;
+    private static final TenantId DEFAULT_TENANT_ID = TenantId.of(1L);
     private static final OrganizationStatus DEFAULT_ORGANIZATION_STATUS = OrganizationStatus.ACTIVE;
+    private static final Clock DEFAULT_CLOCK = () -> Instant.parse("2025-11-24T00:00:00Z");
 
     /**
      * 기본 Organization 생성
      * @return Organization 인스턴스
      */
     public static Organization anOrganization() {
-        return Organization.create(
+        return Organization.of(
                 OrganizationIdFixture.anOrganizationId(),
                 OrganizationNameFixture.anOrganizationName(),
                 DEFAULT_TENANT_ID,
-                DEFAULT_ORGANIZATION_STATUS
+                DEFAULT_ORGANIZATION_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -35,11 +42,13 @@ public class OrganizationFixture {
      * @return Organization 인스턴스
      */
     public static Organization anOrganization(OrganizationId organizationId) {
-        return Organization.create(
+        return Organization.of(
                 organizationId,
                 OrganizationNameFixture.anOrganizationName(),
                 DEFAULT_TENANT_ID,
-                DEFAULT_ORGANIZATION_STATUS
+                DEFAULT_ORGANIZATION_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -49,11 +58,13 @@ public class OrganizationFixture {
      * @return Organization 인스턴스
      */
     public static Organization anOrganization(OrganizationName organizationName) {
-        return Organization.create(
+        return Organization.of(
                 OrganizationIdFixture.anOrganizationId(),
                 organizationName,
                 DEFAULT_TENANT_ID,
-                DEFAULT_ORGANIZATION_STATUS
+                DEFAULT_ORGANIZATION_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -62,12 +73,14 @@ public class OrganizationFixture {
      * @param tenantId Tenant ID
      * @return Organization 인스턴스
      */
-    public static Organization anOrganizationWithTenantId(Long tenantId) {
-        return Organization.create(
+    public static Organization anOrganizationWithTenantId(TenantId tenantId) {
+        return Organization.of(
                 OrganizationIdFixture.anOrganizationId(),
                 OrganizationNameFixture.anOrganizationName(),
                 tenantId,
-                DEFAULT_ORGANIZATION_STATUS
+                DEFAULT_ORGANIZATION_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -77,11 +90,13 @@ public class OrganizationFixture {
      * @return Organization 인스턴스
      */
     public static Organization anOrganizationWithStatus(OrganizationStatus organizationStatus) {
-        return Organization.create(
+        return Organization.of(
                 OrganizationIdFixture.anOrganizationId(),
                 OrganizationNameFixture.anOrganizationName(),
                 DEFAULT_TENANT_ID,
-                organizationStatus
+                organizationStatus,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
