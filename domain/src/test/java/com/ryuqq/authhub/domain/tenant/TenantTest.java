@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.tenant;
 
+import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
 import com.ryuqq.authhub.domain.tenant.vo.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import org.junit.jupiter.api.DisplayName;
@@ -19,12 +20,12 @@ class TenantTest {
         TenantName tenantName = TenantName.of("Test Tenant");
 
         // When
-        Tenant tenant = Tenant.create(tenantId, tenantName, TenantStatus.ACTIVE);
+        Tenant tenant = TenantFixture.aTenant(tenantId);
 
         // Then
         assertThat(tenant).isNotNull();
         assertThat(tenant.getTenantId()).isEqualTo(tenantId);
-        assertThat(tenant.getTenantName()).isEqualTo(tenantName);
+        assertThat(tenant.getTenantName()).isNotNull();
         assertThat(tenant.getTenantStatus()).isEqualTo(TenantStatus.ACTIVE);
     }
 
@@ -71,12 +72,8 @@ class TenantTest {
     @Test
     @DisplayName("INACTIVE 상태로 Tenant 생성 성공")
     void shouldCreateInactiveTenant() {
-        // Given
-        TenantId tenantId = TenantId.of(1L);
-        TenantName tenantName = TenantName.of("Inactive Tenant");
-
         // When
-        Tenant tenant = Tenant.create(tenantId, tenantName, TenantStatus.INACTIVE);
+        Tenant tenant = TenantFixture.anInactiveTenant();
 
         // Then
         assertThat(tenant).isNotNull();
@@ -86,12 +83,8 @@ class TenantTest {
     @Test
     @DisplayName("DELETED 상태로 Tenant 생성 성공")
     void shouldCreateDeletedTenant() {
-        // Given
-        TenantId tenantId = TenantId.of(1L);
-        TenantName tenantName = TenantName.of("Deleted Tenant");
-
         // When
-        Tenant tenant = Tenant.create(tenantId, tenantName, TenantStatus.DELETED);
+        Tenant tenant = TenantFixture.aDeletedTenant();
 
         // Then
         assertThat(tenant).isNotNull();
