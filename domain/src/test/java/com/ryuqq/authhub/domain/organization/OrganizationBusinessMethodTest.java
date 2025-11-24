@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.domain.organization;
 
 import com.ryuqq.authhub.domain.common.Clock;
+import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.exception.InvalidOrganizationStateException;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;

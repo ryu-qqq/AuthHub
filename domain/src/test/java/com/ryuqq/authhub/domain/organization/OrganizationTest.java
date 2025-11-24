@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.organization;
 
+import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;

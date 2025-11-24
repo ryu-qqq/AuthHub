@@ -1,11 +1,12 @@
-package com.ryuqq.authhub.domain.organization;
+package com.ryuqq.authhub.domain.organization.aggregate;
 
 import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.common.model.AggregateRoot;
+import com.ryuqq.authhub.domain.organization.OrganizationStatus;
 import com.ryuqq.authhub.domain.organization.exception.InvalidOrganizationStateException;
-import com.ryuqq.authhub.domain.organization.exception.OrganizationErrorCode;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import com.ryuqq.authhub.domain.tenant.vo.TenantId;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -36,7 +37,7 @@ public class Organization implements AggregateRoot {
 
     private final OrganizationId organizationId;
     private final OrganizationName organizationName;
-    private final Long tenantId;
+    private final TenantId tenantId;
     private final OrganizationStatus organizationStatus;
     private final Instant createdAt;
     private final Instant updatedAt;
@@ -44,7 +45,7 @@ public class Organization implements AggregateRoot {
     private Organization(
             OrganizationId organizationId,
             OrganizationName organizationName,
-            Long tenantId,
+            TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
             Instant updatedAt
@@ -75,7 +76,7 @@ public class Organization implements AggregateRoot {
      * @author development-team
      * @since 1.0.0
      */
-    public static Organization forNew(OrganizationName organizationName, Long tenantId, Clock clock) {
+    public static Organization forNew(OrganizationName organizationName, TenantId tenantId, Clock clock) {
         Instant now = clock.now();
         return new Organization(
                 null,
@@ -105,7 +106,7 @@ public class Organization implements AggregateRoot {
     public static Organization of(
             OrganizationId organizationId,
             OrganizationName organizationName,
-            Long tenantId,
+            TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
             Instant updatedAt
@@ -139,7 +140,7 @@ public class Organization implements AggregateRoot {
     public static Organization reconstitute(
             OrganizationId organizationId,
             OrganizationName organizationName,
-            Long tenantId,
+            TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
             Instant updatedAt
@@ -157,22 +158,13 @@ public class Organization implements AggregateRoot {
         );
     }
 
-    /**
-     * @deprecated 기존 create 메서드. forNew/of/reconstitute 사용을 권장합니다.
-     */
-    @Deprecated
-    public static Organization create(OrganizationId organizationId, OrganizationName organizationName, Long tenantId, OrganizationStatus organizationStatus) {
-        Instant now = Instant.now();
-        return new Organization(organizationId, organizationName, tenantId, organizationStatus, now, now);
-    }
-
     private void validateOrganizationName(OrganizationName organizationName) {
         if (organizationName == null) {
             throw new IllegalArgumentException("OrganizationName은 null일 수 없습니다");
         }
     }
 
-    private void validateTenantId(Long tenantId) {
+    private void validateTenantId(TenantId tenantId) {
         if (tenantId == null) {
             throw new IllegalArgumentException("TenantId는 null일 수 없습니다");
         }
@@ -306,6 +298,19 @@ public class Organization implements AggregateRoot {
     }
 
     /**
+     * tenantIdValue - Tenant ID의 Long 값 반환
+     *
+     * <p>Getter 체이닝 방지 (organization.getTenantId().value() ❌)
+     *
+     * @return Tenant ID Long 값
+     * @author development-team
+     * @since 1.0.0
+     */
+    public Long tenantIdValue() {
+        return tenantId.value();
+    }
+
+    /**
      * statusValue - OrganizationStatus의 name() 값 반환
      *
      * @return OrganizationStatus name (예: "ACTIVE", "INACTIVE", "DELETED")
@@ -381,7 +386,7 @@ public class Organization implements AggregateRoot {
         return organizationName;
     }
 
-    public Long getTenantId() {
+    public TenantId getTenantId() {
         return tenantId;
     }
 
