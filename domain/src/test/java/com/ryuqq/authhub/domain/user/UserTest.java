@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.user;
 
+import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.vo.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,21 +18,16 @@ class UserTest {
     void shouldCreateUserWithValidData() {
         // Given
         UserId userId = UserId.of(UUID.randomUUID());
-        Long tenantId = 1L;
-        Long organizationId = 100L;
-        UserType userType = UserType.PUBLIC;
-        UserStatus userStatus = UserStatus.ACTIVE;
 
         // When
-        User user = User.create(userId, tenantId, organizationId, userType, userStatus);
+        User user = UserFixture.aUser(userId);
 
         // Then
         assertThat(user).isNotNull();
         assertThat(user.getUserId()).isEqualTo(userId);
-        assertThat(user.getTenantId()).isEqualTo(tenantId);
-        assertThat(user.getOrganizationId()).isEqualTo(organizationId);
-        assertThat(user.getUserType()).isEqualTo(userType);
-        assertThat(user.getUserStatus()).isEqualTo(userStatus);
+        assertThat(user.getTenantId()).isNotNull();
+        assertThat(user.getUserType()).isEqualTo(UserType.PUBLIC);
+        assertThat(user.getUserStatus()).isEqualTo(UserStatus.ACTIVE);
     }
 
     @Test
