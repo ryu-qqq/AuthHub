@@ -1,4 +1,4 @@
-package com.ryuqq.application.architecture.port.out;
+package com.ryuqq.authhub.application.architecture.port.out;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;

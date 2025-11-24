@@ -1,4 +1,4 @@
-rootProject.name = 'spring-hexagonal-template'
+rootProject.name = 'AuthHub'
 
 // ========================================
 // Core Modules (Hexagonal Architecture)

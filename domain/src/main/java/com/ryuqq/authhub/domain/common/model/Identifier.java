@@ -1,22 +1,23 @@
-package com.ryuqq.domain.common.model;
+package com.ryuqq.authhub.domain.common.model;
 
 /**
  * Identifier Value Object 인터페이스
  *
- * <p>Entity의 식별자를 나타내는 특수한 Value Object입니다.
- * 타입 안전한 ID를 제공하여 Long, String 등 원시 타입 사용을 방지합니다.</p>
+ * <p>Entity의 식별자를 나타내는 특수한 Value Object입니다. 타입 안전한 ID를 제공하여 Long, String 등 원시 타입 사용을 방지합니다.
  *
- * <p><strong>Identifier 규칙:</strong></p>
+ * <p><strong>Identifier 규칙:</strong>
+ *
  * <ul>
- *   <li>✅ ValueObject 인터페이스 확장</li>
- *   <li>✅ 단일 value 필드 (Long, String, UUID 등)</li>
- *   <li>✅ 불변 (Immutable)</li>
- *   <li>✅ Java Record 사용 권장</li>
- *   <li>✅ of() Factory Method 필수</li>
- *   <li>✅ 타입별로 별도 클래스 (OrderId, CustomerId 등)</li>
+ *   <li>✅ ValueObject 인터페이스 확장
+ *   <li>✅ 단일 value 필드 (Long, String, UUID 등)
+ *   <li>✅ 불변 (Immutable)
+ *   <li>✅ Java Record 사용 권장
+ *   <li>✅ of() Factory Method 필수
+ *   <li>✅ 타입별로 별도 클래스 (OrderId, CustomerId 등)
  * </ul>
  *
- * <p><strong>Identifier의 장점:</strong></p>
+ * <p><strong>Identifier의 장점:</strong>
+ *
  * <table border="1">
  *   <tr>
  *     <th>문제</th>
@@ -40,7 +41,8 @@ package com.ryuqq.domain.common.model;
  *   </tr>
  * </table>
  *
- * <p><strong>사용 예시:</strong></p>
+ * <p><strong>사용 예시:</strong>
+ *
  * <pre>{@code
  * // 1. Long 기반 Identifier
  * public record OrderId(long value) implements Identifier<Long> {
@@ -88,7 +90,8 @@ package com.ryuqq.domain.common.model;
  * }
  * }</pre>
  *
- * <p><strong>Entity에서 사용:</strong></p>
+ * <p><strong>Entity에서 사용:</strong>
+ *
  * <pre>{@code
  * public class Order implements AggregateRoot {
  *     private final OrderId id;  // ← Identifier VO
@@ -116,7 +119,8 @@ package com.ryuqq.domain.common.model;
  * }
  * }</pre>
  *
- * <p><strong>Long FK 전략과 조합:</strong></p>
+ * <p><strong>Long FK 전략과 조합:</strong>
+ *
  * <pre>{@code
  * // ❌ JPA 관계 어노테이션 금지
  * @ManyToOne
@@ -126,7 +130,8 @@ package com.ryuqq.domain.common.model;
  * private final CustomerId customerId;  // Long을 감싼 타입 안전 ID
  * }</pre>
  *
- * <p><strong>Persistence Layer 변환:</strong></p>
+ * <p><strong>Persistence Layer 변환:</strong>
+ *
  * <pre>{@code
  * // Domain
  * public record OrderId(long value) implements Identifier<Long> { }
@@ -167,7 +172,7 @@ public interface Identifier<T> extends ValueObject {
     /**
      * Identifier의 실제 값 반환
      *
-     * <p>Persistence Layer로의 변환 또는 외부 시스템 연동 시 사용됩니다.</p>
+     * <p>Persistence Layer로의 변환 또는 외부 시스템 연동 시 사용됩니다.
      *
      * @return Identifier의 실제 값 (Long, String, UUID 등)
      */

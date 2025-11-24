@@ -1,5 +1,5 @@
 # ========================================
-# Gradle Version Catalog - AuthHub
+# Gradle Version Catalog
 # ========================================
 # Central version management for all dependencies
 # Usage: implementation(libs.spring.boot.starter.web)
@@ -9,8 +9,8 @@
 # ========================================
 # Spring & Framework
 # ========================================
-springBoot = "3.4.1"  # 3.5.6은 Netty 의존성 충돌 문제로 인해 보류
-springDependencyManagement = "1.1.7"
+springBoot = "3.5.6"
+springDependencyManagement = "1.1.5"
 
 # ========================================
 # Database & Persistence
@@ -18,9 +18,14 @@ springDependencyManagement = "1.1.7"
 querydsl = "5.1.0"
 hibernate = "6.4.4.Final"
 flyway = "10.10.0"
-mysql = "8.0.33"
+postgresql = "42.7.3"
 h2 = "2.2.224"
 hikaricp = "5.1.0"
+
+# ========================================
+# AWS SDK
+# ========================================
+awsSdk = "2.25.11"
 
 # ========================================
 # Testing
@@ -30,7 +35,7 @@ assertj = "3.25.3"
 mockito = "5.11.0"
 testcontainers = "1.19.7"
 restAssured = "5.4.0"
-awaitility = "4.2.0"
+restdocs = "3.0.1"
 
 # ========================================
 # Architecture & Quality
@@ -40,34 +45,20 @@ checkstyle = "10.14.0"
 spotbugs = "4.8.3"
 spotbugsPlugin = "6.0.9"
 jacoco = "0.8.11"
+pmd = "7.0.0"
+pmdPlugin = "6.55.0"
+spotless = "7.0.0.BETA4"
 
 # ========================================
 # API Documentation
 # ========================================
-springdoc = "2.7.0"
+springdoc = "2.5.0"
 
 # ========================================
 # Logging & Monitoring
 # ========================================
-slf4j = "2.0.9"
 logstashLogback = "7.4"
 micrometer = "1.12.4"
-
-# ========================================
-# Resilience & Retry
-# ========================================
-springRetry = "2.0.5"
-resilience4j = "2.2.0"
-
-# ========================================
-# Redis
-# ========================================
-# lettuce 버전은 Spring Boot BOM이 자동 관리
-
-# ========================================
-# Security & JWT
-# ========================================
-# jjwt = "0.12.6"  # Not used - JwtParser uses Base64 + Jackson instead
 
 # ========================================
 # Utilities
@@ -81,7 +72,6 @@ jackson = "2.17.0"
 # ========================================
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
-spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
@@ -93,7 +83,7 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 # ========================================
 spring-context = { module = "org.springframework:spring-context" }
 spring-tx = { module = "org.springframework:spring-tx" }
-spring-test = { module = "org.springframework:spring-test" }
+spring-messaging = { module = "org.springframework:spring-messaging" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
 
 # ========================================
@@ -101,29 +91,38 @@ spring-security-test = { module = "org.springframework.security:spring-security-
 # ========================================
 querydsl-jpa = { module = "com.querydsl:querydsl-jpa", version.ref = "querydsl" }
 querydsl-apt = { module = "com.querydsl:querydsl-apt", version.ref = "querydsl" }
-querydsl-apt-jakarta = { module = "com.querydsl:querydsl-apt", version.ref = "querydsl" }
 
 # ========================================
 # Database
 # ========================================
-mysql-connector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
-flyway-mysql = { module = "org.flywaydb:flyway-mysql", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+
+# ========================================
+# AWS SDK v2
+# ========================================
+aws-bom = { module = "software.amazon.awssdk:bom", version.ref = "awsSdk" }
+aws-s3 = { module = "software.amazon.awssdk:s3" }
+aws-s3-transfer = { module = "software.amazon.awssdk:s3-transfer-manager" }
+aws-sqs = { module = "software.amazon.awssdk:sqs" }
+aws-apache-client = { module = "software.amazon.awssdk:apache-client" }
 
 # ========================================
 # Testing
 # ========================================
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-junit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+testcontainers-localstack = { module = "org.testcontainers:localstack", version.ref = "testcontainers" }
 rest-assured = { module = "io.rest-assured:rest-assured", version.ref = "restAssured" }
-awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
+spring-restdocs-mockmvc = { module = "org.springframework.restdocs:spring-restdocs-mockmvc", version.ref = "restdocs" }
 
 # ========================================
 # Architecture Testing
@@ -139,7 +138,6 @@ spotbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations", ve
 # API Documentation
 # ========================================
 springdoc-openapi = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
-springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
 
 # ========================================
 # Logging & Monitoring
@@ -148,41 +146,13 @@ logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-enc
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 
 # ========================================
-# Resilience & Retry
-# ========================================
-spring-retry = { module = "org.springframework.retry:spring-retry", version.ref = "springRetry" }
-resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
-resilience4j-circuitbreaker = { module = "io.github.resilience4j:resilience4j-circuitbreaker", version.ref = "resilience4j" }
-resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
-resilience4j-micrometer = { module = "io.github.resilience4j:resilience4j-micrometer", version.ref = "resilience4j" }
-
-# ========================================
-# Redis
-# ========================================
-# lettuce-core는 spring-boot-starter-data-redis에 포함되어 자동 관리됨
-
-# ========================================
-# Security & JWT
-# ========================================
-# JJWT dependencies removed - JwtParser uses Base64 + Jackson instead
-# jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
-# jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
-# jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
-
-# ========================================
 # Utilities
 # ========================================
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
-jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.0" }
+jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version = "3.1.0" }
-hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version = "8.0.1.Final" }
-
-# ========================================
-# Logging
-# ========================================
-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 
 [bundles]
 # ========================================
@@ -214,20 +184,19 @@ testing-spring = [
 
 testcontainers = [
     "testcontainers-junit",
-    "testcontainers-mysql"
+    "testcontainers-postgresql"
+]
+
+aws-s3 = [
+    "aws-s3",
+    "aws-s3-transfer",
+    "aws-apache-client"
 ]
 
 observability = [
     "spring-boot-starter-actuator",
+    "micrometer-prometheus",
     "logstash-logback-encoder"
-]
-
-resilience = [
-    "spring-retry",
-    "resilience4j-spring-boot3",
-    "resilience4j-circuitbreaker",
-    "resilience4j-retry",
-    "resilience4j-micrometer"
 ]
 
 [plugins]
@@ -237,3 +206,5 @@ resilience = [
 spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
 spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugsPlugin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+# Note: PMD is a core Gradle plugin, applied via `id("pmd")` in build.gradle.kts

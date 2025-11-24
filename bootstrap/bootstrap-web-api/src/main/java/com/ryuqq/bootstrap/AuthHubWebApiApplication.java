@@ -54,7 +54,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
             "com.ryuqq.bootstrap"
         })
 @ConfigurationPropertiesScan(basePackages = {"com.ryuqq.adapter.in.rest.config.properties"})
-public class SpringStandardsWebApiApplication {
+public class AuthHubWebApiApplication {
 
     /**
      * 애플리케이션 진입점
@@ -62,6 +62,6 @@ public class SpringStandardsWebApiApplication {
      * @param args 커맨드 라인 인자
      */
     public static void main(String[] args) {
-        SpringApplication.run(SpringStandardsWebApiApplication.class, args);
+        SpringApplication.run(AuthHubWebApiApplication.class, args);
     }
 }

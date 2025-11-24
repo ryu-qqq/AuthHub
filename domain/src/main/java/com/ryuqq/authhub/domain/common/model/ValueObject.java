@@ -1,22 +1,23 @@
-package com.ryuqq.domain.common.model;
+package com.ryuqq.authhub.domain.common.model;
 
 /**
  * Value Object 마커 인터페이스
  *
- * <p>DDD(Domain-Driven Design)에서 Value Object를 나타냅니다.
- * Value Object는 식별자 없이 속성 값으로만 구분되며, 완전히 불변입니다.</p>
+ * <p>DDD(Domain-Driven Design)에서 Value Object를 나타냅니다. Value Object는 식별자 없이 속성 값으로만 구분되며, 완전히 불변입니다.
  *
- * <p><strong>Value Object 규칙:</strong></p>
+ * <p><strong>Value Object 규칙:</strong>
+ *
  * <ul>
- *   <li>✅ 완전 불변 (Immutable)</li>
- *   <li>✅ 식별자 없음 (값으로만 동일성 판단)</li>
- *   <li>✅ equals/hashCode는 모든 속성 기반</li>
- *   <li>✅ Java Record 사용 권장</li>
- *   <li>✅ of() Factory Method 제공</li>
- *   <li>✅ 생성자에서 유효성 검증</li>
+ *   <li>✅ 완전 불변 (Immutable)
+ *   <li>✅ 식별자 없음 (값으로만 동일성 판단)
+ *   <li>✅ equals/hashCode는 모든 속성 기반
+ *   <li>✅ Java Record 사용 권장
+ *   <li>✅ of() Factory Method 제공
+ *   <li>✅ 생성자에서 유효성 검증
  * </ul>
  *
- * <p><strong>Value Object 특징:</strong></p>
+ * <p><strong>Value Object 특징:</strong>
+ *
  * <table border="1">
  *   <tr>
  *     <th>특징</th>
@@ -40,7 +41,8 @@ package com.ryuqq.domain.common.model;
  *   </tr>
  * </table>
  *
- * <p><strong>사용 예시:</strong></p>
+ * <p><strong>사용 예시:</strong>
+ *
  * <pre>{@code
  * // 1. 단순 VO (Record 사용)
  * public record Money(BigDecimal amount) implements ValueObject {
@@ -97,21 +99,23 @@ package com.ryuqq.domain.common.model;
  * }
  * }</pre>
  *
- * <p><strong>Record 사용 시 자동 제공:</strong></p>
+ * <p><strong>Record 사용 시 자동 제공:</strong>
+ *
  * <ul>
- *   <li>불변 필드 (final)</li>
- *   <li>생성자 (Compact Constructor 사용 가능)</li>
- *   <li>equals/hashCode (모든 필드 기반)</li>
- *   <li>toString</li>
- *   <li>Getter (필드명과 동일)</li>
+ *   <li>불변 필드 (final)
+ *   <li>생성자 (Compact Constructor 사용 가능)
+ *   <li>equals/hashCode (모든 필드 기반)
+ *   <li>toString
+ *   <li>Getter (필드명과 동일)
  * </ul>
  *
- * <p><strong>ArchUnit 검증:</strong></p>
+ * <p><strong>ArchUnit 검증:</strong>
+ *
  * <ul>
- *   <li>VO는 반드시 Record 타입</li>
- *   <li>of() Factory Method 필수</li>
- *   <li>생성자에서 유효성 검증 필수</li>
- *   <li>Lombok 어노테이션 금지</li>
+ *   <li>VO는 반드시 Record 타입
+ *   <li>of() Factory Method 필수
+ *   <li>생성자에서 유효성 검증 필수
+ *   <li>Lombok 어노테이션 금지
  * </ul>
  *
  * @author ryu-qqq
