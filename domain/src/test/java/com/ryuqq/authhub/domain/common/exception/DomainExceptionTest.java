@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.common.exception;
 
+import com.ryuqq.authhub.domain.common.exception.fixture.DomainExceptionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,7 @@ class DomainExceptionTest {
         String message = "User not found";
 
         // When
-        DomainException exception = new DomainException(code, message);
+        DomainException exception = DomainExceptionFixture.aDomainException(code, message);
 
         // Then
         assertThat(exception).isNotNull();
@@ -36,7 +37,7 @@ class DomainExceptionTest {
         Map<String, Object> args = Map.of("userId", 123L);
 
         // When
-        DomainException exception = new DomainException(code, message, args);
+        DomainException exception = DomainExceptionFixture.aDomainExceptionWithArgs(code, message, args);
 
         // Then
         assertThat(exception).isNotNull();
@@ -54,7 +55,7 @@ class DomainExceptionTest {
         Map<String, Object> nullArgs = null;
 
         // When
-        DomainException exception = new DomainException(code, message, nullArgs);
+        DomainException exception = DomainExceptionFixture.aDomainExceptionWithArgs(code, message, nullArgs);
 
         // Then
         assertThat(exception).isNotNull();
@@ -64,8 +65,8 @@ class DomainExceptionTest {
     @Test
     @DisplayName("DomainException은 RuntimeException을 상속")
     void shouldExtendRuntimeException() {
-        // Given
-        DomainException exception = new DomainException("TEST-001", "Test exception");
+        // When
+        DomainException exception = DomainExceptionFixture.aDomainException();
 
         // Then
         assertThat(exception).isInstanceOf(RuntimeException.class);
@@ -76,9 +77,11 @@ class DomainExceptionTest {
     void shouldReturnImmutableArgs() {
         // Given
         Map<String, Object> mutableArgs = Map.of("key", "value");
-        DomainException exception = new DomainException("TEST-002", "Test", mutableArgs);
 
-        // When & Then
+        // When
+        DomainException exception = DomainExceptionFixture.aDomainExceptionWithArgs("TEST-002", "Test", mutableArgs);
+
+        // Then
         assertThat(exception.args()).isUnmodifiable();
     }
 }
