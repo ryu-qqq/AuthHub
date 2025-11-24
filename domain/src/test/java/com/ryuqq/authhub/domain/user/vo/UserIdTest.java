@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.user.vo;
 
+import com.ryuqq.authhub.domain.user.vo.fixture.UserIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,7 @@ class UserIdTest {
         UUID uuid = UUID.randomUUID();
 
         // When
-        UserId userId = new UserId(uuid);
+        UserId userId = UserIdFixture.aUserId(uuid);
 
         // Then
         assertThat(userId).isNotNull();
