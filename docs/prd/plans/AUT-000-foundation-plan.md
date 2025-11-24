@@ -24,10 +24,10 @@
 - [x] 커밋: `test: UserId VO 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `UserId.java` 생성 (Record, UUID 기반)
-- [ ] Null 검증 로직 추가
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: UserId VO 구현 (Green)`
+- [x] `UserId.java` 생성 (Record, UUID 기반)
+- [x] Null 검증 로직 추가
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: UserId VO 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
 - [ ] VO ArchUnit 테스트 추가 및 통과
