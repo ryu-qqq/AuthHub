@@ -11,6 +11,7 @@ import com.ryuqq.authhub.domain.user.vo.UserId;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * User Aggregate Root - 사용자 도메인 객체
@@ -313,15 +314,15 @@ public class User implements AggregateRoot {
     // ========== Law of Demeter 준수: Primitive 값 접근 헬퍼 메서드 ==========
 
     /**
-     * userIdValue - User ID의 Long 값 반환
+     * userIdValue - User ID의 UUID 값 반환
      *
      * <p>Getter 체이닝 방지 (user.getUserId().value() ❌)
      *
-     * @return User ID Long 값 (nullable - forNew의 경우)
+     * @return User ID UUID 값 (nullable - forNew의 경우)
      * @author development-team
      * @since 1.0.0
      */
-    public Long userIdValue() {
+    public UUID userIdValue() {
         return (userId == null) ? null : userId.value();
     }
 

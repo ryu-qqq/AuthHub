@@ -3,6 +3,7 @@ package com.ryuqq.authhub.domain.user.exception;
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * InvalidUserStateException - User가 유효하지 않은 상태일 때 발생
@@ -25,12 +26,12 @@ public class InvalidUserStateException extends DomainException {
     /**
      * Constructor - userId와 사유로 예외 생성
      *
-     * @param userId 상태가 유효하지 않은 User ID
+     * @param userId 상태가 유효하지 않은 User ID (UUID)
      * @param reason 상태 유효성 위반 사유
      * @author development-team
      * @since 1.0.0
      */
-    public InvalidUserStateException(Long userId, String reason) {
+    public InvalidUserStateException(UUID userId, String reason) {
         super(
                 UserErrorCode.INVALID_USER_STATUS.getCode(),
                 UserErrorCode.INVALID_USER_STATUS.getMessage(),
