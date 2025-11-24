@@ -1,10 +1,15 @@
 package com.ryuqq.authhub.domain.user.fixture;
 
-import com.ryuqq.authhub.domain.user.User;
+import com.ryuqq.authhub.domain.common.Clock;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
+import com.ryuqq.authhub.domain.tenant.vo.TenantId;
 import com.ryuqq.authhub.domain.user.UserStatus;
 import com.ryuqq.authhub.domain.user.UserType;
+import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.vo.UserId;
 import com.ryuqq.authhub.domain.user.vo.fixture.UserIdFixture;
+
+import java.time.Instant;
 
 /**
  * User Aggregate Test Fixture
@@ -12,22 +17,25 @@ import com.ryuqq.authhub.domain.user.vo.fixture.UserIdFixture;
  */
 public class UserFixture {
 
-    private static final Long DEFAULT_TENANT_ID = 1L;
-    private static final Long DEFAULT_ORGANIZATION_ID = 100L;
+    private static final TenantId DEFAULT_TENANT_ID = TenantId.of(1L);
+    private static final OrganizationId DEFAULT_ORGANIZATION_ID = OrganizationId.of(100L);
     private static final UserType DEFAULT_USER_TYPE = UserType.PUBLIC;
     private static final UserStatus DEFAULT_USER_STATUS = UserStatus.ACTIVE;
+    private static final Clock DEFAULT_CLOCK = () -> Instant.parse("2025-11-24T00:00:00Z");
 
     /**
      * 기본 User 생성
      * @return User 인스턴스
      */
     public static User aUser() {
-        return User.create(
+        return User.of(
                 UserIdFixture.aUserId(),
                 DEFAULT_TENANT_ID,
                 DEFAULT_ORGANIZATION_ID,
                 DEFAULT_USER_TYPE,
-                DEFAULT_USER_STATUS
+                DEFAULT_USER_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -37,12 +45,14 @@ public class UserFixture {
      * @return User 인스턴스
      */
     public static User aUser(UserId userId) {
-        return User.create(
+        return User.of(
                 userId,
                 DEFAULT_TENANT_ID,
                 DEFAULT_ORGANIZATION_ID,
                 DEFAULT_USER_TYPE,
-                DEFAULT_USER_STATUS
+                DEFAULT_USER_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -51,13 +61,15 @@ public class UserFixture {
      * @param tenantId Tenant ID
      * @return User 인스턴스
      */
-    public static User aUserWithTenantId(Long tenantId) {
-        return User.create(
+    public static User aUserWithTenantId(TenantId tenantId) {
+        return User.of(
                 UserIdFixture.aUserId(),
                 tenantId,
                 DEFAULT_ORGANIZATION_ID,
                 DEFAULT_USER_TYPE,
-                DEFAULT_USER_STATUS
+                DEFAULT_USER_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -67,12 +79,14 @@ public class UserFixture {
      * @return User 인스턴스
      */
     public static User aUserWithStatus(UserStatus userStatus) {
-        return User.create(
+        return User.of(
                 UserIdFixture.aUserId(),
                 DEFAULT_TENANT_ID,
                 DEFAULT_ORGANIZATION_ID,
                 DEFAULT_USER_TYPE,
-                userStatus
+                userStatus,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -81,12 +95,14 @@ public class UserFixture {
      * @return User 인스턴스
      */
     public static User anInternalUser() {
-        return User.create(
+        return User.of(
                 UserIdFixture.aUserId(),
                 DEFAULT_TENANT_ID,
                 DEFAULT_ORGANIZATION_ID,
                 UserType.INTERNAL,
-                DEFAULT_USER_STATUS
+                DEFAULT_USER_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 

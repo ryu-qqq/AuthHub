@@ -1,11 +1,14 @@
 package com.ryuqq.authhub.domain.tenant.fixture;
 
-import com.ryuqq.authhub.domain.tenant.Tenant;
+import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.tenant.TenantStatus;
+import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.vo.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.fixture.TenantIdFixture;
 import com.ryuqq.authhub.domain.tenant.vo.fixture.TenantNameFixture;
+
+import java.time.Instant;
 
 /**
  * Tenant Aggregate Test Fixture
@@ -14,16 +17,19 @@ import com.ryuqq.authhub.domain.tenant.vo.fixture.TenantNameFixture;
 public class TenantFixture {
 
     private static final TenantStatus DEFAULT_TENANT_STATUS = TenantStatus.ACTIVE;
+    private static final Clock DEFAULT_CLOCK = () -> Instant.parse("2025-11-24T00:00:00Z");
 
     /**
      * 기본 Tenant 생성
      * @return Tenant 인스턴스
      */
     public static Tenant aTenant() {
-        return Tenant.create(
+        return Tenant.of(
                 TenantIdFixture.aTenantId(),
                 TenantNameFixture.aTenantName(),
-                DEFAULT_TENANT_STATUS
+                DEFAULT_TENANT_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -33,10 +39,12 @@ public class TenantFixture {
      * @return Tenant 인스턴스
      */
     public static Tenant aTenant(TenantId tenantId) {
-        return Tenant.create(
+        return Tenant.of(
                 tenantId,
                 TenantNameFixture.aTenantName(),
-                DEFAULT_TENANT_STATUS
+                DEFAULT_TENANT_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -46,10 +54,12 @@ public class TenantFixture {
      * @return Tenant 인스턴스
      */
     public static Tenant aTenant(TenantName tenantName) {
-        return Tenant.create(
+        return Tenant.of(
                 TenantIdFixture.aTenantId(),
                 tenantName,
-                DEFAULT_TENANT_STATUS
+                DEFAULT_TENANT_STATUS,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
@@ -59,10 +69,12 @@ public class TenantFixture {
      * @return Tenant 인스턴스
      */
     public static Tenant aTenantWithStatus(TenantStatus tenantStatus) {
-        return Tenant.create(
+        return Tenant.of(
                 TenantIdFixture.aTenantId(),
                 TenantNameFixture.aTenantName(),
-                tenantStatus
+                tenantStatus,
+                DEFAULT_CLOCK.now(),
+                DEFAULT_CLOCK.now()
         );
     }
 
