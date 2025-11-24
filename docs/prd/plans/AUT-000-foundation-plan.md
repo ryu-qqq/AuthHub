@@ -14,7 +14,7 @@
 
 ---
 
-### 1️⃣ User Aggregate - UserId VO 설계 (Cycle 1) [IN PROGRESS]
+### 1️⃣ User Aggregate - UserId VO 설계 (Cycle 1) [COMPLETED] ✅
 
 #### 🔴 Red: 테스트 작성
 - [x] `UserIdTest.java` 파일 생성
@@ -36,32 +36,32 @@
 - [x] 커밋: `struct: UserId VO 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `UserIdFixture.java` 생성 (Object Mother 패턴)
-- [ ] `UserIdFixture.aUserId()` 메서드 작성
-- [ ] `UserIdTest` → Fixture 사용으로 리팩토링
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `test: UserIdFixture 정리 (Tidy)`
+- [x] `UserIdFixture.java` 생성 (Object Mother 패턴)
+- [x] `UserIdFixture.aUserId()` 메서드 작성
+- [x] `UserIdTest` → Fixture 사용으로 리팩토링
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `test: UserIdFixture 정리 (Tidy)`
 
 ---
 
-### 2️⃣ User Aggregate - User Entity 설계 (Cycle 2)
+### 2️⃣ User Aggregate - User Entity 설계 (Cycle 2) [IN PROGRESS] 🔄
 
 #### 🔴 Red: 테스트 작성
-- [ ] `UserTest.java` 파일 생성
-- [ ] `shouldCreateUserWithValidData()` 작성
-- [ ] `shouldValidateTenantId()` 작성
-- [ ] `shouldValidateUserStatus()` 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: User Aggregate 테스트 추가 (Red)`
+- [x] `UserTest.java` 파일 생성
+- [x] `shouldCreateUserWithValidData()` 작성
+- [x] `shouldValidateTenantId()` 작성
+- [x] `shouldValidateUserStatus()` 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: User Aggregate 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `User.java` 생성 (Plain Java, Lombok 금지)
-- [ ] `UserType` Enum 생성 (PUBLIC, INTERNAL)
-- [ ] `UserStatus` Enum 생성 (ACTIVE, INACTIVE, SUSPENDED, DELETED)
-- [ ] 생성자 + Getter 작성 (final 필드)
-- [ ] Long FK 전략 (tenantId, organizationId)
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: User Aggregate 구현 (Green)`
+- [x] `User.java` 생성 (Plain Java, Lombok 금지)
+- [x] `UserType` Enum 생성 (PUBLIC, INTERNAL)
+- [x] `UserStatus` Enum 생성 (ACTIVE, INACTIVE, SUSPENDED, DELETED)
+- [x] 생성자 + Getter 작성 (final 필드)
+- [x] Long FK 전략 (tenantId, organizationId)
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: User Aggregate 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
 - [ ] Law of Demeter 준수 확인
