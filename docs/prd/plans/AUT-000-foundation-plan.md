@@ -78,35 +78,35 @@
 
 ---
 
-### 3️⃣ Tenant Aggregate 설계 (Cycle 3)
+### 3️⃣ Tenant Aggregate 설계 (Cycle 3) [COMPLETED] ✅
 
 #### 🔴 Red: 테스트 작성
-- [ ] `TenantIdTest.java`, `TenantNameTest.java` 생성
-- [ ] `TenantTest.java` 생성
-- [ ] `shouldCreateTenantWithValidData()` 작성
-- [ ] `shouldValidateTenantName()` 작성 (2-100자 검증)
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: Tenant Aggregate 테스트 추가 (Red)`
+- [x] `TenantIdTest.java`, `TenantNameTest.java` 생성
+- [x] `TenantTest.java` 생성
+- [x] `shouldCreateTenantWithValidData()` 작성
+- [x] `shouldValidateTenantName()` 작성 (2-100자 검증)
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: Tenant Aggregate 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `TenantId.java` 생성 (Record, Long 기반)
-- [ ] `TenantName.java` 생성 (Record, 2-100자 검증)
-- [ ] `TenantStatus` Enum 생성 (ACTIVE, INACTIVE, DELETED)
-- [ ] `Tenant.java` 생성 (Plain Java)
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Tenant Aggregate 구현 (Green)`
+- [x] `TenantId.java` 생성 (Record, Long 기반)
+- [x] `TenantName.java` 생성 (Record, 2-100자 검증)
+- [x] `TenantStatus` Enum 생성 (ACTIVE, INACTIVE, DELETED)
+- [x] `Tenant.java` 생성 (Plain Java)
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Tenant Aggregate 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
-- [ ] VO 검증 로직 리팩토링
-- [ ] Aggregate ArchUnit 테스트 통과
-- [ ] 커밋: `struct: Tenant Aggregate 개선 (Refactor)`
+- [x] VO 검증 로직 리팩토링
+- [x] Aggregate ArchUnit 테스트 통과
+- [x] 커밋: `struct: Tenant Aggregate 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `TenantFixture.java` 생성
-- [ ] `TenantIdFixture.aTenantId()` 추가
-- [ ] `TenantNameFixture.aTenantName()` 추가
-- [ ] 테스트 → Fixture 사용
-- [ ] 커밋: `test: TenantFixture 정리 (Tidy)`
+- [x] `TenantFixture.java` 생성
+- [x] `TenantIdFixture.aTenantId()` 추가
+- [x] `TenantNameFixture.aTenantName()` 추가
+- [x] 테스트 → Fixture 사용
+- [x] 커밋: `test: TenantFixture 정리 (Tidy)`
 
 ---
 
