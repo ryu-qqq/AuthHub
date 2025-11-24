@@ -30,10 +30,10 @@
 - [x] 커밋: `feat: UserId VO 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
-- [ ] VO ArchUnit 테스트 추가 및 통과
-- [ ] Lombok 미사용 확인
-- [ ] 불변성 보장 확인 (Record 특성)
-- [ ] 커밋: `struct: UserId VO 개선 (Refactor)`
+- [x] VO ArchUnit 테스트 추가 및 통과
+- [x] Lombok 미사용 확인
+- [x] 불변성 보장 확인 (Record 특성)
+- [x] 커밋: `struct: UserId VO 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
 - [ ] `UserIdFixture.java` 생성 (Object Mother 패턴)

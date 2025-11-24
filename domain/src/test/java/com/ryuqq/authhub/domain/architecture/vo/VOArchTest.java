@@ -42,7 +42,7 @@ class VOArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.domain");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.domain");
     }
 
     /** 규칙 1: Value Object는 Record여야 한다 */
