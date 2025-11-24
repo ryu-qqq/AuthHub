@@ -110,35 +110,35 @@
 
 ---
 
-### 4️⃣ Organization Aggregate 설계 (Cycle 4)
+### 4️⃣ Organization Aggregate 설계 (Cycle 4) [COMPLETED] ✅
 
 #### 🔴 Red: 테스트 작성
-- [ ] `OrganizationIdTest.java`, `OrganizationNameTest.java` 생성
-- [ ] `OrganizationTest.java` 생성
-- [ ] `shouldCreateOrganizationWithValidData()` 작성
-- [ ] `shouldValidateOrganizationName()` 작성 (2-100자 검증)
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: Organization Aggregate 테스트 추가 (Red)`
+- [x] `OrganizationIdTest.java`, `OrganizationNameTest.java` 생성
+- [x] `OrganizationTest.java` 생성
+- [x] `shouldCreateOrganizationWithValidData()` 작성
+- [x] `shouldValidateOrganizationName()` 작성 (2-100자 검증)
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: Organization Aggregate 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `OrganizationId.java` 생성 (Record, Long 기반)
-- [ ] `OrganizationName.java` 생성 (Record, 2-100자 검증)
-- [ ] `OrganizationStatus` Enum 생성 (ACTIVE, INACTIVE, DELETED)
-- [ ] `Organization.java` 생성 (Plain Java)
-- [ ] Long FK 전략 (tenantId)
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Organization Aggregate 구현 (Green)`
+- [x] `OrganizationId.java` 생성 (Record, Long 기반)
+- [x] `OrganizationName.java` 생성 (Record, 2-100자 검증)
+- [x] `OrganizationStatus` Enum 생성 (ACTIVE, INACTIVE, DELETED)
+- [x] `Organization.java` 생성 (Plain Java)
+- [x] Long FK 전략 (tenantId)
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Organization Aggregate 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
-- [ ] VO 검증 로직 리팩토링
-- [ ] Aggregate ArchUnit 테스트 통과
-- [ ] 커밋: `struct: Organization Aggregate 개선 (Refactor)`
+- [x] VO 검증 로직 리팩토링
+- [x] Aggregate ArchUnit 테스트 통과
+- [x] 커밋: `struct: Organization Aggregate 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `OrganizationFixture.java` 생성
-- [ ] `OrganizationIdFixture`, `OrganizationNameFixture` 추가
-- [ ] 테스트 → Fixture 사용
-- [ ] 커밋: `test: OrganizationFixture 정리 (Tidy)`
+- [x] `OrganizationFixture.java` 생성
+- [x] `OrganizationIdFixture`, `OrganizationNameFixture` 추가
+- [x] 테스트 → Fixture 사용
+- [x] 커밋: `test: OrganizationFixture 정리 (Tidy)`
 
 ---
 
