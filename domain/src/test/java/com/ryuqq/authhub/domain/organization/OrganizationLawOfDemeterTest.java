@@ -4,6 +4,7 @@ import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import com.ryuqq.authhub.domain.tenant.vo.TenantId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +25,7 @@ class OrganizationLawOfDemeterTest {
         Organization organization = Organization.of(
                 id,
                 OrganizationName.of("Test"),
-                1L,
+                TenantId.of(1L),
                 OrganizationStatus.ACTIVE,
                 clock.now(),
                 clock.now()
@@ -43,7 +44,7 @@ class OrganizationLawOfDemeterTest {
         // Given
         Organization organization = Organization.forNew(
                 OrganizationName.of("Test Organization"),
-                1L,
+                TenantId.of(1L),
                 clock
         );
 
@@ -60,7 +61,7 @@ class OrganizationLawOfDemeterTest {
         // Given
         Organization organization = Organization.forNew(
                 OrganizationName.of("Test"),
-                1L,
+                TenantId.of(1L),
                 clock
         );
 
@@ -77,14 +78,14 @@ class OrganizationLawOfDemeterTest {
         // Given
         Organization newOrganization = Organization.forNew(
                 OrganizationName.of("New Org"),
-                1L,
+                TenantId.of(1L),
                 clock
         );
 
         Organization existingOrganization = Organization.of(
                 OrganizationId.of(100L),
                 OrganizationName.of("Existing Org"),
-                1L,
+                TenantId.of(1L),
                 OrganizationStatus.ACTIVE,
                 clock.now(),
                 clock.now()
@@ -105,7 +106,7 @@ class OrganizationLawOfDemeterTest {
         Organization organization = Organization.of(
                 OrganizationId.of(100L),
                 OrganizationName.of("Test"),
-                1L,
+                TenantId.of(1L),
                 OrganizationStatus.ACTIVE,
                 createdAt,
                 updatedAt
