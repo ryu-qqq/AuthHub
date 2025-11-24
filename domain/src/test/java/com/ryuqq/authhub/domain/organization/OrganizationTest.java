@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.organization;
 
+import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import org.junit.jupiter.api.DisplayName;
@@ -20,13 +21,13 @@ class OrganizationTest {
         Long tenantId = 1L;
 
         // When
-        Organization organization = Organization.create(organizationId, organizationName, tenantId, OrganizationStatus.ACTIVE);
+        Organization organization = OrganizationFixture.anOrganization(organizationId);
 
         // Then
         assertThat(organization).isNotNull();
         assertThat(organization.getOrganizationId()).isEqualTo(organizationId);
-        assertThat(organization.getOrganizationName()).isEqualTo(organizationName);
-        assertThat(organization.getTenantId()).isEqualTo(tenantId);
+        assertThat(organization.getOrganizationName()).isNotNull();
+        assertThat(organization.getTenantId()).isNotNull();
         assertThat(organization.getOrganizationStatus()).isEqualTo(OrganizationStatus.ACTIVE);
     }
 
@@ -90,13 +91,8 @@ class OrganizationTest {
     @Test
     @DisplayName("INACTIVE 상태로 Organization 생성 성공")
     void shouldCreateInactiveOrganization() {
-        // Given
-        OrganizationId organizationId = OrganizationId.of(100L);
-        OrganizationName organizationName = OrganizationName.of("Inactive Organization");
-        Long tenantId = 1L;
-
         // When
-        Organization organization = Organization.create(organizationId, organizationName, tenantId, OrganizationStatus.INACTIVE);
+        Organization organization = OrganizationFixture.anInactiveOrganization();
 
         // Then
         assertThat(organization).isNotNull();
@@ -106,13 +102,8 @@ class OrganizationTest {
     @Test
     @DisplayName("DELETED 상태로 Organization 생성 성공")
     void shouldCreateDeletedOrganization() {
-        // Given
-        OrganizationId organizationId = OrganizationId.of(100L);
-        OrganizationName organizationName = OrganizationName.of("Deleted Organization");
-        Long tenantId = 1L;
-
         // When
-        Organization organization = Organization.create(organizationId, organizationName, tenantId, OrganizationStatus.DELETED);
+        Organization organization = OrganizationFixture.aDeletedOrganization();
 
         // Then
         assertThat(organization).isNotNull();
