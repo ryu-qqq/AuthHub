@@ -14,14 +14,14 @@
 
 ---
 
-### 1️⃣ User Aggregate - UserId VO 설계 (Cycle 1)
+### 1️⃣ User Aggregate - UserId VO 설계 (Cycle 1) [IN PROGRESS]
 
 #### 🔴 Red: 테스트 작성
-- [ ] `UserIdTest.java` 파일 생성
-- [ ] `shouldCreateUserIdWithValidUUID()` 작성
-- [ ] `shouldThrowExceptionWhenNullUUID()` 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: UserId VO 테스트 추가 (Red)`
+- [x] `UserIdTest.java` 파일 생성
+- [x] `shouldCreateUserIdWithValidUUID()` 작성
+- [x] `shouldThrowExceptionWhenNullUUID()` 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: UserId VO 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 - [ ] `UserId.java` 생성 (Record, UUID 기반)
