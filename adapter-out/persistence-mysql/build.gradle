@@ -1,0 +1,143 @@
+// ========================================
+// Adapter-Out: Persistence JPA
+// ========================================
+// Outbound adapter for database operations (JPA + QueryDSL)
+// Implements repository ports from domain layer
+// Technology: Spring Data JPA + QueryDSL + MySQL
+// NO Lombok allowed
+// ========================================
+
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+}
+
+dependencies {
+    // ========================================
+    // Core Dependencies
+    // ========================================
+    api project(':application')
+    api project(':domain')
+
+    // Spring Data JPA
+    implementation libs.spring.boot.starter.data.jpa
+
+    // QueryDSL
+    implementation(libs.querydsl.jpa) {
+        artifact {
+            classifier = 'jakarta'
+        }
+    }
+    annotationProcessor(libs.querydsl.apt) {
+        artifact {
+            classifier = 'jakarta'
+        }
+    }
+    annotationProcessor libs.jakarta.persistence.api
+
+    // Database Drivers (Runtime)
+    runtimeOnly libs.mysql
+    runtimeOnly libs.h2 // For testing
+
+    // Connection Pooling
+    implementation libs.hikaricp
+
+    // Flyway Migration
+    implementation libs.flyway.core
+    runtimeOnly libs.flyway.mysql
+
+    // ========================================
+    // Test Dependencies
+    // ========================================
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.testcontainers.mysql
+    testImplementation libs.testcontainers.junit
+
+    // ArchUnit for architecture validation
+    testImplementation libs.archunit.junit5
+
+    // Bootstrap testFixtures (ArchUnit 유틸리티 사용)
+    testImplementation testFixtures(project(':domain'))
+
+    // ========================================
+    // Test Fixtures Dependencies
+    // ========================================
+    // Persistence TestFixtures는 Domain/Application Fixtures 재사용 가능
+    testFixturesApi project(':domain')
+    testFixturesApi project(':application')
+    testFixturesApi testFixtures(project(':domain'))
+    testFixturesApi testFixtures(project(':application'))
+    testFixturesImplementation libs.spring.boot.starter.data.jpa
+}
+
+// ========================================
+// QueryDSL Configuration
+// ========================================
+def generatedSourcesDir = file('build/generated/sources/annotationProcessor/java/main')
+
+sourceSets {
+    main {
+        java {
+            srcDir generatedSourcesDir
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.generatedSourceOutputDirectory.set(generatedSourcesDir)
+}
+
+// ========================================
+// Test Coverage (70% for adapters)
+// ========================================
+// Note: Foundation 단계(AUT-000)에서는 커버리지 검증 비활성화
+// 실제 비즈니스 로직 구현 후 활성화 필요
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.00 // TODO: 실제 구현 완료 후 0.70으로 조정
+            }
+        }
+        rule {
+            element = 'CLASS'
+            excludes = [
+                '*.entity.*', // JPA entities excluded
+                '*.Q*', // QueryDSL generated classes excluded
+                '*.common.entity.*', // Base entities excluded
+                '*.config.*' // Configuration classes excluded
+            ]
+        }
+    }
+}
+
+tasks.test {
+    finalizedBy tasks.jacocoTestCoverageVerification
+}
+
+// ========================================
+// Clean Generated Sources
+// ========================================
+tasks.clean {
+    delete generatedSourcesDir
+}
+
+// ========================================
+// Static Analysis Task Dependency Fix
+// ========================================
+// Fix implicit dependency issue with generated sources
+// Static analysis tasks must run after compile tasks
+['checkstyleMain', 'pmdMain', 'spotbugsMain'].each { taskName ->
+    tasks.named(taskName) {
+        mustRunAfter tasks.named('compileTestJava')
+        mustRunAfter tasks.named('compileTestFixturesJava')
+    }
+}
+
+// ========================================
+// PMD: Exclude generated sources
+// ========================================
+tasks.named('pmdMain') {
+    // Exclude QueryDSL generated Q-classes from PMD analysis
+    source = fileTree('src/main/java')
+}

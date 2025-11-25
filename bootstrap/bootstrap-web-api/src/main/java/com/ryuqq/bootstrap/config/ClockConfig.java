@@ -1,7 +1,6 @@
 package com.ryuqq.bootstrap.config;
 
-import com.ryuqq.application.common.config.SystemClockHolder;
-import com.ryuqq.domain.common.util.ClockHolder;
+import com.ryuqq.authhub.domain.common.util.ClockHolder;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
