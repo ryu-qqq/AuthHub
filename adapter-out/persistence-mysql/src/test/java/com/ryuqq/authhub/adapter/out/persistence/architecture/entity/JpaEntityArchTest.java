@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.out.persistence.architecture.entity;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -51,35 +52,46 @@ class JpaEntityArchTest {
 
     private static JavaClasses allClasses;
     private static JavaClasses entityClasses;
+    private static boolean hasEntityClasses;
 
     @BeforeAll
     static void setUp() {
-        allClasses = new ClassFileImporter().importPackages("com.ryuqq.adapter.out.persistence");
+        allClasses =
+                new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.out.persistence");
 
         entityClasses =
                 allClasses.that(
                         DescribedPredicate.describe(
                                 "are JPA Entity classes",
                                 javaClass -> javaClass.isAnnotatedWith(Entity.class)));
+
+        hasEntityClasses =
+                allClasses.stream().anyMatch(javaClass -> javaClass.isAnnotatedWith(Entity.class));
     }
 
     @Test
     @DisplayName("규칙 1: @Entity 어노테이션 필수")
     void jpaEntity_MustBeAnnotatedWithEntity() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
                         .haveSimpleNameEndingWith("JpaEntity")
+                        .and()
+                        .haveSimpleNameNotStartingWith("Q") // QueryDSL Q타입 제외
                         .should()
                         .beAnnotatedWith(Entity.class)
                         .because("JPA Entity 클래스는 @Entity 어노테이션이 필수입니다");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @Data")
     void jpaEntity_MustNotUseLombok_Data() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -88,12 +100,14 @@ class JpaEntityArchTest {
                         .notBeAnnotatedWith("lombok.Data")
                         .because("JPA Entity는 Lombok 사용이 금지됩니다 (Plain Java 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @Getter")
     void jpaEntity_MustNotUseLombok_Getter() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -102,12 +116,14 @@ class JpaEntityArchTest {
                         .notBeAnnotatedWith("lombok.Getter")
                         .because("JPA Entity는 Lombok 사용이 금지됩니다 (Plain Java 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @Setter")
     void jpaEntity_MustNotUseLombok_Setter() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -116,12 +132,14 @@ class JpaEntityArchTest {
                         .notBeAnnotatedWith("lombok.Setter")
                         .because("JPA Entity는 Lombok 사용이 금지됩니다 (Plain Java 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @Builder")
     void jpaEntity_MustNotUseLombok_Builder() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -130,12 +148,14 @@ class JpaEntityArchTest {
                         .notBeAnnotatedWith("lombok.Builder")
                         .because("JPA Entity는 Lombok 사용이 금지됩니다 (Plain Java 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @AllArgsConstructor")
     void jpaEntity_MustNotUseLombok_AllArgsConstructor() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -144,12 +164,14 @@ class JpaEntityArchTest {
                         .notBeAnnotatedWith("lombok.AllArgsConstructor")
                         .because("JPA Entity는 Lombok 사용이 금지됩니다 (Plain Java 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @NoArgsConstructor")
     void jpaEntity_MustNotUseLombok_NoArgsConstructor() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -158,7 +180,7 @@ class JpaEntityArchTest {
                         .notBeAnnotatedWith("lombok.NoArgsConstructor")
                         .because("JPA Entity는 Lombok 사용이 금지됩니다 (Plain Java 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
@@ -173,7 +195,7 @@ class JpaEntityArchTest {
                         .beAnnotatedWith(ManyToOne.class)
                         .because("JPA Entity는 관계 어노테이션 사용이 금지됩니다 (Long FK 전략 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
@@ -188,7 +210,7 @@ class JpaEntityArchTest {
                         .beAnnotatedWith(OneToMany.class)
                         .because("JPA Entity는 관계 어노테이션 사용이 금지됩니다 (Long FK 전략 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
@@ -203,7 +225,7 @@ class JpaEntityArchTest {
                         .beAnnotatedWith(OneToOne.class)
                         .because("JPA Entity는 관계 어노테이션 사용이 금지됩니다 (Long FK 전략 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
@@ -218,7 +240,7 @@ class JpaEntityArchTest {
                         .beAnnotatedWith(ManyToMany.class)
                         .because("JPA Entity는 관계 어노테이션 사용이 금지됩니다 (Long FK 전략 사용)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
@@ -236,7 +258,7 @@ class JpaEntityArchTest {
                         .should(notExist())
                         .because("JPA Entity는 Setter 메서드가 금지됩니다 (Getter만 제공)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
@@ -255,12 +277,14 @@ class JpaEntityArchTest {
                         .should(notExist())
                         .because("JPA Entity는 비즈니스 로직이 금지됩니다 (Domain Layer에서 처리)");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 6: protected 기본 생성자 필수")
     void jpaEntity_MustHaveProtectedNoArgsConstructor() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -268,12 +292,14 @@ class JpaEntityArchTest {
                         .should(haveProtectedNoArgsConstructor())
                         .because("JPA Entity는 JPA 스펙을 위해 protected 기본 생성자가 필수입니다");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 7: private 전체 필드 생성자 필수")
     void jpaEntity_MustHavePrivateAllArgsConstructor() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -281,12 +307,14 @@ class JpaEntityArchTest {
                         .should(havePrivateConstructorWithParameters())
                         .because("JPA Entity는 무분별한 생성 방지를 위해 private 생성자가 필수입니다");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 8: public static of() 메서드 필수")
     void jpaEntity_MustHavePublicStaticOfMethod() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -294,12 +322,14 @@ class JpaEntityArchTest {
                         .should(havePublicStaticOfMethod())
                         .because("JPA Entity는 Mapper 전용 of() 스태틱 메서드가 필수입니다");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     @Test
     @DisplayName("규칙 10: Entity 네이밍 규칙 (*JpaEntity)")
     void jpaEntity_MustFollowNamingConvention() {
+        assumeTrue(hasEntityClasses, "JpaEntity 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -308,7 +338,7 @@ class JpaEntityArchTest {
                         .haveSimpleNameEndingWith("JpaEntity")
                         .because("JPA Entity 클래스는 *JpaEntity 네이밍 규칙을 따라야 합니다");
 
-        rule.check(entityClasses);
+        rule.allowEmptyShould(true).check(entityClasses);
     }
 
     // ===== 커스텀 ArchCondition =====

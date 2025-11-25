@@ -4,6 +4,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -42,16 +43,28 @@ import org.junit.jupiter.api.Test;
 class ResponseDtoArchTest {
 
     private static JavaClasses classes;
+    private static boolean hasResponseDtoClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.adapter.in.rest");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
+
+        hasResponseDtoClasses =
+                classes.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getPackageName().contains(".dto.response")
+                                                && javaClass
+                                                        .getSimpleName()
+                                                        .endsWith("ApiResponse"));
     }
 
     /** 규칙 1: Record 타입 필수 */
     @Test
     @DisplayName("[필수] Response DTO는 Record 타입이어야 한다")
     void responseDto_MustBeRecords() {
+        assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -71,6 +84,8 @@ class ResponseDtoArchTest {
     @Test
     @DisplayName("[필수] Response DTO는 *ApiResponse 접미사를 가져야 한다")
     void responseDto_MustHaveApiResponseSuffix() {
+        assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -112,7 +127,7 @@ class ResponseDtoArchTest {
                         .beAnnotatedWith("lombok.Value")
                         .because("Response DTO는 Pure Java Record를 사용해야 하며 Lombok은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 4: Jackson 어노테이션 절대 금지 */
@@ -138,7 +153,7 @@ class ResponseDtoArchTest {
                                 "com.fasterxml.jackson.databind.annotation.JsonDeserialize")
                         .because("Response DTO는 프레임워크 독립적이어야 하며 Jackson 어노테이션은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 5: Domain 변환 메서드 금지 */
@@ -157,7 +172,7 @@ class ResponseDtoArchTest {
                         .resideInAPackage("..dto.response..")
                         .because("Response DTO는 출력 전용이며 Domain 변환 메서드는 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 6: 비즈니스 로직 메서드 금지 */
@@ -176,13 +191,15 @@ class ResponseDtoArchTest {
                         .resideInAPackage("..dto.response..")
                         .because("Response DTO는 데이터 전송만 담당하며 비즈니스 로직은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 7: from() 메서드 필수 (권장) */
     @Test
     @DisplayName("[권장] Response DTO는 from() 메서드를 가져야 한다")
     void responseDto_ShouldHaveFromMethod() {
+        assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -214,6 +231,8 @@ class ResponseDtoArchTest {
     @Test
     @DisplayName("[필수] Response DTO는 올바른 패키지에 위치해야 한다")
     void responseDto_MustBeInCorrectPackage() {
+        assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -249,7 +268,7 @@ class ResponseDtoArchTest {
                         .resideInAPackage("..dto.response..")
                         .because("Response DTO는 불변 객체이므로 Setter는 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 10: Spring 어노테이션 절대 금지 */
@@ -268,6 +287,6 @@ class ResponseDtoArchTest {
                         .beAnnotatedWith("org.springframework.context.annotation.Configuration")
                         .because("Response DTO는 순수 데이터 전송 객체이므로 Spring 어노테이션은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 }

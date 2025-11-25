@@ -51,4 +51,64 @@ class OrganizationIdTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("OrganizationId는 양수여야 합니다");
     }
+
+    @Test
+    @DisplayName("[forNew] 아직 영속화되지 않은 상태의 OrganizationId 생성")
+    void forNew_shouldCreateOrganizationIdWithNullValue() {
+        // When
+        OrganizationId organizationId = OrganizationId.forNew();
+
+        // Then
+        assertThat(organizationId).isNotNull();
+        assertThat(organizationId.value()).isNull();
+    }
+
+    @Test
+    @DisplayName("[isNew] null 값을 가진 OrganizationId는 true 반환")
+    void isNew_shouldReturnTrueForNullValue() {
+        // Given
+        OrganizationId organizationId = OrganizationId.forNew();
+
+        // When
+        boolean result = organizationId.isNew();
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DisplayName("[isNew] 영속화된 OrganizationId는 false 반환")
+    void isNew_shouldReturnFalseForPersistedId() {
+        // Given
+        OrganizationId organizationId = OrganizationId.of(100L);
+
+        // When
+        boolean result = organizationId.isNew();
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("[equals/hashCode] 동일한 값을 가진 OrganizationId는 동등함")
+    void equals_shouldReturnTrueForSameValue() {
+        // Given
+        OrganizationId organizationId1 = OrganizationId.of(100L);
+        OrganizationId organizationId2 = OrganizationId.of(100L);
+
+        // Then
+        assertThat(organizationId1).isEqualTo(organizationId2);
+        assertThat(organizationId1.hashCode()).isEqualTo(organizationId2.hashCode());
+    }
+
+    @Test
+    @DisplayName("[equals/hashCode] 다른 값을 가진 OrganizationId는 동등하지 않음")
+    void equals_shouldReturnFalseForDifferentValue() {
+        // Given
+        OrganizationId organizationId1 = OrganizationId.of(100L);
+        OrganizationId organizationId2 = OrganizationId.of(200L);
+
+        // Then
+        assertThat(organizationId1).isNotEqualTo(organizationId2);
+    }
 }

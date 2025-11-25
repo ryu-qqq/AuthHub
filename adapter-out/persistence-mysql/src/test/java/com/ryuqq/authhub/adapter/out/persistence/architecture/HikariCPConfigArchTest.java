@@ -57,7 +57,8 @@ class HikariCPConfigArchTest {
 
     @BeforeAll
     static void setUp() {
-        allClasses = new ClassFileImporter().importPackages("com.ryuqq.adapter.out.persistence");
+        allClasses =
+                new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.out.persistence");
     }
 
     /** 규칙 1: DataSourceConfig는 @Configuration 필수 */

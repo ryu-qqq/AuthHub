@@ -2,6 +2,7 @@ package com.ryuqq.authhub.application.architecture.assembler;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -29,6 +30,8 @@ import org.springframework.stereotype.Component;
  *   <li>PageResponse/SliceResponse 반환 금지
  * </ul>
  *
+ * <p><strong>Note:</strong> 검증 대상 클래스가 없으면 테스트는 스킵됩니다.
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -37,16 +40,23 @@ import org.springframework.stereotype.Component;
 class AssemblerArchTest {
 
     private static JavaClasses classes;
+    private static boolean hasAssemblerClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.application");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.application");
+
+        hasAssemblerClasses =
+                classes.stream()
+                        .anyMatch(javaClass -> javaClass.getSimpleName().endsWith("Assembler"));
     }
 
     /** 규칙 1: @Component 필수 */
     @Test
     @DisplayName("[필수] Assembler는 @Component 어노테이션을 가져야 한다")
     void assembler_MustHaveComponentAnnotation() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -62,6 +72,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 Lombok 어노테이션을 가지지 않아야 한다")
     void assembler_MustNotUseLombok() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -91,6 +103,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 public static 메서드를 가지지 않아야 한다")
     void assembler_MustNotHavePublicStaticMethods() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -109,6 +123,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 Port 인터페이스를 의존하지 않아야 한다")
     void assembler_MustNotDependOnPorts() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -125,6 +141,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 Repository를 의존하지 않아야 한다")
     void assembler_MustNotDependOnRepositories() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -141,6 +159,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 Spring Data Page/Slice를 사용하지 않아야 한다")
     void assembler_MustNotUseSpringDataPageable() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -165,25 +185,37 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[필수] Assembler는 'Assembler' 접미사를 가져야 한다")
     void assembler_MustHaveCorrectSuffix() {
+        boolean hasAssemblerPackage =
+                classes.stream()
+                        .anyMatch(javaClass -> javaClass.getPackageName().contains(".assembler"));
+
+        assumeTrue(hasAssemblerPackage, "assembler 패키지가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
                         .resideInAPackage("..application..assembler..")
                         .and()
+                        .resideOutsideOfPackage("..architecture..")
+                        .and()
                         .areNotInterfaces()
                         .and()
                         .areNotEnums()
+                        .and()
+                        .haveSimpleNameNotEndingWith("Test")
                         .should()
                         .haveSimpleNameEndingWith("Assembler")
                         .because("Assembler는 'Assembler' 접미사를 사용해야 합니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 8: 패키지 위치 */
     @Test
     @DisplayName("[필수] Assembler는 ..application..assembler.. 패키지에 위치해야 한다")
     void assembler_MustBeInCorrectPackage() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -199,6 +231,22 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[권장] Assembler 메서드명은 변환 패턴을 따라야 한다")
     void assembler_MethodsShouldFollowConversionPattern() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasPublicMethods =
+                classes.stream()
+                        .filter(javaClass -> javaClass.getSimpleName().endsWith("Assembler"))
+                        .flatMap(javaClass -> javaClass.getMethods().stream())
+                        .anyMatch(
+                                method ->
+                                        method.getModifiers()
+                                                        .contains(
+                                                                com.tngtech.archunit.core.domain
+                                                                        .JavaModifier.PUBLIC)
+                                                && !method.getName().equals("<init>"));
+
+        assumeTrue(hasPublicMethods, "Assembler에 public 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -207,7 +255,7 @@ class AssemblerArchTest {
                         .and()
                         .arePublic()
                         .and()
-                        .doNotHaveFullName(".*<init>.*") // 생성자 제외
+                        .doNotHaveFullName(".*<init>.*")
                         .should()
                         .haveNameMatching("(to|from|assemble|map)[A-Z].*")
                         .because("Assembler 메서드는 변환 메서드이므로 to*/from*/assemble*/map* 패턴을 따라야 합니다");
@@ -219,6 +267,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 비즈니스 메서드를 가지지 않아야 한다")
     void assembler_MustNotHaveBusinessMethods() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -238,6 +288,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 @Transactional을 가지지 않아야 한다")
     void assembler_MustNotHaveTransactionalAnnotation() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -253,6 +305,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 PageResponse/SliceResponse를 반환하지 않아야 한다")
     void assembler_MustNotReturnPageOrSliceResponse() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -275,6 +329,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[필수] Assembler는 public 클래스여야 한다")
     void assembler_MustBePublic() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -290,6 +346,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[필수] Assembler는 final 클래스가 아니어야 한다")
     void assembler_MustNotBeFinal() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -305,6 +363,21 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[권장] Assembler 필드는 final이어야 한다")
     void assembler_FieldsShouldBeFinal() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasNonStaticFields =
+                classes.stream()
+                        .filter(javaClass -> javaClass.getSimpleName().endsWith("Assembler"))
+                        .flatMap(javaClass -> javaClass.getFields().stream())
+                        .anyMatch(
+                                field ->
+                                        !field.getModifiers()
+                                                .contains(
+                                                        com.tngtech.archunit.core.domain
+                                                                .JavaModifier.STATIC));
+
+        assumeTrue(hasNonStaticFields, "Assembler에 필드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 fields().that()
                         .areDeclaredInClassesThat()
@@ -322,6 +395,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[필수] Assembler는 Application Layer와 Domain Layer만 의존해야 한다")
     void assembler_MustOnlyDependOnApplicationAndDomainLayers() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -329,8 +404,8 @@ class AssemblerArchTest {
                         .should()
                         .onlyAccessClassesThat()
                         .resideInAnyPackage(
-                                "com.ryuqq.application..",
-                                "com.ryuqq.domain..",
+                                "com.ryuqq.authhub.application..",
+                                "com.ryuqq.authhub.domain..",
                                 "org.springframework..",
                                 "java..",
                                 "jakarta..")
@@ -345,6 +420,21 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[권장] Assembler의 필드명은 소문자로 시작해야 한다")
     void assembler_FieldsShouldStartWithLowercase() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasNonStaticFields =
+                classes.stream()
+                        .filter(javaClass -> javaClass.getSimpleName().endsWith("Assembler"))
+                        .flatMap(javaClass -> javaClass.getFields().stream())
+                        .anyMatch(
+                                field ->
+                                        !field.getModifiers()
+                                                .contains(
+                                                        com.tngtech.archunit.core.domain
+                                                                .JavaModifier.STATIC));
+
+        assumeTrue(hasNonStaticFields, "Assembler에 필드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 fields().that()
                         .areDeclaredInClassesThat()
@@ -362,6 +452,8 @@ class AssemblerArchTest {
     @Test
     @DisplayName("[금지] Assembler는 계산 로직 메서드를 가지지 않아야 한다")
     void assembler_MustNotHaveCalculationLogic() {
+        assumeTrue(hasAssemblerClasses, "Assembler 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()

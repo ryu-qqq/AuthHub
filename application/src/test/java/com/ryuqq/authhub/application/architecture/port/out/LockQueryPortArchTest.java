@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.application.architecture.port.out;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -35,26 +36,7 @@ import org.junit.jupiter.api.Test;
  *   <li>주의사항: @Transactional 내에서만 호출 (Lock은 Transaction 내에서만 유효)
  * </ul>
  *
- * <h3>사용 예시:</h3>
- *
- * <pre>
- * // 최소 구성 (재고 관리)
- * interface InventoryLockQueryPort {
- *     Optional&lt;Inventory&gt; findByIdForUpdate(InventoryId id);
- * }
- *
- * // 선착순 기능 추가
- * interface EventLockQueryPort {
- *     Optional&lt;Event&gt; findByIdForUpdate(EventId id);
- *     Optional&lt;Event&gt; findByIdForUpdateNowait(EventId id);
- * }
- *
- * // 큐 처리 추가
- * interface OrderLockQueryPort {
- *     Optional&lt;Order&gt; findByIdForUpdate(OrderId id);
- *     Optional&lt;Order&gt; findNextForUpdateSkipLocked();
- * }
- * </pre>
+ * <p><strong>Note:</strong> 검증 대상 클래스가 없으면 테스트는 스킵됩니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -64,16 +46,23 @@ import org.junit.jupiter.api.Test;
 class LockQueryPortArchTest {
 
     private static JavaClasses classes;
+    private static boolean hasLockQueryPortClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.application");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.application");
+
+        hasLockQueryPortClasses =
+                classes.stream()
+                        .anyMatch(javaClass -> javaClass.getSimpleName().endsWith("LockQueryPort"));
     }
 
     /** 규칙 1: 인터페이스명 규칙 */
     @Test
     @DisplayName("[필수] LockQueryPort는 '*LockQueryPort' 접미사를 가져야 한다")
     void lockQueryPort_MustHaveCorrectSuffix() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -93,6 +82,8 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[필수] LockQueryPort는 ..application..port.out.query.. 패키지에 위치해야 한다")
     void lockQueryPort_MustBeInCorrectPackage() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -108,6 +99,8 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[필수] LockQueryPort는 Interface여야 한다")
     void lockQueryPort_MustBeInterface() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -123,6 +116,8 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[필수] LockQueryPort는 public이어야 한다")
     void lockQueryPort_MustBePublic() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -138,6 +133,21 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[패턴] LockQueryPort 메서드는 Lock 관련 네이밍 패턴을 따라야 한다")
     void lockQueryPort_MethodsMustFollowLockNamingPattern() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasPublicMethods =
+                classes.stream()
+                        .filter(javaClass -> javaClass.getSimpleName().endsWith("LockQueryPort"))
+                        .flatMap(javaClass -> javaClass.getMethods().stream())
+                        .anyMatch(
+                                method ->
+                                        method.getModifiers()
+                                                .contains(
+                                                        com.tngtech.archunit.core.domain
+                                                                .JavaModifier.PUBLIC));
+
+        assumeTrue(hasPublicMethods, "LockQueryPort에 public 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -157,6 +167,21 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[필수] LockQueryPort 메서드는 Optional을 반환해야 한다")
     void lockQueryPort_MethodsMustReturnOptional() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasPublicMethods =
+                classes.stream()
+                        .filter(javaClass -> javaClass.getSimpleName().endsWith("LockQueryPort"))
+                        .flatMap(javaClass -> javaClass.getMethods().stream())
+                        .anyMatch(
+                                method ->
+                                        method.getModifiers()
+                                                .contains(
+                                                        com.tngtech.archunit.core.domain
+                                                                .JavaModifier.PUBLIC));
+
+        assumeTrue(hasPublicMethods, "LockQueryPort에 public 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -175,6 +200,8 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[금지] LockQueryPort는 List/PageResponse를 반환하지 않아야 한다")
     void lockQueryPort_MustNotReturnListOrPage() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -195,6 +222,8 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[금지] LockQueryPort는 저장/수정/삭제 메서드를 가지지 않아야 한다")
     void lockQueryPort_MustNotHaveCommandMethods() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -211,6 +240,8 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[금지] LockQueryPort는 DTO를 반환하지 않아야 한다")
     void lockQueryPort_MustNotReturnDto() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -227,6 +258,8 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[금지] LockQueryPort는 Entity를 반환하지 않아야 한다")
     void lockQueryPort_MustNotReturnEntity() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -245,6 +278,16 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[금지] LockQueryPort는 원시 타입을 파라미터로 받지 않아야 한다")
     void lockQueryPort_MustNotAcceptPrimitiveTypes() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasFindByMethods =
+                classes.stream()
+                        .filter(javaClass -> javaClass.getSimpleName().endsWith("LockQueryPort"))
+                        .flatMap(javaClass -> javaClass.getMethods().stream())
+                        .anyMatch(method -> method.getName().startsWith("findBy"));
+
+        assumeTrue(hasFindByMethods, "findBy* 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -267,6 +310,8 @@ class LockQueryPortArchTest {
     @Test
     @DisplayName("[필수] LockQueryPort는 Domain Layer만 의존해야 한다")
     void lockQueryPort_MustOnlyDependOnDomainLayer() {
+        assumeTrue(hasLockQueryPortClasses, "LockQueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -274,10 +319,9 @@ class LockQueryPortArchTest {
                         .should()
                         .onlyAccessClassesThat()
                         .resideInAnyPackage(
-                                "com.ryuqq.domain..",
+                                "com.ryuqq.authhub.domain..",
                                 "java..",
-                                "com.ryuqq.application.." // 같은 application 내 DTO는 허용
-                                )
+                                "com.ryuqq.authhub.application..")
                         .because("LockQueryPort는 Domain Layer만 의존해야 합니다 (Infrastructure 의존 금지)");
 
         rule.check(classes);

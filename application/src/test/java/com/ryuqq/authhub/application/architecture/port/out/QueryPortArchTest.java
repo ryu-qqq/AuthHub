@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * QueryPort ArchUnit 검증 테스트 (Zero-Tolerance)
@@ -33,6 +34,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
  *   <li>Domain 반환 (DTO/Entity 반환 금지)</li>
  * </ul>
  *
+ * <p><strong>Note:</strong> 검증 대상 클래스가 없으면 테스트는 스킵됩니다.</p>
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -41,11 +44,15 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 class QueryPortArchTest {
 
     private static JavaClasses classes;
+    private static boolean hasQueryPortClasses;
 
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.application");
+            .importPackages("com.ryuqq.authhub.application");
+
+        hasQueryPortClasses = classes.stream()
+            .anyMatch(javaClass -> javaClass.getSimpleName().endsWith("QueryPort"));
     }
 
     /**
@@ -54,6 +61,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] QueryPort는 '*QueryPort' 접미사를 가져야 한다")
     void queryPort_MustHaveCorrectSuffix() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = classes()
             .that().resideInAPackage("..port.out.query..")
             .and().areInterfaces()
@@ -69,6 +78,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] QueryPort는 ..application..port.out.query.. 패키지에 위치해야 한다")
     void queryPort_MustBeInCorrectPackage() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = classes()
             .that().haveSimpleNameEndingWith("QueryPort")
             .should().resideInAPackage("..application..port.out.query..")
@@ -83,6 +94,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] QueryPort는 Interface여야 한다")
     void queryPort_MustBeInterface() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = classes()
             .that().haveSimpleNameEndingWith("QueryPort")
             .should().beInterfaces()
@@ -97,6 +110,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] QueryPort는 public이어야 한다")
     void queryPort_MustBePublic() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = classes()
             .that().haveSimpleNameEndingWith("QueryPort")
             .should().bePublic()
@@ -111,6 +126,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] QueryPort는 findById() 메서드를 가져야 한다")
     void queryPort_MustHaveFindByIdMethod() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("findById")
@@ -126,6 +143,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] QueryPort는 existsById() 메서드를 가져야 한다")
     void queryPort_MustHaveExistsByIdMethod() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("existsById")
@@ -141,10 +160,19 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[패턴] search* 메서드는 PageResponse를 반환해야 한다")
     void queryPort_SearchMethodsMustReturnPageResponse() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasSearchMethods = classes.stream()
+            .flatMap(javaClass -> javaClass.getMethods().stream())
+            .anyMatch(method -> method.getName().startsWith("search")
+                && method.getOwner().getSimpleName().endsWith("QueryPort"));
+
+        assumeTrue(hasSearchMethods, "search* 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("search.*")
-            .should().haveRawReturnType("com.ryuqq.application.common.dto.response.PageResponse")
+            .should().haveRawReturnType("com.ryuqq.authhub.application.common.dto.response.PageResponse")
             .because("search* 메서드는 PageResponse를 반환해야 합니다 (복잡한 조건 조회는 페이징 필수)");
 
         rule.check(classes);
@@ -156,10 +184,20 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[패턴] findBy* 메서드는 Optional 또는 List를 반환해야 한다")
     void queryPort_FindByMethodsMustReturnOptionalOrList() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasFindByMethods = classes.stream()
+            .flatMap(javaClass -> javaClass.getMethods().stream())
+            .anyMatch(method -> method.getName().matches("findBy[A-Z].*")
+                && !method.getName().equals("findById")
+                && method.getOwner().getSimpleName().endsWith("QueryPort"));
+
+        assumeTrue(hasFindByMethods, "findBy* 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("findBy[A-Z].*")
-            .and().doNotHaveName("findById")  // findById는 별도 규칙
+            .and().doNotHaveName("findById")
             .should().haveRawReturnType(Optional.class)
             .orShould().haveRawReturnType(List.class)
             .because("단순 조건 조회는 Optional 또는 List를 반환해야 합니다");
@@ -173,6 +211,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[금지] QueryPort는 저장/수정/삭제 메서드를 가지지 않아야 한다")
     void queryPort_MustNotHaveCommandMethods() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = noMethods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .should().haveNameMatching("save|update|delete|remove|persist")
@@ -187,6 +227,15 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] findById()는 Optional을 반환해야 한다")
     void queryPort_FindByIdMustReturnOptional() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasFindByIdMethod = classes.stream()
+            .flatMap(javaClass -> javaClass.getMethods().stream())
+            .anyMatch(method -> method.getName().equals("findById")
+                && method.getOwner().getSimpleName().endsWith("QueryPort"));
+
+        assumeTrue(hasFindByIdMethod, "findById 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("findById")
@@ -202,6 +251,15 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] existsById()는 boolean을 반환해야 한다")
     void queryPort_ExistsByIdMustReturnBoolean() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasExistsByIdMethod = classes.stream()
+            .flatMap(javaClass -> javaClass.getMethods().stream())
+            .anyMatch(method -> method.getName().equals("existsById")
+                && method.getOwner().getSimpleName().endsWith("QueryPort"));
+
+        assumeTrue(hasExistsByIdMethod, "existsById 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("existsById")
@@ -217,6 +275,15 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[패턴] count* 메서드는 long을 반환해야 한다")
     void queryPort_CountMethodsMustReturnLong() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasCountMethods = classes.stream()
+            .flatMap(javaClass -> javaClass.getMethods().stream())
+            .anyMatch(method -> method.getName().matches("count[A-Z].*")
+                && method.getOwner().getSimpleName().endsWith("QueryPort"));
+
+        assumeTrue(hasCountMethods, "count* 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("count[A-Z].*")
@@ -232,6 +299,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[금지] QueryPort는 findAll 메서드를 가지지 않아야 한다")
     void queryPort_MustNotHaveFindAllMethod() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = noMethods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .should().haveNameMatching("findAll")
@@ -246,6 +315,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[금지] QueryPort는 DTO를 반환하지 않아야 한다")
     void queryPort_MustNotReturnDto() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = noMethods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .should().haveRawReturnType(".*Dto.*")
@@ -260,6 +331,8 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[금지] QueryPort는 Entity를 반환하지 않아야 한다")
     void queryPort_MustNotReturnEntity() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = noMethods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .should().haveRawReturnType(".*JpaEntity.*")
@@ -275,6 +348,15 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[금지] findById()는 원시 타입을 파라미터로 받지 않아야 한다")
     void queryPort_FindByIdMustNotAcceptPrimitiveTypes() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasFindByIdMethod = classes.stream()
+            .flatMap(javaClass -> javaClass.getMethods().stream())
+            .anyMatch(method -> method.getName().equals("findById")
+                && method.getOwner().getSimpleName().endsWith("QueryPort"));
+
+        assumeTrue(hasFindByIdMethod, "findById 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = noMethods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("findById")
@@ -292,13 +374,15 @@ class QueryPortArchTest {
     @Test
     @DisplayName("[필수] QueryPort는 Domain Layer만 의존해야 한다")
     void queryPort_MustOnlyDependOnDomainLayer() {
+        assumeTrue(hasQueryPortClasses, "QueryPort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule = classes()
             .that().haveSimpleNameEndingWith("QueryPort")
             .should().onlyAccessClassesThat()
             .resideInAnyPackage(
-                "com.ryuqq.domain..",
+                "com.ryuqq.authhub.domain..",
                 "java..",
-                "com.ryuqq.application.."  // 같은 application 내 DTO는 허용
+                "com.ryuqq.authhub.application.."
             )
             .because("QueryPort는 Domain Layer만 의존해야 합니다 (Infrastructure 의존 금지)");
 

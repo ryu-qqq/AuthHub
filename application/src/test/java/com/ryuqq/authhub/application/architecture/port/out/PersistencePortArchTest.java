@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.application.architecture.port.out;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -29,6 +30,8 @@ import org.junit.jupiter.api.Test;
  *   <li>의도: JPA merge 활용 (PK 있으면 update, 없으면 insert)
  * </ul>
  *
+ * <p><strong>Note:</strong> 검증 대상 클래스가 없으면 테스트는 스킵됩니다.
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -37,16 +40,24 @@ import org.junit.jupiter.api.Test;
 class PersistencePortArchTest {
 
     private static JavaClasses classes;
+    private static boolean hasPersistencePortClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.application");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.application");
+
+        hasPersistencePortClasses =
+                classes.stream()
+                        .anyMatch(
+                                javaClass -> javaClass.getSimpleName().endsWith("PersistencePort"));
     }
 
     /** 규칙 1: 인터페이스명 규칙 */
     @Test
     @DisplayName("[필수] PersistencePort는 '*PersistencePort' 접미사를 가져야 한다")
     void persistencePort_MustHaveCorrectSuffix() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -64,6 +75,8 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[필수] PersistencePort는 ..application..port.out.command.. 패키지에 위치해야 한다")
     void persistencePort_MustBeInCorrectPackage() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -79,6 +92,8 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[필수] PersistencePort는 Interface여야 한다")
     void persistencePort_MustBeInterface() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -94,6 +109,8 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[필수] PersistencePort는 public이어야 한다")
     void persistencePort_MustBePublic() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -109,6 +126,8 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[필수] PersistencePort는 persist() 메서드를 가져야 한다")
     void persistencePort_MustHavePersistMethod() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -128,6 +147,20 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[허용] PersistencePort는 persistAll() 메서드를 가질 수 있다")
     void persistencePort_CanHavePersistAllMethod() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasPersistAllMethod =
+                classes.stream()
+                        .flatMap(javaClass -> javaClass.getMethods().stream())
+                        .anyMatch(
+                                method ->
+                                        method.getName().equals("persistAll")
+                                                && method.getOwner()
+                                                        .getSimpleName()
+                                                        .endsWith("PersistencePort"));
+
+        assumeTrue(hasPersistAllMethod, "persistAll 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -148,6 +181,8 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[금지] PersistencePort는 save/update/delete 메서드를 가지지 않아야 한다")
     void persistencePort_MustNotHaveSaveUpdateDeleteMethods() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -166,6 +201,8 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[금지] PersistencePort는 조회 메서드를 가지지 않아야 한다")
     void persistencePort_MustNotHaveFindMethods() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -182,6 +219,8 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[필수] PersistencePort는 Domain Layer만 의존해야 한다")
     void persistencePort_MustOnlyDependOnDomainLayer() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -189,10 +228,9 @@ class PersistencePortArchTest {
                         .should()
                         .onlyAccessClassesThat()
                         .resideInAnyPackage(
-                                "com.ryuqq.domain..",
+                                "com.ryuqq.authhub.domain..",
                                 "java..",
-                                "com.ryuqq.application.." // 같은 application 내 DTO는 허용
-                                )
+                                "com.ryuqq.authhub.application..")
                         .because("PersistencePort는 Domain Layer만 의존해야 합니다 (Infrastructure 의존 금지)");
 
         rule.check(classes);
@@ -202,13 +240,27 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[금지] PersistencePort는 원시 타입을 반환하지 않아야 한다")
     void persistencePort_MustNotReturnPrimitiveTypes() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
+        boolean hasPersistMethods =
+                classes.stream()
+                        .flatMap(javaClass -> javaClass.getMethods().stream())
+                        .anyMatch(
+                                method ->
+                                        method.getName().matches("persist.*")
+                                                && method.getOwner()
+                                                        .getSimpleName()
+                                                        .endsWith("PersistencePort"));
+
+        assumeTrue(hasPersistMethods, "persist* 메서드가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
                         .areDeclaredInClassesThat()
                         .haveSimpleNameEndingWith("PersistencePort")
                         .and()
-                        .haveNameMatching("persist.*") // persist, persistAll 모두 포함
+                        .haveNameMatching("persist.*")
                         .should()
                         .haveRawReturnType(Long.class)
                         .orShould()
@@ -226,6 +278,8 @@ class PersistencePortArchTest {
     @Test
     @DisplayName("[금지] PersistencePort는 DTO/Entity를 파라미터로 받지 않아야 한다")
     void persistencePort_MustNotAcceptDtoOrEntity() {
+        assumeTrue(hasPersistencePortClasses, "PersistencePort 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()

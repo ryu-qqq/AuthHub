@@ -52,7 +52,7 @@ class ErrorHandlingArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.adapter.in.rest");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
     }
 
     /** 규칙 1: ErrorMapper는 @Component 어노테이션 필수 */

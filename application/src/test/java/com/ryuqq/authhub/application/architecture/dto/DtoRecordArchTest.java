@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.application.architecture.dto;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -25,6 +26,8 @@ import org.junit.jupiter.api.Test;
  *   <li>@Transactional 절대 금지
  * </ul>
  *
+ * <p><strong>Note:</strong> 검증 대상 클래스가 없으면 테스트는 스킵됩니다.
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -33,16 +36,52 @@ import org.junit.jupiter.api.Test;
 class DtoRecordArchTest {
 
     private static JavaClasses classes;
+    private static boolean hasCommandClasses;
+    private static boolean hasQueryClasses;
+    private static boolean hasResponseClasses;
+    private static boolean hasDtoClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.application");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.application");
+
+        hasCommandClasses =
+                classes.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getSimpleName().endsWith("Command")
+                                                && javaClass
+                                                        .getPackageName()
+                                                        .contains(".dto.command"));
+
+        hasQueryClasses =
+                classes.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getSimpleName().endsWith("Query")
+                                                && javaClass
+                                                        .getPackageName()
+                                                        .contains(".dto.query"));
+
+        hasResponseClasses =
+                classes.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getSimpleName().endsWith("Response")
+                                                && javaClass
+                                                        .getPackageName()
+                                                        .contains(".dto.response"));
+
+        hasDtoClasses =
+                classes.stream().anyMatch(javaClass -> javaClass.getPackageName().contains(".dto"));
     }
 
     /** 규칙 1: Command는 Record 타입이어야 함 */
     @Test
     @DisplayName("[필수] Command는 Record 타입이어야 한다")
     void command_MustBeRecord() {
+        assumeTrue(hasCommandClasses, "Command 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -60,6 +99,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] Query는 Record 타입이어야 한다")
     void query_MustBeRecord() {
+        assumeTrue(hasQueryClasses, "Query 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -77,6 +118,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] Response는 Record 타입이어야 한다")
     void response_MustBeRecord() {
+        assumeTrue(hasResponseClasses, "Response 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -94,12 +137,18 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] dto/command/ 패키지의 클래스는 'Command' 접미사를 가져야 한다")
     void command_MustHaveCorrectSuffix() {
+        boolean hasCommandPackage =
+                classes.stream()
+                        .anyMatch(javaClass -> javaClass.getPackageName().contains(".dto.command"));
+
+        assumeTrue(hasCommandPackage, "dto.command 패키지가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
                         .resideInAPackage("..dto.command..")
                         .and()
-                        .areNotMemberClasses() // Nested 클래스 제외
+                        .areNotMemberClasses()
                         .should()
                         .haveSimpleNameEndingWith("Command")
                         .because("Command DTO는 'Command' 접미사를 사용해야 합니다");
@@ -111,12 +160,18 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] dto/query/ 패키지의 클래스는 'Query' 접미사를 가져야 한다")
     void query_MustHaveCorrectSuffix() {
+        boolean hasQueryPackage =
+                classes.stream()
+                        .anyMatch(javaClass -> javaClass.getPackageName().contains(".dto.query"));
+
+        assumeTrue(hasQueryPackage, "dto.query 패키지가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
                         .resideInAPackage("..dto.query..")
                         .and()
-                        .areNotMemberClasses() // Nested 클래스 제외
+                        .areNotMemberClasses()
                         .should()
                         .haveSimpleNameEndingWith("Query")
                         .because("Query DTO는 'Query' 접미사를 사용해야 합니다");
@@ -128,12 +183,19 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] dto/response/ 패키지의 클래스는 'Response' 접미사를 가져야 한다")
     void response_MustHaveCorrectSuffix() {
+        boolean hasResponsePackage =
+                classes.stream()
+                        .anyMatch(
+                                javaClass -> javaClass.getPackageName().contains(".dto.response"));
+
+        assumeTrue(hasResponsePackage, "dto.response 패키지가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
                         .resideInAPackage("..dto.response..")
                         .and()
-                        .areNotMemberClasses() // Nested 클래스 제외
+                        .areNotMemberClasses()
                         .should()
                         .haveSimpleNameEndingWith("Response")
                         .because("Response DTO는 'Response' 접미사를 사용해야 합니다");
@@ -145,6 +207,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[금지] DTO는 Lombok 어노테이션을 가지지 않아야 한다")
     void dto_MustNotUseLombok() {
+        assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -174,6 +238,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[금지] DTO는 jakarta.validation 어노테이션을 가지지 않아야 한다")
     void dto_MustNotUseJakartaValidation() {
+        assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -192,6 +258,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[금지] DTO는 비즈니스 메서드를 가지지 않아야 한다")
     void dto_MustNotHaveBusinessMethods() {
+        assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -211,6 +279,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[금지] DTO는 @Transactional을 가지지 않아야 한다")
     void dto_MustNotHaveTransactionalAnnotation() {
+        assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -226,6 +296,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] Command는 ..application..dto.command.. 패키지에 위치해야 한다")
     void command_MustBeInCorrectPackage() {
+        assumeTrue(hasCommandClasses, "Command 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -243,6 +315,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] Query는 ..application..dto.query.. 패키지에 위치해야 한다")
     void query_MustBeInCorrectPackage() {
+        assumeTrue(hasQueryClasses, "Query 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -260,6 +334,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] Response는 ..application..dto.response.. 패키지에 위치해야 한다")
     void response_MustBeInCorrectPackage() {
+        assumeTrue(hasResponseClasses, "Response 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -277,6 +353,15 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[필수] DTO는 public 타입이어야 한다")
     void dto_MustBePublic() {
+        boolean hasRecordsInDto =
+                classes.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getPackageName().contains(".dto")
+                                                && javaClass.isRecord());
+
+        assumeTrue(hasRecordsInDto, "DTO Record가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -294,6 +379,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[금지] DTO는 비즈니스 로직 static 메서드를 가지지 않아야 한다")
     void dto_MustNotHaveBusinessStaticMethods() {
+        assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -304,9 +391,9 @@ class DtoRecordArchTest {
                         .and()
                         .arePublic()
                         .and()
-                        .doNotHaveName("of") // Record 생성 메서드 허용
+                        .doNotHaveName("of")
                         .and()
-                        .doNotHaveName("from") // Record 생성 메서드 허용
+                        .doNotHaveName("from")
                         .should()
                         .haveNameMatching("validate.*|process.*|calculate.*")
                         .because("DTO는 비즈니스 로직을 가질 수 없습니다 (생성 메서드 of/from만 허용)");
@@ -318,6 +405,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[금지] DTO는 Domain 객체를 반환하는 메서드를 가지지 않아야 한다")
     void dto_MustNotReturnDomainObjects() {
+        assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noMethods()
                         .that()
@@ -326,7 +415,7 @@ class DtoRecordArchTest {
                         .and()
                         .arePublic()
                         .should()
-                        .haveRawReturnType("com.ryuqq.domain..")
+                        .haveRawReturnType("com.ryuqq.authhub.domain..")
                         .because("DTO에서 Domain 변환은 Assembler에서 처리해야 합니다 (DTO는 데이터만)");
 
         rule.check(classes);
@@ -336,6 +425,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[금지] DTO는 Port 인터페이스를 의존하지 않아야 한다")
     void dto_MustNotDependOnPorts() {
+        assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()
@@ -352,6 +443,8 @@ class DtoRecordArchTest {
     @Test
     @DisplayName("[금지] DTO는 Repository를 의존하지 않아야 한다")
     void dto_MustNotDependOnRepositories() {
+        assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 noClasses()
                         .that()

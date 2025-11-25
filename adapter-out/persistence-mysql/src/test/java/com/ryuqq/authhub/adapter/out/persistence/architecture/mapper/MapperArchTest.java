@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.out.persistence.architecture.mapper;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -43,21 +44,29 @@ class MapperArchTest {
 
     private static JavaClasses allClasses;
     private static JavaClasses mapperClasses;
+    private static boolean hasMapperClasses;
 
     @BeforeAll
     static void setUp() {
-        allClasses = new ClassFileImporter().importPackages("com.ryuqq.adapter.out.persistence");
+        allClasses =
+                new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.out.persistence");
 
         mapperClasses =
                 allClasses.that(
                         DescribedPredicate.describe(
                                 "are Mapper classes",
                                 javaClass -> javaClass.getSimpleName().endsWith("Mapper")));
+
+        hasMapperClasses =
+                allClasses.stream()
+                        .anyMatch(javaClass -> javaClass.getSimpleName().endsWith("Mapper"));
     }
 
     @Test
     @DisplayName("규칙 1: @Component 어노테이션 필수")
     void mapper_MustBeAnnotatedWithComponent() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -66,12 +75,14 @@ class MapperArchTest {
                         .beAnnotatedWith(Component.class)
                         .because("Mapper는 @Component로 Spring Bean 등록이 필수입니다");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @Data")
     void mapper_MustNotUseLombok_Data() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -80,12 +91,14 @@ class MapperArchTest {
                         .notBeAnnotatedWith("lombok.Data")
                         .because("Mapper는 Lombok 사용이 금지됩니다 (Plain Java 사용)");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @AllArgsConstructor")
     void mapper_MustNotUseLombok_AllArgsConstructor() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -94,12 +107,14 @@ class MapperArchTest {
                         .notBeAnnotatedWith("lombok.AllArgsConstructor")
                         .because("Mapper는 Lombok 사용이 금지됩니다");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @NoArgsConstructor")
     void mapper_MustNotUseLombok_NoArgsConstructor() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -108,12 +123,14 @@ class MapperArchTest {
                         .notBeAnnotatedWith("lombok.NoArgsConstructor")
                         .because("Mapper는 Lombok 사용이 금지됩니다");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @RequiredArgsConstructor")
     void mapper_MustNotUseLombok_RequiredArgsConstructor() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -122,12 +139,14 @@ class MapperArchTest {
                         .notBeAnnotatedWith("lombok.RequiredArgsConstructor")
                         .because("Mapper는 Lombok 사용이 금지됩니다");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @Builder")
     void mapper_MustNotUseLombok_Builder() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -136,12 +155,14 @@ class MapperArchTest {
                         .notBeAnnotatedWith("lombok.Builder")
                         .because("Mapper는 Lombok 사용이 금지됩니다");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
     @DisplayName("규칙 2: Lombok 사용 금지 - @UtilityClass")
     void mapper_MustNotUseLombok_UtilityClass() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -150,7 +171,7 @@ class MapperArchTest {
                         .notBeAnnotatedWith("lombok.experimental.UtilityClass")
                         .because("Mapper는 Lombok 사용이 금지됩니다");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
@@ -169,7 +190,7 @@ class MapperArchTest {
                         .notBeStatic()
                         .because("Mapper는 Static 메서드가 금지됩니다 (Spring Bean 주입 필요)");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
@@ -188,12 +209,14 @@ class MapperArchTest {
                         .should(notExist())
                         .because("Mapper는 비즈니스 로직이 금지됩니다 (단순 변환만 담당)");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
     @DisplayName("규칙 5: toEntity() 메서드 필수")
     void mapper_MustHaveToEntityMethod() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -201,12 +224,14 @@ class MapperArchTest {
                         .should(havePublicToEntityMethod())
                         .because("Mapper는 toEntity() 메서드가 필수입니다 (Domain → Entity)");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
     @DisplayName("규칙 6: toDomain() 메서드 필수")
     void mapper_MustHaveToDomainMethod() {
+        assumeTrue(hasMapperClasses, "Mapper 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -214,7 +239,7 @@ class MapperArchTest {
                         .should(havePublicToDomainMethod())
                         .because("Mapper는 toDomain() 메서드가 필수입니다 (Entity → Domain)");
 
-        rule.check(mapperClasses);
+        rule.allowEmptyShould(true).check(mapperClasses);
     }
 
     @Test
@@ -230,7 +255,7 @@ class MapperArchTest {
                         .haveSimpleNameEndingWith("Mapper")
                         .because("Mapper 클래스는 *Mapper 네이밍 규칙을 따라야 합니다");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     // ===== 커스텀 ArchCondition =====

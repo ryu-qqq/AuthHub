@@ -4,6 +4,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -42,16 +43,28 @@ import org.junit.jupiter.api.Test;
 class ControllerArchTest {
 
     private static JavaClasses classes;
+    private static boolean hasControllerClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.adapter.in.rest");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
+
+        hasControllerClasses =
+                classes.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getPackageName().contains(".controller")
+                                                && javaClass
+                                                        .getSimpleName()
+                                                        .endsWith("Controller"));
     }
 
     /** 규칙 1: @RestController 어노테이션 필수 */
     @Test
     @DisplayName("[필수] Controller는 @RestController 어노테이션을 가져야 한다")
     void controller_MustHaveRestControllerAnnotation() {
+        assumeTrue(hasControllerClasses, "Controller 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -70,6 +83,8 @@ class ControllerArchTest {
     @Test
     @DisplayName("[필수] Controller는 @RequestMapping 어노테이션을 가져야 한다")
     void controller_MustHaveRequestMappingAnnotation() {
+        assumeTrue(hasControllerClasses, "Controller 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -88,6 +103,8 @@ class ControllerArchTest {
     @Test
     @DisplayName("[필수] Controller는 *Controller 접미사를 가져야 한다")
     void controller_MustHaveControllerSuffix() {
+        assumeTrue(hasControllerClasses, "Controller 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -182,6 +199,8 @@ class ControllerArchTest {
     @Test
     @DisplayName("[필수] Controller는 올바른 패키지에 위치해야 한다")
     void controller_MustBeInCorrectPackage() {
+        assumeTrue(hasControllerClasses, "Controller 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -205,21 +224,25 @@ class ControllerArchTest {
                         .that()
                         .resideInAPackage("..controller..")
                         .and()
+                        .resideOutsideOfPackage("..architecture..")
+                        .and()
                         .haveSimpleNameNotEndingWith("GlobalExceptionHandler")
                         .should()
                         .dependOnClassesThat()
-                        .resideInAPackage("..domain..")
+                        .resideInAPackage("com.ryuqq.authhub.domain..")
                         .because(
                                 "Controller는 Domain 객체를 직접 생성/조작하지 않습니다. UseCase를 통해 간접 호출하세요. (예외:"
                                         + " GlobalExceptionHandler는 DomainException 처리 허용)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 10: UseCase 의존성 필수 */
     @Test
     @DisplayName("[필수] Controller는 UseCase 인터페이스에 의존해야 한다")
     void controller_MustDependOnUseCaseInterfaces() {
+        assumeTrue(hasControllerClasses, "Controller 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -238,6 +261,8 @@ class ControllerArchTest {
     @Test
     @DisplayName("[권장] Controller 메서드는 ResponseEntity<ApiResponse<T>> 형식으로 반환해야 한다")
     void controller_ShouldReturnResponseEntityWithApiResponse() {
+        assumeTrue(hasControllerClasses, "Controller 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()

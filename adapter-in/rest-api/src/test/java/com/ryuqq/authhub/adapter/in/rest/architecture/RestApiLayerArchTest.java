@@ -52,7 +52,7 @@ class RestApiLayerArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.adapter.in.rest");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
     }
 
     /** 규칙 1: Package 구조 검증 (controller, dto, mapper, error) */
@@ -207,7 +207,7 @@ class RestApiLayerArchTest {
                         .haveSimpleNameContaining("GlobalExceptionHandler")
                         .should()
                         .dependOnClassesThat()
-                        .resideInAPackage("com.ryuqq.domain..exception..")
+                        .resideInAPackage("com.ryuqq.authhub.domain..exception..")
                         .because("GlobalExceptionHandler는 Domain Exception을 처리하기 위해 의존해야 합니다");
 
         rule.allowEmptyShould(true).check(classes);

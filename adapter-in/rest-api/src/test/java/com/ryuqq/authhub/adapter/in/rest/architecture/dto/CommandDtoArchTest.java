@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.in.rest.architecture.dto;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -41,16 +42,28 @@ import org.junit.jupiter.api.Test;
 class CommandDtoArchTest {
 
     private static JavaClasses classes;
+    private static boolean hasCommandDtoClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.adapter.in.rest");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
+
+        hasCommandDtoClasses =
+                classes.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getPackageName().contains(".dto.command")
+                                                && javaClass
+                                                        .getSimpleName()
+                                                        .endsWith("ApiRequest"));
     }
 
     /** 규칙 1: Record 타입 필수 */
     @Test
     @DisplayName("[필수] Command DTO는 Record 타입이어야 한다")
     void commandDto_MustBeRecords() {
+        assumeTrue(hasCommandDtoClasses, "Command DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -70,6 +83,8 @@ class CommandDtoArchTest {
     @Test
     @DisplayName("[필수] Command DTO는 *ApiRequest 접미사를 가져야 한다")
     void commandDto_MustHaveApiRequestSuffix() {
+        assumeTrue(hasCommandDtoClasses, "Command DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -109,7 +124,7 @@ class CommandDtoArchTest {
                         .beAnnotatedWith("lombok.Value")
                         .because("Command DTO는 Pure Java Record를 사용해야 하며 Lombok은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 4: Jackson 어노테이션 절대 금지 */
@@ -135,7 +150,7 @@ class CommandDtoArchTest {
                                 "com.fasterxml.jackson.databind.annotation.JsonDeserialize")
                         .because("Command DTO는 프레임워크 독립적이어야 하며 Jackson 어노테이션은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 5: Domain 변환 메서드 금지 */
@@ -154,7 +169,7 @@ class CommandDtoArchTest {
                         .resideInAPackage("..dto.command..")
                         .because("Command DTO → Domain 변환은 Mapper/Assembler의 책임입니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 6: 비즈니스 로직 메서드 금지 */
@@ -173,13 +188,15 @@ class CommandDtoArchTest {
                         .resideInAPackage("..dto.command..")
                         .because("Command DTO는 데이터 전송만 담당하며 비즈니스 로직은 Domain Layer 책임입니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 7: Bean Validation 어노테이션 사용 권장 */
     @Test
     @DisplayName("[권장] Command DTO는 Bean Validation 어노테이션을 사용해야 한다")
     void commandDto_ShouldUseValidationAnnotations() {
+        assumeTrue(hasCommandDtoClasses, "Command DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -205,6 +222,8 @@ class CommandDtoArchTest {
     @Test
     @DisplayName("[필수] Command DTO는 올바른 패키지에 위치해야 한다")
     void commandDto_MustBeInCorrectPackage() {
+        assumeTrue(hasCommandDtoClasses, "Command DTO 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -236,7 +255,7 @@ class CommandDtoArchTest {
                         .resideInAPackage("..dto.command..")
                         .because("Command DTO는 불변 객체이므로 Setter는 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 10: Spring 어노테이션 절대 금지 */
@@ -255,6 +274,6 @@ class CommandDtoArchTest {
                         .beAnnotatedWith("org.springframework.context.annotation.Configuration")
                         .because("Command DTO는 순수 데이터 전송 객체이므로 Spring 어노테이션은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 }

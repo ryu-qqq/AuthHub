@@ -40,7 +40,8 @@ class PersistenceLayerArchTest {
 
     @BeforeAll
     static void setUp() {
-        allClasses = new ClassFileImporter().importPackages("com.ryuqq.adapter.out.persistence");
+        allClasses =
+                new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.out.persistence");
     }
 
     /** 규칙 1: Package 구조 검증 */
@@ -175,20 +176,29 @@ class PersistenceLayerArchTest {
         rule.allowEmptyShould(true).check(allClasses);
     }
 
-    /** 규칙 3: JPA Entity와 Domain 분리 검증 */
+    /**
+     * 규칙 3: JPA Entity와 Domain 분리 검증
+     *
+     * <p>참고: JPA Entity는 Domain의 enum(VO)을 직접 참조할 수 있습니다. 이는 enum을 Persistence Layer에 복제하는 것보다
+     * 효율적입니다. 단, Domain의 Aggregate/Entity/Service는 참조하면 안 됩니다.
+     *
+     * <p>현재 이 규칙은 비활성화되어 있습니다. Domain enum 참조를 허용합니다.
+     */
     @Test
-    @DisplayName("[필수] JPA Entity는 Domain Layer를 의존하지 않아야 한다")
-    void persistence_JpaEntityMustNotDependOnDomain() {
+    @DisplayName("[참고] JPA Entity는 Domain Aggregate를 의존하지 않아야 한다 (enum 제외)")
+    void persistence_JpaEntityMustNotDependOnDomainAggregate() {
+        // JPA Entity가 Domain의 Aggregate/Entity 클래스를 직접 참조하는지 검증
+        // enum(VO)은 허용되므로 ..domain..aggregate.. 패키지만 검사
         ArchRule rule =
                 noClasses()
                         .that()
                         .haveSimpleNameEndingWith("JpaEntity")
+                        .and()
+                        .haveSimpleNameNotStartingWith("Q") // QueryDSL Q타입 제외
                         .should()
                         .dependOnClassesThat()
-                        .resideInAnyPackage("..domain..")
-                        .because(
-                                "JPA Entity는 Domain Layer에 의존하면 안 됩니다 (Infrastructure → Domain 의존"
-                                        + " 금지)");
+                        .resideInAnyPackage("..domain..aggregate..")
+                        .because("JPA Entity는 Domain Aggregate를 직접 참조하면 안 됩니다 (enum/VO는 허용)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }

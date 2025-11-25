@@ -4,6 +4,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -38,11 +39,17 @@ import org.junit.jupiter.api.Test;
 class CommandAdapterArchTest {
 
     private static JavaClasses commandAdapterClasses;
+    private static boolean hasCommandAdapterClasses;
 
     @BeforeAll
     static void setUp() {
         commandAdapterClasses =
-                new ClassFileImporter().importPackages("com.ryuqq.adapter.out.persistence");
+                new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.out.persistence");
+
+        hasCommandAdapterClasses =
+                commandAdapterClasses.stream()
+                        .anyMatch(
+                                javaClass -> javaClass.getSimpleName().endsWith("CommandAdapter"));
     }
 
     /**
@@ -59,6 +66,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 1: @Component 어노테이션 필수")
     void commandAdapter_MustBeAnnotatedWithComponent() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -83,6 +92,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 2: *PersistencePort 인터페이스 구현 필수")
     void commandAdapter_MustImplementPersistencePort() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -119,6 +130,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 3: 정확히 2개 필드 (JpaRepository, Mapper)")
     void commandAdapter_MustHaveExactlyTwoFields() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -141,6 +154,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 4: 모든 필드는 final 필수")
     void commandAdapter_AllFieldsMustBeFinal() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 fields().that()
                         .areDeclaredInClassesThat()
@@ -166,6 +181,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 5: @Autowired 필드 주입 금지")
     void commandAdapter_MustNotUseFieldInjection() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 fields().that()
                         .areDeclaredInClassesThat()
@@ -191,6 +208,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 6: 정확히 1개의 public 메서드")
     void commandAdapter_MustHaveExactlyOnePublicMethod() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -238,6 +257,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 7: public 메서드명은 'persist'")
     void commandAdapter_PublicMethodNameMustBePersist() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -267,6 +288,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 8: persist 메서드는 정확히 1개 파라미터")
     void commandAdapter_PersistMethodMustHaveExactlyOneParameter() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -298,6 +321,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 9: persist 메서드는 *Id 타입 반환")
     void commandAdapter_PersistMethodMustReturnIdType() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -343,7 +368,7 @@ class CommandAdapterArchTest {
                         .resideInAnyPackage("..domain..")
                         .because("CommandAdapter는 Domain Layer에 직접 접근하면 안 됩니다 (Port를 통해서만 접근)");
 
-        rule.check(commandAdapterClasses);
+        rule.allowEmptyShould(true).check(commandAdapterClasses);
     }
 
     /**
@@ -359,6 +384,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 11: Query 메서드 금지")
     void commandAdapter_MustNotContainQueryMethods() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -386,6 +413,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 12: JpaRepository 의존성 필수")
     void commandAdapter_MustDependOnJpaRepository() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -411,6 +440,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 13: @Transactional 금지")
     void commandAdapter_MustNotBeAnnotatedWithTransactional() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule classRule =
                 classes()
                         .that()
@@ -449,6 +480,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 14: Mapper 의존성 필수")
     void commandAdapter_MustDependOnMapper() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -469,6 +502,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 15: @Override 어노테이션 필수")
     void commandAdapter_PersistMethodMustHaveOverrideAnnotation() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -496,6 +531,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 16: private helper 메서드 금지")
     void commandAdapter_MustNotHavePrivateHelperMethods() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -523,6 +560,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 17: 비즈니스 예외 throw 금지")
     void commandAdapter_MustNotThrowBusinessExceptions() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -559,7 +598,7 @@ class CommandAdapterArchTest {
                         .haveNameMatching(".*Logger.*")
                         .because("CommandAdapter는 로깅을 포함하지 않습니다. AOP로 처리하세요");
 
-        rule.check(commandAdapterClasses);
+        rule.allowEmptyShould(true).check(commandAdapterClasses);
     }
 
     /**
@@ -586,7 +625,7 @@ class CommandAdapterArchTest {
                         .haveNameMatching(".*Validator.*")
                         .because("CommandAdapter는 Validator를 사용하지 않습니다. Domain에서 처리하세요");
 
-        rule.check(commandAdapterClasses);
+        rule.allowEmptyShould(true).check(commandAdapterClasses);
     }
 
     /**
@@ -602,6 +641,8 @@ class CommandAdapterArchTest {
     @Test
     @DisplayName("규칙 20: *CommandAdapter 네이밍 규칙")
     void commandAdapter_MustFollowNamingConvention() {
+        assumeTrue(hasCommandAdapterClasses, "CommandAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()

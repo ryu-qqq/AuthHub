@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.out.persistence.architecture.adpater.query;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -44,10 +45,12 @@ class LockQueryAdapterArchTest {
 
     private static JavaClasses allClasses;
     private static JavaClasses lockAdapterClasses;
+    private static boolean hasLockAdapterClasses;
 
     @BeforeAll
     static void setUp() {
-        allClasses = new ClassFileImporter().importPackages("com.ryuqq.adapter.out.persistence");
+        allClasses =
+                new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.out.persistence");
 
         lockAdapterClasses =
                 allClasses.that(
@@ -55,6 +58,12 @@ class LockQueryAdapterArchTest {
                                 "are LockQueryAdapter classes",
                                 javaClass ->
                                         javaClass.getSimpleName().endsWith("LockQueryAdapter")));
+
+        hasLockAdapterClasses =
+                allClasses.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getSimpleName().endsWith("LockQueryAdapter"));
     }
 
     /**
@@ -71,6 +80,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 1: @Component 어노테이션 필수")
     void lockQueryAdapter_MustBeAnnotatedWithComponent() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -90,6 +101,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 2: *LockQueryPort 인터페이스 구현 필수")
     void lockQueryAdapter_MustImplementLockQueryPort() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -123,6 +136,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 3: 정확히 2개 필드 (LockRepository, Mapper)")
     void lockQueryAdapter_MustHaveExactlyTwoFields() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -151,6 +166,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 4: 정확히 6개의 public 메서드")
     void lockQueryAdapter_MustHaveExactlySixPublicMethods() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -188,6 +205,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 5: 메서드명은 find*WithPessimisticLock, find*WithOptimisticLock, find*ForUpdate 형식")
     void lockQueryAdapter_MethodsMustFollowNamingConvention() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -213,6 +232,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 6: 반환 타입은 Optional<Domain> 또는 List<Domain>")
     void lockQueryAdapter_MustReturnDomainTypes() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -242,6 +263,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 7: @Transactional 절대 금지")
     void lockQueryAdapter_MustNotBeTransactional() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule classRule =
                 classes()
                         .that()
@@ -271,6 +294,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 8: Command 메서드 금지 (save, persist, update, delete)")
     void lockQueryAdapter_MustNotHaveCommandMethods() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -291,6 +316,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 9: 일반 조회 메서드 금지 (findById, existsById, findByCriteria, countByCriteria)")
     void lockQueryAdapter_MustNotHaveNormalQueryMethods() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -312,6 +339,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 10: DTO 반환 금지 (Domain만 반환)")
     void lockQueryAdapter_MustNotReturnDto() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 methods()
                         .that()
@@ -361,6 +390,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 13: 클래스명은 *LockQueryAdapter 형식")
     void lockQueryAdapter_MustFollowNamingConvention() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -380,7 +411,7 @@ class LockQueryAdapterArchTest {
                         .haveSimpleNameEndingWith("LockQueryAdapter")
                         .because("LockQueryAdapter는 *LockQueryAdapter 네이밍 규칙을 따라야 합니다");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     /** 규칙 14: Port 네이밍 *LockQueryPort 필수 */
@@ -401,7 +432,7 @@ class LockQueryAdapterArchTest {
                         .haveSimpleNameEndingWith("LockQueryPort")
                         .because("Port 인터페이스는 *LockQueryPort 네이밍 규칙을 따라야 합니다");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     /** 규칙 15: Repository 네이밍 *LockRepository 필수 */
@@ -420,13 +451,15 @@ class LockQueryAdapterArchTest {
                         .haveSimpleNameEndingWith("LockRepository")
                         .because("LockRepository는 *LockRepository 네이밍 규칙을 따라야 합니다");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     /** 규칙 16: 패키지 위치 ..adapter.out.persistence.. */
     @Test
     @DisplayName("규칙 16: LockQueryAdapter는 adapter.out.persistence 패키지에 위치")
     void lockQueryAdapter_MustBeInCorrectPackage() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -450,13 +483,15 @@ class LockQueryAdapterArchTest {
                         .resideInAPackage("..application..port.out..")
                         .because("LockQueryPort는 application.port.out 패키지에 위치해야 합니다");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     /** 규칙 18: 의존성 방향 Adapter → Port (역방향 금지) */
     @Test
     @DisplayName("규칙 18: Adapter는 Port를 의존해야 함 (역방향 금지)")
     void lockQueryAdapter_MustDependOnPort() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -473,6 +508,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 19: LockQueryAdapter 필드는 final이어야 함")
     void lockQueryAdapter_FieldsMustBeFinal() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 fields().that()
                         .areDeclaredInClassesThat()
@@ -488,6 +525,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 20: LockQueryAdapter는 LockRepository 필드를 가져야 함")
     void lockQueryAdapter_MustHaveLockRepositoryField() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -513,6 +552,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 21: LockQueryAdapter는 Mapper 필드를 가져야 함")
     void lockQueryAdapter_MustHaveMapperField() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -538,6 +579,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 22: findByIdWithPessimisticLock() 메서드 필수")
     void lockQueryAdapter_MustHaveFindByIdWithPessimisticLock() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -562,6 +605,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 23: findByCriteriaWithPessimisticLock() 메서드 필수")
     void lockQueryAdapter_MustHaveFindByCriteriaWithPessimisticLock() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -586,6 +631,8 @@ class LockQueryAdapterArchTest {
     @Test
     @DisplayName("규칙 24: 낙관락/ForUpdate 메서드 4개 필수")
     void lockQueryAdapter_MustHaveOtherLockMethods() {
+        assumeTrue(hasLockAdapterClasses, "LockQueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()

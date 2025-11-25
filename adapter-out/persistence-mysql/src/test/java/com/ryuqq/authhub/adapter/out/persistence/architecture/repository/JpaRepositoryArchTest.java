@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.out.persistence.architecture.repository;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -40,10 +41,12 @@ class JpaRepositoryArchTest {
 
     private static JavaClasses allClasses;
     private static JavaClasses jpaRepositoryClasses;
+    private static boolean hasJpaRepositoryClasses;
 
     @BeforeAll
     static void setUp() {
-        allClasses = new ClassFileImporter().importPackages("com.ryuqq.adapter.out.persistence");
+        allClasses =
+                new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.out.persistence");
 
         // JpaRepository 인터페이스만 (QueryDsl 제외)
         jpaRepositoryClasses =
@@ -54,11 +57,21 @@ class JpaRepositoryArchTest {
                                         javaClass.getSimpleName().endsWith("Repository")
                                                 && !javaClass.getSimpleName().contains("QueryDsl")
                                                 && javaClass.isInterface()));
+
+        hasJpaRepositoryClasses =
+                allClasses.stream()
+                        .anyMatch(
+                                javaClass ->
+                                        javaClass.getSimpleName().endsWith("Repository")
+                                                && !javaClass.getSimpleName().contains("QueryDsl")
+                                                && javaClass.isInterface());
     }
 
     @Test
     @DisplayName("규칙 1: JpaRepository는 인터페이스여야 함")
     void jpaRepository_MustBeInterface() {
+        assumeTrue(hasJpaRepositoryClasses, "JpaRepository 인터페이스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -71,12 +84,14 @@ class JpaRepositoryArchTest {
                         .beInterfaces()
                         .because("JpaRepository는 인터페이스로 정의되어야 합니다");
 
-        rule.check(jpaRepositoryClasses);
+        rule.allowEmptyShould(true).check(jpaRepositoryClasses);
     }
 
     @Test
     @DisplayName("규칙 2: JpaRepository 상속 필수")
     void jpaRepository_MustExtendJpaRepository() {
+        assumeTrue(hasJpaRepositoryClasses, "JpaRepository 인터페이스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -89,12 +104,14 @@ class JpaRepositoryArchTest {
                         .beAssignableTo(JpaRepository.class)
                         .because("JpaRepository 인터페이스를 상속해야 합니다");
 
-        rule.check(jpaRepositoryClasses);
+        rule.allowEmptyShould(true).check(jpaRepositoryClasses);
     }
 
     @Test
     @DisplayName("규칙 3: QuerydslPredicateExecutor 상속 금지")
     void jpaRepository_MustNotExtendQuerydslPredicateExecutor() {
+        assumeTrue(hasJpaRepositoryClasses, "JpaRepository 인터페이스가 없으므로 테스트를 스킵합니다");
+
         ArchRule rule =
                 classes()
                         .that()
@@ -109,7 +126,7 @@ class JpaRepositoryArchTest {
                                 "JpaRepository는 QuerydslPredicateExecutor 상속이 금지됩니다 (순수 Command"
                                         + " 전용)");
 
-        rule.check(jpaRepositoryClasses);
+        rule.allowEmptyShould(true).check(jpaRepositoryClasses);
     }
 
     @Test
@@ -132,7 +149,7 @@ class JpaRepositoryArchTest {
                         .haveNameMatching("find.*|search.*|count.*|exists.*|get.*")
                         .because("JpaRepository는 Query Method 추가가 금지됩니다 (QueryDslRepository 사용)");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     @Test
@@ -153,7 +170,7 @@ class JpaRepositoryArchTest {
                         .notBeAnnotatedWith(Query.class)
                         .because("JpaRepository는 @Query 어노테이션 사용이 금지됩니다 (QueryDSL 사용)");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     @Test
@@ -174,7 +191,7 @@ class JpaRepositoryArchTest {
                         .haveSimpleNameNotEndingWith("RepositoryImpl")
                         .because("Custom Repository 구현이 금지됩니다 (QueryDslRepository 사용)");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     @Test
@@ -192,6 +209,6 @@ class JpaRepositoryArchTest {
                         .haveSimpleNameEndingWith("Repository")
                         .because("JpaRepository는 *Repository 네이밍 규칙을 따라야 합니다");
 
-        rule.check(allClasses);
+        rule.allowEmptyShould(true).check(allClasses);
     }
 }
