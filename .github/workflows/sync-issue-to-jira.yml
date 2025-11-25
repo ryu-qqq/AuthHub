@@ -84,13 +84,17 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
-              labels: '!jira-synced',
               per_page: 100
             });
 
-            console.log(`Found ${issues.data.length} open issues to check`);
+            // Filter out issues that already have 'jira-synced' label
+            const filteredIssues = issues.data.filter(issue =>
+              !issue.labels.some(label => label.name === 'jira-synced')
+            );
 
-            for (const issue of issues.data) {
+            console.log(`Found ${filteredIssues.length} open issues without jira-synced label (total: ${issues.data.length})`);
+
+            for (const issue of filteredIssues) {
               if (issue.pull_request) continue; // Skip PRs
 
               // Check if already has Jira comment
@@ -112,7 +116,7 @@ jobs:
               core.setOutput(`sync_issue_${issue.number}`, 'true');
             }
 
-            core.setOutput('issues_to_sync', JSON.stringify(issues.data.map(i => i.number)));
+            core.setOutput('issues_to_sync', JSON.stringify(filteredIssues.map(i => i.number)));
 
       - name: Create Jira Issue (Manual Trigger - Single)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.issue_number != '' && steps.sync_single.outputs.should_create == 'true'

@@ -187,7 +187,7 @@ class RestApiLayerArchTest {
                         .haveSimpleNameNotEndingWith("ErrorMapper")
                         .should()
                         .dependOnClassesThat()
-                        .resideInAnyPackage("com.ryuqq.domain..")
+                        .resideInAnyPackage("com.ryuqq.authhub.domain..")
                         .because(
                                 "REST API Layer는 Domain Layer를 직접 의존하면 안 됩니다"
                                         + " (GlobalExceptionHandler, ErrorMapper 제외)");
@@ -225,7 +225,7 @@ class RestApiLayerArchTest {
                         .and()
                         .arePublic()
                         .should()
-                        .haveRawReturnType("com.ryuqq.domain..")
+                        .haveRawReturnType("com.ryuqq.authhub.domain..")
                         .because("Controller는 Domain 객체를 직접 반환하면 안 되며 API DTO로 변환해야 합니다");
 
         rule.allowEmptyShould(true).check(classes);
@@ -245,7 +245,7 @@ class RestApiLayerArchTest {
                         .haveSimpleNameNotContaining("Error")
                         .should()
                         .dependOnClassesThat()
-                        .resideInAnyPackage("com.ryuqq.domain..")
+                        .resideInAnyPackage("com.ryuqq.authhub.domain..")
                         .because(
                                 "Mapper는 Application DTO만 사용하며 Domain 직접 의존은 금지됩니다 (ErrorMapper"
                                         + " 제외)");

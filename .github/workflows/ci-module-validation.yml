@@ -23,10 +23,7 @@ on:
           - application
           - adapter-in:rest-api
           - adapter-out:persistence-mysql
-          - adapter-out:client-aws-s3
-          - adapter-out:client-aws-sqs
           - bootstrap:bootstrap-web-api
-          - bootstrap:bootstrap-scheduler
 
 jobs:
   # ========================================
@@ -40,10 +37,7 @@ jobs:
       application: ${{ steps.filter.outputs.application }}
       adapter-in-rest: ${{ steps.filter.outputs.adapter-in-rest }}
       adapter-out-mysql: ${{ steps.filter.outputs.adapter-out-mysql }}
-      adapter-out-s3: ${{ steps.filter.outputs.adapter-out-s3 }}
-      adapter-out-sqs: ${{ steps.filter.outputs.adapter-out-sqs }}
       bootstrap-web: ${{ steps.filter.outputs.bootstrap-web }}
-      bootstrap-scheduler: ${{ steps.filter.outputs.bootstrap-scheduler }}
 
     steps:
       - name: Checkout code
@@ -62,14 +56,8 @@ jobs:
               - 'adapter-in/rest-api/**'
             adapter-out-mysql:
               - 'adapter-out/persistence-mysql/**'
-            adapter-out-s3:
-              - 'adapter-out/client-aws-s3/**'
-            adapter-out-sqs:
-              - 'adapter-out/client-aws-sqs/**'
             bootstrap-web:
               - 'bootstrap/bootstrap-web-api/**'
-            bootstrap-scheduler:
-              - 'bootstrap/bootstrap-scheduler/**'
 
   # ========================================
   # Validate Domain Module
