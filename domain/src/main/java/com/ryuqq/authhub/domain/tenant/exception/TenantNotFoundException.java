@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.tenant.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-
 import java.util.Map;
 
 /**
@@ -10,10 +9,11 @@ import java.util.Map;
  * <p>특정 ID의 Tenant가 존재하지 않거나 조회할 수 없을 때 발생하는 예외입니다.
  *
  * <p><strong>발생 시나리오:</strong>
+ *
  * <ul>
- *   <li>존재하지 않는 Tenant ID로 조회</li>
- *   <li>삭제된 Tenant 조회</li>
- *   <li>권한 없는 Tenant 접근</li>
+ *   <li>존재하지 않는 Tenant ID로 조회
+ *   <li>삭제된 Tenant 조회
+ *   <li>권한 없는 Tenant 접근
  * </ul>
  *
  * @author development-team
@@ -32,7 +32,6 @@ public class TenantNotFoundException extends DomainException {
         super(
                 TenantErrorCode.TENANT_NOT_FOUND.getCode(),
                 TenantErrorCode.TENANT_NOT_FOUND.getMessage(),
-                Map.of("tenantId", tenantId)
-        );
+                Map.of("tenantId", tenantId));
     }
 }

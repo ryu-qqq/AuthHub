@@ -1,0 +1,40 @@
+# ===============================================
+# Integration Test Configuration
+# ===============================================
+# Testcontainers가 동적으로 DB/Redis 설정을 주입함
+
+spring:
+  application:
+    name: authhub-test
+
+  # JPA 설정
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+    show-sql: false
+
+  # Flyway 설정 (테스트용)
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    clean-disabled: false  # 테스트에서는 clean 허용
+
+  # Config Import 비활성화 (테스트에서는 직접 설정)
+  config:
+    import:
+      - optional:classpath:rest-api.yml
+
+# 로깅 설정
+logging:
+  level:
+    root: WARN
+    com.ryuqq.authhub: INFO
+    org.springframework.test: INFO
+    org.testcontainers: INFO

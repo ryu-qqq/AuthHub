@@ -1,19 +1,15 @@
 package com.ryuqq.authhub.domain.tenant.fixture;
 
 import com.ryuqq.authhub.domain.common.Clock;
-import com.ryuqq.authhub.domain.tenant.TenantStatus;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
-import com.ryuqq.authhub.domain.tenant.vo.TenantId;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.identifier.fixture.TenantIdFixture;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
-import com.ryuqq.authhub.domain.tenant.vo.fixture.TenantIdFixture;
+import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
 import com.ryuqq.authhub.domain.tenant.vo.fixture.TenantNameFixture;
-
 import java.time.Instant;
 
-/**
- * Tenant Aggregate Test Fixture
- * Object Mother 패턴을 사용한 테스트 데이터 생성
- */
+/** Tenant Aggregate Test Fixture Object Mother 패턴을 사용한 테스트 데이터 생성 */
 public class TenantFixture {
 
     private static final TenantStatus DEFAULT_TENANT_STATUS = TenantStatus.ACTIVE;
@@ -21,6 +17,7 @@ public class TenantFixture {
 
     /**
      * 기본 Tenant 생성
+     *
      * @return Tenant 인스턴스
      */
     public static Tenant aTenant() {
@@ -29,12 +26,12 @@ public class TenantFixture {
                 TenantNameFixture.aTenantName(),
                 DEFAULT_TENANT_STATUS,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * 특정 TenantId로 Tenant 생성
+     *
      * @param tenantId TenantId
      * @return Tenant 인스턴스
      */
@@ -44,12 +41,12 @@ public class TenantFixture {
                 TenantNameFixture.aTenantName(),
                 DEFAULT_TENANT_STATUS,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * 특정 TenantName으로 Tenant 생성
+     *
      * @param tenantName TenantName
      * @return Tenant 인스턴스
      */
@@ -59,12 +56,12 @@ public class TenantFixture {
                 tenantName,
                 DEFAULT_TENANT_STATUS,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * 특정 TenantStatus로 Tenant 생성
+     *
      * @param tenantStatus TenantStatus
      * @return Tenant 인스턴스
      */
@@ -74,12 +71,12 @@ public class TenantFixture {
                 TenantNameFixture.aTenantName(),
                 tenantStatus,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * INACTIVE 상태의 Tenant 생성
+     *
      * @return Tenant 인스턴스
      */
     public static Tenant anInactiveTenant() {
@@ -88,6 +85,7 @@ public class TenantFixture {
 
     /**
      * DELETED 상태의 Tenant 생성
+     *
      * @return Tenant 인스턴스
      */
     public static Tenant aDeletedTenant() {

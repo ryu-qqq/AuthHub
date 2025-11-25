@@ -1,9 +1,9 @@
 package com.ryuqq.authhub.domain.tenant.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("InvalidTenantStateException 테스트")
 class InvalidTenantStateExceptionTest {
@@ -19,10 +19,10 @@ class InvalidTenantStateExceptionTest {
         InvalidTenantStateException exception = new InvalidTenantStateException(tenantId, reason);
 
         // Then
-        assertThat(exception.getCode()).isEqualTo("TENANT-004");
+        assertThat(exception.code()).isEqualTo("TENANT-004");
         assertThat(exception.getMessage()).isEqualTo("Invalid tenant status");
-        assertThat(exception.getArgs()).containsEntry("tenantId", tenantId);
-        assertThat(exception.getArgs()).containsEntry("reason", reason);
+        assertThat(exception.args()).containsEntry("tenantId", tenantId);
+        assertThat(exception.args()).containsEntry("reason", reason);
     }
 
     @Test
@@ -37,7 +37,7 @@ class InvalidTenantStateExceptionTest {
         TenantErrorCode errorCode = TenantErrorCode.INVALID_TENANT_STATUS;
 
         // Then
-        assertThat(exception.getCode()).isEqualTo(errorCode.getCode());
+        assertThat(exception.code()).isEqualTo(errorCode.getCode());
         assertThat(errorCode.getHttpStatus()).isEqualTo(400);
     }
 }

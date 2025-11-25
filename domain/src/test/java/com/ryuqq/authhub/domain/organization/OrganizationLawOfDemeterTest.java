@@ -1,16 +1,16 @@
 package com.ryuqq.authhub.domain.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
-import com.ryuqq.authhub.domain.tenant.vo.TenantId;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Organization Law of Demeter 준수 테스트")
 class OrganizationLawOfDemeterTest {
@@ -22,14 +22,14 @@ class OrganizationLawOfDemeterTest {
     void shouldReturnOrganizationIdValueDirectly() {
         // Given
         OrganizationId id = OrganizationId.of(100L);
-        Organization organization = Organization.of(
-                id,
-                OrganizationName.of("Test"),
-                TenantId.of(1L),
-                OrganizationStatus.ACTIVE,
-                clock.now(),
-                clock.now()
-        );
+        Organization organization =
+                Organization.of(
+                        id,
+                        OrganizationName.of("Test"),
+                        TenantId.of(1L),
+                        OrganizationStatus.ACTIVE,
+                        clock.now(),
+                        clock.now());
 
         // When
         Long idValue = organization.organizationIdValue();
@@ -42,11 +42,9 @@ class OrganizationLawOfDemeterTest {
     @DisplayName("organizationNameValue - Organization Name의 String 값을 직접 반환")
     void shouldReturnOrganizationNameValueDirectly() {
         // Given
-        Organization organization = Organization.forNew(
-                OrganizationName.of("Test Organization"),
-                TenantId.of(1L),
-                clock
-        );
+        Organization organization =
+                Organization.forNew(
+                        OrganizationName.of("Test Organization"), TenantId.of(1L), clock);
 
         // When
         String nameValue = organization.organizationNameValue();
@@ -59,11 +57,8 @@ class OrganizationLawOfDemeterTest {
     @DisplayName("statusValue - OrganizationStatus의 name() 값을 직접 반환")
     void shouldReturnStatusValueDirectly() {
         // Given
-        Organization organization = Organization.forNew(
-                OrganizationName.of("Test"),
-                TenantId.of(1L),
-                clock
-        );
+        Organization organization =
+                Organization.forNew(OrganizationName.of("Test"), TenantId.of(1L), clock);
 
         // When
         String statusValue = organization.statusValue();
@@ -76,20 +71,17 @@ class OrganizationLawOfDemeterTest {
     @DisplayName("isNew - OrganizationId가 null이면 true, 아니면 false 반환")
     void shouldReturnIsNewCorrectly() {
         // Given
-        Organization newOrganization = Organization.forNew(
-                OrganizationName.of("New Org"),
-                TenantId.of(1L),
-                clock
-        );
+        Organization newOrganization =
+                Organization.forNew(OrganizationName.of("New Org"), TenantId.of(1L), clock);
 
-        Organization existingOrganization = Organization.of(
-                OrganizationId.of(100L),
-                OrganizationName.of("Existing Org"),
-                TenantId.of(1L),
-                OrganizationStatus.ACTIVE,
-                clock.now(),
-                clock.now()
-        );
+        Organization existingOrganization =
+                Organization.of(
+                        OrganizationId.of(100L),
+                        OrganizationName.of("Existing Org"),
+                        TenantId.of(1L),
+                        OrganizationStatus.ACTIVE,
+                        clock.now(),
+                        clock.now());
 
         // When & Then
         assertThat(newOrganization.isNew()).isTrue();
@@ -103,14 +95,14 @@ class OrganizationLawOfDemeterTest {
         Instant createdAt = Instant.parse("2025-11-20T00:00:00Z");
         Instant updatedAt = Instant.parse("2025-11-23T00:00:00Z");
 
-        Organization organization = Organization.of(
-                OrganizationId.of(100L),
-                OrganizationName.of("Test"),
-                TenantId.of(1L),
-                OrganizationStatus.ACTIVE,
-                createdAt,
-                updatedAt
-        );
+        Organization organization =
+                Organization.of(
+                        OrganizationId.of(100L),
+                        OrganizationName.of("Test"),
+                        TenantId.of(1L),
+                        OrganizationStatus.ACTIVE,
+                        createdAt,
+                        updatedAt);
 
         // When & Then
         assertThat(organization.createdAt()).isEqualTo(createdAt);

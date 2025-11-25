@@ -1,16 +1,22 @@
 package com.ryuqq.authhub.domain.tenant;
 
-import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
-import com.ryuqq.authhub.domain.tenant.vo.TenantId;
-import com.ryuqq.authhub.domain.tenant.vo.TenantName;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.authhub.domain.common.Clock;
+import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
+import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.vo.TenantName;
+import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
+import java.time.Instant;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("Tenant Aggregate 테스트")
 class TenantTest {
+
+    private final Clock clock = () -> Instant.parse("2025-11-24T00:00:00Z");
 
     @Test
     @DisplayName("유효한 데이터로 Tenant 생성 성공")
@@ -24,22 +30,9 @@ class TenantTest {
 
         // Then
         assertThat(tenant).isNotNull();
-        assertThat(tenant.getTenantId()).isEqualTo(tenantId);
-        assertThat(tenant.getTenantName()).isNotNull();
-        assertThat(tenant.getTenantStatus()).isEqualTo(TenantStatus.ACTIVE);
-    }
-
-    @Test
-    @DisplayName("null tenantId로 Tenant 생성 시 예외 발생")
-    void shouldThrowExceptionWhenNullTenantId() {
-        // Given
-        TenantId nullTenantId = null;
-        TenantName tenantName = TenantName.of("Test Tenant");
-
-        // When & Then
-        assertThatThrownBy(() -> Tenant.create(nullTenantId, tenantName, TenantStatus.ACTIVE))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("TenantId는 null일 수 없습니다");
+        assertThat(tenant.tenantIdValue()).isEqualTo(tenantId.value());
+        assertThat(tenant.tenantNameValue()).isNotNull();
+        assertThat(tenant.statusValue()).isEqualTo("ACTIVE");
     }
 
     @Test
@@ -50,7 +43,14 @@ class TenantTest {
         TenantName nullTenantName = null;
 
         // When & Then
-        assertThatThrownBy(() -> Tenant.create(tenantId, nullTenantName, TenantStatus.ACTIVE))
+        assertThatThrownBy(
+                        () ->
+                                Tenant.of(
+                                        tenantId,
+                                        nullTenantName,
+                                        TenantStatus.ACTIVE,
+                                        clock.now(),
+                                        clock.now()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("TenantName은 null일 수 없습니다");
     }
@@ -64,7 +64,8 @@ class TenantTest {
         TenantStatus nullStatus = null;
 
         // When & Then
-        assertThatThrownBy(() -> Tenant.create(tenantId, tenantName, nullStatus))
+        assertThatThrownBy(
+                        () -> Tenant.of(tenantId, tenantName, nullStatus, clock.now(), clock.now()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("TenantStatus는 null일 수 없습니다");
     }
@@ -77,7 +78,7 @@ class TenantTest {
 
         // Then
         assertThat(tenant).isNotNull();
-        assertThat(tenant.getTenantStatus()).isEqualTo(TenantStatus.INACTIVE);
+        assertThat(tenant.statusValue()).isEqualTo("INACTIVE");
     }
 
     @Test
@@ -88,6 +89,6 @@ class TenantTest {
 
         // Then
         assertThat(tenant).isNotNull();
-        assertThat(tenant.getTenantStatus()).isEqualTo(TenantStatus.DELETED);
+        assertThat(tenant.statusValue()).isEqualTo("DELETED");
     }
 }

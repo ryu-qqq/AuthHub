@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.organization.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-
 import java.util.Map;
 
 /**
@@ -10,11 +9,12 @@ import java.util.Map;
  * <p>Organization이 비즈니스 규칙에 위배되는 상태이거나 허용되지 않는 작업을 시도할 때 발생하는 예외입니다.
  *
  * <p><strong>발생 시나리오:</strong>
+ *
  * <ul>
- *   <li>삭제된 Organization에 대한 작업 시도</li>
- *   <li>비활성화된 Organization 사용</li>
- *   <li>만료된 Organization 접근</li>
- *   <li>상태 전환 규칙 위반</li>
+ *   <li>삭제된 Organization에 대한 작업 시도
+ *   <li>비활성화된 Organization 사용
+ *   <li>만료된 Organization 접근
+ *   <li>상태 전환 규칙 위반
  * </ul>
  *
  * @author development-team
@@ -36,8 +36,6 @@ public class InvalidOrganizationStateException extends DomainException {
                 OrganizationErrorCode.INVALID_ORGANIZATION_STATUS.getMessage(),
                 Map.of(
                         "organizationId", organizationId,
-                        "reason", reason
-                )
-        );
+                        "reason", reason));
     }
 }

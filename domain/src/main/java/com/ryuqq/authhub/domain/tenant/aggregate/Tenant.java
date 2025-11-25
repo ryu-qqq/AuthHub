@@ -1,12 +1,10 @@
 package com.ryuqq.authhub.domain.tenant.aggregate;
 
 import com.ryuqq.authhub.domain.common.Clock;
-import com.ryuqq.authhub.domain.common.model.AggregateRoot;
-import com.ryuqq.authhub.domain.tenant.TenantStatus;
 import com.ryuqq.authhub.domain.tenant.exception.InvalidTenantStateException;
-import com.ryuqq.authhub.domain.tenant.vo.TenantId;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
-
+import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -16,23 +14,25 @@ import java.util.Objects;
  * <p>멀티 테넌트 시스템의 테넌트를 나타내는 Aggregate Root입니다.
  *
  * <p><strong>팩토리 메서드:</strong>
+ *
  * <ul>
- *   <li>{@code forNew()} - 새 Tenant 생성 (ID null, ACTIVE 상태)</li>
- *   <li>{@code of()} - 기존 Tenant 로드 (모든 필드 지정)</li>
- *   <li>{@code reconstitute()} - DB에서 Tenant 재구성</li>
+ *   <li>{@code forNew()} - 새 Tenant 생성 (ID null, ACTIVE 상태)
+ *   <li>{@code of()} - 기존 Tenant 로드 (모든 필드 지정)
+ *   <li>{@code reconstitute()} - DB에서 Tenant 재구성
  * </ul>
  *
  * <p><strong>비즈니스 규칙:</strong>
+ *
  * <ul>
- *   <li>DELETED 상태에서는 activate/deactivate 불가</li>
- *   <li>이미 DELETED 상태이면 delete 재시도 불가</li>
- *   <li>상태 변경 시 updatedAt 자동 갱신</li>
+ *   <li>DELETED 상태에서는 activate/deactivate 불가
+ *   <li>이미 DELETED 상태이면 delete 재시도 불가
+ *   <li>상태 변경 시 updatedAt 자동 갱신
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
-public class Tenant implements AggregateRoot {
+public class Tenant {
 
     private final TenantId tenantId;
     private final TenantName tenantName;
@@ -45,8 +45,7 @@ public class Tenant implements AggregateRoot {
             TenantName tenantName,
             TenantStatus tenantStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         validateTenantName(tenantName);
         validateTenantStatus(tenantStatus);
         validateTimestamps(createdAt, updatedAt);
@@ -62,6 +61,7 @@ public class Tenant implements AggregateRoot {
      * forNew - 새 Tenant 생성 (도메인 유스케이스)
      *
      * <p>ID는 null이며, ACTIVE 상태로 생성됩니다.
+     *
      * <p>생성 시간과 수정 시간이 동일하게 설정됩니다.
      *
      * @param tenantName Tenant 이름 (필수)
@@ -72,13 +72,7 @@ public class Tenant implements AggregateRoot {
      */
     public static Tenant forNew(TenantName tenantName, Clock clock) {
         Instant now = clock.now();
-        return new Tenant(
-                null,
-                tenantName,
-                TenantStatus.ACTIVE,
-                now,
-                now
-        );
+        return new Tenant(null, tenantName, TenantStatus.ACTIVE, now, now);
     }
 
     /**
@@ -100,21 +94,15 @@ public class Tenant implements AggregateRoot {
             TenantName tenantName,
             TenantStatus tenantStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
-        return new Tenant(
-                tenantId,
-                tenantName,
-                tenantStatus,
-                createdAt,
-                updatedAt
-        );
+            Instant updatedAt) {
+        return new Tenant(tenantId, tenantName, tenantStatus, createdAt, updatedAt);
     }
 
     /**
      * reconstitute - DB에서 Tenant 재구성 (Persistence Adapter 전용)
      *
      * <p>DB에서 조회한 데이터로 Tenant를 재구성합니다.
+     *
      * <p>ID는 필수입니다.
      *
      * @param tenantId Tenant ID (필수)
@@ -131,18 +119,11 @@ public class Tenant implements AggregateRoot {
             TenantName tenantName,
             TenantStatus tenantStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         if (tenantId == null) {
             throw new IllegalArgumentException("reconstitute requires non-null tenantId");
         }
-        return new Tenant(
-                tenantId,
-                tenantName,
-                tenantStatus,
-                createdAt,
-                updatedAt
-        );
+        return new Tenant(tenantId, tenantName, tenantStatus, createdAt, updatedAt);
     }
 
     private void validateTenantName(TenantName tenantName) {
@@ -182,17 +163,10 @@ public class Tenant implements AggregateRoot {
     public Tenant activate(Clock clock) {
         if (this.tenantStatus == TenantStatus.DELETED) {
             throw new InvalidTenantStateException(
-                    tenantIdValue(),
-                    "Cannot activate deleted tenant"
-            );
+                    tenantIdValue(), "Cannot activate deleted tenant");
         }
         return new Tenant(
-                this.tenantId,
-                this.tenantName,
-                TenantStatus.ACTIVE,
-                this.createdAt,
-                clock.now()
-        );
+                this.tenantId, this.tenantName, TenantStatus.ACTIVE, this.createdAt, clock.now());
     }
 
     /**
@@ -209,17 +183,10 @@ public class Tenant implements AggregateRoot {
     public Tenant deactivate(Clock clock) {
         if (this.tenantStatus == TenantStatus.DELETED) {
             throw new InvalidTenantStateException(
-                    tenantIdValue(),
-                    "Cannot deactivate deleted tenant"
-            );
+                    tenantIdValue(), "Cannot deactivate deleted tenant");
         }
         return new Tenant(
-                this.tenantId,
-                this.tenantName,
-                TenantStatus.INACTIVE,
-                this.createdAt,
-                clock.now()
-        );
+                this.tenantId, this.tenantName, TenantStatus.INACTIVE, this.createdAt, clock.now());
     }
 
     /**
@@ -235,18 +202,10 @@ public class Tenant implements AggregateRoot {
      */
     public Tenant delete(Clock clock) {
         if (this.tenantStatus == TenantStatus.DELETED) {
-            throw new InvalidTenantStateException(
-                    tenantIdValue(),
-                    "Tenant is already deleted"
-            );
+            throw new InvalidTenantStateException(tenantIdValue(), "Tenant is already deleted");
         }
         return new Tenant(
-                this.tenantId,
-                this.tenantName,
-                TenantStatus.DELETED,
-                this.createdAt,
-                clock.now()
-        );
+                this.tenantId, this.tenantName, TenantStatus.DELETED, this.createdAt, clock.now());
     }
 
     // ========== Law of Demeter 준수: Primitive 값 접근 헬퍼 메서드 ==========
@@ -366,11 +325,11 @@ public class Tenant implements AggregateRoot {
             return false;
         }
         Tenant tenant = (Tenant) o;
-        return Objects.equals(tenantId, tenant.tenantId) &&
-                Objects.equals(tenantName, tenant.tenantName) &&
-                tenantStatus == tenant.tenantStatus &&
-                Objects.equals(createdAt, tenant.createdAt) &&
-                Objects.equals(updatedAt, tenant.updatedAt);
+        return Objects.equals(tenantId, tenant.tenantId)
+                && Objects.equals(tenantName, tenant.tenantName)
+                && tenantStatus == tenant.tenantStatus
+                && Objects.equals(createdAt, tenant.createdAt)
+                && Objects.equals(updatedAt, tenant.updatedAt);
     }
 
     @Override
@@ -380,12 +339,17 @@ public class Tenant implements AggregateRoot {
 
     @Override
     public String toString() {
-        return "Tenant{" +
-                "tenantId=" + tenantId +
-                ", tenantName=" + tenantName +
-                ", tenantStatus=" + tenantStatus +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return "Tenant{"
+                + "tenantId="
+                + tenantId
+                + ", tenantName="
+                + tenantName
+                + ", tenantStatus="
+                + tenantStatus
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}';
     }
 }

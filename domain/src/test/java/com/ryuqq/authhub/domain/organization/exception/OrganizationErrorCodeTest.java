@@ -1,9 +1,9 @@
 package com.ryuqq.authhub.domain.organization.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("OrganizationErrorCode 테스트")
 class OrganizationErrorCodeTest {

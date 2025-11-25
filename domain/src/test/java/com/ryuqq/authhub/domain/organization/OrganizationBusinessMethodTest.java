@@ -1,17 +1,18 @@
 package com.ryuqq.authhub.domain.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.exception.InvalidOrganizationStateException;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("Organization 비즈니스 메서드 테스트")
 class OrganizationBusinessMethodTest {
@@ -24,11 +25,13 @@ class OrganizationBusinessMethodTest {
         // Given
         OrganizationId id = OrganizationId.of(100L);
         OrganizationName name = OrganizationName.of("Test Org");
-        Long tenantId = 1L;
+        TenantId tenantId = TenantId.of(1L);
         Instant createdAt = Instant.parse("2025-11-20T00:00:00Z");
         Instant oldUpdatedAt = Instant.parse("2025-11-22T00:00:00Z");
 
-        Organization organization = Organization.of(id, name, tenantId, OrganizationStatus.INACTIVE, createdAt, oldUpdatedAt);
+        Organization organization =
+                Organization.of(
+                        id, name, tenantId, OrganizationStatus.INACTIVE, createdAt, oldUpdatedAt);
 
         // When
         Organization activated = organization.activate(clock);
@@ -44,14 +47,14 @@ class OrganizationBusinessMethodTest {
     void shouldThrowExceptionWhenActivatingDeletedOrganization() {
         // Given
         OrganizationId id = OrganizationId.of(100L);
-        Organization organization = Organization.of(
-                id,
-                OrganizationName.of("Deleted Org"),
-                1L,
-                OrganizationStatus.DELETED,
-                clock.now(),
-                clock.now()
-        );
+        Organization organization =
+                Organization.of(
+                        id,
+                        OrganizationName.of("Deleted Org"),
+                        TenantId.of(1L),
+                        OrganizationStatus.DELETED,
+                        clock.now(),
+                        clock.now());
 
         // When & Then
         assertThatThrownBy(() -> organization.activate(clock))
@@ -63,7 +66,8 @@ class OrganizationBusinessMethodTest {
     @DisplayName("deactivate - ACTIVE → INACTIVE 상태 전환 성공")
     void shouldDeactivateActiveOrganization() {
         // Given
-        Organization organization = Organization.forNew(OrganizationName.of("Active Org"), 1L, clock);
+        Organization organization =
+                Organization.forNew(OrganizationName.of("Active Org"), TenantId.of(1L), clock);
 
         // When
         Organization deactivated = organization.deactivate(clock);
@@ -78,14 +82,14 @@ class OrganizationBusinessMethodTest {
     void shouldThrowExceptionWhenDeactivatingDeletedOrganization() {
         // Given
         OrganizationId id = OrganizationId.of(100L);
-        Organization organization = Organization.of(
-                id,
-                OrganizationName.of("Deleted Org"),
-                1L,
-                OrganizationStatus.DELETED,
-                clock.now(),
-                clock.now()
-        );
+        Organization organization =
+                Organization.of(
+                        id,
+                        OrganizationName.of("Deleted Org"),
+                        TenantId.of(1L),
+                        OrganizationStatus.DELETED,
+                        clock.now(),
+                        clock.now());
 
         // When & Then
         assertThatThrownBy(() -> organization.deactivate(clock))
@@ -96,7 +100,8 @@ class OrganizationBusinessMethodTest {
     @DisplayName("delete - ACTIVE/INACTIVE → DELETED 상태 전환 성공")
     void shouldDeleteOrganization() {
         // Given
-        Organization organization = Organization.forNew(OrganizationName.of("To Delete"), 1L, clock);
+        Organization organization =
+                Organization.forNew(OrganizationName.of("To Delete"), TenantId.of(1L), clock);
 
         // When
         Organization deleted = organization.delete(clock);
@@ -111,14 +116,14 @@ class OrganizationBusinessMethodTest {
     void shouldThrowExceptionWhenDeletingAlreadyDeletedOrganization() {
         // Given
         OrganizationId id = OrganizationId.of(100L);
-        Organization organization = Organization.of(
-                id,
-                OrganizationName.of("Already Deleted"),
-                1L,
-                OrganizationStatus.DELETED,
-                clock.now(),
-                clock.now()
-        );
+        Organization organization =
+                Organization.of(
+                        id,
+                        OrganizationName.of("Already Deleted"),
+                        TenantId.of(1L),
+                        OrganizationStatus.DELETED,
+                        clock.now(),
+                        clock.now());
 
         // When & Then
         assertThatThrownBy(() -> organization.delete(clock))
@@ -129,7 +134,8 @@ class OrganizationBusinessMethodTest {
     @DisplayName("isActive - ACTIVE 상태일 때 true 반환")
     void shouldReturnTrueWhenOrganizationIsActive() {
         // Given
-        Organization organization = Organization.forNew(OrganizationName.of("Active"), 1L, clock);
+        Organization organization =
+                Organization.forNew(OrganizationName.of("Active"), TenantId.of(1L), clock);
 
         // When & Then
         assertThat(organization.isActive()).isTrue();
@@ -139,7 +145,8 @@ class OrganizationBusinessMethodTest {
     @DisplayName("isActive - INACTIVE 상태일 때 false 반환")
     void shouldReturnFalseWhenOrganizationIsInactive() {
         // Given
-        Organization organization = Organization.forNew(OrganizationName.of("Active"), 1L, clock);
+        Organization organization =
+                Organization.forNew(OrganizationName.of("Active"), TenantId.of(1L), clock);
         Organization deactivated = organization.deactivate(clock);
 
         // When & Then
@@ -150,7 +157,8 @@ class OrganizationBusinessMethodTest {
     @DisplayName("isDeleted - DELETED 상태일 때 true 반환")
     void shouldReturnTrueWhenOrganizationIsDeleted() {
         // Given
-        Organization organization = Organization.forNew(OrganizationName.of("To Delete"), 1L, clock);
+        Organization organization =
+                Organization.forNew(OrganizationName.of("To Delete"), TenantId.of(1L), clock);
         Organization deleted = organization.delete(clock);
 
         // When & Then

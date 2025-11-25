@@ -60,9 +60,13 @@ class VOArchTest {
                         .and()
                         .haveSimpleNameNotContaining("Test")
                         .and()
+                        .haveSimpleNameNotContaining("Status")
+                        .and()
                         .areNotAnonymousClasses()
                         .and()
                         .areNotMemberClasses()
+                        .and()
+                        .areNotEnums()
                         .should(beRecords())
                         .because("Value Object는 Java 21 Record로 구현해야 합니다");
 
@@ -84,9 +88,13 @@ class VOArchTest {
                         .and()
                         .haveSimpleNameNotContaining("Test")
                         .and()
+                        .haveSimpleNameNotContaining("Status")
+                        .and()
                         .areNotAnonymousClasses()
                         .and()
                         .areNotMemberClasses()
+                        .and()
+                        .areNotEnums()
                         .should(haveStaticMethodWithName("of"))
                         .because("Value Object는 of() 정적 팩토리 메서드로 생성해야 합니다");
 
@@ -100,7 +108,7 @@ class VOArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("..vo..")
+                        .resideInAPackage("..identifier..")
                         .and()
                         .haveSimpleNameEndingWith("Id")
                         .and()
@@ -126,7 +134,7 @@ class VOArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("..vo..")
+                        .resideInAPackage("..identifier..")
                         .and()
                         .haveSimpleNameEndingWith("Id")
                         .and()

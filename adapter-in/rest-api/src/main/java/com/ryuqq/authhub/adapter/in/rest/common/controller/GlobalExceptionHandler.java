@@ -66,8 +66,12 @@ public class GlobalExceptionHandler {
         // tracing(id 존재 시) — Micrometer/Logback MDC 키 관례
         String traceId = MDC.get("traceId");
         String spanId = MDC.get("spanId");
-        if (traceId != null) pd.setProperty("traceId", traceId);
-        if (spanId != null) pd.setProperty("spanId", spanId);
+        if (traceId != null) {
+            pd.setProperty("traceId", traceId);
+        }
+        if (spanId != null) {
+            pd.setProperty("spanId", spanId);
+        }
 
         return ResponseEntity.status(status).body(pd);
     }
@@ -205,7 +209,9 @@ public class GlobalExceptionHandler {
         var entity = build(HttpStatus.METHOD_NOT_ALLOWED, "Method Not Allowed", message, req);
 
         HttpHeaders headers = new HttpHeaders();
-        if (!supported.isEmpty()) headers.setAllow(supported);
+        if (!supported.isEmpty()) {
+            headers.setAllow(supported);
+        }
 
         log.warn("MethodNotAllowed: method={}, supported={}", method, supportedStr);
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
@@ -266,7 +272,9 @@ public class GlobalExceptionHandler {
         assert pd != null;
         pd.setType(mapped.type());
         pd.setProperty("code", ex.code());
-        if (!ex.args().isEmpty()) pd.setProperty("args", ex.args());
+        if (!ex.args().isEmpty()) {
+            pd.setProperty("args", ex.args());
+        }
 
         // HTTP 상태 코드에 따라 로깅 레벨 구분
         if (mapped.status().is5xxServerError()) {

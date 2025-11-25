@@ -1,13 +1,11 @@
 package com.ryuqq.authhub.domain.organization.aggregate;
 
 import com.ryuqq.authhub.domain.common.Clock;
-import com.ryuqq.authhub.domain.common.model.AggregateRoot;
-import com.ryuqq.authhub.domain.organization.OrganizationStatus;
 import com.ryuqq.authhub.domain.organization.exception.InvalidOrganizationStateException;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
-import com.ryuqq.authhub.domain.tenant.vo.TenantId;
-
+import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -17,23 +15,25 @@ import java.util.Objects;
  * <p>Tenant에 속하는 조직을 나타내는 Aggregate Root입니다.
  *
  * <p><strong>팩토리 메서드:</strong>
+ *
  * <ul>
- *   <li>{@code forNew()} - 새 Organization 생성 (ID null, ACTIVE 상태)</li>
- *   <li>{@code of()} - 기존 Organization 로드 (모든 필드 지정)</li>
- *   <li>{@code reconstitute()} - DB에서 Organization 재구성</li>
+ *   <li>{@code forNew()} - 새 Organization 생성 (ID null, ACTIVE 상태)
+ *   <li>{@code of()} - 기존 Organization 로드 (모든 필드 지정)
+ *   <li>{@code reconstitute()} - DB에서 Organization 재구성
  * </ul>
  *
  * <p><strong>비즈니스 규칙:</strong>
+ *
  * <ul>
- *   <li>DELETED 상태에서는 activate/deactivate 불가</li>
- *   <li>이미 DELETED 상태이면 delete 재시도 불가</li>
- *   <li>상태 변경 시 updatedAt 자동 갱신</li>
+ *   <li>DELETED 상태에서는 activate/deactivate 불가
+ *   <li>이미 DELETED 상태이면 delete 재시도 불가
+ *   <li>상태 변경 시 updatedAt 자동 갱신
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
-public class Organization implements AggregateRoot {
+public class Organization {
 
     private final OrganizationId organizationId;
     private final OrganizationName organizationName;
@@ -48,8 +48,7 @@ public class Organization implements AggregateRoot {
             TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         validateOrganizationName(organizationName);
         validateTenantId(tenantId);
         validateOrganizationStatus(organizationStatus);
@@ -67,6 +66,7 @@ public class Organization implements AggregateRoot {
      * forNew - 새 Organization 생성 (도메인 유스케이스)
      *
      * <p>ID는 null이며, ACTIVE 상태로 생성됩니다.
+     *
      * <p>생성 시간과 수정 시간이 동일하게 설정됩니다.
      *
      * @param organizationName Organization 이름 (필수)
@@ -76,16 +76,11 @@ public class Organization implements AggregateRoot {
      * @author development-team
      * @since 1.0.0
      */
-    public static Organization forNew(OrganizationName organizationName, TenantId tenantId, Clock clock) {
+    public static Organization forNew(
+            OrganizationName organizationName, TenantId tenantId, Clock clock) {
         Instant now = clock.now();
         return new Organization(
-                null,
-                organizationName,
-                tenantId,
-                OrganizationStatus.ACTIVE,
-                now,
-                now
-        );
+                null, organizationName, tenantId, OrganizationStatus.ACTIVE, now, now);
     }
 
     /**
@@ -109,22 +104,21 @@ public class Organization implements AggregateRoot {
             TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         return new Organization(
                 organizationId,
                 organizationName,
                 tenantId,
                 organizationStatus,
                 createdAt,
-                updatedAt
-        );
+                updatedAt);
     }
 
     /**
      * reconstitute - DB에서 Organization 재구성 (Persistence Adapter 전용)
      *
      * <p>DB에서 조회한 데이터로 Organization을 재구성합니다.
+     *
      * <p>ID는 필수입니다.
      *
      * @param organizationId Organization ID (필수)
@@ -143,8 +137,7 @@ public class Organization implements AggregateRoot {
             TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         if (organizationId == null) {
             throw new IllegalArgumentException("reconstitute requires non-null organizationId");
         }
@@ -154,8 +147,7 @@ public class Organization implements AggregateRoot {
                 tenantId,
                 organizationStatus,
                 createdAt,
-                updatedAt
-        );
+                updatedAt);
     }
 
     private void validateOrganizationName(OrganizationName organizationName) {
@@ -201,9 +193,7 @@ public class Organization implements AggregateRoot {
     public Organization activate(Clock clock) {
         if (this.organizationStatus == OrganizationStatus.DELETED) {
             throw new InvalidOrganizationStateException(
-                    organizationIdValue(),
-                    "Cannot activate deleted organization"
-            );
+                    organizationIdValue(), "Cannot activate deleted organization");
         }
         return new Organization(
                 this.organizationId,
@@ -211,8 +201,7 @@ public class Organization implements AggregateRoot {
                 this.tenantId,
                 OrganizationStatus.ACTIVE,
                 this.createdAt,
-                clock.now()
-        );
+                clock.now());
     }
 
     /**
@@ -229,9 +218,7 @@ public class Organization implements AggregateRoot {
     public Organization deactivate(Clock clock) {
         if (this.organizationStatus == OrganizationStatus.DELETED) {
             throw new InvalidOrganizationStateException(
-                    organizationIdValue(),
-                    "Cannot deactivate deleted organization"
-            );
+                    organizationIdValue(), "Cannot deactivate deleted organization");
         }
         return new Organization(
                 this.organizationId,
@@ -239,8 +226,7 @@ public class Organization implements AggregateRoot {
                 this.tenantId,
                 OrganizationStatus.INACTIVE,
                 this.createdAt,
-                clock.now()
-        );
+                clock.now());
     }
 
     /**
@@ -257,9 +243,7 @@ public class Organization implements AggregateRoot {
     public Organization delete(Clock clock) {
         if (this.organizationStatus == OrganizationStatus.DELETED) {
             throw new InvalidOrganizationStateException(
-                    organizationIdValue(),
-                    "Organization is already deleted"
-            );
+                    organizationIdValue(), "Organization is already deleted");
         }
         return new Organization(
                 this.organizationId,
@@ -267,8 +251,7 @@ public class Organization implements AggregateRoot {
                 this.tenantId,
                 OrganizationStatus.DELETED,
                 this.createdAt,
-                clock.now()
-        );
+                clock.now());
     }
 
     // ========== Law of Demeter 준수: Primitive 값 접근 헬퍼 메서드 ==========
@@ -405,28 +388,40 @@ public class Organization implements AggregateRoot {
             return false;
         }
         Organization that = (Organization) o;
-        return Objects.equals(organizationId, that.organizationId) &&
-                Objects.equals(organizationName, that.organizationName) &&
-                Objects.equals(tenantId, that.tenantId) &&
-                organizationStatus == that.organizationStatus &&
-                Objects.equals(createdAt, that.createdAt) &&
-                Objects.equals(updatedAt, that.updatedAt);
+        return Objects.equals(organizationId, that.organizationId)
+                && Objects.equals(organizationName, that.organizationName)
+                && Objects.equals(tenantId, that.tenantId)
+                && organizationStatus == that.organizationStatus
+                && Objects.equals(createdAt, that.createdAt)
+                && Objects.equals(updatedAt, that.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(organizationId, organizationName, tenantId, organizationStatus, createdAt, updatedAt);
+        return Objects.hash(
+                organizationId,
+                organizationName,
+                tenantId,
+                organizationStatus,
+                createdAt,
+                updatedAt);
     }
 
     @Override
     public String toString() {
-        return "Organization{" +
-                "organizationId=" + organizationId +
-                ", organizationName=" + organizationName +
-                ", tenantId=" + tenantId +
-                ", organizationStatus=" + organizationStatus +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return "Organization{"
+                + "organizationId="
+                + organizationId
+                + ", organizationName="
+                + organizationName
+                + ", tenantId="
+                + tenantId
+                + ", organizationStatus="
+                + organizationStatus
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}';
     }
 }

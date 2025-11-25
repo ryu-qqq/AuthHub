@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.user.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-
 import java.util.Map;
 import java.util.UUID;
 
@@ -11,11 +10,12 @@ import java.util.UUID;
  * <p>User가 비즈니스 규칙에 위배되는 상태이거나 허용되지 않는 작업을 시도할 때 발생하는 예외입니다.
  *
  * <p><strong>발생 시나리오:</strong>
+ *
  * <ul>
- *   <li>삭제된 User에 대한 작업 시도</li>
- *   <li>비활성화된 User 사용</li>
- *   <li>잠긴 User 접근</li>
- *   <li>상태 전환 규칙 위반</li>
+ *   <li>삭제된 User에 대한 작업 시도
+ *   <li>비활성화된 User 사용
+ *   <li>잠긴 User 접근
+ *   <li>상태 전환 규칙 위반
  * </ul>
  *
  * @author development-team
@@ -37,8 +37,6 @@ public class InvalidUserStateException extends DomainException {
                 UserErrorCode.INVALID_USER_STATUS.getMessage(),
                 Map.of(
                         "userId", userId,
-                        "reason", reason
-                )
-        );
+                        "reason", reason));
     }
 }

@@ -1,9 +1,9 @@
 package com.ryuqq.authhub.domain.tenant.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("TenantNotFoundException 테스트")
 class TenantNotFoundExceptionTest {
@@ -18,9 +18,9 @@ class TenantNotFoundExceptionTest {
         TenantNotFoundException exception = new TenantNotFoundException(tenantId);
 
         // Then
-        assertThat(exception.getCode()).isEqualTo("TENANT-001");
+        assertThat(exception.code()).isEqualTo("TENANT-001");
         assertThat(exception.getMessage()).isEqualTo("Tenant not found");
-        assertThat(exception.getArgs()).containsEntry("tenantId", tenantId);
+        assertThat(exception.args()).containsEntry("tenantId", tenantId);
     }
 
     @Test
@@ -34,7 +34,7 @@ class TenantNotFoundExceptionTest {
         TenantErrorCode errorCode = TenantErrorCode.TENANT_NOT_FOUND;
 
         // Then
-        assertThat(exception.getCode()).isEqualTo(errorCode.getCode());
+        assertThat(exception.code()).isEqualTo(errorCode.getCode());
         assertThat(errorCode.getHttpStatus()).isEqualTo(404);
     }
 }

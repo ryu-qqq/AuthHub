@@ -1,9 +1,9 @@
 package com.ryuqq.authhub.domain.organization.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("OrganizationNotFoundException 테스트")
 class OrganizationNotFoundExceptionTest {
@@ -18,9 +18,9 @@ class OrganizationNotFoundExceptionTest {
         OrganizationNotFoundException exception = new OrganizationNotFoundException(organizationId);
 
         // Then
-        assertThat(exception.getCode()).isEqualTo("ORGANIZATION-001");
+        assertThat(exception.code()).isEqualTo("ORGANIZATION-001");
         assertThat(exception.getMessage()).isEqualTo("Organization not found");
-        assertThat(exception.getArgs()).containsEntry("organizationId", organizationId);
+        assertThat(exception.args()).containsEntry("organizationId", organizationId);
     }
 
     @Test
@@ -34,7 +34,7 @@ class OrganizationNotFoundExceptionTest {
         OrganizationErrorCode errorCode = OrganizationErrorCode.ORGANIZATION_NOT_FOUND;
 
         // Then
-        assertThat(exception.getCode()).isEqualTo(errorCode.getCode());
+        assertThat(exception.code()).isEqualTo(errorCode.getCode());
         assertThat(errorCode.getHttpStatus()).isEqualTo(404);
     }
 }

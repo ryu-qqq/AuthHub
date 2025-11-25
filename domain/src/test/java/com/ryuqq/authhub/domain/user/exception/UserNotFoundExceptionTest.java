@@ -1,9 +1,9 @@
 package com.ryuqq.authhub.domain.user.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("UserNotFoundException 테스트")
 class UserNotFoundExceptionTest {
@@ -18,9 +18,9 @@ class UserNotFoundExceptionTest {
         UserNotFoundException exception = new UserNotFoundException(userId);
 
         // Then
-        assertThat(exception.getCode()).isEqualTo("USER-001");
+        assertThat(exception.code()).isEqualTo("USER-001");
         assertThat(exception.getMessage()).isEqualTo("User not found");
-        assertThat(exception.getArgs()).containsEntry("userId", userId);
+        assertThat(exception.args()).containsEntry("userId", userId);
     }
 
     @Test
@@ -34,7 +34,7 @@ class UserNotFoundExceptionTest {
         UserErrorCode errorCode = UserErrorCode.USER_NOT_FOUND;
 
         // Then
-        assertThat(exception.getCode()).isEqualTo(errorCode.getCode());
+        assertThat(exception.code()).isEqualTo(errorCode.getCode());
         assertThat(errorCode.getHttpStatus()).isEqualTo(404);
     }
 }

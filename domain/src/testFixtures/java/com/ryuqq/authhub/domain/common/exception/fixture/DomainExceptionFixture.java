@@ -1,13 +1,9 @@
 package com.ryuqq.authhub.domain.common.exception.fixture;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-
 import java.util.Map;
 
-/**
- * DomainException Test Fixture
- * Object Mother 패턴을 사용한 테스트 데이터 생성
- */
+/** DomainException Test Fixture Object Mother 패턴을 사용한 테스트 데이터 생성 */
 public final class DomainExceptionFixture {
 
     private static final String DEFAULT_ERROR_CODE = "TEST-001";
@@ -15,6 +11,7 @@ public final class DomainExceptionFixture {
 
     /**
      * 기본 DomainException 생성
+     *
      * @return DomainException 인스턴스
      */
     public static DomainException aDomainException() {
@@ -23,6 +20,7 @@ public final class DomainExceptionFixture {
 
     /**
      * 특정 코드와 메시지로 DomainException 생성
+     *
      * @param code 에러 코드
      * @param message 에러 메시지
      * @return DomainException 인스턴스
@@ -33,17 +31,20 @@ public final class DomainExceptionFixture {
 
     /**
      * 인자를 포함한 DomainException 생성
+     *
      * @param code 에러 코드
      * @param message 에러 메시지
      * @param args 에러 인자
      * @return DomainException 인스턴스
      */
-    public static DomainException aDomainExceptionWithArgs(String code, String message, Map<String, Object> args) {
+    public static DomainException aDomainExceptionWithArgs(
+            String code, String message, Map<String, Object> args) {
         return new DomainException(code, message, args);
     }
 
     /**
      * NOT_FOUND 에러 DomainException 생성
+     *
      * @return DomainException 인스턴스
      */
     public static DomainException aNotFoundException() {
@@ -52,6 +53,7 @@ public final class DomainExceptionFixture {
 
     /**
      * INVALID_INPUT 에러 DomainException 생성
+     *
      * @return DomainException 인스턴스
      */
     public static DomainException anInvalidInputException() {
@@ -60,15 +62,12 @@ public final class DomainExceptionFixture {
 
     /**
      * USER 도메인 에러 DomainException 생성
+     *
      * @param userId 사용자 ID
      * @return DomainException 인스턴스
      */
     public static DomainException aUserNotFoundException(Long userId) {
-        return new DomainException(
-                "USER-001",
-                "User not found",
-                Map.of("userId", userId)
-        );
+        return new DomainException("USER-001", "User not found", Map.of("userId", userId));
     }
 
     private DomainExceptionFixture() {

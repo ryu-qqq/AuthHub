@@ -1,15 +1,16 @@
 package com.ryuqq.authhub.domain.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Organization 팩토리 메서드 테스트")
 class OrganizationFactoryMethodTest {
@@ -21,7 +22,7 @@ class OrganizationFactoryMethodTest {
     void shouldCreateNewOrganizationWithForNew() {
         // Given
         OrganizationName name = OrganizationName.of("New Organization");
-        Long tenantId = 1L;
+        TenantId tenantId = TenantId.of(1L);
 
         // When
         Organization organization = Organization.forNew(name, tenantId, clock);
@@ -40,13 +41,14 @@ class OrganizationFactoryMethodTest {
         // Given
         OrganizationId id = OrganizationId.of(100L);
         OrganizationName name = OrganizationName.of("Existing Organization");
-        Long tenantId = 1L;
+        TenantId tenantId = TenantId.of(1L);
         OrganizationStatus status = OrganizationStatus.INACTIVE;
         Instant createdAt = Instant.parse("2025-11-20T00:00:00Z");
         Instant updatedAt = Instant.parse("2025-11-23T00:00:00Z");
 
         // When
-        Organization organization = Organization.of(id, name, tenantId, status, createdAt, updatedAt);
+        Organization organization =
+                Organization.of(id, name, tenantId, status, createdAt, updatedAt);
 
         // Then
         assertThat(organization.organizationIdValue()).isEqualTo(100L);
@@ -62,13 +64,14 @@ class OrganizationFactoryMethodTest {
         // Given
         OrganizationId id = OrganizationId.of(200L);
         OrganizationName name = OrganizationName.of("Reconstituted Organization");
-        Long tenantId = 2L;
+        TenantId tenantId = TenantId.of(2L);
         OrganizationStatus status = OrganizationStatus.DELETED;
         Instant createdAt = Instant.parse("2025-11-15T00:00:00Z");
         Instant updatedAt = Instant.parse("2025-11-22T00:00:00Z");
 
         // When
-        Organization organization = Organization.reconstitute(id, name, tenantId, status, createdAt, updatedAt);
+        Organization organization =
+                Organization.reconstitute(id, name, tenantId, status, createdAt, updatedAt);
 
         // Then
         assertThat(organization.organizationIdValue()).isEqualTo(200L);

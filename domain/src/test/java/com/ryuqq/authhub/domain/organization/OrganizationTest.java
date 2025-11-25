@@ -1,17 +1,23 @@
 package com.ryuqq.authhub.domain.organization;
 
-import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.authhub.domain.common.Clock;
+import com.ryuqq.authhub.domain.organization.aggregate.Organization;
+import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import java.time.Instant;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("Organization Aggregate 테스트")
 class OrganizationTest {
+
+    private final Clock clock = () -> Instant.parse("2025-11-24T00:00:00Z");
 
     @Test
     @DisplayName("유효한 데이터로 Organization 생성 성공")
@@ -19,31 +25,17 @@ class OrganizationTest {
         // Given
         OrganizationId organizationId = OrganizationId.of(100L);
         OrganizationName organizationName = OrganizationName.of("Test Organization");
-        Long tenantId = 1L;
+        TenantId tenantId = TenantId.of(1L);
 
         // When
         Organization organization = OrganizationFixture.anOrganization(organizationId);
 
         // Then
         assertThat(organization).isNotNull();
-        assertThat(organization.getOrganizationId()).isEqualTo(organizationId);
-        assertThat(organization.getOrganizationName()).isNotNull();
-        assertThat(organization.getTenantId()).isNotNull();
-        assertThat(organization.getOrganizationStatus()).isEqualTo(OrganizationStatus.ACTIVE);
-    }
-
-    @Test
-    @DisplayName("null organizationId로 Organization 생성 시 예외 발생")
-    void shouldThrowExceptionWhenNullOrganizationId() {
-        // Given
-        OrganizationId nullOrganizationId = null;
-        OrganizationName organizationName = OrganizationName.of("Test Organization");
-        Long tenantId = 1L;
-
-        // When & Then
-        assertThatThrownBy(() -> Organization.create(nullOrganizationId, organizationName, tenantId, OrganizationStatus.ACTIVE))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("OrganizationId는 null일 수 없습니다");
+        assertThat(organization.organizationIdValue()).isEqualTo(organizationId.value());
+        assertThat(organization.organizationNameValue()).isNotNull();
+        assertThat(organization.tenantIdValue()).isNotNull();
+        assertThat(organization.statusValue()).isEqualTo("ACTIVE");
     }
 
     @Test
@@ -52,10 +44,18 @@ class OrganizationTest {
         // Given
         OrganizationId organizationId = OrganizationId.of(100L);
         OrganizationName nullOrganizationName = null;
-        Long tenantId = 1L;
+        TenantId tenantId = TenantId.of(1L);
 
         // When & Then
-        assertThatThrownBy(() -> Organization.create(organizationId, nullOrganizationName, tenantId, OrganizationStatus.ACTIVE))
+        assertThatThrownBy(
+                        () ->
+                                Organization.of(
+                                        organizationId,
+                                        nullOrganizationName,
+                                        tenantId,
+                                        OrganizationStatus.ACTIVE,
+                                        clock.now(),
+                                        clock.now()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("OrganizationName은 null일 수 없습니다");
     }
@@ -66,10 +66,18 @@ class OrganizationTest {
         // Given
         OrganizationId organizationId = OrganizationId.of(100L);
         OrganizationName organizationName = OrganizationName.of("Test Organization");
-        Long nullTenantId = null;
+        TenantId nullTenantId = null;
 
         // When & Then
-        assertThatThrownBy(() -> Organization.create(organizationId, organizationName, nullTenantId, OrganizationStatus.ACTIVE))
+        assertThatThrownBy(
+                        () ->
+                                Organization.of(
+                                        organizationId,
+                                        organizationName,
+                                        nullTenantId,
+                                        OrganizationStatus.ACTIVE,
+                                        clock.now(),
+                                        clock.now()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("TenantId는 null일 수 없습니다");
     }
@@ -80,11 +88,19 @@ class OrganizationTest {
         // Given
         OrganizationId organizationId = OrganizationId.of(100L);
         OrganizationName organizationName = OrganizationName.of("Test Organization");
-        Long tenantId = 1L;
+        TenantId tenantId = TenantId.of(1L);
         OrganizationStatus nullStatus = null;
 
         // When & Then
-        assertThatThrownBy(() -> Organization.create(organizationId, organizationName, tenantId, nullStatus))
+        assertThatThrownBy(
+                        () ->
+                                Organization.of(
+                                        organizationId,
+                                        organizationName,
+                                        tenantId,
+                                        nullStatus,
+                                        clock.now(),
+                                        clock.now()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("OrganizationStatus는 null일 수 없습니다");
     }
@@ -97,7 +113,7 @@ class OrganizationTest {
 
         // Then
         assertThat(organization).isNotNull();
-        assertThat(organization.getOrganizationStatus()).isEqualTo(OrganizationStatus.INACTIVE);
+        assertThat(organization.statusValue()).isEqualTo("INACTIVE");
     }
 
     @Test
@@ -108,6 +124,6 @@ class OrganizationTest {
 
         // Then
         assertThat(organization).isNotNull();
-        assertThat(organization.getOrganizationStatus()).isEqualTo(OrganizationStatus.DELETED);
+        assertThat(organization.statusValue()).isEqualTo("DELETED");
     }
 }

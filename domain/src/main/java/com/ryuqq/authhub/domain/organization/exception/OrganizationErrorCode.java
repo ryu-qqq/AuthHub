@@ -8,10 +8,11 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  * <p>Organization 도메인에서 발생하는 모든 비즈니스 예외의 에러 코드를 정의합니다.
  *
  * <p><strong>에러 코드 규칙:</strong>
+ *
  * <ul>
- *   <li>✅ 형식: ORGANIZATION-{3자리 숫자}</li>
- *   <li>✅ HTTP 상태 코드 매핑</li>
- *   <li>✅ 명확한 에러 메시지</li>
+ *   <li>✅ 형식: ORGANIZATION-{3자리 숫자}
+ *   <li>✅ HTTP 상태 코드 매핑
+ *   <li>✅ 명확한 에러 메시지
  * </ul>
  *
  * @author development-team
@@ -19,24 +20,16 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  */
 public enum OrganizationErrorCode implements ErrorCode {
 
-    /**
-     * Organization을 찾을 수 없음
-     */
+    /** Organization을 찾을 수 없음 */
     ORGANIZATION_NOT_FOUND("ORGANIZATION-001", 404, "Organization not found"),
 
-    /**
-     * 유효하지 않은 Organization ID
-     */
+    /** 유효하지 않은 Organization ID */
     INVALID_ORGANIZATION_ID("ORGANIZATION-002", 400, "Invalid organization ID"),
 
-    /**
-     * 유효하지 않은 Organization 이름
-     */
+    /** 유효하지 않은 Organization 이름 */
     INVALID_ORGANIZATION_NAME("ORGANIZATION-003", 400, "Invalid organization name"),
 
-    /**
-     * 유효하지 않은 Organization 상태
-     */
+    /** 유효하지 않은 Organization 상태 */
     INVALID_ORGANIZATION_STATUS("ORGANIZATION-004", 400, "Invalid organization status");
 
     private final String code;

@@ -1,12 +1,11 @@
 package com.ryuqq.authhub.domain.common.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ryuqq.authhub.domain.common.exception.fixture.DomainExceptionFixture;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("DomainException 테스트")
 class DomainExceptionTest {
@@ -37,7 +36,8 @@ class DomainExceptionTest {
         Map<String, Object> args = Map.of("userId", 123L);
 
         // When
-        DomainException exception = DomainExceptionFixture.aDomainExceptionWithArgs(code, message, args);
+        DomainException exception =
+                DomainExceptionFixture.aDomainExceptionWithArgs(code, message, args);
 
         // Then
         assertThat(exception).isNotNull();
@@ -55,7 +55,8 @@ class DomainExceptionTest {
         Map<String, Object> nullArgs = null;
 
         // When
-        DomainException exception = DomainExceptionFixture.aDomainExceptionWithArgs(code, message, nullArgs);
+        DomainException exception =
+                DomainExceptionFixture.aDomainExceptionWithArgs(code, message, nullArgs);
 
         // Then
         assertThat(exception).isNotNull();
@@ -79,7 +80,8 @@ class DomainExceptionTest {
         Map<String, Object> mutableArgs = Map.of("key", "value");
 
         // When
-        DomainException exception = DomainExceptionFixture.aDomainExceptionWithArgs("TEST-002", "Test", mutableArgs);
+        DomainException exception =
+                DomainExceptionFixture.aDomainExceptionWithArgs("TEST-002", "Test", mutableArgs);
 
         // Then
         assertThat(exception.args()).isUnmodifiable();

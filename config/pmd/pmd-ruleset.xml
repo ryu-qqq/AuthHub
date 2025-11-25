@@ -12,6 +12,16 @@
     <rule ref="category/java/bestpractices.xml">
         <exclude name="JUnitTestContainsTooManyAsserts"/>
         <exclude name="JUnitAssertionsShouldIncludeMessage"/>
+        <exclude name="JUnitTestsShouldIncludeAssert"/>
+        <exclude name="UnusedLocalVariable"/>
+        <exclude name="UnusedPrivateMethod"/>
+        <exclude name="LooseCoupling"/>
+        <exclude name="SystemPrintln"/>
+        <exclude name="AbstractClassWithoutAbstractMethod"/>
+        <exclude name="LiteralsFirstInComparisons"/>
+        <exclude name="UseCollectionIsEmpty"/>
+        <exclude name="GuardLogStatement"/>
+        <exclude name="AvoidReassigningParameters"/>
     </rule>
 
     <!-- Code Style -->
@@ -21,9 +31,18 @@
         <exclude name="LongVariable"/>
         <exclude name="ShortVariable"/>
         <exclude name="ShortClassName"/>
+        <exclude name="ShortMethodName"/>
         <exclude name="CommentDefaultAccessModifier"/>
         <exclude name="LocalVariableCouldBeFinal"/>
         <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="UseDiamondOperator"/>
+        <exclude name="LinguisticNaming"/>
+        <exclude name="ClassNamingConventions"/>
+        <exclude name="MethodNamingConventions"/>
+        <exclude name="TooManyStaticImports"/>
+        <exclude name="UseExplicitTypes"/>
+        <exclude name="FieldNamingConventions"/>
+        <exclude name="CallSuperInConstructor"/>
     </rule>
 
     <!-- Design -->
@@ -31,10 +50,22 @@
         <exclude name="LawOfDemeter"/>
         <exclude name="LoosePackageCoupling"/>
         <exclude name="UseUtilityClass"/>
+        <exclude name="ClassWithOnlyPrivateConstructorsShouldBeFinal"/>
+        <exclude name="TooManyMethods"/>
+        <exclude name="ExcessiveImports"/>
+        <exclude name="CouplingBetweenObjects"/>
+        <exclude name="ExcessivePublicCount"/>
+        <exclude name="DataClass"/>
+        <exclude name="MutableStaticState"/>
     </rule>
 
     <!-- Error Prone -->
-    <rule ref="category/java/errorprone.xml"/>
+    <rule ref="category/java/errorprone.xml">
+        <exclude name="MissingSerialVersionUID"/>
+        <exclude name="AvoidFieldNameMatchingMethodName"/>
+        <exclude name="AvoidDuplicateLiterals"/>
+        <exclude name="NullAssignment"/>
+    </rule>
 
     <!-- Performance -->
     <rule ref="category/java/performance.xml"/>

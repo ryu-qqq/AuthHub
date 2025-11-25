@@ -1,14 +1,12 @@
 package com.ryuqq.authhub.domain.user.aggregate;
 
 import com.ryuqq.authhub.domain.common.Clock;
-import com.ryuqq.authhub.domain.common.model.AggregateRoot;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
-import com.ryuqq.authhub.domain.tenant.vo.TenantId;
-import com.ryuqq.authhub.domain.user.UserStatus;
-import com.ryuqq.authhub.domain.user.UserType;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.exception.InvalidUserStateException;
-import com.ryuqq.authhub.domain.user.vo.UserId;
-
+import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.vo.UserStatus;
+import com.ryuqq.authhub.domain.user.vo.UserType;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -19,24 +17,26 @@ import java.util.UUID;
  * <p>Tenant와 Organization에 속하는 사용자를 나타내는 Aggregate Root입니다.
  *
  * <p><strong>팩토리 메서드:</strong>
+ *
  * <ul>
- *   <li>{@code forNew()} - 새 User 생성 (ID null, ACTIVE 상태)</li>
- *   <li>{@code of()} - 기존 User 로드 (모든 필드 지정)</li>
- *   <li>{@code reconstitute()} - DB에서 User 재구성</li>
+ *   <li>{@code forNew()} - 새 User 생성 (ID null, ACTIVE 상태)
+ *   <li>{@code of()} - 기존 User 로드 (모든 필드 지정)
+ *   <li>{@code reconstitute()} - DB에서 User 재구성
  * </ul>
  *
  * <p><strong>비즈니스 규칙:</strong>
+ *
  * <ul>
- *   <li>DELETED 상태에서는 activate/deactivate 불가</li>
- *   <li>이미 DELETED 상태이면 delete 재시도 불가</li>
- *   <li>상태 변경 시 updatedAt 자동 갱신</li>
- *   <li>organizationId는 nullable (일부 사용자는 조직 미소속 가능)</li>
+ *   <li>DELETED 상태에서는 activate/deactivate 불가
+ *   <li>이미 DELETED 상태이면 delete 재시도 불가
+ *   <li>상태 변경 시 updatedAt 자동 갱신
+ *   <li>organizationId는 nullable (일부 사용자는 조직 미소속 가능)
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
-public class User implements AggregateRoot {
+public class User {
 
     private final UserId userId;
     private final TenantId tenantId;
@@ -53,8 +53,7 @@ public class User implements AggregateRoot {
             UserType userType,
             UserStatus userStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         validateTenantId(tenantId);
         validateUserType(userType);
         validateUserStatus(userStatus);
@@ -73,6 +72,7 @@ public class User implements AggregateRoot {
      * forNew - 새 User 생성 (도메인 유스케이스)
      *
      * <p>ID는 null이며, ACTIVE 상태로 생성됩니다.
+     *
      * <p>생성 시간과 수정 시간이 동일하게 설정됩니다.
      *
      * @param tenantId 소속 Tenant ID (필수)
@@ -83,17 +83,10 @@ public class User implements AggregateRoot {
      * @author development-team
      * @since 1.0.0
      */
-    public static User forNew(TenantId tenantId, OrganizationId organizationId, UserType userType, Clock clock) {
+    public static User forNew(
+            TenantId tenantId, OrganizationId organizationId, UserType userType, Clock clock) {
         Instant now = clock.now();
-        return new User(
-                null,
-                tenantId,
-                organizationId,
-                userType,
-                UserStatus.ACTIVE,
-                now,
-                now
-        );
+        return new User(null, tenantId, organizationId, userType, UserStatus.ACTIVE, now, now);
     }
 
     /**
@@ -119,23 +112,16 @@ public class User implements AggregateRoot {
             UserType userType,
             UserStatus userStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         return new User(
-                userId,
-                tenantId,
-                organizationId,
-                userType,
-                userStatus,
-                createdAt,
-                updatedAt
-        );
+                userId, tenantId, organizationId, userType, userStatus, createdAt, updatedAt);
     }
 
     /**
      * reconstitute - DB에서 User 재구성 (Persistence Adapter 전용)
      *
      * <p>DB에서 조회한 데이터로 User를 재구성합니다.
+     *
      * <p>ID는 필수입니다.
      *
      * @param userId User ID (필수)
@@ -156,20 +142,12 @@ public class User implements AggregateRoot {
             UserType userType,
             UserStatus userStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         if (userId == null) {
             throw new IllegalArgumentException("reconstitute requires non-null userId");
         }
         return new User(
-                userId,
-                tenantId,
-                organizationId,
-                userType,
-                userStatus,
-                createdAt,
-                updatedAt
-        );
+                userId, tenantId, organizationId, userType, userStatus, createdAt, updatedAt);
     }
 
     private void validateTenantId(TenantId tenantId) {
@@ -214,10 +192,7 @@ public class User implements AggregateRoot {
      */
     public User activate(Clock clock) {
         if (this.userStatus == UserStatus.DELETED) {
-            throw new InvalidUserStateException(
-                    userIdValue(),
-                    "Cannot activate deleted user"
-            );
+            throw new InvalidUserStateException(userIdValue(), "Cannot activate deleted user");
         }
         return new User(
                 this.userId,
@@ -226,8 +201,7 @@ public class User implements AggregateRoot {
                 this.userType,
                 UserStatus.ACTIVE,
                 this.createdAt,
-                clock.now()
-        );
+                clock.now());
     }
 
     /**
@@ -243,10 +217,7 @@ public class User implements AggregateRoot {
      */
     public User deactivate(Clock clock) {
         if (this.userStatus == UserStatus.DELETED) {
-            throw new InvalidUserStateException(
-                    userIdValue(),
-                    "Cannot deactivate deleted user"
-            );
+            throw new InvalidUserStateException(userIdValue(), "Cannot deactivate deleted user");
         }
         return new User(
                 this.userId,
@@ -255,8 +226,7 @@ public class User implements AggregateRoot {
                 this.userType,
                 UserStatus.INACTIVE,
                 this.createdAt,
-                clock.now()
-        );
+                clock.now());
     }
 
     /**
@@ -272,10 +242,7 @@ public class User implements AggregateRoot {
      */
     public User delete(Clock clock) {
         if (this.userStatus == UserStatus.DELETED) {
-            throw new InvalidUserStateException(
-                    userIdValue(),
-                    "User is already deleted"
-            );
+            throw new InvalidUserStateException(userIdValue(), "User is already deleted");
         }
         return new User(
                 this.userId,
@@ -284,8 +251,7 @@ public class User implements AggregateRoot {
                 this.userType,
                 UserStatus.DELETED,
                 this.createdAt,
-                clock.now()
-        );
+                clock.now());
     }
 
     /**
@@ -307,8 +273,7 @@ public class User implements AggregateRoot {
                 this.userType,
                 this.userStatus,
                 this.createdAt,
-                clock.now()
-        );
+                clock.now());
     }
 
     // ========== Law of Demeter 준수: Primitive 값 접근 헬퍼 메서드 ==========
@@ -473,30 +438,38 @@ public class User implements AggregateRoot {
             return false;
         }
         User user = (User) o;
-        return Objects.equals(userId, user.userId) &&
-                Objects.equals(tenantId, user.tenantId) &&
-                Objects.equals(organizationId, user.organizationId) &&
-                userType == user.userType &&
-                userStatus == user.userStatus &&
-                Objects.equals(createdAt, user.createdAt) &&
-                Objects.equals(updatedAt, user.updatedAt);
+        return Objects.equals(userId, user.userId)
+                && Objects.equals(tenantId, user.tenantId)
+                && Objects.equals(organizationId, user.organizationId)
+                && userType == user.userType
+                && userStatus == user.userStatus
+                && Objects.equals(createdAt, user.createdAt)
+                && Objects.equals(updatedAt, user.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, tenantId, organizationId, userType, userStatus, createdAt, updatedAt);
+        return Objects.hash(
+                userId, tenantId, organizationId, userType, userStatus, createdAt, updatedAt);
     }
 
     @Override
     public String toString() {
-        return "User{" +
-                "userId=" + userId +
-                ", tenantId=" + tenantId +
-                ", organizationId=" + organizationId +
-                ", userType=" + userType +
-                ", userStatus=" + userStatus +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return "User{"
+                + "userId="
+                + userId
+                + ", tenantId="
+                + tenantId
+                + ", organizationId="
+                + organizationId
+                + ", userType="
+                + userType
+                + ", userStatus="
+                + userStatus
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}';
     }
 }

@@ -117,3 +117,23 @@ tasks.test {
 tasks.clean {
     delete generatedSourcesDir
 }
+
+// ========================================
+// Static Analysis Task Dependency Fix
+// ========================================
+// Fix implicit dependency issue with generated sources
+// Static analysis tasks must run after compile tasks
+['checkstyleMain', 'pmdMain', 'spotbugsMain'].each { taskName ->
+    tasks.named(taskName) {
+        mustRunAfter tasks.named('compileTestJava')
+        mustRunAfter tasks.named('compileTestFixturesJava')
+    }
+}
+
+// ========================================
+// PMD: Exclude generated sources
+// ========================================
+tasks.named('pmdMain') {
+    // Exclude QueryDSL generated Q-classes from PMD analysis
+    source = fileTree('src/main/java')
+}

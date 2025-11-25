@@ -1,16 +1,14 @@
 package com.ryuqq.authhub.domain.common.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ErrorCode 인터페이스 테스트")
 class ErrorCodeTest {
 
-    /**
-     * 테스트용 ErrorCode 구현체
-     */
+    /** 테스트용 ErrorCode 구현체 */
     enum TestErrorCode implements ErrorCode {
         INVALID_INPUT("TEST-001", 400, "Invalid input provided"),
         NOT_FOUND("TEST-002", 404, "Resource not found"),
@@ -85,10 +83,8 @@ class ErrorCodeTest {
         ErrorCode errorCode = TestErrorCode.NOT_FOUND;
 
         // When
-        DomainException exception = new DomainException(
-                errorCode.getCode(),
-                errorCode.getMessage()
-        );
+        DomainException exception =
+                new DomainException(errorCode.getCode(), errorCode.getMessage());
 
         // Then
         assertThat(exception.code()).isEqualTo("TEST-002");

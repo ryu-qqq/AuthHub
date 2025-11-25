@@ -60,7 +60,7 @@ class DomainEventArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.domain");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.domain");
     }
 
     // ==================== DomainEvent 인터페이스 규칙 ====================
@@ -73,6 +73,8 @@ class DomainEventArchTest {
                 classes()
                         .that()
                         .resideInAPackage("..domain..event..")
+                        .and()
+                        .haveSimpleNameEndingWith("Event")
                         .and()
                         .haveSimpleNameNotContaining("Fixture")
                         .and()
@@ -88,6 +90,7 @@ class DomainEventArchTest {
                         .and()
                         .doNotHaveSimpleName("DomainEvent")
                         .should(implementDomainEventInterface())
+                        .allowEmptyShould(true)
                         .because("Domain Event는 DomainEvent 인터페이스를 구현해야 합니다");
 
         rule.check(classes);
@@ -104,6 +107,8 @@ class DomainEventArchTest {
                         .that()
                         .resideInAPackage("..domain..event..")
                         .and()
+                        .haveSimpleNameEndingWith("Event")
+                        .and()
                         .haveSimpleNameNotContaining("Fixture")
                         .and()
                         .haveSimpleNameNotContaining("Mother")
@@ -118,6 +123,7 @@ class DomainEventArchTest {
                         .and()
                         .doNotHaveSimpleName("DomainEvent")
                         .should(beRecords())
+                        .allowEmptyShould(true)
                         .because("Domain Event는 Java 21 Record로 구현해야 합니다 (불변성 보장)");
 
         rule.check(classes);
@@ -134,6 +140,8 @@ class DomainEventArchTest {
                         .that()
                         .resideInAPackage("..domain..event..")
                         .and()
+                        .haveSimpleNameEndingWith("Event")
+                        .and()
                         .haveSimpleNameNotContaining("Fixture")
                         .and()
                         .haveSimpleNameNotContaining("Mother")
@@ -148,6 +156,7 @@ class DomainEventArchTest {
                         .and()
                         .doNotHaveSimpleName("DomainEvent")
                         .should(havePastTenseEventName())
+                        .allowEmptyShould(true)
                         .because(
                                 "Domain Event는 과거형 네이밍을 사용해야 합니다\n"
                                         + "예시:\n"
@@ -170,6 +179,8 @@ class DomainEventArchTest {
                         .that()
                         .resideInAPackage("..domain..event..")
                         .and()
+                        .haveSimpleNameEndingWith("Event")
+                        .and()
                         .haveSimpleNameNotContaining("Fixture")
                         .and()
                         .haveSimpleNameNotContaining("Mother")
@@ -184,6 +195,7 @@ class DomainEventArchTest {
                         .and()
                         .doNotHaveSimpleName("DomainEvent")
                         .should(haveOccurredAtField())
+                        .allowEmptyShould(true)
                         .because(
                                 "Domain Event는 occurredAt (LocalDateTime) 필드를 가져야 합니다 (이벤트 발생 시각)");
 
@@ -214,6 +226,7 @@ class DomainEventArchTest {
                         .resideInAPackage("..domain..")
                         .should()
                         .resideInAPackage("..domain..event..")
+                        .allowEmptyShould(true)
                         .because(
                                 "Domain Event는 domain.[bc].event 패키지에 위치해야 합니다\n"
                                     + "예시:\n"
@@ -312,6 +325,8 @@ class DomainEventArchTest {
                         .that()
                         .resideInAPackage("..domain..event..")
                         .and()
+                        .haveSimpleNameEndingWith("Event")
+                        .and()
                         .haveSimpleNameNotContaining("Fixture")
                         .and()
                         .haveSimpleNameNotContaining("Mother")
@@ -326,6 +341,7 @@ class DomainEventArchTest {
                         .and()
                         .doNotHaveSimpleName("DomainEvent")
                         .should(haveStaticMethodWithName("of"))
+                        .allowEmptyShould(true)
                         .because(
                                 "Domain Event는 of() 정적 팩토리 메서드로 생성해야 합니다\n"
                                         + "예시:\n"

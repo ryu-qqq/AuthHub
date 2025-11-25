@@ -1,20 +1,16 @@
 package com.ryuqq.authhub.domain.user.fixture;
 
 import com.ryuqq.authhub.domain.common.Clock;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationId;
-import com.ryuqq.authhub.domain.tenant.vo.TenantId;
-import com.ryuqq.authhub.domain.user.UserStatus;
-import com.ryuqq.authhub.domain.user.UserType;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
-import com.ryuqq.authhub.domain.user.vo.UserId;
-import com.ryuqq.authhub.domain.user.vo.fixture.UserIdFixture;
-
+import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.identifier.fixture.UserIdFixture;
+import com.ryuqq.authhub.domain.user.vo.UserStatus;
+import com.ryuqq.authhub.domain.user.vo.UserType;
 import java.time.Instant;
 
-/**
- * User Aggregate Test Fixture
- * Object Mother 패턴을 사용한 테스트 데이터 생성
- */
+/** User Aggregate Test Fixture Object Mother 패턴을 사용한 테스트 데이터 생성 */
 public class UserFixture {
 
     private static final TenantId DEFAULT_TENANT_ID = TenantId.of(1L);
@@ -25,6 +21,7 @@ public class UserFixture {
 
     /**
      * 기본 User 생성
+     *
      * @return User 인스턴스
      */
     public static User aUser() {
@@ -35,12 +32,12 @@ public class UserFixture {
                 DEFAULT_USER_TYPE,
                 DEFAULT_USER_STATUS,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * 특정 UserId로 User 생성
+     *
      * @param userId UserId
      * @return User 인스턴스
      */
@@ -52,12 +49,12 @@ public class UserFixture {
                 DEFAULT_USER_TYPE,
                 DEFAULT_USER_STATUS,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * 특정 TenantId로 User 생성
+     *
      * @param tenantId Tenant ID
      * @return User 인스턴스
      */
@@ -69,12 +66,12 @@ public class UserFixture {
                 DEFAULT_USER_TYPE,
                 DEFAULT_USER_STATUS,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * 특정 UserStatus로 User 생성
+     *
      * @param userStatus UserStatus
      * @return User 인스턴스
      */
@@ -86,12 +83,12 @@ public class UserFixture {
                 DEFAULT_USER_TYPE,
                 userStatus,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * INTERNAL 유형의 User 생성
+     *
      * @return User 인스턴스
      */
     public static User anInternalUser() {
@@ -102,12 +99,12 @@ public class UserFixture {
                 UserType.INTERNAL,
                 DEFAULT_USER_STATUS,
                 DEFAULT_CLOCK.now(),
-                DEFAULT_CLOCK.now()
-        );
+                DEFAULT_CLOCK.now());
     }
 
     /**
      * INACTIVE 상태의 User 생성
+     *
      * @return User 인스턴스
      */
     public static User anInactiveUser() {
@@ -116,6 +113,7 @@ public class UserFixture {
 
     /**
      * SUSPENDED 상태의 User 생성
+     *
      * @return User 인스턴스
      */
     public static User aSuspendedUser() {
@@ -124,6 +122,7 @@ public class UserFixture {
 
     /**
      * DELETED 상태의 User 생성
+     *
      * @return User 인스턴스
      */
     public static User aDeletedUser() {

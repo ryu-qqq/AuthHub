@@ -42,7 +42,7 @@ class ExceptionArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.domain");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.domain");
     }
 
     // ==================== ErrorCode Enum 규칙 ====================
@@ -117,6 +117,8 @@ class ExceptionArchTest {
                         .haveSimpleNameEndingWith("ErrorCode")
                         .and()
                         .areEnums()
+                        .and()
+                        .areNotMemberClasses()
                         .should()
                         .bePublic()
                         .because("ErrorCode Enum은 다른 레이어에서 사용되기 위해 public이어야 합니다");

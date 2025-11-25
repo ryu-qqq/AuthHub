@@ -8,10 +8,11 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  * <p>User 도메인에서 발생하는 모든 비즈니스 예외의 에러 코드를 정의합니다.
  *
  * <p><strong>에러 코드 규칙:</strong>
+ *
  * <ul>
- *   <li>✅ 형식: USER-{3자리 숫자}</li>
- *   <li>✅ HTTP 상태 코드 매핑</li>
- *   <li>✅ 명확한 에러 메시지</li>
+ *   <li>✅ 형식: USER-{3자리 숫자}
+ *   <li>✅ HTTP 상태 코드 매핑
+ *   <li>✅ 명확한 에러 메시지
  * </ul>
  *
  * @author development-team
@@ -19,24 +20,16 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  */
 public enum UserErrorCode implements ErrorCode {
 
-    /**
-     * User를 찾을 수 없음
-     */
+    /** User를 찾을 수 없음 */
     USER_NOT_FOUND("USER-001", 404, "User not found"),
 
-    /**
-     * 유효하지 않은 User ID
-     */
+    /** 유효하지 않은 User ID */
     INVALID_USER_ID("USER-002", 400, "Invalid user ID"),
 
-    /**
-     * 유효하지 않은 User 타입
-     */
+    /** 유효하지 않은 User 타입 */
     INVALID_USER_TYPE("USER-003", 400, "Invalid user type"),
 
-    /**
-     * 유효하지 않은 User 상태
-     */
+    /** 유효하지 않은 User 상태 */
     INVALID_USER_STATUS("USER-004", 400, "Invalid user status");
 
     private final String code;
