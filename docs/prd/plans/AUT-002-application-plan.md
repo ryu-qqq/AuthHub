@@ -24,21 +24,23 @@
 
 ---
 
-### 1-1. User Command Ports (Cycle 1)
+### 1-1. User Command Ports (Cycle 1) ✅ COMPLETED
 
 #### Red: 테스트 작성
-- [ ] `SaveUserPortTest.java` 생성 (Port 인터페이스 설계 검증)
-- [ ] Port 인터페이스 시그니처 정의
-- [ ] 커밋: `test: User Command Port 인터페이스 테스트 (Red)`
+- [x] `UserPersistencePortTest.java` 생성 (Port 인터페이스 설계 검증)
+- [x] Port 인터페이스 시그니처 정의 (persist(User) → UserId)
+- [x] 커밋: `test: UserPersistencePort 인터페이스 설계 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `port/out/command/SaveUserPort.java` 생성
-- [ ] `port/out/command/DeleteUserPort.java` 생성
-- [ ] 커밋: `feat: User Command Port 인터페이스 정의 (Green)`
+- [x] `port/out/command/UserPersistencePort.java` 생성
+- [x] 커밋: `feat: UserPersistencePort 인터페이스 정의 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] ArchUnit 테스트: Port는 interface여야 함
-- [ ] 커밋: `struct: User Command Port 구조 개선`
+- [x] ArchUnit 테스트 통과 (PersistencePortArchTest)
+- [x] PasswordHasherPort 패키지 재구성 (common.port.out.security)
+- [x] 커밋: `struct: PasswordHasherPort 패키지 재구성 (ArchUnit 준수)`
+
+**Note**: 코딩 컨벤션에 따라 `SaveUserPort`/`DeleteUserPort` 대신 `UserPersistencePort` 단일 인터페이스로 구현 (persist() 메서드로 INSERT/UPDATE 통합)
 
 ---
 
