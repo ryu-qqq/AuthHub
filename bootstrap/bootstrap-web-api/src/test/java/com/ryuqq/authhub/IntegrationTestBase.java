@@ -1,5 +1,6 @@
 package com.ryuqq.authhub;
 
+import com.ryuqq.bootstrap.AuthHubWebApiApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -22,7 +23,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * @author AuthHub Team
  * @since 1.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        classes = AuthHubWebApiApplication.class,
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Testcontainers
 public abstract class IntegrationTestBase {

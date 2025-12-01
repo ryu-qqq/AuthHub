@@ -70,4 +70,4 @@
 | 2025-12-02 | 1 | RED | - | 기존 테스트 파일 존재 (컴파일 에러) |
 | 2025-12-02 | 1 | GREEN | 9661545 | feat: User 도메인 모델 구현 (AUT-74) |
 | 2025-12-02 | 2 | GREEN | 3d374af | feat: Tenant 도메인 모델 구현 |
-| 2025-12-02 | 3 | GREEN | - | feat: Organization 도메인 모델 구현 |
+| 2025-12-02 | 3 | GREEN | dbae17c | feat: Organization 도메인 모델 구현 |

@@ -22,6 +22,9 @@ dependencies {
     // Spring Data JPA
     implementation libs.spring.boot.starter.data.jpa
 
+    // Spring Security (BCrypt)
+    implementation libs.spring.boot.starter.security
+
     // QueryDSL
     implementation(libs.querydsl.jpa) {
         artifact {

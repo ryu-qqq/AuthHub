@@ -10,8 +10,12 @@ import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.exception.InvalidUserStateException;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.vo.Credential;
+import com.ryuqq.authhub.domain.user.vo.UserProfile;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
 import com.ryuqq.authhub.domain.user.vo.UserType;
+import com.ryuqq.authhub.domain.user.vo.fixture.CredentialFixture;
+import com.ryuqq.authhub.domain.user.vo.fixture.UserProfileFixture;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +53,8 @@ class UserTest {
         OrganizationId organizationId = OrganizationId.of(100L);
         UserType userType = UserType.PUBLIC;
         UserStatus userStatus = UserStatus.ACTIVE;
+        Credential credential = CredentialFixture.aPhoneCredential();
+        UserProfile profile = UserProfileFixture.aUserProfile();
 
         // When & Then
         assertThatThrownBy(
@@ -59,6 +65,8 @@ class UserTest {
                                         organizationId,
                                         userType,
                                         userStatus,
+                                        credential,
+                                        profile,
                                         clock.now(),
                                         clock.now()))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -74,6 +82,8 @@ class UserTest {
         OrganizationId organizationId = OrganizationId.of(100L);
         UserType userType = UserType.PUBLIC;
         UserStatus nullStatus = null;
+        Credential credential = CredentialFixture.aPhoneCredential();
+        UserProfile profile = UserProfileFixture.aUserProfile();
 
         // When & Then
         assertThatThrownBy(
@@ -84,6 +94,8 @@ class UserTest {
                                         organizationId,
                                         userType,
                                         nullStatus,
+                                        credential,
+                                        profile,
                                         clock.now(),
                                         clock.now()))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -101,9 +113,11 @@ class UserTest {
             TenantId tenantId = TenantId.of(1L);
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.PUBLIC;
+            Credential credential = CredentialFixture.aPhoneCredential();
+            UserProfile profile = UserProfileFixture.aUserProfile();
 
             // When
-            User user = User.forNew(tenantId, organizationId, userType, clock);
+            User user = User.forNew(tenantId, organizationId, userType, credential, profile, clock);
 
             // Then
             assertThat(user.isNew()).isTrue();
@@ -122,9 +136,11 @@ class UserTest {
             // Given
             TenantId tenantId = TenantId.of(1L);
             UserType userType = UserType.PUBLIC;
+            Credential credential = CredentialFixture.aPhoneCredential();
+            UserProfile profile = UserProfileFixture.aUserProfile();
 
             // When
-            User user = User.forNew(tenantId, null, userType, clock);
+            User user = User.forNew(tenantId, null, userType, credential, profile, clock);
 
             // Then
             assertThat(user.isNew()).isTrue();
@@ -141,6 +157,8 @@ class UserTest {
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.PUBLIC;
             UserStatus userStatus = UserStatus.ACTIVE;
+            Credential credential = CredentialFixture.aPhoneCredential();
+            UserProfile profile = UserProfileFixture.aUserProfile();
             Instant createdAt = clock.now();
             Instant updatedAt = clock.now();
 
@@ -152,6 +170,8 @@ class UserTest {
                             organizationId,
                             userType,
                             userStatus,
+                            credential,
+                            profile,
                             createdAt,
                             updatedAt);
 
@@ -172,6 +192,8 @@ class UserTest {
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.PUBLIC;
             UserStatus userStatus = UserStatus.ACTIVE;
+            Credential credential = CredentialFixture.aPhoneCredential();
+            UserProfile profile = UserProfileFixture.aUserProfile();
 
             // When & Then
             assertThatThrownBy(
@@ -182,6 +204,8 @@ class UserTest {
                                             organizationId,
                                             userType,
                                             userStatus,
+                                            credential,
+                                            profile,
                                             clock.now(),
                                             clock.now()))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -197,6 +221,8 @@ class UserTest {
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.INTERNAL;
             UserStatus userStatus = UserStatus.INACTIVE;
+            Credential credential = CredentialFixture.anEmailCredential();
+            UserProfile profile = UserProfileFixture.aUserProfile();
             Instant createdAt = clock.now();
             Instant updatedAt = clock.now();
 
@@ -208,6 +234,8 @@ class UserTest {
                             organizationId,
                             userType,
                             userStatus,
+                            credential,
+                            profile,
                             createdAt,
                             updatedAt);
 
@@ -230,6 +258,8 @@ class UserTest {
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.PUBLIC;
             UserStatus userStatus = UserStatus.ACTIVE;
+            Credential credential = CredentialFixture.aPhoneCredential();
+            UserProfile profile = UserProfileFixture.aUserProfile();
 
             // When
             User user =
@@ -239,6 +269,8 @@ class UserTest {
                             organizationId,
                             userType,
                             userStatus,
+                            credential,
+                            profile,
                             clock.now(),
                             clock.now());
 
@@ -472,7 +504,7 @@ class UserTest {
         void hasOrganization_checksCorrectly() {
             // Given
             User userWithOrg = UserFixture.aUser();
-            User userWithoutOrg = User.forNew(TenantId.of(1L), null, UserType.PUBLIC, clock);
+            User userWithoutOrg = UserFixture.aPublicUserWithoutOrganization();
 
             // When & Then
             assertThat(userWithOrg.hasOrganization()).isTrue();

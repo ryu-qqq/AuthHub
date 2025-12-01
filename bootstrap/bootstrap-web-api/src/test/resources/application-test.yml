@@ -7,6 +7,11 @@ spring:
   application:
     name: authhub-test
 
+  # Security auto-configuration에서 기본 UserDetailsService 비활성화
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
   # JPA 설정
   jpa:
     open-in-view: false
