@@ -41,15 +41,15 @@
 - `TenantId` (tenant 패키지)
 - `OrganizationId` (organization 패키지)
 
-### Cycle 2: Tenant Aggregate Core 🔄 IN PROGRESS
+### Cycle 2: Tenant Aggregate Core ✅ COMPLETED
 - [x] 🔴 RED: TenantTest.java (이미 작성됨)
-- [ ] 🟢 GREEN: Tenant Aggregate 구현
-- [ ] ♻️ REFACTOR: 구조 개선
+- [x] 🟢 GREEN: Tenant Aggregate 구현 (2025-12-02)
+- [x] ♻️ REFACTOR: 구조 개선 완료
 
-### Cycle 3: Organization Aggregate Core
+### Cycle 3: Organization Aggregate Core ✅ COMPLETED
 - [x] 🔴 RED: OrganizationTest.java (이미 작성됨)
-- [ ] 🟢 GREEN: Organization Aggregate 구현
-- [ ] ♻️ REFACTOR: 구조 개선
+- [x] 🟢 GREEN: Organization Aggregate 구현 (2025-12-02)
+- [x] ♻️ REFACTOR: 구조 개선 완료
 
 ---
 
@@ -69,4 +69,5 @@
 |------|-------|-------|--------|-------|
 | 2025-12-02 | 1 | RED | - | 기존 테스트 파일 존재 (컴파일 에러) |
 | 2025-12-02 | 1 | GREEN | 9661545 | feat: User 도메인 모델 구현 (AUT-74) |
-| 2025-12-02 | 2 | GREEN | - | Tenant Aggregate 구현 시작 |
+| 2025-12-02 | 2 | GREEN | 3d374af | feat: Tenant 도메인 모델 구현 |
+| 2025-12-02 | 3 | GREEN | - | feat: Organization 도메인 모델 구현 |
