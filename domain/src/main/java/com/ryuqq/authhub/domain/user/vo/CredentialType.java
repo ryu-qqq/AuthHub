@@ -1,19 +1,20 @@
 package com.ryuqq.authhub.domain.user.vo;
 
 /**
- * UserType - 사용자 유형 Enum
+ * CredentialType - 인증 정보 유형 Enum
  *
  * @author development-team
  * @since 1.0.0
  */
-public enum UserType {
+public enum CredentialType {
 
-    PUBLIC("일반 사용자"),
-    INTERNAL("내부 사용자");
+    EMAIL("이메일 인증"),
+    PHONE("전화번호 인증"),
+    OAUTH("OAuth 인증");
 
     private final String description;
 
-    UserType(String description) {
+    CredentialType(String description) {
         this.description = description;
     }
 
