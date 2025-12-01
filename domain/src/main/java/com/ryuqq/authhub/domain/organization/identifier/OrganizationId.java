@@ -1,37 +1,68 @@
 package com.ryuqq.authhub.domain.organization.identifier;
 
-/** OrganizationId Identifier Organization의 식별자 */
-public record OrganizationId(Long value) {
+import java.util.Objects;
+
+/**
+ * OrganizationId - Organization 식별자 Value Object
+ *
+ * <p>Long FK 전략에 따라 Long 타입 ID를 사용합니다.
+ * 새로운 Organization 생성 시에는 forNew()를 사용하고,
+ * 영속화된 Organization 로드 시에는 of()를 사용합니다.
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
+public final class OrganizationId {
+
+    private final Long value;
+
+    private OrganizationId(Long value, boolean isNew) {
+        if (!isNew) {
+            if (value == null) {
+                throw new IllegalArgumentException("OrganizationId는 null일 수 없습니다");
+            }
+            if (value <= 0) {
+                throw new IllegalArgumentException("OrganizationId는 양수여야 합니다");
+            }
+        }
+        this.value = value;
+    }
 
     public static OrganizationId of(Long value) {
-        validate(value);
-        return new OrganizationId(value);
+        return new OrganizationId(value, false);
     }
 
-    private static void validate(Long value) {
-        if (value == null) {
-            throw new IllegalArgumentException("OrganizationId는 null일 수 없습니다");
-        }
-        if (value <= 0) {
-            throw new IllegalArgumentException("OrganizationId는 양수여야 합니다");
-        }
-    }
-
-    /**
-     * 새 ID 생성 (아직 영속화되지 않은 상태)
-     *
-     * @return null 값을 가진 OrganizationId
-     */
     public static OrganizationId forNew() {
-        return new OrganizationId(null);
+        return new OrganizationId(null, true);
     }
 
-    /**
-     * 새 ID 여부 확인
-     *
-     * @return value가 null이면 true
-     */
+    public Long value() {
+        return value;
+    }
+
     public boolean isNew() {
         return value == null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        OrganizationId that = (OrganizationId) o;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        return "OrganizationId{value=" + value + "}";
     }
 }

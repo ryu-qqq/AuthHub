@@ -1,16 +1,32 @@
 package com.ryuqq.authhub.domain.user.vo;
 
-/** 사용자 상태 */
+/**
+ * UserStatus - 사용자 상태 Enum
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
 public enum UserStatus {
-    /** 활성 상태 */
-    ACTIVE,
 
-    /** 비활성 상태 */
-    INACTIVE,
+    ACTIVE("활성"),
+    INACTIVE("비활성"),
+    SUSPENDED("정지"),
+    DELETED("삭제");
 
-    /** 일시 정지 상태 */
-    SUSPENDED,
+    private final String description;
 
-    /** 삭제된 상태 (Soft Delete) */
-    DELETED
+    UserStatus(String description) {
+        this.description = description;
+    }
+
+    public String description() {
+        return description;
+    }
+
+    public boolean canTransitionTo(UserStatus target) {
+        if (this == DELETED) {
+            return false;
+        }
+        return true;
+    }
 }
