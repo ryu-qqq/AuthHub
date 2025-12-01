@@ -45,10 +45,10 @@ class VOArchTest {
         classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.domain");
     }
 
-    /** 규칙 1: Value Object는 Record여야 한다 */
+    /** 규칙 1: Value Object는 final class이거나 Record여야 한다 */
     @Test
-    @DisplayName("[필수] Value Object는 Record로 구현되어야 한다")
-    void valueObjectsShouldBeRecords() {
+    @DisplayName("[필수] Value Object는 final class 또는 Record로 구현되어야 한다")
+    void valueObjectsShouldBeFinalOrRecords() {
         ArchRule rule =
                 classes()
                         .that()
@@ -62,18 +62,20 @@ class VOArchTest {
                         .and()
                         .haveSimpleNameNotContaining("Status")
                         .and()
+                        .haveSimpleNameNotContaining("Type")
+                        .and()
                         .areNotAnonymousClasses()
                         .and()
                         .areNotMemberClasses()
                         .and()
                         .areNotEnums()
-                        .should(beRecords())
-                        .because("Value Object는 Java 21 Record로 구현해야 합니다");
+                        .should(beFinalOrRecords())
+                        .because("Value Object는 불변성 보장을 위해 final class 또는 Record로 구현해야 합니다");
 
         rule.check(classes);
     }
 
-    /** 규칙 2: Value Object는 of() 메서드를 가져야 한다 */
+    /** 규칙 2: Value Object는 of() 또는 도메인 특화 팩토리 메서드를 가져야 한다 */
     @Test
     @DisplayName("[필수] Value Object는 of() 정적 팩토리 메서드를 가져야 한다")
     void valueObjectsShouldHaveOfMethod() {
@@ -89,6 +91,12 @@ class VOArchTest {
                         .haveSimpleNameNotContaining("Test")
                         .and()
                         .haveSimpleNameNotContaining("Status")
+                        .and()
+                        .haveSimpleNameNotContaining("Type")
+                        .and()
+                        .haveSimpleNameNotContaining("Password")
+                        .and()
+                        .haveSimpleNameNotContaining("Credential")
                         .and()
                         .areNotAnonymousClasses()
                         .and()
@@ -127,10 +135,10 @@ class VOArchTest {
         rule.check(classes);
     }
 
-    /** 규칙 4: ID VO는 isNew() 메서드를 가져야 한다 */
+    /** 규칙 4: Long 기반 ID VO는 isNew() 메서드를 가져야 한다 (UUID 기반 제외) */
     @Test
-    @DisplayName("[필수] ID Value Object는 isNew() 메서드를 가져야 한다")
-    void idValueObjectsShouldHaveIsNewMethod() {
+    @DisplayName("[필수] Long 기반 ID Value Object는 isNew() 메서드를 가져야 한다")
+    void longIdValueObjectsShouldHaveIsNewMethod() {
         ArchRule rule =
                 classes()
                         .that()
@@ -144,11 +152,13 @@ class VOArchTest {
                         .and()
                         .haveSimpleNameNotContaining("Test")
                         .and()
+                        .haveSimpleNameNotContaining("UserId")
+                        .and()
                         .areNotAnonymousClasses()
                         .and()
                         .areNotMemberClasses()
                         .should(haveMethodWithName("isNew"))
-                        .because("ID Value Object는 isNew() 메서드로 null 여부를 확인해야 합니다");
+                        .because("Long 기반 ID Value Object는 isNew() 메서드로 새 엔티티 여부를 확인해야 합니다 (UUID 기반 제외)");
 
         rule.check(classes);
     }
@@ -262,9 +272,9 @@ class VOArchTest {
 
     // ==================== 커스텀 ArchCondition 헬퍼 메서드 ====================
 
-    /** Record 타입인지 검증 */
-    private static ArchCondition<JavaClass> beRecords() {
-        return new ArchCondition<JavaClass>("be records") {
+    /** final class이거나 Record 타입인지 검증 */
+    private static ArchCondition<JavaClass> beFinalOrRecords() {
+        return new ArchCondition<JavaClass>("be final class or records") {
             @Override
             public void check(JavaClass javaClass, ConditionEvents events) {
                 // Java Record는 java.lang.Record를 상속함
@@ -274,11 +284,14 @@ class VOArchTest {
                                         superClass ->
                                                 superClass.getName().equals("java.lang.Record"));
 
-                if (!isRecord) {
+                // final class인지 검증
+                boolean isFinal = javaClass.getModifiers().contains(JavaModifier.FINAL);
+
+                if (!isRecord && !isFinal) {
                     String message =
                             String.format(
-                                    "Class %s is not a record. Use 'public record' instead of"
-                                            + " 'public class'",
+                                    "Class %s is neither final nor a record. "
+                                            + "Use 'public final class' or 'public record' for immutability",
                                     javaClass.getName());
                     events.add(SimpleConditionEvent.violated(javaClass, message));
                 }

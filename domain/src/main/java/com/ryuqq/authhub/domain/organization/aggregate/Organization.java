@@ -100,6 +100,9 @@ public final class Organization {
         if (tenantId == null) {
             throw new IllegalArgumentException("TenantId는 null일 수 없습니다");
         }
+        if (tenantId.isNew()) {
+            throw new IllegalArgumentException("Organization은 기존 Tenant를 참조해야 합니다");
+        }
     }
 
     private static void validateOrganizationStatus(OrganizationStatus organizationStatus) {

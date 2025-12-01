@@ -53,19 +53,6 @@ class UserIdTest {
     }
 
     @Test
-    @DisplayName("[isNew] UserId는 항상 false 반환 (UUID는 null이 될 수 없음)")
-    void isNew_shouldAlwaysReturnFalse() {
-        // Given
-        UserId userId = UserId.forNew();
-
-        // When
-        boolean result = userId.isNew();
-
-        // Then
-        assertThat(result).isFalse();
-    }
-
-    @Test
     @DisplayName("[of] 정적 팩토리 메서드로 UserId 생성 성공")
     void of_shouldCreateUserIdWithGivenUUID() {
         // Given

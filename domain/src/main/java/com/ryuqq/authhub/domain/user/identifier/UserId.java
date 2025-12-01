@@ -26,20 +26,12 @@ public final class UserId {
         return new UserId(value);
     }
 
-    public static UserId generate() {
-        return new UserId(UUID.randomUUID());
-    }
-
     public static UserId forNew() {
         return new UserId(UUID.randomUUID());
     }
 
     public UUID value() {
         return value;
-    }
-
-    public boolean isNew() {
-        return false;
     }
 
     @Override

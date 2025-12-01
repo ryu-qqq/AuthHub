@@ -15,17 +15,17 @@ import java.util.Objects;
 public final class OrganizationId {
 
     private final Long value;
-    private final boolean isNew;
 
     private OrganizationId(Long value, boolean isNew) {
-        if (!isNew && value == null) {
-            throw new IllegalArgumentException("OrganizationId는 null일 수 없습니다");
-        }
-        if (value != null && value <= 0) {
-            throw new IllegalArgumentException("OrganizationId는 양수여야 합니다");
+        if (!isNew) {
+            if (value == null) {
+                throw new IllegalArgumentException("OrganizationId는 null일 수 없습니다");
+            }
+            if (value <= 0) {
+                throw new IllegalArgumentException("OrganizationId는 양수여야 합니다");
+            }
         }
         this.value = value;
-        this.isNew = isNew;
     }
 
     public static OrganizationId of(Long value) {

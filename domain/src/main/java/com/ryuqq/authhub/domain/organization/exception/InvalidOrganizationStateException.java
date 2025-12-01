@@ -19,8 +19,8 @@ public class InvalidOrganizationStateException extends DomainException {
         super(
                 OrganizationErrorCode.INVALID_ORGANIZATION_STATUS,
                 Map.of(
-                        "currentStatus", currentStatus.name(),
-                        "targetStatus", targetStatus.name()
+                        "currentStatus", currentStatus != null ? currentStatus.name() : "null",
+                        "targetStatus", targetStatus != null ? targetStatus.name() : "null"
                 )
         );
     }

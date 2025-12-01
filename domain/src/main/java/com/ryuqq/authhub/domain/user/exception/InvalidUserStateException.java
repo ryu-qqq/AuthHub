@@ -20,8 +20,8 @@ public class InvalidUserStateException extends DomainException {
         super(
                 UserErrorCode.INVALID_USER_STATUS,
                 Map.of(
-                        "currentStatus", currentStatus.name(),
-                        "targetStatus", targetStatus.name()
+                        "currentStatus", currentStatus != null ? currentStatus.name() : "null",
+                        "targetStatus", targetStatus != null ? targetStatus.name() : "null"
                 )
         );
     }

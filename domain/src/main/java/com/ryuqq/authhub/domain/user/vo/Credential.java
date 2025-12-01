@@ -29,10 +29,16 @@ public final class Credential {
     }
 
     public static Credential ofEmail(Email email, Password password) {
+        if (email == null) {
+            throw new IllegalArgumentException("Email cannot be null");
+        }
         return new Credential(CredentialType.EMAIL, email.value(), password);
     }
 
     public static Credential ofPhone(PhoneNumber phoneNumber, Password password) {
+        if (phoneNumber == null) {
+            throw new IllegalArgumentException("PhoneNumber cannot be null");
+        }
         return new Credential(CredentialType.PHONE, phoneNumber.value(), password);
     }
 

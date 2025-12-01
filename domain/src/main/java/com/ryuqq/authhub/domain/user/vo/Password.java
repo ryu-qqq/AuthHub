@@ -29,13 +29,6 @@ public final class Password {
         return hashedValue;
     }
 
-    public boolean matches(Password other) {
-        if (other == null) {
-            return false;
-        }
-        return Objects.equals(this.hashedValue, other.hashedValue);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

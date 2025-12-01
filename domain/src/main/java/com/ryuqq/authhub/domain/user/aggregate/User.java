@@ -52,7 +52,7 @@ public final class User {
             UserProfile profile,
             Instant createdAt,
             Instant updatedAt) {
-        validateRequired(tenantId, userStatus);
+        validateRequired(tenantId, userStatus, createdAt, updatedAt);
         this.userId = userId;
         this.tenantId = tenantId;
         this.organizationId = organizationId;
@@ -64,12 +64,18 @@ public final class User {
         this.updatedAt = updatedAt;
     }
 
-    private void validateRequired(TenantId tenantId, UserStatus userStatus) {
+    private void validateRequired(TenantId tenantId, UserStatus userStatus, Instant createdAt, Instant updatedAt) {
         if (tenantId == null) {
             throw new IllegalArgumentException("TenantId는 null일 수 없습니다");
         }
         if (userStatus == null) {
             throw new IllegalArgumentException("UserStatus는 null일 수 없습니다");
+        }
+        if (createdAt == null) {
+            throw new IllegalArgumentException("createdAt는 null일 수 없습니다");
+        }
+        if (updatedAt == null) {
+            throw new IllegalArgumentException("updatedAt는 null일 수 없습니다");
         }
     }
 

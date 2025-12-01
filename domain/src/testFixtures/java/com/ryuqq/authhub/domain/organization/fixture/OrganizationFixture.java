@@ -147,6 +147,9 @@ public final class OrganizationFixture {
         }
 
         public Organization build() {
+            if (isNew) {
+                return Organization.forNew(organizationName, tenantId, DEFAULT_CLOCK);
+            }
             return Organization.of(
                     organizationId,
                     organizationName,

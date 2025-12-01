@@ -134,6 +134,9 @@ public final class TenantFixture {
         }
 
         public Tenant build() {
+            if (isNew) {
+                return Tenant.forNew(tenantName, DEFAULT_CLOCK);
+            }
             return Tenant.of(
                     tenantId,
                     tenantName,
