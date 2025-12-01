@@ -1,4 +1,4 @@
-package com.ryuqq.authhub.application.user.port.out.command;
+package com.ryuqq.authhub.application.common.port.out.security;
 
 /**
  * PasswordHasherPort - 비밀번호 해싱 포트

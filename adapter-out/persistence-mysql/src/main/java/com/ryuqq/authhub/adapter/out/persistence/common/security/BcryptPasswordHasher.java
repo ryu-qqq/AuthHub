@@ -1,6 +1,6 @@
 package com.ryuqq.authhub.adapter.out.persistence.common.security;
 
-import com.ryuqq.authhub.application.user.port.out.command.PasswordHasherPort;
+import com.ryuqq.authhub.application.common.port.out.security.PasswordHasherPort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
