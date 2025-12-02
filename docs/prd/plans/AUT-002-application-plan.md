@@ -119,22 +119,27 @@
 
 ---
 
-### 2-1. User Command DTOs (Cycle 5)
+### 2-1. User Command DTOs (Cycle 5) ✅ COMPLETED
 
 #### Red: 테스트 작성
-- [ ] `CreateUserCommandTest.java` 생성
-- [ ] null 검증, 필수값 검증 테스트
-- [ ] 커밋: `test: User Command DTO 테스트 (Red)`
+- [x] `CreateUserCommandTest.java` 생성
+- [x] `UpdateUserCommandTest.java` 생성
+- [x] `ChangePasswordCommandTest.java` 생성
+- [x] Record 구조, 불변성, 프레임워크 독립성 검증 테스트
+- [x] 커밋: `test: CreateUserCommand DTO 설계 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `dto/command/CreateUserCommand.java` (Record)
-- [ ] `dto/command/UpdateUserCommand.java` (Record)
-- [ ] `dto/command/ChangePasswordCommand.java` (Record)
-- [ ] 커밋: `feat: User Command DTO 구현 (Green)`
+- [x] `dto/command/CreateUserCommand.java` (Record)
+- [x] `dto/command/UpdateUserCommand.java` (Record)
+- [x] `dto/command/ChangePasswordCommand.java` (Record)
+- [x] 커밋: `feat: User Command DTO 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] Record 불변성 확인
-- [ ] 커밋: `struct: User Command DTO 구조 개선`
+- [x] DtoRecordArchTest 테스트 클래스 제외 설정
+- [x] 커밋: `struct: DtoRecordArchTest에서 테스트 클래스 제외`
+- [x] Record 불변성 확인 - 추가 구조 개선 불필요
+
+**Note**: 순수 Java Record 사용, jakarta.validation 금지 규칙 준수
 
 ---
 
