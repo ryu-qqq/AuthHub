@@ -242,18 +242,18 @@
 
 ---
 
-### 3-3. TenantAssembler (Cycle 11)
+### 3-3. TenantAssembler (Cycle 11) ✅
 
 #### Red: 테스트 작성
-- [ ] `TenantAssemblerTest.java` 생성
-- [ ] 커밋: `test: TenantAssembler 테스트 (Red)`
+- [x] `TenantAssemblerTest.java` 생성
+- [x] 커밋: `test: TenantAssembler 변환 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `assembler/TenantAssembler.java` 생성
-- [ ] 커밋: `feat: TenantAssembler 구현 (Green)`
+- [x] `assembler/TenantAssembler.java` 생성
+- [x] 커밋: `feat: TenantAssembler 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: TenantAssembler 구조 개선`
+- [x] 추가 구조 개선 불필요 (이미 최적)
 
 ---
 
