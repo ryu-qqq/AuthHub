@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  *   <li>선택 메서드 (패턴별 강제):
  *     <ul>
  *       <li>search* → Criteria 파라미터 + PageResponse 반환 (페이징 필수)</li>
- *       <li>findBy* → 단순 파라미터 + Optional/List 반환</li>
+ *       <li>findBy* → 단순 파라미터 + Optional/List/Set 반환</li>
  *       <li>count* → long 반환</li>
  *     </ul>
  *   </li>
@@ -200,7 +201,8 @@ class QueryPortArchTest {
             .and().doNotHaveName("findById")
             .should().haveRawReturnType(Optional.class)
             .orShould().haveRawReturnType(List.class)
-            .because("단순 조건 조회는 Optional 또는 List를 반환해야 합니다");
+            .orShould().haveRawReturnType(Set.class)
+            .because("단순 조건 조회는 Optional, List 또는 Set을 반환해야 합니다");
 
         rule.check(classes);
     }
