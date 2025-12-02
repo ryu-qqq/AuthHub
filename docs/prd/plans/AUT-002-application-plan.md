@@ -63,21 +63,30 @@
 
 ---
 
-### 1-3. Tenant/Organization Ports (Cycle 3)
+### 1-3. Tenant/Organization Ports (Cycle 3) ✅ COMPLETED
 
 #### Red: 테스트 작성
-- [ ] Port 인터페이스 시그니처 테스트
-- [ ] 커밋: `test: Tenant/Organization Port 테스트 (Red)`
+- [x] `TenantPersistencePortTest.java` 생성
+- [x] `TenantQueryPortTest.java` 생성
+- [x] `OrganizationPersistencePortTest.java` 생성
+- [x] `OrganizationQueryPortTest.java` 생성
+- [x] 커밋: `test: Tenant/Organization Port 인터페이스 설계 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `port/out/query/LoadTenantPort.java` 생성
-- [ ] `port/out/query/LoadOrganizationPort.java` 생성
-- [ ] `port/out/command/SaveTenantPort.java` 생성
-- [ ] `port/out/command/SaveOrganizationPort.java` 생성
-- [ ] 커밋: `feat: Tenant/Organization Port 정의 (Green)`
+- [x] `tenant/port/out/command/TenantPersistencePort.java` 생성
+- [x] `tenant/port/out/query/TenantQueryPort.java` 생성
+- [x] `organization/port/out/command/OrganizationPersistencePort.java` 생성
+- [x] `organization/port/out/query/OrganizationQueryPort.java` 생성
+- [x] 커밋: `feat: Tenant/Organization Port 인터페이스 정의 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: Tenant/Organization Port 구조 개선`
+- [x] ArchUnit PersistencePortArchTest, QueryPortArchTest 통과 확인
+- [x] 구조 개선 불필요 (이미 최적)
+
+**Note**: 코딩 컨벤션에 따라 `LoadTenantPort`/`SaveTenantPort` 등 개별 포트 대신 단일 인터페이스로 구현:
+- Command: `TenantPersistencePort`, `OrganizationPersistencePort` (persist 단일 메서드)
+- Query: `TenantQueryPort`, `OrganizationQueryPort` (findById, existsById 메서드)
+- `OrganizationQueryPort`에 `existsByTenantId(TenantId)` 추가 (참조 무결성 검증용)
 
 ---
 
