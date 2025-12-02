@@ -285,21 +285,27 @@
 
 ---
 
-### 4-2. UpdateUserUseCase (Cycle 13)
+### 4-2. UpdateUserUseCase (Cycle 13) ✅
 
 #### Red: 테스트 작성
-- [ ] `UpdateUserUseCaseTest.java` 생성
-- [ ] `shouldUpdateUserSuccessfully()` 작성
-- [ ] `shouldThrowWhenUserNotFound()` 작성
-- [ ] 커밋: `test: UpdateUserUseCase 테스트 (Red)`
+- [x] `UpdateUserUseCaseTest.java` 생성
+- [x] `shouldUpdateUserSuccessfully()` 작성
+- [x] `shouldThrowWhenUserNotFound()` 작성
+- [x] `shouldThrowWhenUserDeleted()` 작성
+- [x] `shouldOnlyUpdateProfileFields()` 작성
+- [x] `shouldUpdatePartialFields()` 작성
+- [x] null 검증 테스트 작성
+- [x] 커밋: `test: UpdateUserUseCase 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/user/UpdateUserUseCase.java` 인터페이스
-- [ ] `usecase/user/UpdateUserUseCaseImpl.java` 구현
-- [ ] 커밋: `feat: UpdateUserUseCase 구현 (Green)`
+- [x] `usecase/user/UpdateUserUseCase.java` 인터페이스
+- [x] `usecase/user/UpdateUserUseCaseImpl.java` 구현
+- [x] `User.updateProfile()` Domain 메서드 추가
+- [x] `UserProfile.mergeWith()` 병합 메서드 추가
+- [x] 커밋: `feat: UpdateUserUseCase 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: UpdateUserUseCase 구조 개선`
+- [x] 추가 구조 개선 불필요 (이미 최적)
 
 ---
 
