@@ -143,19 +143,24 @@
 
 ---
 
-### 2-2. User Response DTOs (Cycle 6)
+### 2-2. User Response DTOs (Cycle 6) ✅ COMPLETED
 
 #### Red: 테스트 작성
-- [ ] `UserResponseTest.java` 생성
-- [ ] 커밋: `test: User Response DTO 테스트 (Red)`
+- [x] `UserResponseTest.java` 생성 (Record 구조, 필드, 보안, 불변성 검증)
+- [x] `CreateUserResponseTest.java` 생성 (최소 응답 원칙 검증)
+- [x] 커밋: `test: User Response DTO 설계 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `dto/response/UserResponse.java` (Record)
-- [ ] `dto/response/CreateUserResponse.java` (Record)
-- [ ] 커밋: `feat: User Response DTO 구현 (Green)`
+- [x] `dto/response/UserResponse.java` (Record) - 사용자 정보 응답
+- [x] `dto/response/CreateUserResponse.java` (Record) - 생성 응답 (userId, createdAt)
+- [x] 커밋: `feat: User Response DTO 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: User Response DTO 구조 개선`
+- [x] DtoRecordArchTest 비즈니스 메서드 규칙 개선 (Record accessor 허용)
+- [x] 커밋: `struct: DtoRecordArchTest 비즈니스 메서드 규칙 개선`
+- [x] 추가 구조 개선 불필요 (이미 최적)
+
+**Note**: 민감 정보(password, credential) 제외, 최소 응답 원칙 준수
 
 ---
 
