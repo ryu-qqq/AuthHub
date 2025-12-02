@@ -90,23 +90,28 @@
 
 ---
 
-### 1-4. Auth/Role Ports (Cycle 4)
+### 1-4. Auth/Role Ports (Cycle 4) ✅ COMPLETED
 
 #### Red: 테스트 작성
-- [ ] Port 인터페이스 시그니처 테스트
-- [ ] 커밋: `test: Auth/Role Port 테스트 (Red)`
+- [x] Port 인터페이스 시그니처 테스트
+- [x] 커밋: `test: Auth/Role Port 인터페이스 설계 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `port/out/command/SaveRefreshTokenPort.java` 생성
-- [ ] `port/out/command/DeleteRefreshTokenPort.java` 생성
-- [ ] `port/out/query/LoadRefreshTokenPort.java` 생성
-- [ ] `port/out/query/LoadUserRolesPort.java` 생성
-- [ ] `port/out/command/SaveUserRolePort.java` 생성
-- [ ] 커밋: `feat: Auth/Role Port 정의 (Green)`
+- [x] `port/out/command/RefreshTokenPersistencePort.java` 생성
+- [x] `port/out/command/UserRolePersistencePort.java` 생성
+- [x] `port/out/query/RefreshTokenQueryPort.java` 생성
+- [x] `port/out/query/UserRoleQueryPort.java` 생성
+- [x] 커밋: `feat: Auth/Role Port 인터페이스 정의 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] ArchUnit 전체 Port 검증
-- [ ] 커밋: `struct: Auth/Role Port 구조 개선`
+- [x] ArchUnit QueryPort 규칙 수정 (Set 반환 타입 지원 추가)
+- [x] 커밋: `struct: QueryPort ArchUnit 규칙에 Set 반환 타입 추가`
+
+**Note**: Auth 도메인이 아직 존재하지 않아 String/Set<String> 타입 사용
+- RefreshTokenPersistencePort: persist(UserId, String), deleteByUserId(UserId)
+- RefreshTokenQueryPort: findByUserId(UserId) → Optional<String>, existsByUserId(UserId)
+- UserRolePersistencePort: persist(UserId, Set<String>), deleteByUserId(UserId)
+- UserRoleQueryPort: findByUserId(UserId) → Set<String>, existsByUserId(UserId)
 
 ---
 
