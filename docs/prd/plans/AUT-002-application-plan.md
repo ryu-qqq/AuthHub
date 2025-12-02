@@ -209,21 +209,21 @@
 
 ---
 
-### 3-1. UserAssembler (Cycle 9)
+### 3-1. UserAssembler (Cycle 9) ✅
 
 #### Red: 테스트 작성
-- [ ] `UserAssemblerTest.java` 생성
-- [ ] `toResponse()` 변환 테스트
-- [ ] 커밋: `test: UserAssembler 테스트 (Red)`
+- [x] `UserAssemblerTest.java` 생성
+- [x] `toResponse()` 변환 테스트
+- [x] 커밋: `test: UserAssembler 변환 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `assembler/UserAssembler.java` 생성 (@Component)
-- [ ] Domain -> Response 변환 구현
-- [ ] 커밋: `feat: UserAssembler 구현 (Green)`
+- [x] `assembler/UserAssembler.java` 생성 (@Component)
+- [x] Domain -> Response 변환 구현
+- [x] 커밋: `feat: UserAssembler 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] VO value() 호출 방식 확인
-- [ ] 커밋: `struct: UserAssembler 구조 개선`
+- [x] VO value() 호출 방식 확인 - User에 Helper 메서드 이미 존재
+- [x] 추가 구조 개선 불필요 (이미 최적)
 
 ---
 
