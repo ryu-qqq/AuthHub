@@ -237,6 +237,28 @@ public final class User {
         );
     }
 
+    /**
+     * 프로필 정보 업데이트
+     *
+     * @param newProfile 새로운 프로필 정보 (null인 필드는 기존 값 유지)
+     * @param clock 시간 제공자
+     * @return 프로필이 업데이트된 새로운 User 인스턴스
+     */
+    public User updateProfile(UserProfile newProfile, Clock clock) {
+        UserProfile mergedProfile = this.profile.mergeWith(newProfile);
+        return new User(
+                this.userId,
+                this.tenantId,
+                this.organizationId,
+                this.userType,
+                this.userStatus,
+                this.credential,
+                mergedProfile,
+                this.createdAt,
+                clock.now()
+        );
+    }
+
     // ========== Helper Methods ==========
 
     public UUID userIdValue() {

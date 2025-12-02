@@ -6,8 +6,13 @@ import com.ryuqq.authhub.application.user.dto.response.UserResponse;
 import com.ryuqq.authhub.application.user.port.out.command.UserPersistencePort;
 import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
 import com.ryuqq.authhub.domain.common.Clock;
+import com.ryuqq.authhub.domain.user.aggregate.User;
+import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.vo.UserProfile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 /**
  * UpdateUserUseCaseImpl - 사용자 정보 수정 UseCase 구현체
@@ -46,7 +51,34 @@ public class UpdateUserUseCaseImpl implements UpdateUserUseCase {
 
     @Override
     public UserResponse execute(UpdateUserCommand command) {
-        // TODO: Red Phase - 테스트 실패 확인용 최소 구현
-        throw new UnsupportedOperationException("Not implemented yet");
+        Objects.requireNonNull(command, "UpdateUserCommand는 null일 수 없습니다");
+
+        if (command.userId() == null) {
+            throw new IllegalArgumentException("userId는 null일 수 없습니다");
+        }
+
+        // 1. User 조회
+        UserId userId = UserId.of(command.userId());
+        User existingUser = userQueryPort.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User를 찾을 수 없습니다: " + userId));
+
+        // 2. 삭제된 User 체크
+        if (existingUser.isDeleted()) {
+            throw new IllegalStateException("삭제된 User는 수정할 수 없습니다: " + userId);
+        }
+
+        // 3. 프로필 업데이트
+        UserProfile newProfile = UserProfile.of(
+                command.name(),
+                command.nickname(),
+                command.profileImageUrl()
+        );
+        User updatedUser = existingUser.updateProfile(newProfile, clock);
+
+        // 4. 영속화
+        userPersistencePort.persist(updatedUser);
+
+        // 5. Response 반환
+        return userAssembler.toResponse(updatedUser);
     }
 }

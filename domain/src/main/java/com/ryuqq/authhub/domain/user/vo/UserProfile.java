@@ -66,6 +66,23 @@ public final class UserProfile {
         return new UserProfile(this.name, this.nickname, newUrl);
     }
 
+    /**
+     * 새로운 프로필과 병합 (null인 필드는 기존 값 유지)
+     *
+     * @param other 병합할 프로필 정보
+     * @return 병합된 새로운 UserProfile 인스턴스
+     */
+    public UserProfile mergeWith(UserProfile other) {
+        if (other == null) {
+            return this;
+        }
+        return new UserProfile(
+                other.name != null ? other.name : this.name,
+                other.nickname != null ? other.nickname : this.nickname,
+                other.profileImageUrl != null ? other.profileImageUrl : this.profileImageUrl
+        );
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
