@@ -187,21 +187,21 @@
 
 ---
 
-### 2-4. Organization/Tenant DTOs (Cycle 8)
+### 2-4. Organization/Tenant DTOs (Cycle 8) ✅
 
 #### Red: 테스트 작성
-- [ ] Command/Response DTO 테스트
-- [ ] 커밋: `test: Organization/Tenant DTO 테스트 (Red)`
+- [x] Command/Response DTO 테스트
+- [x] 커밋: `test: Organization/Tenant DTO 설계 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `dto/command/CreateOrganizationCommand.java`
-- [ ] `dto/command/CreateTenantCommand.java`
-- [ ] `dto/response/OrganizationResponse.java`
-- [ ] `dto/response/TenantResponse.java`
-- [ ] 커밋: `feat: Organization/Tenant DTO 구현 (Green)`
+- [x] `dto/command/CreateOrganizationCommand.java`
+- [x] `dto/command/CreateTenantCommand.java`
+- [x] `dto/response/OrganizationResponse.java`
+- [x] `dto/response/TenantResponse.java`
+- [x] 커밋: `feat: Organization/Tenant DTO 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: Organization/Tenant DTO 구조 개선`
+- [x] 추가 구조 개선 불필요 (이미 최적)
 
 ---
 
