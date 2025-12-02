@@ -44,21 +44,22 @@
 
 ---
 
-### 1-2. User Query Ports (Cycle 2)
+### 1-2. User Query Ports (Cycle 2) ✅ COMPLETED
 
 #### Red: 테스트 작성
-- [ ] `LoadUserPortTest.java` 생성
-- [ ] 커밋: `test: User Query Port 인터페이스 테스트 (Red)`
+- [x] `UserQueryPortTest.java` 생성 (Port 인터페이스 설계 검증)
+- [x] 커밋: `test: UserQueryPort 인터페이스 설계 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `port/out/query/LoadUserPort.java` 생성
-- [ ] `port/out/query/CheckDuplicateEmailPort.java` 생성
-- [ ] `port/out/query/CheckDuplicateUsernamePort.java` 생성
-- [ ] 커밋: `feat: User Query Port 인터페이스 정의 (Green)`
+- [x] `port/out/query/UserQueryPort.java` 생성
+- [x] 커밋: `feat: UserQueryPort 인터페이스 정의 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] Optional 반환 타입 확인
-- [ ] 커밋: `struct: User Query Port 구조 개선`
+- [x] Optional 반환 타입 확인 (findById → Optional<User>)
+- [x] ArchUnit QueryPortArchTest 통과 확인
+- [x] 구조 개선 불필요 (이미 최적)
+
+**Note**: 코딩 컨벤션에 따라 `LoadUserPort`/`CheckDuplicateEmailPort` 등 개별 포트 대신 `UserQueryPort` 단일 인터페이스로 구현 (findById, existsById 메서드로 통합). 중복 체크는 별도 UseCase에서 existsById 활용.
 
 ---
 
