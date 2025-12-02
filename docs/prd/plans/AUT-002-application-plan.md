@@ -164,22 +164,26 @@
 
 ---
 
-### 2-3. Auth DTOs (Cycle 7)
+### 2-3. Auth DTOs (Cycle 7) ✅ COMPLETED
 
 #### Red: 테스트 작성
-- [ ] `LoginCommandTest.java` 생성
-- [ ] `LoginResponseTest.java` 생성
-- [ ] 커밋: `test: Auth DTO 테스트 (Red)`
+- [x] `LoginCommandTest.java` 생성 (tenantId, identifier, password 검증)
+- [x] `RefreshTokenCommandTest.java` 생성 (최소 필드 원칙 검증)
+- [x] `LoginResponseTest.java` 생성 (토큰 정보 검증)
+- [x] `TokenResponseTest.java` 생성 (갱신 응답 검증)
+- [x] 커밋: `test: Auth DTO 설계 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `dto/command/LoginCommand.java` (Record)
-- [ ] `dto/command/RefreshTokenCommand.java` (Record)
-- [ ] `dto/response/LoginResponse.java` (Record)
-- [ ] `dto/response/TokenResponse.java` (Record)
-- [ ] 커밋: `feat: Auth DTO 구현 (Green)`
+- [x] `dto/command/LoginCommand.java` (Record) - tenantId, identifier, password
+- [x] `dto/command/RefreshTokenCommand.java` (Record) - refreshToken만
+- [x] `dto/response/LoginResponse.java` (Record) - userId, tokens, expiresIn, tokenType
+- [x] `dto/response/TokenResponse.java` (Record) - tokens, expiresIn, tokenType
+- [x] 커밋: `feat: Auth DTO 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: Auth DTO 구조 개선`
+- [x] 추가 구조 개선 불필요 (이미 최적)
+
+**Note**: TokenResponse는 LoginResponse보다 간소화 (userId 미포함)
 
 ---
 
