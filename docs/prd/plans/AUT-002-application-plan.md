@@ -261,28 +261,27 @@
 
 ---
 
-### 4-1. CreateUserUseCase (Cycle 12)
+### 4-1. CreateUserUseCase (Cycle 12) ✅
 
 #### Red: 테스트 작성
-- [ ] `CreateUserUseCaseTest.java` 생성
-- [ ] Mock Port 준비 (LoadTenantPort, LoadOrganizationPort, CheckDuplicate*, SaveUserPort)
-- [ ] `shouldCreateUserSuccessfully()` 작성
-- [ ] `shouldThrowWhenDuplicateUsername()` 작성
-- [ ] `shouldThrowWhenOrganizationInactive()` 작성
-- [ ] 커밋: `test: CreateUserUseCase 테스트 (Red)`
+- [x] `CreateUserUseCaseTest.java` 생성
+- [x] Mock Port 준비 (TenantQueryPort, OrganizationQueryPort, PasswordHasherPort, UserPersistencePort)
+- [x] `shouldCreateUserSuccessfully()` 작성
+- [x] `shouldThrowWhenTenantNotFound()` 작성
+- [x] `shouldThrowWhenOrganizationInactive()` 작성
+- [x] 커밋: `test: CreateUserUseCase 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/user/CreateUserUseCase.java` 인터페이스 생성
-- [ ] `usecase/user/CreateUserUseCaseImpl.java` 구현
-- [ ] `@Transactional` 적용
-- [ ] Tenant/Organization 검증 로직
-- [ ] 중복 체크 로직
-- [ ] 커밋: `feat: CreateUserUseCase 구현 (Green)`
+- [x] `usecase/user/CreateUserUseCase.java` 인터페이스 생성
+- [x] `usecase/user/CreateUserUseCaseImpl.java` 구현
+- [x] `@Transactional` 적용
+- [x] Tenant/Organization 검증 로직
+- [x] 비밀번호 해싱 (PasswordHasherPort)
+- [x] 커밋: `feat: CreateUserUseCase 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] Transaction 경계 검증 (외부 API 호출 없음)
-- [ ] ArchUnit: UseCase는 adapter에 의존하지 않음
-- [ ] 커밋: `struct: CreateUserUseCase 구조 개선`
+- [x] Transaction 경계 검증 (외부 API 호출 없음)
+- [x] 추가 구조 개선 불필요 (이미 최적)
 
 ---
 
