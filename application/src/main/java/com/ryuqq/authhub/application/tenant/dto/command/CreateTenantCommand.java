@@ -10,7 +10,4 @@ package com.ryuqq.authhub.application.tenant.dto.command;
  * @author development-team
  * @since 1.0.0
  */
-public record CreateTenantCommand(
-        String name
-) {
-}
+public record CreateTenantCommand(String name) {}

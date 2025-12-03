@@ -17,12 +17,13 @@ import org.junit.jupiter.api.Test;
  * TenantPersistencePort 인터페이스 설계 검증 테스트
  *
  * <p>PersistencePort Zero-Tolerance 규칙:
+ *
  * <ul>
- *   <li>인터페이스명: *PersistencePort</li>
- *   <li>패키지: application.*.port.out.command</li>
- *   <li>필수 메서드: persist(Tenant) → TenantId</li>
- *   <li>Domain 파라미터, Value Object 반환</li>
- *   <li>save/update/delete 개별 메서드 금지 (persist로 통합)</li>
+ *   <li>인터페이스명: *PersistencePort
+ *   <li>패키지: application.*.port.out.command
+ *   <li>필수 메서드: persist(Tenant) → TenantId
+ *   <li>Domain 파라미터, Value Object 반환
+ *   <li>save/update/delete 개별 메서드 금지 (persist로 통합)
  * </ul>
  *
  * @author development-team
@@ -106,9 +107,10 @@ class TenantPersistencePortTest {
         void shouldNotHaveSaveUpdateDeleteMethods() {
             // When
             List<String> prohibitedNames = List.of("save", "update", "delete", "remove");
-            boolean hasProhibitedMethod = Arrays.stream(TenantPersistencePort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(prohibitedNames::contains);
+            boolean hasProhibitedMethod =
+                    Arrays.stream(TenantPersistencePort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(prohibitedNames::contains);
 
             // Then
             assertThat(hasProhibitedMethod)
@@ -120,15 +122,18 @@ class TenantPersistencePortTest {
         @DisplayName("[금지] 조회 메서드(find/load/exists)가 존재하면 안 된다")
         void shouldNotHaveQueryMethods() {
             // When
-            boolean hasQueryMethod = Arrays.stream(TenantPersistencePort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(name -> name.startsWith("find") || name.startsWith("load")
-                            || name.startsWith("exists") || name.startsWith("get"));
+            boolean hasQueryMethod =
+                    Arrays.stream(TenantPersistencePort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(
+                                    name ->
+                                            name.startsWith("find")
+                                                    || name.startsWith("load")
+                                                    || name.startsWith("exists")
+                                                    || name.startsWith("get"));
 
             // Then
-            assertThat(hasQueryMethod)
-                    .as("PersistencePort는 조회 메서드를 가지면 안 됩니다 (CQRS)")
-                    .isFalse();
+            assertThat(hasQueryMethod).as("PersistencePort는 조회 메서드를 가지면 안 됩니다 (CQRS)").isFalse();
         }
     }
 }

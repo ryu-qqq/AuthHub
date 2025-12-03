@@ -52,14 +52,10 @@ class UserResponseTest {
         void shouldHaveUserIdField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("userId");
+            assertThat(components).extracting(RecordComponent::getName).contains("userId");
 
             RecordComponent component = findComponent(components, "userId");
-            assertThat(component.getType())
-                    .as("userId는 UUID 타입이어야 합니다")
-                    .isEqualTo(UUID.class);
+            assertThat(component.getType()).as("userId는 UUID 타입이어야 합니다").isEqualTo(UUID.class);
         }
 
         @Test
@@ -67,14 +63,10 @@ class UserResponseTest {
         void shouldHaveTenantIdField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("tenantId");
+            assertThat(components).extracting(RecordComponent::getName).contains("tenantId");
 
             RecordComponent component = findComponent(components, "tenantId");
-            assertThat(component.getType())
-                    .as("tenantId는 Long 타입이어야 합니다")
-                    .isEqualTo(Long.class);
+            assertThat(component.getType()).as("tenantId는 Long 타입이어야 합니다").isEqualTo(Long.class);
         }
 
         @Test
@@ -82,9 +74,7 @@ class UserResponseTest {
         void shouldHaveOrganizationIdField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("organizationId");
+            assertThat(components).extracting(RecordComponent::getName).contains("organizationId");
 
             RecordComponent component = findComponent(components, "organizationId");
             assertThat(component.getType())
@@ -97,9 +87,7 @@ class UserResponseTest {
         void shouldHaveUserTypeField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("userType");
+            assertThat(components).extracting(RecordComponent::getName).contains("userType");
 
             RecordComponent component = findComponent(components, "userType");
             assertThat(component.getType())
@@ -112,14 +100,10 @@ class UserResponseTest {
         void shouldHaveStatusField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("status");
+            assertThat(components).extracting(RecordComponent::getName).contains("status");
 
             RecordComponent component = findComponent(components, "status");
-            assertThat(component.getType())
-                    .as("status는 String 타입이어야 합니다")
-                    .isEqualTo(String.class);
+            assertThat(component.getType()).as("status는 String 타입이어야 합니다").isEqualTo(String.class);
         }
 
         @Test
@@ -127,43 +111,22 @@ class UserResponseTest {
         void shouldHaveNameField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("name");
+            assertThat(components).extracting(RecordComponent::getName).contains("name");
 
             RecordComponent component = findComponent(components, "name");
-            assertThat(component.getType())
-                    .as("name은 String 타입이어야 합니다")
-                    .isEqualTo(String.class);
+            assertThat(component.getType()).as("name은 String 타입이어야 합니다").isEqualTo(String.class);
         }
 
         @Test
-        @DisplayName("[필수] nickname 필드가 존재해야 한다")
-        void shouldHaveNicknameField() {
+        @DisplayName("[필수] phoneNumber 필드가 존재해야 한다")
+        void shouldHavePhoneNumberField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("nickname");
+            assertThat(components).extracting(RecordComponent::getName).contains("phoneNumber");
 
-            RecordComponent component = findComponent(components, "nickname");
+            RecordComponent component = findComponent(components, "phoneNumber");
             assertThat(component.getType())
-                    .as("nickname은 String 타입이어야 합니다")
-                    .isEqualTo(String.class);
-        }
-
-        @Test
-        @DisplayName("[필수] profileImageUrl 필드가 존재해야 한다")
-        void shouldHaveProfileImageUrlField() {
-            RecordComponent[] components = UserResponse.class.getRecordComponents();
-
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("profileImageUrl");
-
-            RecordComponent component = findComponent(components, "profileImageUrl");
-            assertThat(component.getType())
-                    .as("profileImageUrl은 String 타입이어야 합니다")
+                    .as("phoneNumber는 String 타입이어야 합니다")
                     .isEqualTo(String.class);
         }
 
@@ -172,9 +135,7 @@ class UserResponseTest {
         void shouldHaveCreatedAtField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("createdAt");
+            assertThat(components).extracting(RecordComponent::getName).contains("createdAt");
 
             RecordComponent component = findComponent(components, "createdAt");
             assertThat(component.getType())
@@ -187,9 +148,7 @@ class UserResponseTest {
         void shouldHaveUpdatedAtField() {
             RecordComponent[] components = UserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("updatedAt");
+            assertThat(components).extracting(RecordComponent::getName).contains("updatedAt");
 
             RecordComponent component = findComponent(components, "updatedAt");
             assertThat(component.getType())
@@ -210,7 +169,8 @@ class UserResponseTest {
             assertThat(components)
                     .extracting(RecordComponent::getName)
                     .as("UserResponse는 비밀번호 필드를 포함하지 않아야 합니다")
-                    .doesNotContain("password", "rawPassword", "hashedPassword", "encryptedPassword");
+                    .doesNotContain(
+                            "password", "rawPassword", "hashedPassword", "encryptedPassword");
         }
 
         @Test
@@ -239,16 +199,22 @@ class UserResponseTest {
             String userType = "PUBLIC";
             String status = "ACTIVE";
             String name = "홍길동";
-            String nickname = "길동이";
-            String profileImageUrl = "https://example.com/profile.jpg";
+            String phoneNumber = "+82-10-1234-5678";
             Instant createdAt = Instant.now();
             Instant updatedAt = Instant.now();
 
             // When
-            UserResponse response = new UserResponse(
-                    userId, tenantId, organizationId, userType, status,
-                    name, nickname, profileImageUrl, createdAt, updatedAt
-            );
+            UserResponse response =
+                    new UserResponse(
+                            userId,
+                            tenantId,
+                            organizationId,
+                            userType,
+                            status,
+                            name,
+                            phoneNumber,
+                            createdAt,
+                            updatedAt);
 
             // Then
             assertThat(response.userId()).isEqualTo(userId);
@@ -257,8 +223,7 @@ class UserResponseTest {
             assertThat(response.userType()).isEqualTo(userType);
             assertThat(response.status()).isEqualTo(status);
             assertThat(response.name()).isEqualTo(name);
-            assertThat(response.nickname()).isEqualTo(nickname);
-            assertThat(response.profileImageUrl()).isEqualTo(profileImageUrl);
+            assertThat(response.phoneNumber()).isEqualTo(phoneNumber);
             assertThat(response.createdAt()).isEqualTo(createdAt);
             assertThat(response.updatedAt()).isEqualTo(updatedAt);
         }

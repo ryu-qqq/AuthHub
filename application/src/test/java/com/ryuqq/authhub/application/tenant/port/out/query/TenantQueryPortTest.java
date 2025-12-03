@@ -20,13 +20,14 @@ import org.junit.jupiter.api.Test;
  * TenantQueryPort 인터페이스 설계 검증 테스트
  *
  * <p>QueryPort Zero-Tolerance 규칙:
+ *
  * <ul>
- *   <li>인터페이스명: *QueryPort</li>
- *   <li>패키지: application.*.port.out.query</li>
- *   <li>필수 메서드: findById(TenantId) → Optional&lt;Tenant&gt;</li>
- *   <li>필수 메서드: existsById(TenantId) → boolean</li>
- *   <li>Value Object 파라미터, Domain 반환</li>
- *   <li>저장/수정/삭제 메서드 금지 (CQRS 분리)</li>
+ *   <li>인터페이스명: *QueryPort
+ *   <li>패키지: application.*.port.out.query
+ *   <li>필수 메서드: findById(TenantId) → Optional&lt;Tenant&gt;
+ *   <li>필수 메서드: existsById(TenantId) → boolean
+ *   <li>Value Object 파라미터, Domain 반환
+ *   <li>저장/수정/삭제 메서드 금지 (CQRS 분리)
  * </ul>
  *
  * @author development-team
@@ -161,9 +162,10 @@ class TenantQueryPortTest {
         void shouldNotHaveSaveOrPersistMethod() {
             // When
             List<String> prohibitedNames = List.of("save", "persist", "update", "delete", "remove");
-            boolean hasProhibitedMethod = Arrays.stream(TenantQueryPort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(prohibitedNames::contains);
+            boolean hasProhibitedMethod =
+                    Arrays.stream(TenantQueryPort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(prohibitedNames::contains);
 
             // Then
             assertThat(hasProhibitedMethod)
@@ -175,8 +177,9 @@ class TenantQueryPortTest {
         @DisplayName("[금지] findAll() 메서드가 존재하면 안 된다")
         void shouldNotHaveFindAllMethod() {
             // When
-            boolean hasFindAllMethod = Arrays.stream(TenantQueryPort.class.getMethods())
-                    .anyMatch(method -> method.getName().equals("findAll"));
+            boolean hasFindAllMethod =
+                    Arrays.stream(TenantQueryPort.class.getMethods())
+                            .anyMatch(method -> method.getName().equals("findAll"));
 
             // Then
             assertThat(hasFindAllMethod)

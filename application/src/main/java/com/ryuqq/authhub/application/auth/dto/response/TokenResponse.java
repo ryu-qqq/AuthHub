@@ -13,7 +13,6 @@ package com.ryuqq.authhub.application.auth.dto.response;
 public record TokenResponse(
         String accessToken,
         String refreshToken,
-        Long expiresIn,
-        String tokenType
-) {
-}
+        long accessTokenExpiresIn,
+        long refreshTokenExpiresIn,
+        String tokenType) {}

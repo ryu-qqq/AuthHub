@@ -2,7 +2,6 @@ package com.ryuqq.authhub.domain.tenant.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
-
 import java.util.Map;
 
 /**
@@ -20,9 +19,7 @@ public class InvalidTenantStateException extends DomainException {
                 TenantErrorCode.INVALID_TENANT_STATUS,
                 Map.of(
                         "currentStatus", currentStatus.name(),
-                        "targetStatus", targetStatus.name()
-                )
-        );
+                        "targetStatus", targetStatus.name()));
     }
 
     public InvalidTenantStateException(Long tenantId, String reason) {
@@ -30,9 +27,7 @@ public class InvalidTenantStateException extends DomainException {
                 TenantErrorCode.INVALID_TENANT_STATUS,
                 Map.of(
                         "tenantId", tenantId,
-                        "reason", reason
-                )
-        );
+                        "reason", reason));
     }
 
     public InvalidTenantStateException(String message) {

@@ -158,7 +158,9 @@ class VOArchTest {
                         .and()
                         .areNotMemberClasses()
                         .should(haveMethodWithName("isNew"))
-                        .because("Long 기반 ID Value Object는 isNew() 메서드로 새 엔티티 여부를 확인해야 합니다 (UUID 기반 제외)");
+                        .because(
+                                "Long 기반 ID Value Object는 isNew() 메서드로 새 엔티티 여부를 확인해야 합니다 (UUID 기반"
+                                        + " 제외)");
 
         rule.check(classes);
     }
@@ -290,8 +292,8 @@ class VOArchTest {
                 if (!isRecord && !isFinal) {
                     String message =
                             String.format(
-                                    "Class %s is neither final nor a record. "
-                                            + "Use 'public final class' or 'public record' for immutability",
+                                    "Class %s is neither final nor a record. Use 'public final"
+                                            + " class' or 'public record' for immutability",
                                     javaClass.getName());
                     events.add(SimpleConditionEvent.violated(javaClass, message));
                 }

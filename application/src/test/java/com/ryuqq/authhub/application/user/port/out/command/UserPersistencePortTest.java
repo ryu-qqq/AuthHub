@@ -17,12 +17,13 @@ import org.junit.jupiter.api.Test;
  * UserPersistencePort 인터페이스 설계 검증 테스트
  *
  * <p>PersistencePort Zero-Tolerance 규칙:
+ *
  * <ul>
- *   <li>인터페이스명: *PersistencePort</li>
- *   <li>패키지: application.*.port.out.command</li>
- *   <li>메서드: persist(User) → UserId 하나만</li>
- *   <li>save/update/delete 메서드 금지</li>
- *   <li>조회 메서드 금지 (QueryPort로 분리)</li>
+ *   <li>인터페이스명: *PersistencePort
+ *   <li>패키지: application.*.port.out.command
+ *   <li>메서드: persist(User) → UserId 하나만
+ *   <li>save/update/delete 메서드 금지
+ *   <li>조회 메서드 금지 (QueryPort로 분리)
  * </ul>
  *
  * @author development-team
@@ -142,14 +143,14 @@ class UserPersistencePortTest {
         void shouldNotHaveFindMethods() {
             // When
             List<String> prohibitedPrefixes = List.of("find", "get", "load", "exists", "count");
-            boolean hasProhibitedMethod = Arrays.stream(UserPersistencePort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(name -> prohibitedPrefixes.stream().anyMatch(name::startsWith));
+            boolean hasProhibitedMethod =
+                    Arrays.stream(UserPersistencePort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(
+                                    name -> prohibitedPrefixes.stream().anyMatch(name::startsWith));
 
             // Then
-            assertThat(hasProhibitedMethod)
-                    .as("조회 메서드는 QueryPort로 분리해야 합니다 (CQRS)")
-                    .isFalse();
+            assertThat(hasProhibitedMethod).as("조회 메서드는 QueryPort로 분리해야 합니다 (CQRS)").isFalse();
         }
 
         private boolean hasMethodWithName(String methodName) {

@@ -264,20 +264,20 @@
 ### 4-1. CreateUserUseCase (Cycle 12) ✅
 
 #### Red: 테스트 작성
-- [x] `CreateUserUseCaseTest.java` 생성
+- [x] `CreateUserServiceTest.java` 생성
 - [x] Mock Port 준비 (TenantQueryPort, OrganizationQueryPort, PasswordHasherPort, UserPersistencePort)
 - [x] `shouldCreateUserSuccessfully()` 작성
 - [x] `shouldThrowWhenTenantNotFound()` 작성
 - [x] `shouldThrowWhenOrganizationInactive()` 작성
-- [x] 커밋: `test: CreateUserUseCase 테스트 추가 (Red)`
+- [x] 커밋: `test: CreateUserService 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [x] `usecase/user/CreateUserUseCase.java` 인터페이스 생성
-- [x] `usecase/user/CreateUserUseCaseImpl.java` 구현
+- [x] `port/in/user/CreateUserUseCase.java` 인터페이스 생성
+- [x] `service/user/CreateUserService.java` 구현
 - [x] `@Transactional` 적용
 - [x] Tenant/Organization 검증 로직
 - [x] 비밀번호 해싱 (PasswordHasherPort)
-- [x] 커밋: `feat: CreateUserUseCase 구현 (Green)`
+- [x] 커밋: `feat: CreateUserService 구현 (Green)`
 
 #### Refactor: 구조 개선
 - [x] Transaction 경계 검증 (외부 API 호출 없음)
@@ -288,21 +288,21 @@
 ### 4-2. UpdateUserUseCase (Cycle 13) ✅
 
 #### Red: 테스트 작성
-- [x] `UpdateUserUseCaseTest.java` 생성
+- [x] `UpdateUserServiceTest.java` 생성
 - [x] `shouldUpdateUserSuccessfully()` 작성
 - [x] `shouldThrowWhenUserNotFound()` 작성
 - [x] `shouldThrowWhenUserDeleted()` 작성
 - [x] `shouldOnlyUpdateProfileFields()` 작성
 - [x] `shouldUpdatePartialFields()` 작성
 - [x] null 검증 테스트 작성
-- [x] 커밋: `test: UpdateUserUseCase 테스트 추가 (Red)`
+- [x] 커밋: `test: UpdateUserService 테스트 추가 (Red)`
 
 #### Green: 최소 구현
-- [x] `usecase/user/UpdateUserUseCase.java` 인터페이스
-- [x] `usecase/user/UpdateUserUseCaseImpl.java` 구현
+- [x] `port/in/user/UpdateUserUseCase.java` 인터페이스
+- [x] `service/user/UpdateUserService.java` 구현
 - [x] `User.updateProfile()` Domain 메서드 추가
 - [x] `UserProfile.mergeWith()` 병합 메서드 추가
-- [x] 커밋: `feat: UpdateUserUseCase 구현 (Green)`
+- [x] 커밋: `feat: UpdateUserService 구현 (Green)`
 
 #### Refactor: 구조 개선
 - [x] 추가 구조 개선 불필요 (이미 최적)
@@ -312,88 +312,88 @@
 ### 4-3. DeleteUserUseCase (Cycle 14)
 
 #### Red: 테스트 작성
-- [ ] `DeleteUserUseCaseTest.java` 생성
+- [ ] `DeleteUserServiceTest.java` 생성
 - [ ] Soft Delete 검증
-- [ ] 커밋: `test: DeleteUserUseCase 테스트 (Red)`
+- [ ] 커밋: `test: DeleteUserService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/user/DeleteUserUseCase.java`
-- [ ] `usecase/user/DeleteUserUseCaseImpl.java`
-- [ ] 커밋: `feat: DeleteUserUseCase 구현 (Green)`
+- [ ] `port/in/user/DeleteUserUseCase.java`
+- [ ] `service/user/DeleteUserService.java`
+- [ ] 커밋: `feat: DeleteUserService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: DeleteUserUseCase 구조 개선`
+- [ ] 커밋: `struct: DeleteUserService 구조 개선`
 
 ---
 
 ### 4-4. SuspendUserUseCase (Cycle 15)
 
 #### Red: 테스트 작성
-- [ ] `SuspendUserUseCaseTest.java` 생성
+- [ ] `SuspendUserServiceTest.java` 생성
 - [ ] 상태 변경 검증
-- [ ] 커밋: `test: SuspendUserUseCase 테스트 (Red)`
+- [ ] 커밋: `test: SuspendUserService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/user/SuspendUserUseCase.java`
-- [ ] `usecase/user/SuspendUserUseCaseImpl.java`
-- [ ] 커밋: `feat: SuspendUserUseCase 구현 (Green)`
+- [ ] `port/in/user/SuspendUserUseCase.java`
+- [ ] `service/user/SuspendUserService.java`
+- [ ] 커밋: `feat: SuspendUserService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: SuspendUserUseCase 구조 개선`
+- [ ] 커밋: `struct: SuspendUserService 구조 개선`
 
 ---
 
 ### 4-5. ChangePasswordUseCase (Cycle 16)
 
 #### Red: 테스트 작성
-- [ ] `ChangePasswordUseCaseTest.java` 생성
+- [ ] `ChangePasswordServiceTest.java` 생성
 - [ ] 현재 비밀번호 검증 테스트
-- [ ] 커밋: `test: ChangePasswordUseCase 테스트 (Red)`
+- [ ] 커밋: `test: ChangePasswordService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/user/ChangePasswordUseCase.java`
-- [ ] `usecase/user/ChangePasswordUseCaseImpl.java`
+- [ ] `port/in/user/ChangePasswordUseCase.java`
+- [ ] `service/user/ChangePasswordService.java`
 - [ ] PasswordEncoder 활용
-- [ ] 커밋: `feat: ChangePasswordUseCase 구현 (Green)`
+- [ ] 커밋: `feat: ChangePasswordService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: ChangePasswordUseCase 구조 개선`
+- [ ] 커밋: `struct: ChangePasswordService 구조 개선`
 
 ---
 
 ### 4-6. GetUserUseCase - Query (Cycle 17)
 
 #### Red: 테스트 작성
-- [ ] `GetUserUseCaseTest.java` 생성
-- [ ] 커밋: `test: GetUserUseCase 테스트 (Red)`
+- [ ] `GetUserServiceTest.java` 생성
+- [ ] 커밋: `test: GetUserService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/user/GetUserUseCase.java`
-- [ ] `usecase/user/GetUserUseCaseImpl.java`
+- [ ] `port/in/user/GetUserUseCase.java`
+- [ ] `service/user/GetUserService.java`
 - [ ] `@Transactional(readOnly = true)` 적용
 - [ ] UserAssembler 사용하여 Response 반환
-- [ ] 커밋: `feat: GetUserUseCase 구현 (Green)`
+- [ ] 커밋: `feat: GetUserService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: GetUserUseCase 구조 개선`
+- [ ] 커밋: `struct: GetUserService 구조 개선`
 
 ---
 
 ### 4-7. SearchUsersUseCase - Query (Cycle 18)
 
 #### Red: 테스트 작성
-- [ ] `SearchUsersUseCaseTest.java` 생성
+- [ ] `SearchUsersServiceTest.java` 생성
 - [ ] 페이징 검증
-- [ ] 커밋: `test: SearchUsersUseCase 테스트 (Red)`
+- [ ] 커밋: `test: SearchUsersService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/user/SearchUsersUseCase.java`
-- [ ] `usecase/user/SearchUsersUseCaseImpl.java`
+- [ ] `port/in/user/SearchUsersUseCase.java`
+- [ ] `service/user/SearchUsersService.java`
 - [ ] `dto/query/SearchUsersQuery.java`
-- [ ] 커밋: `feat: SearchUsersUseCase 구현 (Green)`
+- [ ] 커밋: `feat: SearchUsersService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: SearchUsersUseCase 구조 개선`
+- [ ] 커밋: `struct: SearchUsersService 구조 개선`
 
 ---
 
@@ -404,84 +404,84 @@
 ### 5-1. CreateOrganizationUseCase (Cycle 19)
 
 #### Red: 테스트 작성
-- [ ] `CreateOrganizationUseCaseTest.java` 생성
+- [ ] `CreateOrganizationServiceTest.java` 생성
 - [ ] Tenant 검증 테스트
-- [ ] 커밋: `test: CreateOrganizationUseCase 테스트 (Red)`
+- [ ] 커밋: `test: CreateOrganizationService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/organization/CreateOrganizationUseCase.java`
-- [ ] `usecase/organization/CreateOrganizationUseCaseImpl.java`
-- [ ] 커밋: `feat: CreateOrganizationUseCase 구현 (Green)`
+- [ ] `port/in/organization/CreateOrganizationUseCase.java`
+- [ ] `service/organization/CreateOrganizationService.java`
+- [ ] 커밋: `feat: CreateOrganizationService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: CreateOrganizationUseCase 구조 개선`
+- [ ] 커밋: `struct: CreateOrganizationService 구조 개선`
 
 ---
 
 ### 5-2. UpdateOrganizationUseCase (Cycle 20)
 
 #### Red: 테스트 작성
-- [ ] `UpdateOrganizationUseCaseTest.java` 생성
-- [ ] 커밋: `test: UpdateOrganizationUseCase 테스트 (Red)`
+- [ ] `UpdateOrganizationServiceTest.java` 생성
+- [ ] 커밋: `test: UpdateOrganizationService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/organization/UpdateOrganizationUseCase.java`
-- [ ] `usecase/organization/UpdateOrganizationUseCaseImpl.java`
-- [ ] 커밋: `feat: UpdateOrganizationUseCase 구현 (Green)`
+- [ ] `port/in/organization/UpdateOrganizationUseCase.java`
+- [ ] `service/organization/UpdateOrganizationService.java`
+- [ ] 커밋: `feat: UpdateOrganizationService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: UpdateOrganizationUseCase 구조 개선`
+- [ ] 커밋: `struct: UpdateOrganizationService 구조 개선`
 
 ---
 
 ### 5-3. DeleteOrganizationUseCase (Cycle 21)
 
 #### Red: 테스트 작성
-- [ ] `DeleteOrganizationUseCaseTest.java` 생성
+- [ ] `DeleteOrganizationServiceTest.java` 생성
 - [ ] 하위 사용자 존재 시 삭제 불가 테스트
-- [ ] 커밋: `test: DeleteOrganizationUseCase 테스트 (Red)`
+- [ ] 커밋: `test: DeleteOrganizationService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/organization/DeleteOrganizationUseCase.java`
-- [ ] `usecase/organization/DeleteOrganizationUseCaseImpl.java`
+- [ ] `port/in/organization/DeleteOrganizationUseCase.java`
+- [ ] `service/organization/DeleteOrganizationService.java`
 - [ ] `port/out/query/CountUsersInOrganizationPort.java`
-- [ ] 커밋: `feat: DeleteOrganizationUseCase 구현 (Green)`
+- [ ] 커밋: `feat: DeleteOrganizationService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: DeleteOrganizationUseCase 구조 개선`
+- [ ] 커밋: `struct: DeleteOrganizationService 구조 개선`
 
 ---
 
 ### 5-4. DeactivateOrganizationUseCase (Cycle 22)
 
 #### Red: 테스트 작성
-- [ ] `DeactivateOrganizationUseCaseTest.java` 생성
-- [ ] 커밋: `test: DeactivateOrganizationUseCase 테스트 (Red)`
+- [ ] `DeactivateOrganizationServiceTest.java` 생성
+- [ ] 커밋: `test: DeactivateOrganizationService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/organization/DeactivateOrganizationUseCase.java`
-- [ ] `usecase/organization/DeactivateOrganizationUseCaseImpl.java`
-- [ ] 커밋: `feat: DeactivateOrganizationUseCase 구현 (Green)`
+- [ ] `port/in/organization/DeactivateOrganizationUseCase.java`
+- [ ] `service/organization/DeactivateOrganizationService.java`
+- [ ] 커밋: `feat: DeactivateOrganizationService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: DeactivateOrganizationUseCase 구조 개선`
+- [ ] 커밋: `struct: DeactivateOrganizationService 구조 개선`
 
 ---
 
 ### 5-5. GetOrganizationUseCase - Query (Cycle 23)
 
 #### Red: 테스트 작성
-- [ ] `GetOrganizationUseCaseTest.java` 생성
-- [ ] 커밋: `test: GetOrganizationUseCase 테스트 (Red)`
+- [ ] `GetOrganizationServiceTest.java` 생성
+- [ ] 커밋: `test: GetOrganizationService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/organization/GetOrganizationUseCase.java`
-- [ ] `usecase/organization/GetOrganizationUseCaseImpl.java`
+- [ ] `port/in/organization/GetOrganizationUseCase.java`
+- [ ] `service/organization/GetOrganizationService.java`
 - [ ] `@Transactional(readOnly = true)`
-- [ ] 커밋: `feat: GetOrganizationUseCase 구현 (Green)`
+- [ ] 커밋: `feat: GetOrganizationService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: GetOrganizationUseCase 구조 개선`
+- [ ] 커밋: `struct: GetOrganizationService 구조 개선`
 
 ---
 
@@ -492,48 +492,48 @@
 ### 6-1. CreateTenantUseCase (Cycle 24)
 
 #### Red: 테스트 작성
-- [ ] `CreateTenantUseCaseTest.java` 생성
-- [ ] 커밋: `test: CreateTenantUseCase 테스트 (Red)`
+- [ ] `CreateTenantServiceTest.java` 생성
+- [ ] 커밋: `test: CreateTenantService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/tenant/CreateTenantUseCase.java`
-- [ ] `usecase/tenant/CreateTenantUseCaseImpl.java`
-- [ ] 커밋: `feat: CreateTenantUseCase 구현 (Green)`
+- [ ] `port/in/tenant/CreateTenantUseCase.java`
+- [ ] `service/tenant/CreateTenantService.java`
+- [ ] 커밋: `feat: CreateTenantService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: CreateTenantUseCase 구조 개선`
+- [ ] 커밋: `struct: CreateTenantService 구조 개선`
 
 ---
 
 ### 6-2. UpdateTenantUseCase (Cycle 25)
 
 #### Red: 테스트 작성
-- [ ] `UpdateTenantUseCaseTest.java` 생성
-- [ ] 커밋: `test: UpdateTenantUseCase 테스트 (Red)`
+- [ ] `UpdateTenantServiceTest.java` 생성
+- [ ] 커밋: `test: UpdateTenantService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/tenant/UpdateTenantUseCase.java`
-- [ ] `usecase/tenant/UpdateTenantUseCaseImpl.java`
-- [ ] 커밋: `feat: UpdateTenantUseCase 구현 (Green)`
+- [ ] `port/in/tenant/UpdateTenantUseCase.java`
+- [ ] `service/tenant/UpdateTenantService.java`
+- [ ] 커밋: `feat: UpdateTenantService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: UpdateTenantUseCase 구조 개선`
+- [ ] 커밋: `struct: UpdateTenantService 구조 개선`
 
 ---
 
 ### 6-3. SuspendTenantUseCase (Cycle 26)
 
 #### Red: 테스트 작성
-- [ ] `SuspendTenantUseCaseTest.java` 생성
-- [ ] 커밋: `test: SuspendTenantUseCase 테스트 (Red)`
+- [ ] `SuspendTenantServiceTest.java` 생성
+- [ ] 커밋: `test: SuspendTenantService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/tenant/SuspendTenantUseCase.java`
-- [ ] `usecase/tenant/SuspendTenantUseCaseImpl.java`
-- [ ] 커밋: `feat: SuspendTenantUseCase 구현 (Green)`
+- [ ] `port/in/tenant/SuspendTenantUseCase.java`
+- [ ] `service/tenant/SuspendTenantService.java`
+- [ ] 커밋: `feat: SuspendTenantService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: SuspendTenantUseCase 구조 개선`
+- [ ] 커밋: `struct: SuspendTenantService 구조 개선`
 
 ---
 
@@ -544,94 +544,94 @@
 ### 7-1. LoginUseCase (Cycle 27)
 
 #### Red: 테스트 작성
-- [ ] `LoginUseCaseTest.java` 생성
+- [ ] `LoginServiceTest.java` 생성
 - [ ] Mock: LoadUserPort, LoadTenantPort, LoadOrganizationPort, PasswordEncoder
 - [ ] `shouldLoginSuccessfully()` 작성
 - [ ] `shouldThrowWhenInvalidPassword()` 작성
 - [ ] `shouldThrowWhenUserSuspended()` 작성
 - [ ] `shouldThrowWhenTenantInactive()` 작성
-- [ ] 커밋: `test: LoginUseCase 테스트 (Red)`
+- [ ] 커밋: `test: LoginService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/auth/LoginUseCase.java`
-- [ ] `usecase/auth/LoginUseCaseImpl.java`
+- [ ] `port/in/auth/LoginUseCase.java`
+- [ ] `service/auth/LoginService.java`
 - [ ] 사용자/Tenant/Organization 검증
 - [ ] JWT Token 생성 (JwtTokenProvider Port 필요)
 - [ ] RefreshToken 저장
-- [ ] 커밋: `feat: LoginUseCase 구현 (Green)`
+- [ ] 커밋: `feat: LoginService 구현 (Green)`
 
 #### Refactor: 구조 개선
 - [ ] Transaction 경계 검증
-- [ ] 커밋: `struct: LoginUseCase 구조 개선`
+- [ ] 커밋: `struct: LoginService 구조 개선`
 
 ---
 
 ### 7-2. RefreshTokenUseCase (Cycle 28)
 
 #### Red: 테스트 작성
-- [ ] `RefreshTokenUseCaseTest.java` 생성
+- [ ] `RefreshTokenServiceTest.java` 생성
 - [ ] RTR (Refresh Token Rotation) 테스트
-- [ ] 커밋: `test: RefreshTokenUseCase 테스트 (Red)`
+- [ ] 커밋: `test: RefreshTokenService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/auth/RefreshTokenUseCase.java`
-- [ ] `usecase/auth/RefreshTokenUseCaseImpl.java`
+- [ ] `port/in/auth/RefreshTokenUseCase.java`
+- [ ] `service/auth/RefreshTokenService.java`
 - [ ] 기존 RefreshToken 무효화 + 새 Token 발급
-- [ ] 커밋: `feat: RefreshTokenUseCase 구현 (Green)`
+- [ ] 커밋: `feat: RefreshTokenService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: RefreshTokenUseCase 구조 개선`
+- [ ] 커밋: `struct: RefreshTokenService 구조 개선`
 
 ---
 
 ### 7-3. LogoutUseCase (Cycle 29)
 
 #### Red: 테스트 작성
-- [ ] `LogoutUseCaseTest.java` 생성
+- [ ] `LogoutServiceTest.java` 생성
 - [ ] RefreshToken 무효화 테스트
-- [ ] 커밋: `test: LogoutUseCase 테스트 (Red)`
+- [ ] 커밋: `test: LogoutService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/auth/LogoutUseCase.java`
-- [ ] `usecase/auth/LogoutUseCaseImpl.java`
-- [ ] 커밋: `feat: LogoutUseCase 구현 (Green)`
+- [ ] `port/in/auth/LogoutUseCase.java`
+- [ ] `service/auth/LogoutService.java`
+- [ ] 커밋: `feat: LogoutService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: LogoutUseCase 구조 개선`
+- [ ] 커밋: `struct: LogoutService 구조 개선`
 
 ---
 
 ### 7-4. ValidateTokenUseCase (Cycle 30)
 
 #### Red: 테스트 작성
-- [ ] `ValidateTokenUseCaseTest.java` 생성
+- [ ] `ValidateTokenServiceTest.java` 생성
 - [ ] Gateway용 JWT 검증 테스트
-- [ ] 커밋: `test: ValidateTokenUseCase 테스트 (Red)`
+- [ ] 커밋: `test: ValidateTokenService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/auth/ValidateTokenUseCase.java`
-- [ ] `usecase/auth/ValidateTokenUseCaseImpl.java`
-- [ ] 커밋: `feat: ValidateTokenUseCase 구현 (Green)`
+- [ ] `port/in/auth/ValidateTokenUseCase.java`
+- [ ] `service/auth/ValidateTokenService.java`
+- [ ] 커밋: `feat: ValidateTokenService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: ValidateTokenUseCase 구조 개선`
+- [ ] 커밋: `struct: ValidateTokenService 구조 개선`
 
 ---
 
 ### 7-5. RevokeAllTokensUseCase (Cycle 31)
 
 #### Red: 테스트 작성
-- [ ] `RevokeAllTokensUseCaseTest.java` 생성
+- [ ] `RevokeAllTokensServiceTest.java` 생성
 - [ ] 특정 사용자의 모든 Token 무효화 테스트
-- [ ] 커밋: `test: RevokeAllTokensUseCase 테스트 (Red)`
+- [ ] 커밋: `test: RevokeAllTokensService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/auth/RevokeAllTokensUseCase.java`
-- [ ] `usecase/auth/RevokeAllTokensUseCaseImpl.java`
-- [ ] 커밋: `feat: RevokeAllTokensUseCase 구현 (Green)`
+- [ ] `port/in/auth/RevokeAllTokensUseCase.java`
+- [ ] `service/auth/RevokeAllTokensService.java`
+- [ ] 커밋: `feat: RevokeAllTokensService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: RevokeAllTokensUseCase 구조 개선`
+- [ ] 커밋: `struct: RevokeAllTokensService 구조 개선`
 
 ---
 
@@ -642,67 +642,67 @@
 ### 8-1. AssignRoleToUserUseCase (Cycle 32)
 
 #### Red: 테스트 작성
-- [ ] `AssignRoleToUserUseCaseTest.java` 생성
+- [ ] `AssignRoleToUserServiceTest.java` 생성
 - [ ] 역할 할당 테스트
-- [ ] 커밋: `test: AssignRoleToUserUseCase 테스트 (Red)`
+- [ ] 커밋: `test: AssignRoleToUserService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/role/AssignRoleToUserUseCase.java`
-- [ ] `usecase/role/AssignRoleToUserUseCaseImpl.java`
+- [ ] `port/in/role/AssignRoleToUserUseCase.java`
+- [ ] `service/role/AssignRoleToUserService.java`
 - [ ] UserRole 생성 및 저장
-- [ ] 커밋: `feat: AssignRoleToUserUseCase 구현 (Green)`
+- [ ] 커밋: `feat: AssignRoleToUserService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: AssignRoleToUserUseCase 구조 개선`
+- [ ] 커밋: `struct: AssignRoleToUserService 구조 개선`
 
 ---
 
 ### 8-2. RevokeRoleFromUserUseCase (Cycle 33)
 
 #### Red: 테스트 작성
-- [ ] `RevokeRoleFromUserUseCaseTest.java` 생성
-- [ ] 커밋: `test: RevokeRoleFromUserUseCase 테스트 (Red)`
+- [ ] `RevokeRoleFromUserServiceTest.java` 생성
+- [ ] 커밋: `test: RevokeRoleFromUserService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/role/RevokeRoleFromUserUseCase.java`
-- [ ] `usecase/role/RevokeRoleFromUserUseCaseImpl.java`
-- [ ] 커밋: `feat: RevokeRoleFromUserUseCase 구현 (Green)`
+- [ ] `port/in/role/RevokeRoleFromUserUseCase.java`
+- [ ] `service/role/RevokeRoleFromUserService.java`
+- [ ] 커밋: `feat: RevokeRoleFromUserService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: RevokeRoleFromUserUseCase 구조 개선`
+- [ ] 커밋: `struct: RevokeRoleFromUserService 구조 개선`
 
 ---
 
 ### 8-3. GetUserPermissionsUseCase - Query (Cycle 34)
 
 #### Red: 테스트 작성
-- [ ] `GetUserPermissionsUseCaseTest.java` 생성
-- [ ] 커밋: `test: GetUserPermissionsUseCase 테스트 (Red)`
+- [ ] `GetUserPermissionsServiceTest.java` 생성
+- [ ] 커밋: `test: GetUserPermissionsService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/role/GetUserPermissionsUseCase.java`
-- [ ] `usecase/role/GetUserPermissionsUseCaseImpl.java`
+- [ ] `port/in/role/GetUserPermissionsUseCase.java`
+- [ ] `service/role/GetUserPermissionsService.java`
 - [ ] `@Transactional(readOnly = true)`
-- [ ] 커밋: `feat: GetUserPermissionsUseCase 구현 (Green)`
+- [ ] 커밋: `feat: GetUserPermissionsService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: GetUserPermissionsUseCase 구조 개선`
+- [ ] 커밋: `struct: GetUserPermissionsService 구조 개선`
 
 ---
 
 ### 8-4. GetRolePermissionsUseCase - Query (Cycle 35)
 
 #### Red: 테스트 작성
-- [ ] `GetRolePermissionsUseCaseTest.java` 생성
-- [ ] 커밋: `test: GetRolePermissionsUseCase 테스트 (Red)`
+- [ ] `GetRolePermissionsServiceTest.java` 생성
+- [ ] 커밋: `test: GetRolePermissionsService 테스트 (Red)`
 
 #### Green: 최소 구현
-- [ ] `usecase/role/GetRolePermissionsUseCase.java`
-- [ ] `usecase/role/GetRolePermissionsUseCaseImpl.java`
-- [ ] 커밋: `feat: GetRolePermissionsUseCase 구현 (Green)`
+- [ ] `port/in/role/GetRolePermissionsUseCase.java`
+- [ ] `service/role/GetRolePermissionsService.java`
+- [ ] 커밋: `feat: GetRolePermissionsService 구현 (Green)`
 
 #### Refactor: 구조 개선
-- [ ] 커밋: `struct: GetRolePermissionsUseCase 구조 개선`
+- [ ] 커밋: `struct: GetRolePermissionsService 구조 개선`
 
 ---
 

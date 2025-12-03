@@ -1,10 +1,10 @@
 package com.ryuqq.authhub.application.organization.dto.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * CreateOrganizationCommand DTO 설계 테스트
@@ -12,10 +12,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Kent Beck TDD - Red Phase: 실패하는 테스트 먼저 작성
  *
  * <p>설계 원칙:
+ *
  * <ul>
- *   <li>Pure Java Record (Lombok 금지)</li>
- *   <li>최소 필드 원칙: tenantId, name만 포함</li>
- *   <li>불변성 보장</li>
+ *   <li>Pure Java Record (Lombok 금지)
+ *   <li>최소 필드 원칙: tenantId, name만 포함
+ *   <li>불변성 보장
  * </ul>
  *
  * @author development-team
@@ -74,8 +75,11 @@ class CreateOrganizationCommandTest {
 
             // Record의 모든 필드는 final
             assertThat(CreateOrganizationCommand.class.getRecordComponents())
-                    .allMatch(rc -> java.lang.reflect.Modifier.isFinal(
-                            rc.getAccessor().getModifiers()) == false);
+                    .allMatch(
+                            rc ->
+                                    java.lang.reflect.Modifier.isFinal(
+                                                    rc.getAccessor().getModifiers())
+                                            == false);
             // Note: Record accessor methods are not final, but fields are
         }
     }

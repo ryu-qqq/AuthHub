@@ -54,14 +54,10 @@ class CreateUserResponseTest {
         void shouldHaveUserIdField() {
             RecordComponent[] components = CreateUserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("userId");
+            assertThat(components).extracting(RecordComponent::getName).contains("userId");
 
             RecordComponent component = findComponent(components, "userId");
-            assertThat(component.getType())
-                    .as("userId는 UUID 타입이어야 합니다")
-                    .isEqualTo(UUID.class);
+            assertThat(component.getType()).as("userId는 UUID 타입이어야 합니다").isEqualTo(UUID.class);
         }
 
         @Test
@@ -69,9 +65,7 @@ class CreateUserResponseTest {
         void shouldHaveCreatedAtField() {
             RecordComponent[] components = CreateUserResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("createdAt");
+            assertThat(components).extracting(RecordComponent::getName).contains("createdAt");
 
             RecordComponent component = findComponent(components, "createdAt");
             assertThat(component.getType())

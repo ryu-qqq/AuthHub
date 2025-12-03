@@ -50,14 +50,10 @@ class LoginCommandTest {
         void shouldHaveTenantIdField() {
             RecordComponent[] components = LoginCommand.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("tenantId");
+            assertThat(components).extracting(RecordComponent::getName).contains("tenantId");
 
             RecordComponent component = findComponent(components, "tenantId");
-            assertThat(component.getType())
-                    .as("tenantId는 Long 타입이어야 합니다")
-                    .isEqualTo(Long.class);
+            assertThat(component.getType()).as("tenantId는 Long 타입이어야 합니다").isEqualTo(Long.class);
         }
 
         @Test
@@ -65,9 +61,7 @@ class LoginCommandTest {
         void shouldHaveIdentifierField() {
             RecordComponent[] components = LoginCommand.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("identifier");
+            assertThat(components).extracting(RecordComponent::getName).contains("identifier");
 
             RecordComponent component = findComponent(components, "identifier");
             assertThat(component.getType())
@@ -80,9 +74,7 @@ class LoginCommandTest {
         void shouldHavePasswordField() {
             RecordComponent[] components = LoginCommand.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("password");
+            assertThat(components).extracting(RecordComponent::getName).contains("password");
 
             RecordComponent component = findComponent(components, "password");
             assertThat(component.getType())

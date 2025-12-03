@@ -9,9 +9,10 @@ import java.util.UUID;
  * <p>사용자 정보를 클라이언트에게 반환하는 응답 객체입니다.
  *
  * <p><strong>보안 규칙:</strong>
+ *
  * <ul>
- *   <li>비밀번호, credential 등 민감 정보 절대 포함 금지</li>
- *   <li>Domain Entity 직접 노출 금지</li>
+ *   <li>비밀번호, credential 등 민감 정보 절대 포함 금지
+ *   <li>Domain Entity 직접 노출 금지
  * </ul>
  *
  * @author development-team
@@ -24,9 +25,6 @@ public record UserResponse(
         String userType,
         String status,
         String name,
-        String nickname,
-        String profileImageUrl,
+        String phoneNumber,
         Instant createdAt,
-        Instant updatedAt
-) {
-}
+        Instant updatedAt) {}

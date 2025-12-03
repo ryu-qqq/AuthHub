@@ -7,63 +7,64 @@ import java.util.Objects;
  *
  * <p>사용자의 프로필 정보를 담고 있는 불변 객체입니다.
  *
+ * <p><strong>Tenant별 phoneNumber 유니크 제약:</strong> 같은 Tenant 내에서 동일한 phoneNumber는 허용되지 않습니다. 이 제약은
+ * Application Layer에서 검증합니다.
+ *
  * @author development-team
  * @since 1.0.0
  */
 public final class UserProfile {
 
     private final String name;
-    private final String nickname;
-    private final String profileImageUrl;
+    private final PhoneNumber phoneNumber;
 
-    private UserProfile(String name, String nickname, String profileImageUrl) {
+    private UserProfile(String name, PhoneNumber phoneNumber) {
         this.name = name;
-        this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
+        this.phoneNumber = phoneNumber;
     }
 
-    public static UserProfile of(String name, String nickname, String profileImageUrl) {
-        return new UserProfile(name, nickname, profileImageUrl);
+    public static UserProfile of(String name, PhoneNumber phoneNumber) {
+        return new UserProfile(name, phoneNumber);
+    }
+
+    public static UserProfile of(String name, String phoneNumber) {
+        return new UserProfile(name, phoneNumber != null ? PhoneNumber.of(phoneNumber) : null);
+    }
+
+    public static UserProfile ofName(String name) {
+        return new UserProfile(name, null);
     }
 
     public static UserProfile empty() {
-        return new UserProfile(null, null, null);
+        return new UserProfile(null, null);
     }
 
     public String name() {
         return name;
     }
 
-    public String nickname() {
-        return nickname;
+    public PhoneNumber phoneNumber() {
+        return phoneNumber;
     }
 
-    public String profileImageUrl() {
-        return profileImageUrl;
+    public String phoneNumberValue() {
+        return phoneNumber != null ? phoneNumber.value() : null;
     }
 
     public boolean hasName() {
         return name != null && !name.isBlank();
     }
 
-    public boolean hasNickname() {
-        return nickname != null && !nickname.isBlank();
-    }
-
-    public boolean hasProfileImage() {
-        return profileImageUrl != null && !profileImageUrl.isBlank();
+    public boolean hasPhoneNumber() {
+        return phoneNumber != null;
     }
 
     public UserProfile withName(String newName) {
-        return new UserProfile(newName, this.nickname, this.profileImageUrl);
+        return new UserProfile(newName, this.phoneNumber);
     }
 
-    public UserProfile withNickname(String newNickname) {
-        return new UserProfile(this.name, newNickname, this.profileImageUrl);
-    }
-
-    public UserProfile withProfileImageUrl(String newUrl) {
-        return new UserProfile(this.name, this.nickname, newUrl);
+    public UserProfile withPhoneNumber(PhoneNumber newPhoneNumber) {
+        return new UserProfile(this.name, newPhoneNumber);
     }
 
     /**
@@ -78,9 +79,7 @@ public final class UserProfile {
         }
         return new UserProfile(
                 other.name != null ? other.name : this.name,
-                other.nickname != null ? other.nickname : this.nickname,
-                other.profileImageUrl != null ? other.profileImageUrl : this.profileImageUrl
-        );
+                other.phoneNumber != null ? other.phoneNumber : this.phoneNumber);
     }
 
     @Override
@@ -92,18 +91,16 @@ public final class UserProfile {
             return false;
         }
         UserProfile that = (UserProfile) o;
-        return Objects.equals(name, that.name)
-                && Objects.equals(nickname, that.nickname)
-                && Objects.equals(profileImageUrl, that.profileImageUrl);
+        return Objects.equals(name, that.name) && Objects.equals(phoneNumber, that.phoneNumber);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, nickname, profileImageUrl);
+        return Objects.hash(name, phoneNumber);
     }
 
     @Override
     public String toString() {
-        return "UserProfile{name='" + name + "', nickname='" + nickname + "'}";
+        return "UserProfile{name='" + name + "', phoneNumber=" + phoneNumber + "}";
     }
 }

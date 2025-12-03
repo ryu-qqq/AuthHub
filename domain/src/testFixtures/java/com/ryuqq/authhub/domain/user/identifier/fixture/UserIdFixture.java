@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.user.identifier.fixture;
 
 import com.ryuqq.authhub.domain.user.identifier.UserId;
-
 import java.util.UUID;
 
 /**
@@ -12,8 +11,7 @@ import java.util.UUID;
  */
 public final class UserIdFixture {
 
-    private UserIdFixture() {
-    }
+    private UserIdFixture() {}
 
     public static UserId aUserId() {
         return UserId.forNew();

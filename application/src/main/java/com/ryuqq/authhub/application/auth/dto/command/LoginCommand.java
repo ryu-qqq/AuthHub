@@ -8,9 +8,4 @@ package com.ryuqq.authhub.application.auth.dto.command;
  * @author development-team
  * @since 1.0.0
  */
-public record LoginCommand(
-        Long tenantId,
-        String identifier,
-        String password
-) {
-}
+public record LoginCommand(Long tenantId, String identifier, String password) {}

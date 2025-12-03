@@ -6,7 +6,6 @@ import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-
 import java.time.Instant;
 
 /**
@@ -24,8 +23,7 @@ public final class OrganizationFixture {
     private static final Long DEFAULT_TENANT_ID = 1L;
     private static final Clock DEFAULT_CLOCK = () -> Instant.parse("2025-11-24T00:00:00Z");
 
-    private OrganizationFixture() {
-    }
+    private OrganizationFixture() {}
 
     // ========== Simple Factory Methods ==========
 
@@ -69,8 +67,7 @@ public final class OrganizationFixture {
         private Instant updatedAt = DEFAULT_CLOCK.now();
         private boolean isNew = false;
 
-        private OrganizationBuilder() {
-        }
+        private OrganizationBuilder() {}
 
         public OrganizationBuilder asNew() {
             this.isNew = true;
@@ -156,8 +153,7 @@ public final class OrganizationFixture {
                     tenantId,
                     organizationStatus,
                     createdAt,
-                    updatedAt
-            );
+                    updatedAt);
         }
     }
 }

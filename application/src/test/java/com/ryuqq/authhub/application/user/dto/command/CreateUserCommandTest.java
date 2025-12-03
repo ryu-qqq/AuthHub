@@ -13,12 +13,13 @@ import org.junit.jupiter.api.Test;
  * CreateUserCommand DTO 설계 검증 테스트
  *
  * <p>Command DTO Zero-Tolerance 규칙:
+ *
  * <ul>
- *   <li>Record 타입이어야 함</li>
- *   <li>필수 필드: tenantId, credentialType, identifier, rawPassword</li>
- *   <li>선택 필드: organizationId, userType, name, nickname, profileImageUrl</li>
- *   <li>순수 Java 타입만 사용 (jakarta.validation 금지)</li>
- *   <li>불변성 보장</li>
+ *   <li>Record 타입이어야 함
+ *   <li>필수 필드: tenantId, identifier, rawPassword
+ *   <li>선택 필드: organizationId, userType, name, phoneNumber
+ *   <li>순수 Java 타입만 사용 (jakarta.validation 금지)
+ *   <li>불변성 보장
  * </ul>
  *
  * @author development-team
@@ -72,31 +73,12 @@ class CreateUserCommandTest {
             RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
 
             // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("tenantId");
+            assertThat(components).extracting(RecordComponent::getName).contains("tenantId");
 
             RecordComponent tenantIdComponent = findComponent(components, "tenantId");
             assertThat(tenantIdComponent.getType())
                     .as("tenantId는 Long 타입이어야 합니다")
                     .isEqualTo(Long.class);
-        }
-
-        @Test
-        @DisplayName("[필수] credentialType 필드가 존재해야 한다")
-        void shouldHaveCredentialTypeField() {
-            // When
-            RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
-
-            // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("credentialType");
-
-            RecordComponent component = findComponent(components, "credentialType");
-            assertThat(component.getType())
-                    .as("credentialType은 String 타입이어야 합니다")
-                    .isEqualTo(String.class);
         }
 
         @Test
@@ -106,9 +88,7 @@ class CreateUserCommandTest {
             RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
 
             // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("identifier");
+            assertThat(components).extracting(RecordComponent::getName).contains("identifier");
 
             RecordComponent component = findComponent(components, "identifier");
             assertThat(component.getType())
@@ -123,9 +103,7 @@ class CreateUserCommandTest {
             RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
 
             // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("rawPassword");
+            assertThat(components).extracting(RecordComponent::getName).contains("rawPassword");
 
             RecordComponent component = findComponent(components, "rawPassword");
             assertThat(component.getType())
@@ -145,9 +123,7 @@ class CreateUserCommandTest {
             RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
 
             // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("organizationId");
+            assertThat(components).extracting(RecordComponent::getName).contains("organizationId");
 
             RecordComponent component = findComponent(components, "organizationId");
             assertThat(component.getType())
@@ -162,9 +138,7 @@ class CreateUserCommandTest {
             RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
 
             // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("userType");
+            assertThat(components).extracting(RecordComponent::getName).contains("userType");
 
             RecordComponent component = findComponent(components, "userType");
             assertThat(component.getType())
@@ -179,33 +153,25 @@ class CreateUserCommandTest {
             RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
 
             // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("name");
+            assertThat(components).extracting(RecordComponent::getName).contains("name");
+
+            RecordComponent component = findComponent(components, "name");
+            assertThat(component.getType()).as("name은 String 타입이어야 합니다").isEqualTo(String.class);
         }
 
         @Test
-        @DisplayName("[선택] nickname 필드가 존재해야 한다")
-        void shouldHaveNicknameField() {
+        @DisplayName("[선택] phoneNumber 필드가 존재해야 한다")
+        void shouldHavePhoneNumberField() {
             // When
             RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
 
             // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("nickname");
-        }
+            assertThat(components).extracting(RecordComponent::getName).contains("phoneNumber");
 
-        @Test
-        @DisplayName("[선택] profileImageUrl 필드가 존재해야 한다")
-        void shouldHaveProfileImageUrlField() {
-            // When
-            RecordComponent[] components = CreateUserCommand.class.getRecordComponents();
-
-            // Then
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("profileImageUrl");
+            RecordComponent component = findComponent(components, "phoneNumber");
+            assertThat(component.getType())
+                    .as("phoneNumber는 String 타입이어야 합니다")
+                    .isEqualTo(String.class);
         }
     }
 
@@ -219,37 +185,31 @@ class CreateUserCommandTest {
             // Given
             Long tenantId = 1L;
             Long organizationId = 10L;
-            String credentialType = "EMAIL";
             String identifier = "test@example.com";
             String rawPassword = "Password123!";
             String userType = "PUBLIC";
             String name = "홍길동";
-            String nickname = "길동이";
-            String profileImageUrl = "https://example.com/profile.jpg";
+            String phoneNumber = "+82-10-1234-5678";
 
             // When
-            CreateUserCommand command = new CreateUserCommand(
-                    tenantId,
-                    organizationId,
-                    credentialType,
-                    identifier,
-                    rawPassword,
-                    userType,
-                    name,
-                    nickname,
-                    profileImageUrl
-            );
+            CreateUserCommand command =
+                    new CreateUserCommand(
+                            tenantId,
+                            organizationId,
+                            identifier,
+                            rawPassword,
+                            userType,
+                            name,
+                            phoneNumber);
 
             // Then
             assertThat(command.tenantId()).isEqualTo(tenantId);
             assertThat(command.organizationId()).isEqualTo(organizationId);
-            assertThat(command.credentialType()).isEqualTo(credentialType);
             assertThat(command.identifier()).isEqualTo(identifier);
             assertThat(command.rawPassword()).isEqualTo(rawPassword);
             assertThat(command.userType()).isEqualTo(userType);
             assertThat(command.name()).isEqualTo(name);
-            assertThat(command.nickname()).isEqualTo(nickname);
-            assertThat(command.profileImageUrl()).isEqualTo(profileImageUrl);
+            assertThat(command.phoneNumber()).isEqualTo(phoneNumber);
         }
 
         @Test
@@ -257,30 +217,29 @@ class CreateUserCommandTest {
         void shouldAllowNullOptionalFields() {
             // Given
             Long tenantId = 1L;
-            String credentialType = "EMAIL";
             String identifier = "test@example.com";
             String rawPassword = "Password123!";
 
             // When
-            CreateUserCommand command = new CreateUserCommand(
-                    tenantId,
-                    null,  // organizationId - optional
-                    credentialType,
-                    identifier,
-                    rawPassword,
-                    null,  // userType - optional
-                    null,  // name - optional
-                    null,  // nickname - optional
-                    null   // profileImageUrl - optional
-            );
+            CreateUserCommand command =
+                    new CreateUserCommand(
+                            tenantId,
+                            null, // organizationId - optional
+                            identifier,
+                            rawPassword,
+                            null, // userType - optional
+                            null, // name - optional
+                            null // phoneNumber - optional
+                            );
 
             // Then
             assertThat(command.tenantId()).isEqualTo(tenantId);
             assertThat(command.organizationId()).isNull();
+            assertThat(command.identifier()).isEqualTo(identifier);
+            assertThat(command.rawPassword()).isEqualTo(rawPassword);
             assertThat(command.userType()).isNull();
             assertThat(command.name()).isNull();
-            assertThat(command.nickname()).isNull();
-            assertThat(command.profileImageUrl()).isNull();
+            assertThat(command.phoneNumber()).isNull();
         }
     }
 
@@ -292,10 +251,14 @@ class CreateUserCommandTest {
         @DisplayName("[금지] jakarta.validation 어노테이션이 없어야 한다")
         void shouldNotHaveValidationAnnotations() {
             // When
-            boolean hasValidationAnnotation = java.util.Arrays.stream(
-                            CreateUserCommand.class.getDeclaredAnnotations())
-                    .anyMatch(annotation -> annotation.annotationType()
-                            .getPackageName().startsWith("jakarta.validation"));
+            boolean hasValidationAnnotation =
+                    java.util.Arrays.stream(CreateUserCommand.class.getDeclaredAnnotations())
+                            .anyMatch(
+                                    annotation ->
+                                            annotation
+                                                    .annotationType()
+                                                    .getPackageName()
+                                                    .startsWith("jakarta.validation"));
 
             // Then
             assertThat(hasValidationAnnotation)
@@ -307,11 +270,17 @@ class CreateUserCommandTest {
         @DisplayName("[금지] 필드에 jakarta.validation 어노테이션이 없어야 한다")
         void shouldNotHaveValidationAnnotationsOnFields() {
             // When
-            boolean hasValidationAnnotation = java.util.Arrays.stream(
-                            CreateUserCommand.class.getRecordComponents())
-                    .flatMap(component -> java.util.Arrays.stream(component.getAnnotations()))
-                    .anyMatch(annotation -> annotation.annotationType()
-                            .getPackageName().startsWith("jakarta.validation"));
+            boolean hasValidationAnnotation =
+                    java.util.Arrays.stream(CreateUserCommand.class.getRecordComponents())
+                            .flatMap(
+                                    component ->
+                                            java.util.Arrays.stream(component.getAnnotations()))
+                            .anyMatch(
+                                    annotation ->
+                                            annotation
+                                                    .annotationType()
+                                                    .getPackageName()
+                                                    .startsWith("jakarta.validation"));
 
             // Then
             assertThat(hasValidationAnnotation)

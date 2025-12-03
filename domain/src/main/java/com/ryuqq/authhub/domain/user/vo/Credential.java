@@ -5,49 +5,33 @@ import java.util.Objects;
 /**
  * Credential - 인증 정보 Value Object
  *
- * <p>사용자의 인증 정보를 담고 있는 불변 객체입니다.
+ * <p>사용자의 인증 정보를 담고 있는 불변 객체입니다. 로그인 식별자(이메일 또는 아이디)와 비밀번호를 포함합니다.
  *
  * @author development-team
  * @since 1.0.0
  */
 public final class Credential {
 
-    private final CredentialType type;
     private final String identifier;
     private final Password password;
 
-    private Credential(CredentialType type, String identifier, Password password) {
-        if (type == null) {
-            throw new IllegalArgumentException("CredentialType cannot be null");
-        }
+    private Credential(String identifier, Password password) {
         if (identifier == null || identifier.isBlank()) {
             throw new IllegalArgumentException("Credential identifier cannot be null or blank");
         }
-        this.type = type;
         this.identifier = identifier.trim();
         this.password = password;
+    }
+
+    public static Credential of(String identifier, Password password) {
+        return new Credential(identifier, password);
     }
 
     public static Credential ofEmail(Email email, Password password) {
         if (email == null) {
             throw new IllegalArgumentException("Email cannot be null");
         }
-        return new Credential(CredentialType.EMAIL, email.value(), password);
-    }
-
-    public static Credential ofPhone(PhoneNumber phoneNumber, Password password) {
-        if (phoneNumber == null) {
-            throw new IllegalArgumentException("PhoneNumber cannot be null");
-        }
-        return new Credential(CredentialType.PHONE, phoneNumber.value(), password);
-    }
-
-    public static Credential of(CredentialType type, String identifier, Password password) {
-        return new Credential(type, identifier, password);
-    }
-
-    public CredentialType type() {
-        return type;
+        return new Credential(email.value(), password);
     }
 
     public String identifier() {
@@ -58,16 +42,16 @@ public final class Credential {
         return password;
     }
 
+    public String getHashedPasswordValue() {
+        return password.hashedValue();
+    }
+
     public boolean hasPassword() {
         return password != null;
     }
 
-    public boolean isEmailCredential() {
-        return type == CredentialType.EMAIL;
-    }
-
-    public boolean isPhoneCredential() {
-        return type == CredentialType.PHONE;
+    public Credential withPassword(Password newPassword) {
+        return new Credential(this.identifier, newPassword);
     }
 
     @Override
@@ -79,16 +63,16 @@ public final class Credential {
             return false;
         }
         Credential that = (Credential) o;
-        return type == that.type && Objects.equals(identifier, that.identifier);
+        return Objects.equals(identifier, that.identifier);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, identifier);
+        return Objects.hash(identifier);
     }
 
     @Override
     public String toString() {
-        return "Credential{type=" + type + ", identifier='" + identifier + "'}";
+        return "Credential{identifier='" + identifier + "'}";
     }
 }

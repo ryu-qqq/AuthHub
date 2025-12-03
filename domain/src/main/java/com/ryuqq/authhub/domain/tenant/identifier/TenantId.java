@@ -5,8 +5,7 @@ import java.util.Objects;
 /**
  * TenantId - Tenant 식별자 Value Object
  *
- * <p>Long FK 전략에 따라 Long 타입 ID를 사용합니다.
- * 새로 생성된 Tenant는 forNew()로 생성하여 null ID를 가질 수 있습니다.
+ * <p>Long FK 전략에 따라 Long 타입 ID를 사용합니다. 새로 생성된 Tenant는 forNew()로 생성하여 null ID를 가질 수 있습니다.
  *
  * @author development-team
  * @since 1.0.0

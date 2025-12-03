@@ -44,9 +44,10 @@ class DtoRecordArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter()
-                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages("com.ryuqq.authhub.application");
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages("com.ryuqq.authhub.application");
 
         hasCommandClasses =
                 classes.stream()

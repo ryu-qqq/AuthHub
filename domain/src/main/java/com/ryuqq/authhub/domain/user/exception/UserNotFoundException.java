@@ -1,8 +1,8 @@
 package com.ryuqq.authhub.domain.user.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * UserNotFoundException - 사용자를 찾을 수 없는 예외
@@ -15,6 +15,10 @@ import java.util.Map;
 public class UserNotFoundException extends DomainException {
 
     public UserNotFoundException(Long userId) {
+        super(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
+    }
+
+    public UserNotFoundException(UUID userId) {
         super(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
     }
 

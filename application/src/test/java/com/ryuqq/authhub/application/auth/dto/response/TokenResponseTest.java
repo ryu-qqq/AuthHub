@@ -52,9 +52,7 @@ class TokenResponseTest {
         void shouldHaveAccessTokenField() {
             RecordComponent[] components = TokenResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("accessToken");
+            assertThat(components).extracting(RecordComponent::getName).contains("accessToken");
 
             RecordComponent component = findComponent(components, "accessToken");
             assertThat(component.getType())
@@ -67,9 +65,7 @@ class TokenResponseTest {
         void shouldHaveRefreshTokenField() {
             RecordComponent[] components = TokenResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("refreshToken");
+            assertThat(components).extracting(RecordComponent::getName).contains("refreshToken");
 
             RecordComponent component = findComponent(components, "refreshToken");
             assertThat(component.getType())
@@ -78,18 +74,33 @@ class TokenResponseTest {
         }
 
         @Test
-        @DisplayName("[필수] expiresIn 필드가 존재해야 한다")
-        void shouldHaveExpiresInField() {
+        @DisplayName("[필수] accessTokenExpiresIn 필드가 존재해야 한다")
+        void shouldHaveAccessTokenExpiresInField() {
             RecordComponent[] components = TokenResponse.class.getRecordComponents();
 
             assertThat(components)
                     .extracting(RecordComponent::getName)
-                    .contains("expiresIn");
+                    .contains("accessTokenExpiresIn");
 
-            RecordComponent component = findComponent(components, "expiresIn");
+            RecordComponent component = findComponent(components, "accessTokenExpiresIn");
             assertThat(component.getType())
-                    .as("expiresIn은 Long 타입이어야 합니다")
-                    .isEqualTo(Long.class);
+                    .as("accessTokenExpiresIn은 long 타입이어야 합니다")
+                    .isEqualTo(long.class);
+        }
+
+        @Test
+        @DisplayName("[필수] refreshTokenExpiresIn 필드가 존재해야 한다")
+        void shouldHaveRefreshTokenExpiresInField() {
+            RecordComponent[] components = TokenResponse.class.getRecordComponents();
+
+            assertThat(components)
+                    .extracting(RecordComponent::getName)
+                    .contains("refreshTokenExpiresIn");
+
+            RecordComponent component = findComponent(components, "refreshTokenExpiresIn");
+            assertThat(component.getType())
+                    .as("refreshTokenExpiresIn은 long 타입이어야 합니다")
+                    .isEqualTo(long.class);
         }
 
         @Test
@@ -97,9 +108,7 @@ class TokenResponseTest {
         void shouldHaveTokenTypeField() {
             RecordComponent[] components = TokenResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("tokenType");
+            assertThat(components).extracting(RecordComponent::getName).contains("tokenType");
 
             RecordComponent component = findComponent(components, "tokenType");
             assertThat(component.getType())
@@ -118,18 +127,24 @@ class TokenResponseTest {
             // Given
             String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new_access...";
             String refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new_refresh...";
-            Long expiresIn = 3600L;
+            long accessTokenExpiresIn = 3600L;
+            long refreshTokenExpiresIn = 604_800L;
             String tokenType = "Bearer";
 
             // When
-            TokenResponse response = new TokenResponse(
-                    accessToken, refreshToken, expiresIn, tokenType
-            );
+            TokenResponse response =
+                    new TokenResponse(
+                            accessToken,
+                            refreshToken,
+                            accessTokenExpiresIn,
+                            refreshTokenExpiresIn,
+                            tokenType);
 
             // Then
             assertThat(response.accessToken()).isEqualTo(accessToken);
             assertThat(response.refreshToken()).isEqualTo(refreshToken);
-            assertThat(response.expiresIn()).isEqualTo(expiresIn);
+            assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpiresIn);
+            assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpiresIn);
             assertThat(response.tokenType()).isEqualTo(tokenType);
         }
     }

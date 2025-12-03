@@ -5,15 +5,13 @@ import com.ryuqq.authhub.domain.tenant.exception.InvalidTenantStateException;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
-
 import java.time.Instant;
 import java.util.Objects;
 
 /**
  * Tenant - Tenant Aggregate Root
  *
- * <p>멀티테넌시 지원을 위한 테넌트 정보를 관리합니다.
- * 불변 객체로 상태 변경 시 새로운 객체를 반환합니다.
+ * <p>멀티테넌시 지원을 위한 테넌트 정보를 관리합니다. 불변 객체로 상태 변경 시 새로운 객체를 반환합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -31,8 +29,7 @@ public final class Tenant {
             TenantName tenantName,
             TenantStatus tenantStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         this.tenantId = tenantId;
         this.tenantName = tenantName;
         this.tenantStatus = tenantStatus;
@@ -53,8 +50,7 @@ public final class Tenant {
             TenantName tenantName,
             TenantStatus tenantStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         validateTenantName(tenantName);
         validateTenantStatus(tenantStatus);
         validateCreatedAt(createdAt);
@@ -67,8 +63,7 @@ public final class Tenant {
             TenantName tenantName,
             TenantStatus tenantStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         if (tenantId == null) {
             throw new IllegalArgumentException("reconstitute requires non-null tenantId");
         }
@@ -126,6 +121,14 @@ public final class Tenant {
             throw new InvalidTenantStateException(tenantStatus, TenantStatus.DELETED);
         }
         return new Tenant(tenantId, tenantName, TenantStatus.DELETED, createdAt, clock.now());
+    }
+
+    public Tenant updateName(TenantName newName, Clock clock) {
+        if (!isActive()) {
+            throw new InvalidTenantStateException("테넌트명 변경은 활성 상태의 테넌트만 가능합니다");
+        }
+        validateTenantName(newName);
+        return new Tenant(tenantId, newName, tenantStatus, createdAt, clock.now());
     }
 
     // ========== Helper Methods ==========
@@ -202,11 +205,16 @@ public final class Tenant {
     @Override
     public String toString() {
         return "Tenant{"
-                + "tenantId=" + tenantId
-                + ", tenantName=" + tenantName
-                + ", tenantStatus=" + tenantStatus
-                + ", createdAt=" + createdAt
-                + ", updatedAt=" + updatedAt
+                + "tenantId="
+                + tenantId
+                + ", tenantName="
+                + tenantName
+                + ", tenantStatus="
+                + tenantStatus
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
                 + '}';
     }
 }

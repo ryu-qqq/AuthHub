@@ -53,7 +53,7 @@ class UserTest {
         OrganizationId organizationId = OrganizationId.of(100L);
         UserType userType = UserType.PUBLIC;
         UserStatus userStatus = UserStatus.ACTIVE;
-        Credential credential = CredentialFixture.aPhoneCredential();
+        Credential credential = CredentialFixture.aCredential();
         UserProfile profile = UserProfileFixture.aUserProfile();
 
         // When & Then
@@ -82,7 +82,7 @@ class UserTest {
         OrganizationId organizationId = OrganizationId.of(100L);
         UserType userType = UserType.PUBLIC;
         UserStatus nullStatus = null;
-        Credential credential = CredentialFixture.aPhoneCredential();
+        Credential credential = CredentialFixture.aCredential();
         UserProfile profile = UserProfileFixture.aUserProfile();
 
         // When & Then
@@ -113,7 +113,7 @@ class UserTest {
             TenantId tenantId = TenantId.of(1L);
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.PUBLIC;
-            Credential credential = CredentialFixture.aPhoneCredential();
+            Credential credential = CredentialFixture.aCredential();
             UserProfile profile = UserProfileFixture.aUserProfile();
 
             // When
@@ -136,7 +136,7 @@ class UserTest {
             // Given
             TenantId tenantId = TenantId.of(1L);
             UserType userType = UserType.PUBLIC;
-            Credential credential = CredentialFixture.aPhoneCredential();
+            Credential credential = CredentialFixture.aCredential();
             UserProfile profile = UserProfileFixture.aUserProfile();
 
             // When
@@ -157,7 +157,7 @@ class UserTest {
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.PUBLIC;
             UserStatus userStatus = UserStatus.ACTIVE;
-            Credential credential = CredentialFixture.aPhoneCredential();
+            Credential credential = CredentialFixture.aCredential();
             UserProfile profile = UserProfileFixture.aUserProfile();
             Instant createdAt = clock.now();
             Instant updatedAt = clock.now();
@@ -192,7 +192,7 @@ class UserTest {
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.PUBLIC;
             UserStatus userStatus = UserStatus.ACTIVE;
-            Credential credential = CredentialFixture.aPhoneCredential();
+            Credential credential = CredentialFixture.aCredential();
             UserProfile profile = UserProfileFixture.aUserProfile();
 
             // When & Then
@@ -258,7 +258,7 @@ class UserTest {
             OrganizationId organizationId = OrganizationId.of(100L);
             UserType userType = UserType.PUBLIC;
             UserStatus userStatus = UserStatus.ACTIVE;
-            Credential credential = CredentialFixture.aPhoneCredential();
+            Credential credential = CredentialFixture.aCredential();
             UserProfile profile = UserProfileFixture.aUserProfile();
 
             // When

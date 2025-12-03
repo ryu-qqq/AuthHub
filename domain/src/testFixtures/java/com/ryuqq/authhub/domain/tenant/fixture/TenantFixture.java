@@ -5,7 +5,6 @@ import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
-
 import java.time.Instant;
 
 /**
@@ -22,8 +21,7 @@ public final class TenantFixture {
     private static final String DEFAULT_TENANT_NAME = "Default Tenant";
     private static final Clock DEFAULT_CLOCK = () -> Instant.parse("2025-11-24T00:00:00Z");
 
-    private TenantFixture() {
-    }
+    private TenantFixture() {}
 
     // ========== Simple Factory Methods ==========
 
@@ -66,8 +64,7 @@ public final class TenantFixture {
         private Instant updatedAt = DEFAULT_CLOCK.now();
         private boolean isNew = false;
 
-        private TenantBuilder() {
-        }
+        private TenantBuilder() {}
 
         public TenantBuilder asNew() {
             this.isNew = true;
@@ -137,13 +134,7 @@ public final class TenantFixture {
             if (isNew) {
                 return Tenant.forNew(tenantName, DEFAULT_CLOCK);
             }
-            return Tenant.of(
-                    tenantId,
-                    tenantName,
-                    tenantStatus,
-                    createdAt,
-                    updatedAt
-            );
+            return Tenant.of(tenantId, tenantName, tenantStatus, createdAt, updatedAt);
         }
     }
 }

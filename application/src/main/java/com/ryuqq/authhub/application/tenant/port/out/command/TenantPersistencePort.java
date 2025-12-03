@@ -9,12 +9,13 @@ import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
  * <p>Domain Aggregate를 영속화하는 Command 전용 Port입니다.
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
+ *
  * <ul>
- *   <li>단일 persist() 메서드 (INSERT/UPDATE 자동 판단 - JPA merge 패턴)</li>
- *   <li>save/update/delete 개별 메서드 금지</li>
- *   <li>Domain 파라미터 (DTO/Entity 금지)</li>
- *   <li>Value Object 반환 (TenantId)</li>
- *   <li>조회 메서드 금지 (QueryPort로 분리)</li>
+ *   <li>단일 persist() 메서드 (INSERT/UPDATE 자동 판단 - JPA merge 패턴)
+ *   <li>save/update/delete 개별 메서드 금지
+ *   <li>Domain 파라미터 (DTO/Entity 금지)
+ *   <li>Value Object 반환 (TenantId)
+ *   <li>조회 메서드 금지 (QueryPort로 분리)
  * </ul>
  *
  * @author development-team

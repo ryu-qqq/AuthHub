@@ -8,13 +8,29 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+/**
+ * TenantJpaEntity 테스트
+ *
+ * <p>Tenant Domain 모델과 일치하는 Entity 테스트
+ *
+ * <p><strong>Domain 필드:</strong>
+ *
+ * <ul>
+ *   <li>TenantId tenantId → Long id
+ *   <li>TenantName tenantName → String name
+ *   <li>TenantStatus tenantStatus → TenantStatus status
+ *   <li>Instant createdAt → LocalDateTime createdAt
+ *   <li>Instant updatedAt → LocalDateTime updatedAt
+ * </ul>
+ *
+ * @author AuthHub Team
+ * @since 1.0.0
+ */
 @DisplayName("TenantJpaEntity 테스트")
 class TenantJpaEntityTest {
 
     private static final Long ID = 1L;
     private static final String NAME = "Test Tenant";
-    private static final String DESCRIPTION = "Test tenant description";
-    private static final Long ORGANIZATION_ID = 100L;
     private static final TenantStatus STATUS = TenantStatus.ACTIVE;
     private static final LocalDateTime CREATED_AT = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
     private static final LocalDateTime UPDATED_AT = LocalDateTime.of(2025, 1, 2, 15, 30, 0);
@@ -27,16 +43,12 @@ class TenantJpaEntityTest {
         @DisplayName("[of] 모든 필드를 지정하여 TenantJpaEntity 생성")
         void of_shouldCreateTenantJpaEntityWithAllFields() {
             // When
-            TenantJpaEntity entity =
-                    TenantJpaEntity.of(
-                            ID, NAME, DESCRIPTION, ORGANIZATION_ID, STATUS, CREATED_AT, UPDATED_AT);
+            TenantJpaEntity entity = TenantJpaEntity.of(ID, NAME, STATUS, CREATED_AT, UPDATED_AT);
 
             // Then
             assertThat(entity).isNotNull();
             assertThat(entity.getId()).isEqualTo(ID);
             assertThat(entity.getName()).isEqualTo(NAME);
-            assertThat(entity.getDescription()).isEqualTo(DESCRIPTION);
-            assertThat(entity.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
             assertThat(entity.getStatus()).isEqualTo(STATUS);
             assertThat(entity.getCreatedAt()).isEqualTo(CREATED_AT);
             assertThat(entity.getUpdatedAt()).isEqualTo(UPDATED_AT);
@@ -46,31 +58,11 @@ class TenantJpaEntityTest {
         @DisplayName("[of] ID가 null인 신규 엔티티 생성")
         void of_shouldCreateNewEntityWithNullId() {
             // When
-            TenantJpaEntity entity =
-                    TenantJpaEntity.of(
-                            null,
-                            NAME,
-                            DESCRIPTION,
-                            ORGANIZATION_ID,
-                            STATUS,
-                            CREATED_AT,
-                            UPDATED_AT);
+            TenantJpaEntity entity = TenantJpaEntity.of(null, NAME, STATUS, CREATED_AT, UPDATED_AT);
 
             // Then
             assertThat(entity.getId()).isNull();
             assertThat(entity.getName()).isEqualTo(NAME);
-        }
-
-        @Test
-        @DisplayName("[of] Description이 null인 엔티티 생성")
-        void of_shouldCreateEntityWithNullDescription() {
-            // When
-            TenantJpaEntity entity =
-                    TenantJpaEntity.of(
-                            ID, NAME, null, ORGANIZATION_ID, STATUS, CREATED_AT, UPDATED_AT);
-
-            // Then
-            assertThat(entity.getDescription()).isNull();
         }
     }
 
@@ -96,26 +88,6 @@ class TenantJpaEntityTest {
 
             // Then
             assertThat(entity.getName()).isEqualTo(NAME);
-        }
-
-        @Test
-        @DisplayName("[getDescription] 설명 반환")
-        void getDescription_shouldReturnDescription() {
-            // Given
-            TenantJpaEntity entity = createEntity();
-
-            // Then
-            assertThat(entity.getDescription()).isEqualTo(DESCRIPTION);
-        }
-
-        @Test
-        @DisplayName("[getOrganizationId] 조직 ID 반환")
-        void getOrganizationId_shouldReturnOrganizationId() {
-            // Given
-            TenantJpaEntity entity = createEntity();
-
-            // Then
-            assertThat(entity.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
         }
 
         @Test
@@ -146,7 +118,6 @@ class TenantJpaEntityTest {
     }
 
     private TenantJpaEntity createEntity() {
-        return TenantJpaEntity.of(
-                ID, NAME, DESCRIPTION, ORGANIZATION_ID, STATUS, CREATED_AT, UPDATED_AT);
+        return TenantJpaEntity.of(ID, NAME, STATUS, CREATED_AT, UPDATED_AT);
     }
 }

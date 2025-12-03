@@ -8,8 +8,4 @@ package com.ryuqq.authhub.application.organization.dto.command;
  * @author development-team
  * @since 1.0.0
  */
-public record CreateOrganizationCommand(
-        Long tenantId,
-        String name
-) {
-}
+public record CreateOrganizationCommand(Long tenantId, String name) {}

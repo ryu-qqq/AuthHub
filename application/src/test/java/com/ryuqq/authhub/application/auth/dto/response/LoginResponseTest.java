@@ -51,14 +51,10 @@ class LoginResponseTest {
         void shouldHaveUserIdField() {
             RecordComponent[] components = LoginResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("userId");
+            assertThat(components).extracting(RecordComponent::getName).contains("userId");
 
             RecordComponent component = findComponent(components, "userId");
-            assertThat(component.getType())
-                    .as("userId는 UUID 타입이어야 합니다")
-                    .isEqualTo(UUID.class);
+            assertThat(component.getType()).as("userId는 UUID 타입이어야 합니다").isEqualTo(UUID.class);
         }
 
         @Test
@@ -66,9 +62,7 @@ class LoginResponseTest {
         void shouldHaveAccessTokenField() {
             RecordComponent[] components = LoginResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("accessToken");
+            assertThat(components).extracting(RecordComponent::getName).contains("accessToken");
 
             RecordComponent component = findComponent(components, "accessToken");
             assertThat(component.getType())
@@ -81,9 +75,7 @@ class LoginResponseTest {
         void shouldHaveRefreshTokenField() {
             RecordComponent[] components = LoginResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("refreshToken");
+            assertThat(components).extracting(RecordComponent::getName).contains("refreshToken");
 
             RecordComponent component = findComponent(components, "refreshToken");
             assertThat(component.getType())
@@ -96,14 +88,10 @@ class LoginResponseTest {
         void shouldHaveExpiresInField() {
             RecordComponent[] components = LoginResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("expiresIn");
+            assertThat(components).extracting(RecordComponent::getName).contains("expiresIn");
 
             RecordComponent component = findComponent(components, "expiresIn");
-            assertThat(component.getType())
-                    .as("expiresIn은 Long 타입이어야 합니다")
-                    .isEqualTo(Long.class);
+            assertThat(component.getType()).as("expiresIn은 Long 타입이어야 합니다").isEqualTo(Long.class);
         }
 
         @Test
@@ -111,9 +99,7 @@ class LoginResponseTest {
         void shouldHaveTokenTypeField() {
             RecordComponent[] components = LoginResponse.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("tokenType");
+            assertThat(components).extracting(RecordComponent::getName).contains("tokenType");
 
             RecordComponent component = findComponent(components, "tokenType");
             assertThat(component.getType())
@@ -137,9 +123,8 @@ class LoginResponseTest {
             String tokenType = "Bearer";
 
             // When
-            LoginResponse response = new LoginResponse(
-                    userId, accessToken, refreshToken, expiresIn, tokenType
-            );
+            LoginResponse response =
+                    new LoginResponse(userId, accessToken, refreshToken, expiresIn, tokenType);
 
             // Then
             assertThat(response.userId()).isEqualTo(userId);

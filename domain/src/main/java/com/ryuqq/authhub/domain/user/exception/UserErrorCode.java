@@ -11,7 +11,6 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  * @since 1.0.0
  */
 public enum UserErrorCode implements ErrorCode {
-
     USER_NOT_FOUND("USER-001", 404, "User not found"),
     INVALID_USER_ID("USER-002", 400, "Invalid user ID"),
     INVALID_USER_TYPE("USER-003", 400, "Invalid user type"),

@@ -11,10 +11,4 @@ import java.util.UUID;
  * @since 1.0.0
  */
 public record LoginResponse(
-        UUID userId,
-        String accessToken,
-        String refreshToken,
-        Long expiresIn,
-        String tokenType
-) {
-}
+        UUID userId, String accessToken, String refreshToken, Long expiresIn, String tokenType) {}

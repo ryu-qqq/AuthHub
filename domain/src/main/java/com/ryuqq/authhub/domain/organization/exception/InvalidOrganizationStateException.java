@@ -2,7 +2,6 @@ package com.ryuqq.authhub.domain.organization.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
-
 import java.util.Map;
 
 /**
@@ -15,14 +14,13 @@ import java.util.Map;
  */
 public class InvalidOrganizationStateException extends DomainException {
 
-    public InvalidOrganizationStateException(OrganizationStatus currentStatus, OrganizationStatus targetStatus) {
+    public InvalidOrganizationStateException(
+            OrganizationStatus currentStatus, OrganizationStatus targetStatus) {
         super(
                 OrganizationErrorCode.INVALID_ORGANIZATION_STATUS,
                 Map.of(
                         "currentStatus", currentStatus != null ? currentStatus.name() : "null",
-                        "targetStatus", targetStatus != null ? targetStatus.name() : "null"
-                )
-        );
+                        "targetStatus", targetStatus != null ? targetStatus.name() : "null"));
     }
 
     public InvalidOrganizationStateException(Long organizationId, String reason) {
@@ -30,9 +28,7 @@ public class InvalidOrganizationStateException extends DomainException {
                 OrganizationErrorCode.INVALID_ORGANIZATION_STATUS,
                 Map.of(
                         "organizationId", organizationId,
-                        "reason", reason
-                )
-        );
+                        "reason", reason));
     }
 
     public InvalidOrganizationStateException(String message) {

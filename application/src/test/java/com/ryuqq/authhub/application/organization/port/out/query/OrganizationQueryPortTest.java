@@ -21,14 +21,15 @@ import org.junit.jupiter.api.Test;
  * OrganizationQueryPort 인터페이스 설계 검증 테스트
  *
  * <p>QueryPort Zero-Tolerance 규칙:
+ *
  * <ul>
- *   <li>인터페이스명: *QueryPort</li>
- *   <li>패키지: application.*.port.out.query</li>
- *   <li>필수 메서드: findById(OrganizationId) → Optional&lt;Organization&gt;</li>
- *   <li>필수 메서드: existsById(OrganizationId) → boolean</li>
- *   <li>필수 메서드: existsByTenantId(TenantId) → boolean (Tenant 참조 검증용)</li>
- *   <li>Value Object 파라미터, Domain 반환</li>
- *   <li>저장/수정/삭제 메서드 금지 (CQRS 분리)</li>
+ *   <li>인터페이스명: *QueryPort
+ *   <li>패키지: application.*.port.out.query
+ *   <li>필수 메서드: findById(OrganizationId) → Optional&lt;Organization&gt;
+ *   <li>필수 메서드: existsById(OrganizationId) → boolean
+ *   <li>필수 메서드: existsByTenantId(TenantId) → boolean (Tenant 참조 검증용)
+ *   <li>Value Object 파라미터, Domain 반환
+ *   <li>저장/수정/삭제 메서드 금지 (CQRS 분리)
  * </ul>
  *
  * @author development-team
@@ -70,7 +71,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] findById(OrganizationId) 메서드가 존재해야 한다")
         void shouldHaveFindByIdMethod() throws NoSuchMethodException {
             // When
-            Method findByIdMethod = OrganizationQueryPort.class.getMethod("findById", OrganizationId.class);
+            Method findByIdMethod =
+                    OrganizationQueryPort.class.getMethod("findById", OrganizationId.class);
 
             // Then
             assertThat(findByIdMethod).isNotNull();
@@ -80,7 +82,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] findById() 메서드는 Optional<Organization>를 반환해야 한다")
         void findByIdShouldReturnOptionalOrganization() throws NoSuchMethodException {
             // When
-            Method findByIdMethod = OrganizationQueryPort.class.getMethod("findById", OrganizationId.class);
+            Method findByIdMethod =
+                    OrganizationQueryPort.class.getMethod("findById", OrganizationId.class);
             Type returnType = findByIdMethod.getGenericReturnType();
 
             // Then
@@ -102,7 +105,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] findById() 메서드는 OrganizationId를 파라미터로 받아야 한다")
         void findByIdShouldAcceptOrganizationIdParameter() throws NoSuchMethodException {
             // When
-            Method findByIdMethod = OrganizationQueryPort.class.getMethod("findById", OrganizationId.class);
+            Method findByIdMethod =
+                    OrganizationQueryPort.class.getMethod("findById", OrganizationId.class);
             Class<?>[] paramTypes = findByIdMethod.getParameterTypes();
 
             // Then
@@ -121,7 +125,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] existsById(OrganizationId) 메서드가 존재해야 한다")
         void shouldHaveExistsByIdMethod() throws NoSuchMethodException {
             // When
-            Method existsByIdMethod = OrganizationQueryPort.class.getMethod("existsById", OrganizationId.class);
+            Method existsByIdMethod =
+                    OrganizationQueryPort.class.getMethod("existsById", OrganizationId.class);
 
             // Then
             assertThat(existsByIdMethod).isNotNull();
@@ -131,7 +136,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] existsById() 메서드는 boolean을 반환해야 한다")
         void existsByIdShouldReturnBoolean() throws NoSuchMethodException {
             // When
-            Method existsByIdMethod = OrganizationQueryPort.class.getMethod("existsById", OrganizationId.class);
+            Method existsByIdMethod =
+                    OrganizationQueryPort.class.getMethod("existsById", OrganizationId.class);
 
             // Then
             assertThat(existsByIdMethod.getReturnType())
@@ -143,7 +149,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] existsById() 메서드는 OrganizationId를 파라미터로 받아야 한다")
         void existsByIdShouldAcceptOrganizationIdParameter() throws NoSuchMethodException {
             // When
-            Method existsByIdMethod = OrganizationQueryPort.class.getMethod("existsById", OrganizationId.class);
+            Method existsByIdMethod =
+                    OrganizationQueryPort.class.getMethod("existsById", OrganizationId.class);
             Class<?>[] paramTypes = existsByIdMethod.getParameterTypes();
 
             // Then
@@ -162,7 +169,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] existsByTenantId(TenantId) 메서드가 존재해야 한다")
         void shouldHaveExistsByTenantIdMethod() throws NoSuchMethodException {
             // When
-            Method existsByTenantIdMethod = OrganizationQueryPort.class.getMethod("existsByTenantId", TenantId.class);
+            Method existsByTenantIdMethod =
+                    OrganizationQueryPort.class.getMethod("existsByTenantId", TenantId.class);
 
             // Then
             assertThat(existsByTenantIdMethod).isNotNull();
@@ -172,7 +180,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] existsByTenantId() 메서드는 boolean을 반환해야 한다")
         void existsByTenantIdShouldReturnBoolean() throws NoSuchMethodException {
             // When
-            Method existsByTenantIdMethod = OrganizationQueryPort.class.getMethod("existsByTenantId", TenantId.class);
+            Method existsByTenantIdMethod =
+                    OrganizationQueryPort.class.getMethod("existsByTenantId", TenantId.class);
 
             // Then
             assertThat(existsByTenantIdMethod.getReturnType())
@@ -184,7 +193,8 @@ class OrganizationQueryPortTest {
         @DisplayName("[필수] existsByTenantId() 메서드는 TenantId를 파라미터로 받아야 한다")
         void existsByTenantIdShouldAcceptTenantIdParameter() throws NoSuchMethodException {
             // When
-            Method existsByTenantIdMethod = OrganizationQueryPort.class.getMethod("existsByTenantId", TenantId.class);
+            Method existsByTenantIdMethod =
+                    OrganizationQueryPort.class.getMethod("existsByTenantId", TenantId.class);
             Class<?>[] paramTypes = existsByTenantIdMethod.getParameterTypes();
 
             // Then
@@ -204,9 +214,10 @@ class OrganizationQueryPortTest {
         void shouldNotHaveSaveOrPersistMethod() {
             // When
             List<String> prohibitedNames = List.of("save", "persist", "update", "delete", "remove");
-            boolean hasProhibitedMethod = Arrays.stream(OrganizationQueryPort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(prohibitedNames::contains);
+            boolean hasProhibitedMethod =
+                    Arrays.stream(OrganizationQueryPort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(prohibitedNames::contains);
 
             // Then
             assertThat(hasProhibitedMethod)
@@ -218,8 +229,9 @@ class OrganizationQueryPortTest {
         @DisplayName("[금지] findAll() 메서드가 존재하면 안 된다")
         void shouldNotHaveFindAllMethod() {
             // When
-            boolean hasFindAllMethod = Arrays.stream(OrganizationQueryPort.class.getMethods())
-                    .anyMatch(method -> method.getName().equals("findAll"));
+            boolean hasFindAllMethod =
+                    Arrays.stream(OrganizationQueryPort.class.getMethods())
+                            .anyMatch(method -> method.getName().equals("findAll"));
 
             // Then
             assertThat(hasFindAllMethod)

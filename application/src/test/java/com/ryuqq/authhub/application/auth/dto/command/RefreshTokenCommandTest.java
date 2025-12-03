@@ -50,9 +50,7 @@ class RefreshTokenCommandTest {
         void shouldHaveRefreshTokenField() {
             RecordComponent[] components = RefreshTokenCommand.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("refreshToken");
+            assertThat(components).extracting(RecordComponent::getName).contains("refreshToken");
 
             RecordComponent component = findComponent(components, "refreshToken");
             assertThat(component.getType())

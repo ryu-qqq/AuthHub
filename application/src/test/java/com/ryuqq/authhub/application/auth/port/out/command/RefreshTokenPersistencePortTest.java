@@ -16,13 +16,14 @@ import org.junit.jupiter.api.Test;
  * RefreshTokenPersistencePort 인터페이스 설계 검증 테스트
  *
  * <p>PersistencePort Zero-Tolerance 규칙:
+ *
  * <ul>
- *   <li>인터페이스명: *PersistencePort</li>
- *   <li>패키지: application.*.port.out.command</li>
- *   <li>필수 메서드: persist(UserId, String token)</li>
- *   <li>필수 메서드: deleteByUserId(UserId)</li>
- *   <li>Value Object 파라미터</li>
- *   <li>조회 메서드 금지 (QueryPort로 분리)</li>
+ *   <li>인터페이스명: *PersistencePort
+ *   <li>패키지: application.*.port.out.command
+ *   <li>필수 메서드: persist(UserId, String token)
+ *   <li>필수 메서드: deleteByUserId(UserId)
+ *   <li>Value Object 파라미터
+ *   <li>조회 메서드 금지 (QueryPort로 분리)
  * </ul>
  *
  * @author development-team
@@ -64,8 +65,9 @@ class RefreshTokenPersistencePortTest {
         @DisplayName("[필수] persist(UserId, String) 메서드가 존재해야 한다")
         void shouldHavePersistMethod() throws NoSuchMethodException {
             // When
-            Method persistMethod = RefreshTokenPersistencePort.class.getMethod(
-                    "persist", UserId.class, String.class);
+            Method persistMethod =
+                    RefreshTokenPersistencePort.class.getMethod(
+                            "persist", UserId.class, String.class);
 
             // Then
             assertThat(persistMethod).isNotNull();
@@ -75,8 +77,9 @@ class RefreshTokenPersistencePortTest {
         @DisplayName("[필수] persist() 메서드는 void를 반환해야 한다")
         void persistShouldReturnVoid() throws NoSuchMethodException {
             // When
-            Method persistMethod = RefreshTokenPersistencePort.class.getMethod(
-                    "persist", UserId.class, String.class);
+            Method persistMethod =
+                    RefreshTokenPersistencePort.class.getMethod(
+                            "persist", UserId.class, String.class);
 
             // Then
             assertThat(persistMethod.getReturnType())
@@ -88,8 +91,9 @@ class RefreshTokenPersistencePortTest {
         @DisplayName("[필수] persist() 메서드는 UserId와 String을 파라미터로 받아야 한다")
         void persistShouldAcceptUserIdAndTokenParameter() throws NoSuchMethodException {
             // When
-            Method persistMethod = RefreshTokenPersistencePort.class.getMethod(
-                    "persist", UserId.class, String.class);
+            Method persistMethod =
+                    RefreshTokenPersistencePort.class.getMethod(
+                            "persist", UserId.class, String.class);
             Class<?>[] paramTypes = persistMethod.getParameterTypes();
 
             // Then
@@ -111,8 +115,8 @@ class RefreshTokenPersistencePortTest {
         @DisplayName("[필수] deleteByUserId(UserId) 메서드가 존재해야 한다")
         void shouldHaveDeleteByUserIdMethod() throws NoSuchMethodException {
             // When
-            Method deleteMethod = RefreshTokenPersistencePort.class.getMethod(
-                    "deleteByUserId", UserId.class);
+            Method deleteMethod =
+                    RefreshTokenPersistencePort.class.getMethod("deleteByUserId", UserId.class);
 
             // Then
             assertThat(deleteMethod).isNotNull();
@@ -122,8 +126,8 @@ class RefreshTokenPersistencePortTest {
         @DisplayName("[필수] deleteByUserId() 메서드는 void를 반환해야 한다")
         void deleteByUserIdShouldReturnVoid() throws NoSuchMethodException {
             // When
-            Method deleteMethod = RefreshTokenPersistencePort.class.getMethod(
-                    "deleteByUserId", UserId.class);
+            Method deleteMethod =
+                    RefreshTokenPersistencePort.class.getMethod("deleteByUserId", UserId.class);
 
             // Then
             assertThat(deleteMethod.getReturnType())
@@ -135,8 +139,8 @@ class RefreshTokenPersistencePortTest {
         @DisplayName("[필수] deleteByUserId() 메서드는 UserId를 파라미터로 받아야 한다")
         void deleteByUserIdShouldAcceptUserIdParameter() throws NoSuchMethodException {
             // When
-            Method deleteMethod = RefreshTokenPersistencePort.class.getMethod(
-                    "deleteByUserId", UserId.class);
+            Method deleteMethod =
+                    RefreshTokenPersistencePort.class.getMethod("deleteByUserId", UserId.class);
             Class<?>[] paramTypes = deleteMethod.getParameterTypes();
 
             // Then
@@ -155,15 +159,18 @@ class RefreshTokenPersistencePortTest {
         @DisplayName("[금지] 조회 메서드(find/load/exists)가 존재하면 안 된다")
         void shouldNotHaveQueryMethods() {
             // When
-            boolean hasQueryMethod = Arrays.stream(RefreshTokenPersistencePort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(name -> name.startsWith("find") || name.startsWith("load")
-                            || name.startsWith("exists") || name.startsWith("get"));
+            boolean hasQueryMethod =
+                    Arrays.stream(RefreshTokenPersistencePort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(
+                                    name ->
+                                            name.startsWith("find")
+                                                    || name.startsWith("load")
+                                                    || name.startsWith("exists")
+                                                    || name.startsWith("get"));
 
             // Then
-            assertThat(hasQueryMethod)
-                    .as("PersistencePort는 조회 메서드를 가지면 안 됩니다 (CQRS)")
-                    .isFalse();
+            assertThat(hasQueryMethod).as("PersistencePort는 조회 메서드를 가지면 안 됩니다 (CQRS)").isFalse();
         }
 
         @Test
@@ -171,9 +178,10 @@ class RefreshTokenPersistencePortTest {
         void shouldNotHaveSaveUpdateMethods() {
             // When
             List<String> prohibitedNames = List.of("save", "update");
-            boolean hasProhibitedMethod = Arrays.stream(RefreshTokenPersistencePort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(prohibitedNames::contains);
+            boolean hasProhibitedMethod =
+                    Arrays.stream(RefreshTokenPersistencePort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(prohibitedNames::contains);
 
             // Then
             assertThat(hasProhibitedMethod)

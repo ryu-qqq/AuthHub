@@ -5,8 +5,7 @@ import java.util.Objects;
 /**
  * OrganizationName - Organization 이름 Value Object
  *
- * <p>Organization의 이름을 나타내는 불변 객체입니다.
- * 2자 이상 100자 이하의 문자열만 허용합니다.
+ * <p>Organization의 이름을 나타내는 불변 객체입니다. 2자 이상 100자 이하의 문자열만 허용합니다.
  *
  * @author development-team
  * @since 1.0.0

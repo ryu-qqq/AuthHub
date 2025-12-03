@@ -51,14 +51,10 @@ class ChangePasswordCommandTest {
         void shouldHaveUserIdField() {
             RecordComponent[] components = ChangePasswordCommand.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("userId");
+            assertThat(components).extracting(RecordComponent::getName).contains("userId");
 
             RecordComponent component = findComponent(components, "userId");
-            assertThat(component.getType())
-                    .as("userId는 UUID 타입이어야 합니다")
-                    .isEqualTo(UUID.class);
+            assertThat(component.getType()).as("userId는 UUID 타입이어야 합니다").isEqualTo(UUID.class);
         }
 
         @Test
@@ -66,9 +62,7 @@ class ChangePasswordCommandTest {
         void shouldHaveCurrentPasswordField() {
             RecordComponent[] components = ChangePasswordCommand.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("currentPassword");
+            assertThat(components).extracting(RecordComponent::getName).contains("currentPassword");
 
             RecordComponent component = findComponent(components, "currentPassword");
             assertThat(component.getType())
@@ -81,14 +75,25 @@ class ChangePasswordCommandTest {
         void shouldHaveNewPasswordField() {
             RecordComponent[] components = ChangePasswordCommand.class.getRecordComponents();
 
-            assertThat(components)
-                    .extracting(RecordComponent::getName)
-                    .contains("newPassword");
+            assertThat(components).extracting(RecordComponent::getName).contains("newPassword");
 
             RecordComponent component = findComponent(components, "newPassword");
             assertThat(component.getType())
                     .as("newPassword는 String 타입이어야 합니다")
                     .isEqualTo(String.class);
+        }
+
+        @Test
+        @DisplayName("[필수] verified 필드가 존재해야 한다")
+        void shouldHaveVerifiedField() {
+            RecordComponent[] components = ChangePasswordCommand.class.getRecordComponents();
+
+            assertThat(components).extracting(RecordComponent::getName).contains("verified");
+
+            RecordComponent component = findComponent(components, "verified");
+            assertThat(component.getType())
+                    .as("verified는 boolean 타입이어야 합니다")
+                    .isEqualTo(boolean.class);
         }
     }
 
@@ -103,16 +108,58 @@ class ChangePasswordCommandTest {
             UUID userId = UUID.randomUUID();
             String currentPassword = "OldPassword123!";
             String newPassword = "NewPassword456!";
+            boolean verified = false;
 
             // When
-            ChangePasswordCommand command = new ChangePasswordCommand(
-                    userId, currentPassword, newPassword
-            );
+            ChangePasswordCommand command =
+                    new ChangePasswordCommand(userId, currentPassword, newPassword, verified);
 
             // Then
             assertThat(command.userId()).isEqualTo(userId);
             assertThat(command.currentPassword()).isEqualTo(currentPassword);
             assertThat(command.newPassword()).isEqualTo(newPassword);
+            assertThat(command.verified()).isEqualTo(verified);
+        }
+    }
+
+    @Nested
+    @DisplayName("팩토리 메서드 검증")
+    class FactoryMethodTest {
+
+        @Test
+        @DisplayName("[필수] forChange()는 verified=false인 커맨드를 생성해야 한다")
+        void shouldCreateUnverifiedCommand() {
+            // Given
+            UUID userId = UUID.randomUUID();
+            String currentPassword = "OldPassword123!";
+            String newPassword = "NewPassword456!";
+
+            // When
+            ChangePasswordCommand command =
+                    ChangePasswordCommand.forChange(userId, currentPassword, newPassword);
+
+            // Then
+            assertThat(command.userId()).isEqualTo(userId);
+            assertThat(command.currentPassword()).isEqualTo(currentPassword);
+            assertThat(command.newPassword()).isEqualTo(newPassword);
+            assertThat(command.verified()).isFalse();
+        }
+
+        @Test
+        @DisplayName("[필수] forReset()은 verified=true, currentPassword=null인 커맨드를 생성해야 한다")
+        void shouldCreateVerifiedCommand() {
+            // Given
+            UUID userId = UUID.randomUUID();
+            String newPassword = "NewPassword456!";
+
+            // When
+            ChangePasswordCommand command = ChangePasswordCommand.forReset(userId, newPassword);
+
+            // Then
+            assertThat(command.userId()).isEqualTo(userId);
+            assertThat(command.currentPassword()).isNull();
+            assertThat(command.newPassword()).isEqualTo(newPassword);
+            assertThat(command.verified()).isTrue();
         }
     }
 

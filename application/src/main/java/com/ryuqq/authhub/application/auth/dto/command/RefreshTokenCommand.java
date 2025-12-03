@@ -10,7 +10,4 @@ package com.ryuqq.authhub.application.auth.dto.command;
  * @author development-team
  * @since 1.0.0
  */
-public record RefreshTokenCommand(
-        String refreshToken
-) {
-}
+public record RefreshTokenCommand(String refreshToken) {}

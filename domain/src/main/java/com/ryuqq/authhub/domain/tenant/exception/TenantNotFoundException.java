@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.tenant.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-
 import java.util.Map;
 
 /**

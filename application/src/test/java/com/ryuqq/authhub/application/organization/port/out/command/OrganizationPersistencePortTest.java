@@ -17,12 +17,13 @@ import org.junit.jupiter.api.Test;
  * OrganizationPersistencePort 인터페이스 설계 검증 테스트
  *
  * <p>PersistencePort Zero-Tolerance 규칙:
+ *
  * <ul>
- *   <li>인터페이스명: *PersistencePort</li>
- *   <li>패키지: application.*.port.out.command</li>
- *   <li>필수 메서드: persist(Organization) → OrganizationId</li>
- *   <li>Domain 파라미터, Value Object 반환</li>
- *   <li>save/update/delete 개별 메서드 금지 (persist로 통합)</li>
+ *   <li>인터페이스명: *PersistencePort
+ *   <li>패키지: application.*.port.out.command
+ *   <li>필수 메서드: persist(Organization) → OrganizationId
+ *   <li>Domain 파라미터, Value Object 반환
+ *   <li>save/update/delete 개별 메서드 금지 (persist로 통합)
  * </ul>
  *
  * @author development-team
@@ -64,7 +65,8 @@ class OrganizationPersistencePortTest {
         @DisplayName("[필수] persist(Organization) 메서드가 존재해야 한다")
         void shouldHavePersistMethod() throws NoSuchMethodException {
             // When
-            Method persistMethod = OrganizationPersistencePort.class.getMethod("persist", Organization.class);
+            Method persistMethod =
+                    OrganizationPersistencePort.class.getMethod("persist", Organization.class);
 
             // Then
             assertThat(persistMethod).isNotNull();
@@ -74,7 +76,8 @@ class OrganizationPersistencePortTest {
         @DisplayName("[필수] persist() 메서드는 OrganizationId를 반환해야 한다")
         void persistShouldReturnOrganizationId() throws NoSuchMethodException {
             // When
-            Method persistMethod = OrganizationPersistencePort.class.getMethod("persist", Organization.class);
+            Method persistMethod =
+                    OrganizationPersistencePort.class.getMethod("persist", Organization.class);
 
             // Then
             assertThat(persistMethod.getReturnType())
@@ -86,7 +89,8 @@ class OrganizationPersistencePortTest {
         @DisplayName("[필수] persist() 메서드는 Organization을 파라미터로 받아야 한다")
         void persistShouldAcceptOrganizationParameter() throws NoSuchMethodException {
             // When
-            Method persistMethod = OrganizationPersistencePort.class.getMethod("persist", Organization.class);
+            Method persistMethod =
+                    OrganizationPersistencePort.class.getMethod("persist", Organization.class);
             Class<?>[] paramTypes = persistMethod.getParameterTypes();
 
             // Then
@@ -106,9 +110,10 @@ class OrganizationPersistencePortTest {
         void shouldNotHaveSaveUpdateDeleteMethods() {
             // When
             List<String> prohibitedNames = List.of("save", "update", "delete", "remove");
-            boolean hasProhibitedMethod = Arrays.stream(OrganizationPersistencePort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(prohibitedNames::contains);
+            boolean hasProhibitedMethod =
+                    Arrays.stream(OrganizationPersistencePort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(prohibitedNames::contains);
 
             // Then
             assertThat(hasProhibitedMethod)
@@ -120,15 +125,18 @@ class OrganizationPersistencePortTest {
         @DisplayName("[금지] 조회 메서드(find/load/exists)가 존재하면 안 된다")
         void shouldNotHaveQueryMethods() {
             // When
-            boolean hasQueryMethod = Arrays.stream(OrganizationPersistencePort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(name -> name.startsWith("find") || name.startsWith("load")
-                            || name.startsWith("exists") || name.startsWith("get"));
+            boolean hasQueryMethod =
+                    Arrays.stream(OrganizationPersistencePort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(
+                                    name ->
+                                            name.startsWith("find")
+                                                    || name.startsWith("load")
+                                                    || name.startsWith("exists")
+                                                    || name.startsWith("get"));
 
             // Then
-            assertThat(hasQueryMethod)
-                    .as("PersistencePort는 조회 메서드를 가지면 안 됩니다 (CQRS)")
-                    .isFalse();
+            assertThat(hasQueryMethod).as("PersistencePort는 조회 메서드를 가지면 안 됩니다 (CQRS)").isFalse();
         }
     }
 }

@@ -19,13 +19,14 @@ import org.junit.jupiter.api.Test;
  * RefreshTokenQueryPort 인터페이스 설계 검증 테스트
  *
  * <p>QueryPort Zero-Tolerance 규칙:
+ *
  * <ul>
- *   <li>인터페이스명: *QueryPort</li>
- *   <li>패키지: application.*.port.out.query</li>
- *   <li>필수 메서드: findByUserId(UserId) → Optional&lt;String&gt;</li>
- *   <li>필수 메서드: existsByUserId(UserId) → boolean</li>
- *   <li>Value Object 파라미터</li>
- *   <li>저장/수정/삭제 메서드 금지 (CQRS 분리)</li>
+ *   <li>인터페이스명: *QueryPort
+ *   <li>패키지: application.*.port.out.query
+ *   <li>필수 메서드: findByUserId(UserId) → Optional&lt;String&gt;
+ *   <li>필수 메서드: existsByUserId(UserId) → boolean
+ *   <li>Value Object 파라미터
+ *   <li>저장/수정/삭제 메서드 금지 (CQRS 분리)
  * </ul>
  *
  * @author development-team
@@ -118,7 +119,8 @@ class RefreshTokenQueryPortTest {
         @DisplayName("[필수] existsByUserId(UserId) 메서드가 존재해야 한다")
         void shouldHaveExistsByUserIdMethod() throws NoSuchMethodException {
             // When
-            Method existsMethod = RefreshTokenQueryPort.class.getMethod("existsByUserId", UserId.class);
+            Method existsMethod =
+                    RefreshTokenQueryPort.class.getMethod("existsByUserId", UserId.class);
 
             // Then
             assertThat(existsMethod).isNotNull();
@@ -128,7 +130,8 @@ class RefreshTokenQueryPortTest {
         @DisplayName("[필수] existsByUserId() 메서드는 boolean을 반환해야 한다")
         void existsByUserIdShouldReturnBoolean() throws NoSuchMethodException {
             // When
-            Method existsMethod = RefreshTokenQueryPort.class.getMethod("existsByUserId", UserId.class);
+            Method existsMethod =
+                    RefreshTokenQueryPort.class.getMethod("existsByUserId", UserId.class);
 
             // Then
             assertThat(existsMethod.getReturnType())
@@ -140,7 +143,8 @@ class RefreshTokenQueryPortTest {
         @DisplayName("[필수] existsByUserId() 메서드는 UserId를 파라미터로 받아야 한다")
         void existsByUserIdShouldAcceptUserIdParameter() throws NoSuchMethodException {
             // When
-            Method existsMethod = RefreshTokenQueryPort.class.getMethod("existsByUserId", UserId.class);
+            Method existsMethod =
+                    RefreshTokenQueryPort.class.getMethod("existsByUserId", UserId.class);
             Class<?>[] paramTypes = existsMethod.getParameterTypes();
 
             // Then
@@ -160,9 +164,10 @@ class RefreshTokenQueryPortTest {
         void shouldNotHaveSaveOrPersistMethod() {
             // When
             List<String> prohibitedNames = List.of("save", "persist", "update", "delete", "remove");
-            boolean hasProhibitedMethod = Arrays.stream(RefreshTokenQueryPort.class.getMethods())
-                    .map(Method::getName)
-                    .anyMatch(prohibitedNames::contains);
+            boolean hasProhibitedMethod =
+                    Arrays.stream(RefreshTokenQueryPort.class.getMethods())
+                            .map(Method::getName)
+                            .anyMatch(prohibitedNames::contains);
 
             // Then
             assertThat(hasProhibitedMethod)
@@ -174,13 +179,12 @@ class RefreshTokenQueryPortTest {
         @DisplayName("[금지] findAll() 메서드가 존재하면 안 된다")
         void shouldNotHaveFindAllMethod() {
             // When
-            boolean hasFindAllMethod = Arrays.stream(RefreshTokenQueryPort.class.getMethods())
-                    .anyMatch(method -> method.getName().equals("findAll"));
+            boolean hasFindAllMethod =
+                    Arrays.stream(RefreshTokenQueryPort.class.getMethods())
+                            .anyMatch(method -> method.getName().equals("findAll"));
 
             // Then
-            assertThat(hasFindAllMethod)
-                    .as("findAll()은 OOM 위험이 있어 금지입니다")
-                    .isFalse();
+            assertThat(hasFindAllMethod).as("findAll()은 OOM 위험이 있어 금지입니다").isFalse();
         }
     }
 }
