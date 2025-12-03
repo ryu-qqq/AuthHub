@@ -11,11 +11,12 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  * @since 1.0.0
  */
 public enum TenantErrorCode implements ErrorCode {
-
     TENANT_NOT_FOUND("TENANT-001", 404, "Tenant not found"),
     INVALID_TENANT_ID("TENANT-002", 400, "Invalid tenant ID"),
     INVALID_TENANT_NAME("TENANT-003", 400, "Invalid tenant name"),
-    INVALID_TENANT_STATUS("TENANT-004", 400, "Invalid tenant status");
+    INVALID_TENANT_STATUS("TENANT-004", 400, "Invalid tenant status"),
+    ACTIVE_ORGANIZATIONS_EXIST(
+            "TENANT-005", 409, "Cannot suspend tenant with active organizations");
 
     private final String code;
     private final int httpStatus;

@@ -2,7 +2,6 @@ package com.ryuqq.authhub.domain.user.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,9 +20,7 @@ public class InvalidUserStateException extends DomainException {
                 UserErrorCode.INVALID_USER_STATUS,
                 Map.of(
                         "currentStatus", currentStatus != null ? currentStatus.name() : "null",
-                        "targetStatus", targetStatus != null ? targetStatus.name() : "null"
-                )
-        );
+                        "targetStatus", targetStatus != null ? targetStatus.name() : "null"));
     }
 
     public InvalidUserStateException(UUID userId, String reason) {
@@ -31,9 +28,17 @@ public class InvalidUserStateException extends DomainException {
                 UserErrorCode.INVALID_USER_STATUS,
                 Map.of(
                         "userId", userId,
-                        "reason", reason
-                )
-        );
+                        "reason", reason));
+    }
+
+    public InvalidUserStateException(UserStatus currentStatus, String reason) {
+        super(
+                UserErrorCode.INVALID_USER_STATUS,
+                Map.of(
+                        "currentStatus",
+                        currentStatus != null ? currentStatus.name() : "null",
+                        "reason",
+                        reason));
     }
 
     public InvalidUserStateException(String message) {

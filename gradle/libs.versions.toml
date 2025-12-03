@@ -78,6 +78,7 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 
 # ========================================
@@ -86,6 +87,7 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 spring-context = { module = "org.springframework:spring-context" }
 spring-tx = { module = "org.springframework:spring-tx" }
 spring-messaging = { module = "org.springframework:spring-messaging" }
+spring-security-crypto = { module = "org.springframework.security:spring-security-crypto" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
 
 # ========================================

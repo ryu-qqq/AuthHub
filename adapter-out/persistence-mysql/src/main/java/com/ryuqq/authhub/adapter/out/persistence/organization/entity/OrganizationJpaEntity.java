@@ -15,6 +15,21 @@ import java.time.LocalDateTime;
 /**
  * OrganizationJpaEntity - Organization JPA Entity
  *
+ * <p>테넌트 내의 조직 정보를 저장합니다.
+ *
+ * <p><strong>Domain 매핑:</strong>
+ *
+ * <ul>
+ *   <li>Long id ← OrganizationId
+ *   <li>String name ← OrganizationName
+ *   <li>Long tenantId ← TenantId (Long FK 전략)
+ *   <li>OrganizationStatus status ← OrganizationStatus
+ *   <li>LocalDateTime createdAt ← Instant (Mapper에서 변환)
+ *   <li>LocalDateTime updatedAt ← Instant (Mapper에서 변환)
+ * </ul>
+ *
+ * <p><strong>Long FK 전략:</strong> JPA 관계 어노테이션 대신 Long 타입으로 외래 키를 직접 관리합니다.
+ *
  * @author AuthHub Team
  * @since 1.0.0
  */
@@ -30,8 +45,8 @@ public class OrganizationJpaEntity extends BaseAuditEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "description", length = 500)
-    private String description;
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -42,25 +57,25 @@ public class OrganizationJpaEntity extends BaseAuditEntity {
     private OrganizationJpaEntity(
             Long id,
             String name,
-            String description,
+            Long tenantId,
             OrganizationStatus status,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
         this.id = id;
         this.name = name;
-        this.description = description;
+        this.tenantId = tenantId;
         this.status = status;
     }
 
     public static OrganizationJpaEntity of(
             Long id,
             String name,
-            String description,
+            Long tenantId,
             OrganizationStatus status,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
-        return new OrganizationJpaEntity(id, name, description, status, createdAt, updatedAt);
+        return new OrganizationJpaEntity(id, name, tenantId, status, createdAt, updatedAt);
     }
 
     public Long getId() {
@@ -71,8 +86,8 @@ public class OrganizationJpaEntity extends BaseAuditEntity {
         return name;
     }
 
-    public String getDescription() {
-        return description;
+    public Long getTenantId() {
+        return tenantId;
     }
 
     public OrganizationStatus getStatus() {

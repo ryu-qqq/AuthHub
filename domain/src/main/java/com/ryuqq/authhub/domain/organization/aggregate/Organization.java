@@ -6,15 +6,13 @@ import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-
 import java.time.Instant;
 import java.util.Objects;
 
 /**
  * Organization - Organization Aggregate Root
  *
- * <p>테넌트 내의 조직 정보를 관리합니다.
- * 불변 객체로 상태 변경 시 새로운 객체를 반환합니다.
+ * <p>테넌트 내의 조직 정보를 관리합니다. 불변 객체로 상태 변경 시 새로운 객체를 반환합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -34,8 +32,7 @@ public final class Organization {
             TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         this.organizationId = organizationId;
         this.organizationName = organizationName;
         this.tenantId = tenantId;
@@ -46,11 +43,13 @@ public final class Organization {
 
     // ========== Factory Methods ==========
 
-    public static Organization forNew(OrganizationName organizationName, TenantId tenantId, Clock clock) {
+    public static Organization forNew(
+            OrganizationName organizationName, TenantId tenantId, Clock clock) {
         validateOrganizationName(organizationName);
         validateTenantId(tenantId);
         Instant now = clock.now();
-        return new Organization(null, organizationName, tenantId, OrganizationStatus.ACTIVE, now, now);
+        return new Organization(
+                null, organizationName, tenantId, OrganizationStatus.ACTIVE, now, now);
     }
 
     public static Organization of(
@@ -59,14 +58,19 @@ public final class Organization {
             TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         validateOrganizationName(organizationName);
         validateTenantId(tenantId);
         validateOrganizationStatus(organizationStatus);
         validateCreatedAt(createdAt);
         validateUpdatedAt(updatedAt);
-        return new Organization(organizationId, organizationName, tenantId, organizationStatus, createdAt, updatedAt);
+        return new Organization(
+                organizationId,
+                organizationName,
+                tenantId,
+                organizationStatus,
+                createdAt,
+                updatedAt);
     }
 
     public static Organization reconstitute(
@@ -75,8 +79,7 @@ public final class Organization {
             TenantId tenantId,
             OrganizationStatus organizationStatus,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         if (organizationId == null) {
             throw new IllegalArgumentException("reconstitute requires non-null organizationId");
         }
@@ -85,7 +88,13 @@ public final class Organization {
         validateOrganizationStatus(organizationStatus);
         validateCreatedAt(createdAt);
         validateUpdatedAt(updatedAt);
-        return new Organization(organizationId, organizationName, tenantId, organizationStatus, createdAt, updatedAt);
+        return new Organization(
+                organizationId,
+                organizationName,
+                tenantId,
+                organizationStatus,
+                createdAt,
+                updatedAt);
     }
 
     // ========== Validation Methods ==========
@@ -127,23 +136,53 @@ public final class Organization {
 
     public Organization activate(Clock clock) {
         if (!organizationStatus.canActivate()) {
-            throw new InvalidOrganizationStateException(organizationStatus, OrganizationStatus.ACTIVE);
+            throw new InvalidOrganizationStateException(
+                    organizationStatus, OrganizationStatus.ACTIVE);
         }
-        return new Organization(organizationId, organizationName, tenantId, OrganizationStatus.ACTIVE, createdAt, clock.now());
+        return new Organization(
+                organizationId,
+                organizationName,
+                tenantId,
+                OrganizationStatus.ACTIVE,
+                createdAt,
+                clock.now());
     }
 
     public Organization deactivate(Clock clock) {
         if (!organizationStatus.canDeactivate()) {
-            throw new InvalidOrganizationStateException(organizationStatus, OrganizationStatus.INACTIVE);
+            throw new InvalidOrganizationStateException(
+                    organizationStatus, OrganizationStatus.INACTIVE);
         }
-        return new Organization(organizationId, organizationName, tenantId, OrganizationStatus.INACTIVE, createdAt, clock.now());
+        return new Organization(
+                organizationId,
+                organizationName,
+                tenantId,
+                OrganizationStatus.INACTIVE,
+                createdAt,
+                clock.now());
     }
 
     public Organization delete(Clock clock) {
         if (!organizationStatus.canDelete()) {
-            throw new InvalidOrganizationStateException(organizationStatus, OrganizationStatus.DELETED);
+            throw new InvalidOrganizationStateException(
+                    organizationStatus, OrganizationStatus.DELETED);
         }
-        return new Organization(organizationId, organizationName, tenantId, OrganizationStatus.DELETED, createdAt, clock.now());
+        return new Organization(
+                organizationId,
+                organizationName,
+                tenantId,
+                OrganizationStatus.DELETED,
+                createdAt,
+                clock.now());
+    }
+
+    public Organization updateName(OrganizationName newName, Clock clock) {
+        if (!isActive()) {
+            throw new InvalidOrganizationStateException("조직명 변경은 활성 상태의 조직만 가능합니다");
+        }
+        validateOrganizationName(newName);
+        return new Organization(
+                organizationId, newName, tenantId, organizationStatus, createdAt, clock.now());
     }
 
     // ========== Helper Methods ==========
@@ -223,18 +262,30 @@ public final class Organization {
 
     @Override
     public int hashCode() {
-        return Objects.hash(organizationId, organizationName, tenantId, organizationStatus, createdAt, updatedAt);
+        return Objects.hash(
+                organizationId,
+                organizationName,
+                tenantId,
+                organizationStatus,
+                createdAt,
+                updatedAt);
     }
 
     @Override
     public String toString() {
         return "Organization{"
-                + "organizationId=" + organizationId
-                + ", organizationName=" + organizationName
-                + ", tenantId=" + tenantId
-                + ", organizationStatus=" + organizationStatus
-                + ", createdAt=" + createdAt
-                + ", updatedAt=" + updatedAt
+                + "organizationId="
+                + organizationId
+                + ", organizationName="
+                + organizationName
+                + ", tenantId="
+                + tenantId
+                + ", organizationStatus="
+                + organizationStatus
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
                 + '}';
     }
 }

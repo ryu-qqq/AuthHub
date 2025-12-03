@@ -8,12 +8,31 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+/**
+ * OrganizationJpaEntity 테스트
+ *
+ * <p>Organization Domain 모델과 일치하는 Entity 테스트
+ *
+ * <p><strong>Domain 필드:</strong>
+ *
+ * <ul>
+ *   <li>OrganizationId organizationId → Long id
+ *   <li>OrganizationName organizationName → String name
+ *   <li>TenantId tenantId → Long tenantId (Long FK 전략)
+ *   <li>OrganizationStatus organizationStatus → OrganizationStatus status
+ *   <li>Instant createdAt → LocalDateTime createdAt
+ *   <li>Instant updatedAt → LocalDateTime updatedAt
+ * </ul>
+ *
+ * @author AuthHub Team
+ * @since 1.0.0
+ */
 @DisplayName("OrganizationJpaEntity 테스트")
 class OrganizationJpaEntityTest {
 
     private static final Long ID = 1L;
     private static final String NAME = "Test Organization";
-    private static final String DESCRIPTION = "Test organization description";
+    private static final Long TENANT_ID = 100L;
     private static final OrganizationStatus STATUS = OrganizationStatus.ACTIVE;
     private static final LocalDateTime CREATED_AT = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
     private static final LocalDateTime UPDATED_AT = LocalDateTime.of(2025, 1, 2, 15, 30, 0);
@@ -27,13 +46,13 @@ class OrganizationJpaEntityTest {
         void of_shouldCreateOrganizationJpaEntityWithAllFields() {
             // When
             OrganizationJpaEntity entity =
-                    OrganizationJpaEntity.of(ID, NAME, DESCRIPTION, STATUS, CREATED_AT, UPDATED_AT);
+                    OrganizationJpaEntity.of(ID, NAME, TENANT_ID, STATUS, CREATED_AT, UPDATED_AT);
 
             // Then
             assertThat(entity).isNotNull();
             assertThat(entity.getId()).isEqualTo(ID);
             assertThat(entity.getName()).isEqualTo(NAME);
-            assertThat(entity.getDescription()).isEqualTo(DESCRIPTION);
+            assertThat(entity.getTenantId()).isEqualTo(TENANT_ID);
             assertThat(entity.getStatus()).isEqualTo(STATUS);
             assertThat(entity.getCreatedAt()).isEqualTo(CREATED_AT);
             assertThat(entity.getUpdatedAt()).isEqualTo(UPDATED_AT);
@@ -44,23 +63,12 @@ class OrganizationJpaEntityTest {
         void of_shouldCreateNewEntityWithNullId() {
             // When
             OrganizationJpaEntity entity =
-                    OrganizationJpaEntity.of(
-                            null, NAME, DESCRIPTION, STATUS, CREATED_AT, UPDATED_AT);
+                    OrganizationJpaEntity.of(null, NAME, TENANT_ID, STATUS, CREATED_AT, UPDATED_AT);
 
             // Then
             assertThat(entity.getId()).isNull();
             assertThat(entity.getName()).isEqualTo(NAME);
-        }
-
-        @Test
-        @DisplayName("[of] Description이 null인 엔티티 생성")
-        void of_shouldCreateEntityWithNullDescription() {
-            // When
-            OrganizationJpaEntity entity =
-                    OrganizationJpaEntity.of(ID, NAME, null, STATUS, CREATED_AT, UPDATED_AT);
-
-            // Then
-            assertThat(entity.getDescription()).isNull();
+            assertThat(entity.getTenantId()).isEqualTo(TENANT_ID);
         }
     }
 
@@ -89,13 +97,13 @@ class OrganizationJpaEntityTest {
         }
 
         @Test
-        @DisplayName("[getDescription] 설명 반환")
-        void getDescription_shouldReturnDescription() {
+        @DisplayName("[getTenantId] 테넌트 ID 반환 (Long FK 전략)")
+        void getTenantId_shouldReturnTenantId() {
             // Given
             OrganizationJpaEntity entity = createEntity();
 
             // Then
-            assertThat(entity.getDescription()).isEqualTo(DESCRIPTION);
+            assertThat(entity.getTenantId()).isEqualTo(TENANT_ID);
         }
 
         @Test
@@ -126,6 +134,6 @@ class OrganizationJpaEntityTest {
     }
 
     private OrganizationJpaEntity createEntity() {
-        return OrganizationJpaEntity.of(ID, NAME, DESCRIPTION, STATUS, CREATED_AT, UPDATED_AT);
+        return OrganizationJpaEntity.of(ID, NAME, TENANT_ID, STATUS, CREATED_AT, UPDATED_AT);
     }
 }

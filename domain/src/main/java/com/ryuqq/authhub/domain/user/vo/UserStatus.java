@@ -7,7 +7,6 @@ package com.ryuqq.authhub.domain.user.vo;
  * @since 1.0.0
  */
 public enum UserStatus {
-
     ACTIVE("활성"),
     INACTIVE("비활성"),
     SUSPENDED("정지"),
@@ -24,9 +23,6 @@ public enum UserStatus {
     }
 
     public boolean canTransitionTo(UserStatus target) {
-        if (this == DELETED) {
-            return false;
-        }
-        return true;
+        return this != DELETED;
     }
 }

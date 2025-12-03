@@ -15,6 +15,18 @@ import java.time.LocalDateTime;
 /**
  * TenantJpaEntity - Tenant JPA Entity
  *
+ * <p>멀티테넌시 지원을 위한 테넌트 정보를 저장합니다.
+ *
+ * <p><strong>Domain 매핑:</strong>
+ *
+ * <ul>
+ *   <li>Long id ← TenantId
+ *   <li>String name ← TenantName
+ *   <li>TenantStatus status ← TenantStatus
+ *   <li>LocalDateTime createdAt ← Instant (Mapper에서 변환)
+ *   <li>LocalDateTime updatedAt ← Instant (Mapper에서 변환)
+ * </ul>
+ *
  * @author AuthHub Team
  * @since 1.0.0
  */
@@ -30,12 +42,6 @@ public class TenantJpaEntity extends BaseAuditEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "description", length = 500)
-    private String description;
-
-    @Column(name = "organization_id", nullable = false)
-    private Long organizationId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private TenantStatus status;
@@ -45,29 +51,22 @@ public class TenantJpaEntity extends BaseAuditEntity {
     private TenantJpaEntity(
             Long id,
             String name,
-            String description,
-            Long organizationId,
             TenantStatus status,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
         this.id = id;
         this.name = name;
-        this.description = description;
-        this.organizationId = organizationId;
         this.status = status;
     }
 
     public static TenantJpaEntity of(
             Long id,
             String name,
-            String description,
-            Long organizationId,
             TenantStatus status,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
-        return new TenantJpaEntity(
-                id, name, description, organizationId, status, createdAt, updatedAt);
+        return new TenantJpaEntity(id, name, status, createdAt, updatedAt);
     }
 
     public Long getId() {
@@ -76,14 +75,6 @@ public class TenantJpaEntity extends BaseAuditEntity {
 
     public String getName() {
         return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Long getOrganizationId() {
-        return organizationId;
     }
 
     public TenantStatus getStatus() {

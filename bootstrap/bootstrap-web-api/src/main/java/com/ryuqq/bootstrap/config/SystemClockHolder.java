@@ -1,7 +1,8 @@
 package com.ryuqq.bootstrap.config;
 
+import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.common.util.ClockHolder;
-import java.time.Clock;
+import java.time.Instant;
 
 /**
  * SystemClockHolder - ClockHolder 구현체
@@ -13,10 +14,18 @@ import java.time.Clock;
  * <ul>
  *   <li>Bootstrap Layer에서 Bean으로 등록
  *   <li>Domain Layer의 ClockHolder 인터페이스 구현
- *   <li>생성자로 Clock 주입받아 사용
+ *   <li>System 시간 기반 Clock 제공
  * </ul>
  *
  * @author AuthHub Team
  * @since 1.0.0
  */
-public record SystemClockHolder(Clock clock) implements ClockHolder {}
+public final class SystemClockHolder implements ClockHolder {
+
+    private static final Clock SYSTEM_CLOCK = Instant::now;
+
+    @Override
+    public Clock clock() {
+        return SYSTEM_CLOCK;
+    }
+}

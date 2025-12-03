@@ -1,6 +1,6 @@
 package com.ryuqq.authhub.domain.common.util;
 
-import java.time.Clock;
+import com.ryuqq.authhub.domain.common.Clock;
 
 /**
  * Clock 제공자 인터페이스 (DIP - Dependency Inversion Principle)

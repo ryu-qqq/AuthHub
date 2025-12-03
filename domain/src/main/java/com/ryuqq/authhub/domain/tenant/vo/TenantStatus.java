@@ -9,7 +9,6 @@ package com.ryuqq.authhub.domain.tenant.vo;
  * @since 1.0.0
  */
 public enum TenantStatus {
-
     ACTIVE("활성"),
     INACTIVE("비활성"),
     DELETED("삭제됨");

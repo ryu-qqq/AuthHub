@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.organization.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-
 import java.util.Map;
 
 /**
@@ -15,7 +14,9 @@ import java.util.Map;
 public class OrganizationNotFoundException extends DomainException {
 
     public OrganizationNotFoundException(Long organizationId) {
-        super(OrganizationErrorCode.ORGANIZATION_NOT_FOUND, Map.of("organizationId", organizationId));
+        super(
+                OrganizationErrorCode.ORGANIZATION_NOT_FOUND,
+                Map.of("organizationId", organizationId));
     }
 
     public OrganizationNotFoundException(String identifier) {

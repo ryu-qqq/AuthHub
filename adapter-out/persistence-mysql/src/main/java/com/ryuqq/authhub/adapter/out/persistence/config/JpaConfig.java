@@ -58,7 +58,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "com.ryuqq.adapter.out.persistence" // 전체 persistence 패키지
+        basePackages = "com.ryuqq.authhub.adapter.out.persistence" // 전체 persistence 패키지
         )
 @EnableJpaAuditing
 @EnableTransactionManagement

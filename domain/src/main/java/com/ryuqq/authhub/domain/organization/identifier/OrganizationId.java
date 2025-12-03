@@ -5,9 +5,8 @@ import java.util.Objects;
 /**
  * OrganizationId - Organization 식별자 Value Object
  *
- * <p>Long FK 전략에 따라 Long 타입 ID를 사용합니다.
- * 새로운 Organization 생성 시에는 forNew()를 사용하고,
- * 영속화된 Organization 로드 시에는 of()를 사용합니다.
+ * <p>Long FK 전략에 따라 Long 타입 ID를 사용합니다. 새로운 Organization 생성 시에는 forNew()를 사용하고, 영속화된 Organization 로드
+ * 시에는 of()를 사용합니다.
  *
  * @author development-team
  * @since 1.0.0

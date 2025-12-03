@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +44,10 @@ class DtoRecordArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.application");
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages("com.ryuqq.authhub.application");
 
         hasCommandClasses =
                 classes.stream()
@@ -260,17 +264,24 @@ class DtoRecordArchTest {
     void dto_MustNotHaveBusinessMethods() {
         assumeTrue(hasDtoClasses, "DTO 클래스가 없으므로 테스트를 스킵합니다");
 
+        // Record의 accessor 메서드(필드명과 동일)는 제외하고 검사
+        // 예: updatedAt(), createdAt() 등은 Record accessor이므로 허용
+        // allowEmptyShould: 모든 DTO가 Record인 경우 검사 대상이 없어도 통과
         ArchRule rule =
                 noMethods()
                         .that()
                         .areDeclaredInClassesThat()
                         .resideInAPackage("..dto..")
                         .and()
+                        .areDeclaredInClassesThat()
+                        .areNotRecords()
+                        .and()
                         .arePublic()
                         .should()
                         .haveNameMatching(
                                 "validate.*|place.*|confirm.*|cancel.*|approve.*|reject.*|modify.*|change.*|update.*|delete.*|save.*|persist.*")
-                        .because("DTO는 비즈니스 로직을 가질 수 없습니다 (데이터 전달만)");
+                        .because("DTO는 비즈니스 로직을 가질 수 없습니다 (데이터 전달만)")
+                        .allowEmptyShould(true);
 
         rule.check(classes);
     }

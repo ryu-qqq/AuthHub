@@ -11,7 +11,6 @@ import com.ryuqq.authhub.domain.user.vo.UserStatus;
 import com.ryuqq.authhub.domain.user.vo.UserType;
 import com.ryuqq.authhub.domain.user.vo.fixture.CredentialFixture;
 import com.ryuqq.authhub.domain.user.vo.fixture.UserProfileFixture;
-
 import java.time.Instant;
 import java.util.UUID;
 
@@ -29,8 +28,7 @@ public final class UserFixture {
     private static final Long DEFAULT_ORGANIZATION_ID = 100L;
     private static final Clock DEFAULT_CLOCK = () -> Instant.parse("2025-11-24T00:00:00Z");
 
-    private UserFixture() {
-    }
+    private UserFixture() {}
 
     // ========== Simple Factory Methods ==========
 
@@ -75,14 +73,13 @@ public final class UserFixture {
         private OrganizationId organizationId = OrganizationId.of(DEFAULT_ORGANIZATION_ID);
         private UserType userType = UserType.PUBLIC;
         private UserStatus userStatus = UserStatus.ACTIVE;
-        private Credential credential = CredentialFixture.aPhoneCredential();
+        private Credential credential = CredentialFixture.aCredential();
         private UserProfile profile = UserProfileFixture.aUserProfile();
         private Instant createdAt = DEFAULT_CLOCK.now();
         private Instant updatedAt = DEFAULT_CLOCK.now();
         private boolean isNew = false;
 
-        private UserBuilder() {
-        }
+        private UserBuilder() {}
 
         public UserBuilder asNew() {
             this.isNew = true;
@@ -193,8 +190,7 @@ public final class UserFixture {
                     credential,
                     profile,
                     createdAt,
-                    updatedAt
-            );
+                    updatedAt);
         }
     }
 }

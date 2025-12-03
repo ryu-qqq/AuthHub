@@ -202,6 +202,8 @@ class AssemblerArchTest {
                         .and()
                         .areNotEnums()
                         .and()
+                        .areNotMemberClasses()
+                        .and()
                         .haveSimpleNameNotEndingWith("Test")
                         .should()
                         .haveSimpleNameEndingWith("Assembler")

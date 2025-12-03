@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.domain.user.vo;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -13,9 +14,8 @@ import java.util.regex.Pattern;
  */
 public final class Email {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
-    );
+    private static final Pattern EMAIL_PATTERN =
+            Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
     private final String value;
 
@@ -23,7 +23,7 @@ public final class Email {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Email cannot be null or blank");
         }
-        String trimmed = value.trim().toLowerCase();
+        String trimmed = value.trim().toLowerCase(Locale.ROOT);
         if (!EMAIL_PATTERN.matcher(trimmed).matches()) {
             throw new IllegalArgumentException("Invalid email format: " + value);
         }

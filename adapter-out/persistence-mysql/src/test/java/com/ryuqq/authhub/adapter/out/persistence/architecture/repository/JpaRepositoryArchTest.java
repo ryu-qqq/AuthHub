@@ -43,6 +43,13 @@ class JpaRepositoryArchTest {
     private static JavaClasses jpaRepositoryClasses;
     private static boolean hasJpaRepositoryClasses;
 
+    /**
+     * RefreshToken은 특수 패턴이므로 제외:
+     * - @Query 어노테이션 사용 (deleteByUserId 등)
+     * - 표준 CRUD 외 추가 메서드 존재
+     */
+    private static final String EXCLUDED_PATTERN = "RefreshToken";
+
     @BeforeAll
     static void setUp() {
         allClasses =
@@ -152,8 +159,13 @@ class JpaRepositoryArchTest {
         rule.allowEmptyShould(true).check(allClasses);
     }
 
+    /**
+     * 규칙 5: @Query 어노테이션 사용 금지
+     *
+     * <p>RefreshToken 제외: deleteByUserId 등 벌크 삭제 메서드에 @Query 사용
+     */
     @Test
-    @DisplayName("규칙 5: @Query 어노테이션 사용 금지")
+    @DisplayName("규칙 5: @Query 어노테이션 사용 금지 (RefreshToken 제외)")
     void jpaRepository_MustNotUseQueryAnnotation() {
         ArchRule rule =
                 methods()
@@ -163,6 +175,9 @@ class JpaRepositoryArchTest {
                         .and()
                         .areDeclaredInClassesThat()
                         .haveSimpleNameNotContaining("QueryDsl")
+                        .and()
+                        .areDeclaredInClassesThat()
+                        .haveSimpleNameNotContaining(EXCLUDED_PATTERN)
                         .and()
                         .areDeclaredInClassesThat()
                         .areInterfaces()

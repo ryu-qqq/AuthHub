@@ -7,7 +7,6 @@ package com.ryuqq.authhub.domain.user.vo;
  * @since 1.0.0
  */
 public enum UserType {
-
     PUBLIC("일반 사용자"),
     INTERNAL("내부 사용자");
 
