@@ -46,6 +46,18 @@ public class ApiEndpointProperties {
     /** Example 도메인 엔드포인트 설정 */
     private ExampleEndpoints example = new ExampleEndpoints();
 
+    /** Auth 도메인 엔드포인트 설정 */
+    private AuthEndpoints auth = new AuthEndpoints();
+
+    /** User 도메인 엔드포인트 설정 */
+    private UserEndpoints user = new UserEndpoints();
+
+    /** Organization 도메인 엔드포인트 설정 */
+    private OrganizationEndpoints organization = new OrganizationEndpoints();
+
+    /** Tenant 도메인 엔드포인트 설정 */
+    private TenantEndpoints tenant = new TenantEndpoints();
+
     /** Example 도메인 엔드포인트 경로 */
     public static class ExampleEndpoints {
         /** Example 기본 경로 (기본값: /examples) */
@@ -82,6 +94,121 @@ public class ApiEndpointProperties {
         }
     }
 
+    /** Auth 도메인 엔드포인트 경로 */
+    public static class AuthEndpoints {
+        private String base = "/auth";
+        private String login = "/login";
+        private String refresh = "/refresh";
+        private String logout = "/logout";
+
+        public String getBase() {
+            return base;
+        }
+
+        public void setBase(String base) {
+            this.base = base;
+        }
+
+        public String getLogin() {
+            return login;
+        }
+
+        public void setLogin(String login) {
+            this.login = login;
+        }
+
+        public String getRefresh() {
+            return refresh;
+        }
+
+        public void setRefresh(String refresh) {
+            this.refresh = refresh;
+        }
+
+        public String getLogout() {
+            return logout;
+        }
+
+        public void setLogout(String logout) {
+            this.logout = logout;
+        }
+    }
+
+    /** User 도메인 엔드포인트 경로 */
+    public static class UserEndpoints {
+        private String base = "/users";
+        private String byId = "/{userId}";
+        private String password = "/{userId}/password";
+        private String status = "/{userId}/status";
+        private String roles = "/{userId}/roles";
+
+        public String getBase() {
+            return base;
+        }
+
+        public void setBase(String base) {
+            this.base = base;
+        }
+
+        public String getById() {
+            return byId;
+        }
+
+        public void setById(String byId) {
+            this.byId = byId;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
+        public String getRoles() {
+            return roles;
+        }
+
+        public void setRoles(String roles) {
+            this.roles = roles;
+        }
+    }
+
+    /** Organization 도메인 엔드포인트 경로 */
+    public static class OrganizationEndpoints {
+        private String base = "/organizations";
+
+        public String getBase() {
+            return base;
+        }
+
+        public void setBase(String base) {
+            this.base = base;
+        }
+    }
+
+    /** Tenant 도메인 엔드포인트 경로 */
+    public static class TenantEndpoints {
+        private String base = "/tenants";
+
+        public String getBase() {
+            return base;
+        }
+
+        public void setBase(String base) {
+            this.base = base;
+        }
+    }
+
     public String getBaseV1() {
         return baseV1;
     }
@@ -96,5 +223,37 @@ public class ApiEndpointProperties {
 
     public void setExample(ExampleEndpoints example) {
         this.example = example;
+    }
+
+    public AuthEndpoints getAuth() {
+        return auth;
+    }
+
+    public void setAuth(AuthEndpoints auth) {
+        this.auth = auth;
+    }
+
+    public UserEndpoints getUser() {
+        return user;
+    }
+
+    public void setUser(UserEndpoints user) {
+        this.user = user;
+    }
+
+    public OrganizationEndpoints getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(OrganizationEndpoints organization) {
+        this.organization = organization;
+    }
+
+    public TenantEndpoints getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(TenantEndpoints tenant) {
+        this.tenant = tenant;
     }
 }
