@@ -21,12 +21,14 @@ import org.junit.jupiter.api.Test;
  * <p>CQRS Command Adapter의 규칙을 검증합니다:
  *
  * <p><strong>규칙 레벨:</strong>
+ *
  * <ul>
  *   <li>MUST (필수): 위반 시 빌드 실패 - 핵심 아키텍처 규칙
  *   <li>SHOULD (권장): 경고만 표시 - 베스트 프랙티스
  * </ul>
  *
  * <p><strong>제외 대상:</strong>
+ *
  * <ul>
  *   <li>RefreshTokenCommandAdapter: 토큰 특성상 표준 CQRS 패턴 적용 불가
  * </ul>
@@ -92,7 +94,9 @@ class CommandAdapterArchTest {
             // 직접 스트림으로 검증 (DescribedPredicate 대신)
             boolean allImplementPort =
                     commandAdapterClasses.stream()
-                            .filter(javaClass -> javaClass.getSimpleName().endsWith("CommandAdapter"))
+                            .filter(
+                                    javaClass ->
+                                            javaClass.getSimpleName().endsWith("CommandAdapter"))
                             .filter(
                                     javaClass ->
                                             !javaClass.getSimpleName().contains(EXCLUDED_ADAPTER))
@@ -148,8 +152,7 @@ class CommandAdapterArchTest {
                             .should()
                             .notBeAnnotatedWith(
                                     org.springframework.beans.factory.annotation.Autowired.class)
-                            .because(
-                                    "CommandAdapter는 생성자 주입만 허용되며, @Autowired 필드 주입은 금지입니다");
+                            .because("CommandAdapter는 생성자 주입만 허용되며, @Autowired 필드 주입은 금지입니다");
 
             rule.check(commandAdapterClasses);
         }
@@ -169,8 +172,7 @@ class CommandAdapterArchTest {
                             .haveSimpleNameNotContaining(EXCLUDED_ADAPTER)
                             .should()
                             .haveNameNotMatching("(find|load|get|query|search|list|count|exists).*")
-                            .because(
-                                    "CommandAdapter는 Query 메서드를 포함하면 안 됩니다. QueryAdapter로 분리하세요");
+                            .because("CommandAdapter는 Query 메서드를 포함하면 안 됩니다. QueryAdapter로 분리하세요");
 
             rule.check(commandAdapterClasses);
         }
@@ -248,15 +250,16 @@ class CommandAdapterArchTest {
 
             boolean allMatch =
                     commandAdapterClasses.stream()
-                            .filter(javaClass -> javaClass.getSimpleName().endsWith("CommandAdapter"))
+                            .filter(
+                                    javaClass ->
+                                            javaClass.getSimpleName().endsWith("CommandAdapter"))
                             .filter(
                                     javaClass ->
                                             !javaClass.getSimpleName().contains(EXCLUDED_ADAPTER))
                             .allMatch(javaClass -> javaClass.getAllFields().size() == 2);
 
             if (!allMatch) {
-                System.out.println(
-                        "[SHOULD] 권장 위반: 일부 CommandAdapter가 2개 이상의 필드를 가지고 있습니다.");
+                System.out.println("[SHOULD] 권장 위반: 일부 CommandAdapter가 2개 이상의 필드를 가지고 있습니다.");
             }
             // 빌드 실패 없이 경고만 출력
         }
@@ -268,7 +271,9 @@ class CommandAdapterArchTest {
 
             boolean allMatch =
                     commandAdapterClasses.stream()
-                            .filter(javaClass -> javaClass.getSimpleName().endsWith("CommandAdapter"))
+                            .filter(
+                                    javaClass ->
+                                            javaClass.getSimpleName().endsWith("CommandAdapter"))
                             .filter(
                                     javaClass ->
                                             !javaClass.getSimpleName().contains(EXCLUDED_ADAPTER))
@@ -284,7 +289,8 @@ class CommandAdapterArchTest {
                                                             .filter(
                                                                     method ->
                                                                             !method.getName()
-                                                                                    .equals("<init>"))
+                                                                                    .equals(
+                                                                                            "<init>"))
                                                             .count()
                                                     == 1);
 
@@ -301,7 +307,9 @@ class CommandAdapterArchTest {
 
             boolean allMatch =
                     commandAdapterClasses.stream()
-                            .filter(javaClass -> javaClass.getSimpleName().endsWith("CommandAdapter"))
+                            .filter(
+                                    javaClass ->
+                                            javaClass.getSimpleName().endsWith("CommandAdapter"))
                             .filter(
                                     javaClass ->
                                             !javaClass.getSimpleName().contains(EXCLUDED_ADAPTER))
@@ -316,7 +324,8 @@ class CommandAdapterArchTest {
                                                                                             .PUBLIC))
                                                     .filter(
                                                             method ->
-                                                                    !method.getName().equals("<init>"))
+                                                                    !method.getName()
+                                                                            .equals("<init>"))
                                                     .allMatch(
                                                             method ->
                                                                     method.getName()
@@ -335,7 +344,9 @@ class CommandAdapterArchTest {
 
             boolean allMatch =
                     commandAdapterClasses.stream()
-                            .filter(javaClass -> javaClass.getSimpleName().endsWith("CommandAdapter"))
+                            .filter(
+                                    javaClass ->
+                                            javaClass.getSimpleName().endsWith("CommandAdapter"))
                             .filter(
                                     javaClass ->
                                             !javaClass.getSimpleName().contains(EXCLUDED_ADAPTER))
@@ -344,8 +355,7 @@ class CommandAdapterArchTest {
                             .allMatch(method -> method.getRawParameterTypes().size() == 1);
 
             if (!allMatch) {
-                System.out.println(
-                        "[SHOULD] 권장 위반: 일부 persist() 메서드가 1개 이상의 파라미터를 가지고 있습니다.");
+                System.out.println("[SHOULD] 권장 위반: 일부 persist() 메서드가 1개 이상의 파라미터를 가지고 있습니다.");
             }
         }
 
@@ -356,7 +366,9 @@ class CommandAdapterArchTest {
 
             boolean allMatch =
                     commandAdapterClasses.stream()
-                            .filter(javaClass -> javaClass.getSimpleName().endsWith("CommandAdapter"))
+                            .filter(
+                                    javaClass ->
+                                            javaClass.getSimpleName().endsWith("CommandAdapter"))
                             .filter(
                                     javaClass ->
                                             !javaClass.getSimpleName().contains(EXCLUDED_ADAPTER))
@@ -364,11 +376,12 @@ class CommandAdapterArchTest {
                             .filter(method -> method.getName().equals("persist"))
                             .allMatch(
                                     method ->
-                                            method.getRawReturnType().getSimpleName().endsWith("Id"));
+                                            method.getRawReturnType()
+                                                    .getSimpleName()
+                                                    .endsWith("Id"));
 
             if (!allMatch) {
-                System.out.println(
-                        "[SHOULD] 권장 위반: 일부 persist() 메서드가 *Id 타입을 반환하지 않습니다.");
+                System.out.println("[SHOULD] 권장 위반: 일부 persist() 메서드가 *Id 타입을 반환하지 않습니다.");
             }
         }
 
@@ -385,8 +398,7 @@ class CommandAdapterArchTest {
                             .should()
                             .accessClassesThat()
                             .resideInAnyPackage("..domain..")
-                            .because(
-                                    "[SHOULD] CommandAdapter는 Domain Layer에 직접 접근을 최소화하세요");
+                            .because("[SHOULD] CommandAdapter는 Domain Layer에 직접 접근을 최소화하세요");
 
             try {
                 rule.check(commandAdapterClasses);
@@ -413,7 +425,8 @@ class CommandAdapterArchTest {
                                         org.springframework.transaction.annotation.Transactional
                                                 .class)
                                 .because(
-                                        "[SHOULD] CommandAdapter에서 @Transactional 사용을 권장하지 않습니다. UseCase에서 관리하세요");
+                                        "[SHOULD] CommandAdapter에서 @Transactional 사용을 권장하지 않습니다."
+                                                + " UseCase에서 관리하세요");
 
                 classRule.check(commandAdapterClasses);
             } catch (AssertionError e) {
@@ -451,7 +464,9 @@ class CommandAdapterArchTest {
 
             boolean hasPrivateMethods =
                     commandAdapterClasses.stream()
-                            .filter(javaClass -> javaClass.getSimpleName().endsWith("CommandAdapter"))
+                            .filter(
+                                    javaClass ->
+                                            javaClass.getSimpleName().endsWith("CommandAdapter"))
                             .filter(
                                     javaClass ->
                                             !javaClass.getSimpleName().contains(EXCLUDED_ADAPTER))
@@ -462,8 +477,7 @@ class CommandAdapterArchTest {
                                                     && !method.getName().equals("<init>"));
 
             if (hasPrivateMethods) {
-                System.out.println(
-                        "[SHOULD] 권장 위반: 일부 CommandAdapter에 private helper 메서드가 있습니다.");
+                System.out.println("[SHOULD] 권장 위반: 일부 CommandAdapter에 private helper 메서드가 있습니다.");
             }
         }
 
@@ -485,8 +499,7 @@ class CommandAdapterArchTest {
                                 .haveName("persist")
                                 .should()
                                 .notDeclareThrowableOfType(RuntimeException.class)
-                                .because(
-                                        "[SHOULD] CommandAdapter는 비즈니스 예외 throw를 권장하지 않습니다");
+                                .because("[SHOULD] CommandAdapter는 비즈니스 예외 throw를 권장하지 않습니다");
 
                 rule.check(commandAdapterClasses);
             } catch (AssertionError e) {
@@ -522,8 +535,7 @@ class CommandAdapterArchTest {
                                             javaClass.getSimpleName().endsWith("CommandAdapter"));
 
             if (!allFollowNaming) {
-                System.out.println(
-                        "[SHOULD] 권장 위반: 일부 Adapter가 *CommandAdapter 네이밍을 따르지 않습니다.");
+                System.out.println("[SHOULD] 권장 위반: 일부 Adapter가 *CommandAdapter 네이밍을 따르지 않습니다.");
             }
         }
     }

@@ -1,24 +1,20 @@
 package com.ryuqq.authhub.adapter.in.rest.tenant.dto.response;
 
-import com.ryuqq.authhub.application.tenant.dto.response.CreateTenantResponse;
-
 /**
- * 테넌트 생성 API 응답 DTO
+ * CreateTenantApiResponse - 테넌트 생성 응답 DTO
  *
- * <p>REST API로 테넌트 생성 결과를 반환할 때 사용되는 불변 DTO입니다.
+ * <p>테넌트 등록 API의 응답 본문을 표현합니다.
+ *
+ * <p><strong>Zero-Tolerance 규칙:</strong>
+ *
+ * <ul>
+ *   <li>Record 타입 필수
+ *   <li>*ApiResponse 네이밍 규칙
+ *   <li>Lombok 금지
+ *   <li>Jackson 어노테이션 금지
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
-public record CreateTenantApiResponse(Long tenantId) {
-
-    /**
-     * Application Layer Response로부터 API Response 생성
-     *
-     * @param response UseCase 응답
-     * @return API 응답 DTO
-     */
-    public static CreateTenantApiResponse from(CreateTenantResponse response) {
-        return new CreateTenantApiResponse(response.tenantId());
-    }
-}
+public record CreateTenantApiResponse(String tenantId) {}

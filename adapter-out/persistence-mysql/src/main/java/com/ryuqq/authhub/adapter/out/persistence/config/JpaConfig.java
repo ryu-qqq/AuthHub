@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.out.persistence.config;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -57,6 +58,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @see EnableJpaAuditing
  */
 @Configuration
+@EntityScan(basePackages = "com.ryuqq.authhub.adapter.out.persistence")
 @EnableJpaRepositories(
         basePackages = "com.ryuqq.authhub.adapter.out.persistence" // 전체 persistence 패키지
         )

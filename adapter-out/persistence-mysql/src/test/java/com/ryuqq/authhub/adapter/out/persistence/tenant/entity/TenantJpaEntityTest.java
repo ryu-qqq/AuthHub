@@ -4,120 +4,122 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
- * TenantJpaEntity 테스트
+ * TenantJpaEntity 단위 테스트
  *
- * <p>Tenant Domain 모델과 일치하는 Entity 테스트
- *
- * <p><strong>Domain 필드:</strong>
- *
- * <ul>
- *   <li>TenantId tenantId → Long id
- *   <li>TenantName tenantName → String name
- *   <li>TenantStatus tenantStatus → TenantStatus status
- *   <li>Instant createdAt → LocalDateTime createdAt
- *   <li>Instant updatedAt → LocalDateTime updatedAt
- * </ul>
- *
- * @author AuthHub Team
+ * @author development-team
  * @since 1.0.0
  */
-@DisplayName("TenantJpaEntity 테스트")
+@Tag("unit")
+@DisplayName("TenantJpaEntity 단위 테스트")
 class TenantJpaEntityTest {
 
-    private static final Long ID = 1L;
-    private static final String NAME = "Test Tenant";
-    private static final TenantStatus STATUS = TenantStatus.ACTIVE;
-    private static final LocalDateTime CREATED_AT = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
-    private static final LocalDateTime UPDATED_AT = LocalDateTime.of(2025, 1, 2, 15, 30, 0);
+    private static final UUID TENANT_UUID = UUID.fromString("01941234-5678-7000-8000-123456789abc");
+    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
 
     @Nested
-    @DisplayName("팩토리 메서드 테스트")
-    class FactoryMethodTest {
+    @DisplayName("of 메서드")
+    class OfTest {
 
         @Test
-        @DisplayName("[of] 모든 필드를 지정하여 TenantJpaEntity 생성")
-        void of_shouldCreateTenantJpaEntityWithAllFields() {
-            // When
-            TenantJpaEntity entity = TenantJpaEntity.of(ID, NAME, STATUS, CREATED_AT, UPDATED_AT);
+        @DisplayName("모든 필드로 Entity를 생성한다")
+        void shouldCreateEntityWithAllFields() {
+            // given
+            Long id = 1L;
+            String name = "Test Tenant";
+            TenantStatus status = TenantStatus.ACTIVE;
 
-            // Then
-            assertThat(entity).isNotNull();
-            assertThat(entity.getId()).isEqualTo(ID);
-            assertThat(entity.getName()).isEqualTo(NAME);
-            assertThat(entity.getStatus()).isEqualTo(STATUS);
-            assertThat(entity.getCreatedAt()).isEqualTo(CREATED_AT);
-            assertThat(entity.getUpdatedAt()).isEqualTo(UPDATED_AT);
+            // when
+            TenantJpaEntity entity =
+                    TenantJpaEntity.of(id, TENANT_UUID, name, status, FIXED_TIME, FIXED_TIME);
+
+            // then
+            assertThat(entity.getId()).isEqualTo(id);
+            assertThat(entity.getTenantId()).isEqualTo(TENANT_UUID);
+            assertThat(entity.getName()).isEqualTo(name);
+            assertThat(entity.getStatus()).isEqualTo(status);
+            assertThat(entity.getCreatedAt()).isEqualTo(FIXED_TIME);
+            assertThat(entity.getUpdatedAt()).isEqualTo(FIXED_TIME);
         }
 
         @Test
-        @DisplayName("[of] ID가 null인 신규 엔티티 생성")
-        void of_shouldCreateNewEntityWithNullId() {
-            // When
-            TenantJpaEntity entity = TenantJpaEntity.of(null, NAME, STATUS, CREATED_AT, UPDATED_AT);
+        @DisplayName("신규 Entity는 ID가 null이다")
+        void shouldCreateNewEntityWithNullId() {
+            // given
+            String name = "New Tenant";
+            TenantStatus status = TenantStatus.ACTIVE;
 
-            // Then
+            // when
+            TenantJpaEntity entity =
+                    TenantJpaEntity.of(null, TENANT_UUID, name, status, FIXED_TIME, FIXED_TIME);
+
+            // then
             assertThat(entity.getId()).isNull();
-            assertThat(entity.getName()).isEqualTo(NAME);
+            assertThat(entity.getTenantId()).isEqualTo(TENANT_UUID);
+            assertThat(entity.getName()).isEqualTo(name);
+        }
+
+        @Test
+        @DisplayName("다양한 상태로 Entity를 생성할 수 있다")
+        void shouldCreateEntityWithDifferentStatus() {
+            // given & when
+            TenantJpaEntity activeEntity =
+                    TenantJpaEntity.of(
+                            1L, TENANT_UUID, "Active", TenantStatus.ACTIVE, FIXED_TIME, FIXED_TIME);
+            TenantJpaEntity inactiveEntity =
+                    TenantJpaEntity.of(
+                            2L,
+                            TENANT_UUID,
+                            "Inactive",
+                            TenantStatus.INACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            TenantJpaEntity deletedEntity =
+                    TenantJpaEntity.of(
+                            3L,
+                            TENANT_UUID,
+                            "Deleted",
+                            TenantStatus.DELETED,
+                            FIXED_TIME,
+                            FIXED_TIME);
+
+            // then
+            assertThat(activeEntity.getStatus()).isEqualTo(TenantStatus.ACTIVE);
+            assertThat(inactiveEntity.getStatus()).isEqualTo(TenantStatus.INACTIVE);
+            assertThat(deletedEntity.getStatus()).isEqualTo(TenantStatus.DELETED);
         }
     }
 
     @Nested
-    @DisplayName("Getter 테스트")
-    class GetterTest {
+    @DisplayName("Getters")
+    class GettersTest {
 
         @Test
-        @DisplayName("[getId] ID 반환")
-        void getId_shouldReturnId() {
-            // Given
-            TenantJpaEntity entity = createEntity();
+        @DisplayName("모든 getter가 올바른 값을 반환한다")
+        void shouldReturnCorrectValuesFromGetters() {
+            // given
+            Long id = 1L;
+            String name = "Test Tenant";
+            TenantStatus status = TenantStatus.ACTIVE;
+            LocalDateTime createdAt = FIXED_TIME;
+            LocalDateTime updatedAt = FIXED_TIME.plusHours(1);
 
-            // Then
-            assertThat(entity.getId()).isEqualTo(ID);
+            TenantJpaEntity entity =
+                    TenantJpaEntity.of(id, TENANT_UUID, name, status, createdAt, updatedAt);
+
+            // when & then
+            assertThat(entity.getId()).isEqualTo(id);
+            assertThat(entity.getTenantId()).isEqualTo(TENANT_UUID);
+            assertThat(entity.getName()).isEqualTo(name);
+            assertThat(entity.getStatus()).isEqualTo(status);
+            assertThat(entity.getCreatedAt()).isEqualTo(createdAt);
+            assertThat(entity.getUpdatedAt()).isEqualTo(updatedAt);
         }
-
-        @Test
-        @DisplayName("[getName] 이름 반환")
-        void getName_shouldReturnName() {
-            // Given
-            TenantJpaEntity entity = createEntity();
-
-            // Then
-            assertThat(entity.getName()).isEqualTo(NAME);
-        }
-
-        @Test
-        @DisplayName("[getStatus] 상태 반환")
-        void getStatus_shouldReturnStatus() {
-            // Given
-            TenantJpaEntity entity = createEntity();
-
-            // Then
-            assertThat(entity.getStatus()).isEqualTo(STATUS);
-        }
-    }
-
-    @Nested
-    @DisplayName("상속 필드 테스트")
-    class InheritedFieldsTest {
-
-        @Test
-        @DisplayName("BaseAuditEntity의 createdAt, updatedAt 상속")
-        void shouldInheritAuditFields() {
-            // Given
-            TenantJpaEntity entity = createEntity();
-
-            // Then
-            assertThat(entity.getCreatedAt()).isEqualTo(CREATED_AT);
-            assertThat(entity.getUpdatedAt()).isEqualTo(UPDATED_AT);
-        }
-    }
-
-    private TenantJpaEntity createEntity() {
-        return TenantJpaEntity.of(ID, NAME, STATUS, CREATED_AT, UPDATED_AT);
     }
 }

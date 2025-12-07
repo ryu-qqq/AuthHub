@@ -1,0 +1,81 @@
+// ========================================
+// Adapter-Out: Security
+// ========================================
+// Outbound adapter for security operations (JWT + BCrypt)
+// Implements TokenProviderPort and PasswordEncoderPort from application layer
+// Technology: jjwt + Spring Security Crypto
+// NO Lombok allowed
+// ========================================
+
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+}
+
+dependencies {
+    // ========================================
+    // Core Dependencies
+    // ========================================
+    api project(':application')
+    api project(':domain')
+
+    // ========================================
+    // JWT (jjwt)
+    // ========================================
+    implementation libs.jjwt.api
+    runtimeOnly libs.jjwt.impl
+    runtimeOnly libs.jjwt.jackson
+
+    // ========================================
+    // Password Encoding (Spring Security Crypto)
+    // ========================================
+    implementation libs.spring.security.crypto
+
+    // ========================================
+    // Spring Boot (for @Component, @ConfigurationProperties)
+    // ========================================
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor libs.spring.boot.configuration.processor
+
+    // ========================================
+    // Test Dependencies
+    // ========================================
+    testImplementation libs.spring.boot.starter.test
+
+    // ArchUnit for architecture validation
+    testImplementation libs.archunit.junit5
+
+    // Domain testFixtures
+    testImplementation testFixtures(project(':domain'))
+
+    // ========================================
+    // Test Fixtures Dependencies
+    // ========================================
+    testFixturesApi project(':domain')
+    testFixturesApi project(':application')
+    testFixturesApi testFixtures(project(':domain'))
+    testFixturesApi testFixtures(project(':application'))
+}
+
+// ========================================
+// Test Coverage (70% for adapters)
+// ========================================
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.70
+            }
+        }
+        rule {
+            element = 'CLASS'
+            excludes = [
+                '*.config.*' // Configuration classes excluded
+            ]
+        }
+    }
+}
+
+tasks.test {
+    finalizedBy tasks.jacocoTestCoverageVerification
+}

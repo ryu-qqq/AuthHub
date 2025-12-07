@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +48,8 @@ class QueryDtoArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.adapter.in.rest");
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .importPackages("com.ryuqq.authhub.adapter.in.rest");
 
         hasQueryDtoClasses = classes.stream()
             .anyMatch(javaClass -> javaClass.getPackageName().contains(".dto.query")

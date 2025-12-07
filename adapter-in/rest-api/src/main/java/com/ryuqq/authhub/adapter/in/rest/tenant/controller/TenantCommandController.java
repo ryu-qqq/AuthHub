@@ -1,64 +1,64 @@
 package com.ryuqq.authhub.adapter.in.rest.tenant.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.CreateTenantApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.CreateTenantApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.mapper.TenantApiMapper;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
+import com.ryuqq.authhub.application.tenant.port.in.command.CreateTenantUseCase;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.CreateTenantApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.CreateTenantApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.tenant.mapper.TenantApiMapper;
-import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
-import com.ryuqq.authhub.application.tenant.dto.response.CreateTenantResponse;
-import com.ryuqq.authhub.application.tenant.port.in.CreateTenantUseCase;
-
-import jakarta.validation.Valid;
-
 /**
- * Tenant Command Controller - 테넌트 상태 변경 API
+ * TenantCommandController - 테넌트 Command API 컨트롤러
  *
- * <p>테넌트 생성 등 Command 작업을 처리합니다.
+ * <p>테넌트 생성, 수정, 삭제 등 Command 작업을 처리합니다.
  *
- * <p><strong>엔드포인트:</strong>
+ * <p><strong>Zero-Tolerance 규칙:</strong>
+ *
  * <ul>
- *   <li>POST /api/v1/tenants - 테넌트 생성 (201 Created)</li>
+ *   <li>{@code @RestController} + {@code @RequestMapping} 필수
+ *   <li>{@code @Valid} 필수
+ *   <li>UseCase 단일 의존
+ *   <li>Thin Controller (비즈니스 로직 금지)
+ *   <li>Lombok 금지
+ *   <li>{@code @Transactional} 금지
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.tenant.base}")
-@Validated
+@RequestMapping("/api/v1/tenants")
 public class TenantCommandController {
 
     private final CreateTenantUseCase createTenantUseCase;
-    private final TenantApiMapper tenantApiMapper;
+    private final TenantApiMapper mapper;
 
     public TenantCommandController(
-            CreateTenantUseCase createTenantUseCase,
-            TenantApiMapper tenantApiMapper) {
+            CreateTenantUseCase createTenantUseCase, TenantApiMapper mapper) {
         this.createTenantUseCase = createTenantUseCase;
-        this.tenantApiMapper = tenantApiMapper;
+        this.mapper = mapper;
     }
 
     /**
-     * 테넌트 생성 API
+     * 테넌트 생성
      *
-     * @param request 테넌트 생성 요청 DTO
-     * @return 201 Created와 생성된 테넌트 정보 (tenantId)
+     * <p>POST /api/v1/tenants
+     *
+     * @param request 테넌트 생성 요청
+     * @return 201 Created + 생성된 테넌트 ID
      */
     @PostMapping
     public ResponseEntity<ApiResponse<CreateTenantApiResponse>> createTenant(
             @Valid @RequestBody CreateTenantApiRequest request) {
-        CreateTenantCommand command = tenantApiMapper.toCreateTenantCommand(request);
-        CreateTenantResponse useCaseResponse = createTenantUseCase.execute(command);
-        CreateTenantApiResponse apiResponse = CreateTenantApiResponse.from(useCaseResponse);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ofSuccess(apiResponse));
+        TenantResponse response = createTenantUseCase.execute(mapper.toCommand(request));
+        CreateTenantApiResponse apiResponse = mapper.toCreateResponse(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ofSuccess(apiResponse));
     }
 }

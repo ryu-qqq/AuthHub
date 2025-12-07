@@ -26,9 +26,6 @@ dependencies {
     // Validation
     implementation libs.spring.boot.starter.validation
 
-    // Security (Password Hashing)
-    implementation libs.spring.security.crypto
-
     // ========================================
     // Test Dependencies
     // ========================================

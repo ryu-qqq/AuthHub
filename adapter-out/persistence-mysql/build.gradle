@@ -39,7 +39,7 @@ dependencies {
     annotationProcessor libs.jakarta.persistence.api
 
     // Database Drivers (Runtime)
-    runtimeOnly libs.mysql
+    runtimeOnly libs.mysql.connector
     runtimeOnly libs.h2 // For testing
 
     // Connection Pooling

@@ -2,117 +2,161 @@ package com.ryuqq.authhub.adapter.in.rest.tenant.dto.command;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import java.util.Set;
-
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
-
 /**
  * CreateTenantApiRequest 단위 테스트
  *
  * <p>검증 범위:
+ *
  * <ul>
- *   <li>Record 생성 및 접근자</li>
- *   <li>Bean Validation 규칙</li>
- *   <li>equals/hashCode</li>
+ *   <li>Record 생성 검증
+ *   <li>Bean Validation 규칙 검증
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
+@DisplayName("CreateTenantApiRequest 단위 테스트")
 @Tag("unit")
 @Tag("adapter-rest")
-@Tag("dto")
-@DisplayName("CreateTenantApiRequest 테스트")
 class CreateTenantApiRequestTest {
 
-    private final Validator validator;
+    private static Validator validator;
 
-    CreateTenantApiRequestTest() {
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            this.validator = factory.getValidator();
-        }
+    @BeforeAll
+    static void setUpValidator() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
     }
 
     @Nested
-    @DisplayName("Record 기본 동작 테스트")
-    class RecordBasicBehaviorTest {
+    @DisplayName("Record 생성 테스트")
+    class RecordCreationTest {
 
         @Test
-        @DisplayName("name이 주어지면 Record가 정상 생성된다")
-        void givenName_whenCreate_thenRecordCreated() {
-            // given
-            String name = "Enterprise Tenant";
+        @DisplayName("[생성] 유효한 이름으로 생성 시 정상 생성")
+        void create_withValidName_shouldCreateSuccessfully() {
+            // Given
+            String name = "TestTenant";
 
-            // when
+            // When
             CreateTenantApiRequest request = new CreateTenantApiRequest(name);
 
-            // then
+            // Then
             assertThat(request.name()).isEqualTo(name);
-        }
-
-        @Test
-        @DisplayName("동일한 값을 가진 두 Record는 동등하다")
-        void givenSameValues_whenCompare_thenEqual() {
-            // given
-            CreateTenantApiRequest request1 = new CreateTenantApiRequest("Tenant A");
-            CreateTenantApiRequest request2 = new CreateTenantApiRequest("Tenant A");
-
-            // then
-            assertThat(request1).isEqualTo(request2);
-            assertThat(request1.hashCode()).isEqualTo(request2.hashCode());
         }
     }
 
     @Nested
-    @DisplayName("Validation 테스트")
+    @DisplayName("Bean Validation 테스트")
     class ValidationTest {
 
         @Test
-        @DisplayName("유효한 요청은 검증을 통과한다")
-        void givenValidRequest_whenValidate_thenNoViolations() {
-            // given
-            CreateTenantApiRequest request = new CreateTenantApiRequest("My Tenant");
+        @DisplayName("[Validation] 유효한 이름이면 위반 없음")
+        void validate_withValidName_shouldHaveNoViolations() {
+            // Given
+            CreateTenantApiRequest request = new CreateTenantApiRequest("TestTenant");
 
-            // when
+            // When
             Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
 
-            // then
+            // Then
             assertThat(violations).isEmpty();
         }
 
         @Test
-        @DisplayName("name이 null이면 검증 실패")
-        void givenNullName_whenValidate_thenViolation() {
-            // given
+        @DisplayName("[Validation] 이름이 null이면 위반 발생")
+        void validate_withNullName_shouldHaveViolation() {
+            // Given
             CreateTenantApiRequest request = new CreateTenantApiRequest(null);
 
-            // when
+            // When
             Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
 
-            // then
+            // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).contains("테넌트 이름");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("테넌트 이름은 필수입니다");
         }
 
         @Test
-        @DisplayName("name이 빈 문자열이면 검증 실패")
-        void givenBlankName_whenValidate_thenViolation() {
-            // given
-            CreateTenantApiRequest request = new CreateTenantApiRequest("   ");
+        @DisplayName("[Validation] 이름이 빈 문자열이면 위반 발생")
+        void validate_withEmptyName_shouldHaveViolation() {
+            // Given
+            CreateTenantApiRequest request = new CreateTenantApiRequest("");
 
-            // when
+            // When
             Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
 
-            // then
+            // Then
             assertThat(violations).isNotEmpty();
+        }
+
+        @Test
+        @DisplayName("[Validation] 이름이 1자이면 위반 발생 (최소 2자)")
+        void validate_withTooShortName_shouldHaveViolation() {
+            // Given
+            CreateTenantApiRequest request = new CreateTenantApiRequest("A");
+
+            // When
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+
+            // Then
+            assertThat(violations).hasSize(1);
+            assertThat(violations.iterator().next().getMessage())
+                    .isEqualTo("테넌트 이름은 2자 이상 100자 이하여야 합니다");
+        }
+
+        @Test
+        @DisplayName("[Validation] 이름이 2자이면 위반 없음")
+        void validate_withMinLengthName_shouldHaveNoViolations() {
+            // Given
+            CreateTenantApiRequest request = new CreateTenantApiRequest("AB");
+
+            // When
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+
+            // Then
+            assertThat(violations).isEmpty();
+        }
+
+        @Test
+        @DisplayName("[Validation] 이름이 100자이면 위반 없음")
+        void validate_withMaxLengthName_shouldHaveNoViolations() {
+            // Given
+            String name = "A".repeat(100);
+            CreateTenantApiRequest request = new CreateTenantApiRequest(name);
+
+            // When
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+
+            // Then
+            assertThat(violations).isEmpty();
+        }
+
+        @Test
+        @DisplayName("[Validation] 이름이 101자이면 위반 발생 (최대 100자)")
+        void validate_withTooLongName_shouldHaveViolation() {
+            // Given
+            String name = "A".repeat(101);
+            CreateTenantApiRequest request = new CreateTenantApiRequest(name);
+
+            // When
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+
+            // Then
+            assertThat(violations).hasSize(1);
+            assertThat(violations.iterator().next().getMessage())
+                    .isEqualTo("테넌트 이름은 2자 이상 100자 이하여야 합니다");
         }
     }
 }

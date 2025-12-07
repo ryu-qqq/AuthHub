@@ -2,57 +2,141 @@ package com.ryuqq.authhub.domain.tenant.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ryuqq.authhub.domain.common.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+/**
+ * TenantErrorCode 단위 테스트
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
+@Tag("unit")
 @DisplayName("TenantErrorCode 테스트")
 class TenantErrorCodeTest {
 
-    @Test
-    @DisplayName("TENANT_NOT_FOUND 에러 코드 검증")
-    void shouldHaveTenantNotFoundErrorCode() {
-        // When
-        TenantErrorCode errorCode = TenantErrorCode.TENANT_NOT_FOUND;
+    @Nested
+    @DisplayName("TENANT_NOT_FOUND")
+    class TenantNotFoundTest {
 
-        // Then
-        assertThat(errorCode.getCode()).isEqualTo("TENANT-001");
-        assertThat(errorCode.getHttpStatus()).isEqualTo(404);
-        assertThat(errorCode.getMessage()).isEqualTo("Tenant not found");
+        @Test
+        @DisplayName("올바른 코드를 반환한다")
+        void shouldReturnCorrectCode() {
+            assertThat(TenantErrorCode.TENANT_NOT_FOUND.getCode()).isEqualTo("TENANT-001");
+        }
+
+        @Test
+        @DisplayName("올바른 HTTP 상태 코드를 반환한다")
+        void shouldReturnCorrectHttpStatus() {
+            assertThat(TenantErrorCode.TENANT_NOT_FOUND.getHttpStatus()).isEqualTo(404);
+        }
+
+        @Test
+        @DisplayName("올바른 메시지를 반환한다")
+        void shouldReturnCorrectMessage() {
+            assertThat(TenantErrorCode.TENANT_NOT_FOUND.getMessage()).isEqualTo("Tenant not found");
+        }
     }
 
-    @Test
-    @DisplayName("INVALID_TENANT_ID 에러 코드 검증")
-    void shouldHaveInvalidTenantIdErrorCode() {
-        // When
-        TenantErrorCode errorCode = TenantErrorCode.INVALID_TENANT_ID;
+    @Nested
+    @DisplayName("INVALID_TENANT_STATE")
+    class InvalidTenantStateTest {
 
-        // Then
-        assertThat(errorCode.getCode()).isEqualTo("TENANT-002");
-        assertThat(errorCode.getHttpStatus()).isEqualTo(400);
-        assertThat(errorCode.getMessage()).isEqualTo("Invalid tenant ID");
+        @Test
+        @DisplayName("올바른 코드를 반환한다")
+        void shouldReturnCorrectCode() {
+            assertThat(TenantErrorCode.INVALID_TENANT_STATE.getCode()).isEqualTo("TENANT-002");
+        }
+
+        @Test
+        @DisplayName("올바른 HTTP 상태 코드를 반환한다")
+        void shouldReturnCorrectHttpStatus() {
+            assertThat(TenantErrorCode.INVALID_TENANT_STATE.getHttpStatus()).isEqualTo(400);
+        }
+
+        @Test
+        @DisplayName("올바른 메시지를 반환한다")
+        void shouldReturnCorrectMessage() {
+            assertThat(TenantErrorCode.INVALID_TENANT_STATE.getMessage())
+                    .isEqualTo("Invalid tenant state transition");
+        }
     }
 
-    @Test
-    @DisplayName("INVALID_TENANT_NAME 에러 코드 검증")
-    void shouldHaveInvalidTenantNameErrorCode() {
-        // When
-        TenantErrorCode errorCode = TenantErrorCode.INVALID_TENANT_NAME;
+    @Nested
+    @DisplayName("DUPLICATE_TENANT_NAME")
+    class DuplicateTenantNameTest {
 
-        // Then
-        assertThat(errorCode.getCode()).isEqualTo("TENANT-003");
-        assertThat(errorCode.getHttpStatus()).isEqualTo(400);
-        assertThat(errorCode.getMessage()).isEqualTo("Invalid tenant name");
+        @Test
+        @DisplayName("올바른 코드를 반환한다")
+        void shouldReturnCorrectCode() {
+            assertThat(TenantErrorCode.DUPLICATE_TENANT_NAME.getCode()).isEqualTo("TENANT-003");
+        }
+
+        @Test
+        @DisplayName("올바른 HTTP 상태 코드를 반환한다")
+        void shouldReturnCorrectHttpStatus() {
+            assertThat(TenantErrorCode.DUPLICATE_TENANT_NAME.getHttpStatus()).isEqualTo(409);
+        }
+
+        @Test
+        @DisplayName("올바른 메시지를 반환한다")
+        void shouldReturnCorrectMessage() {
+            assertThat(TenantErrorCode.DUPLICATE_TENANT_NAME.getMessage())
+                    .isEqualTo("Tenant name already exists");
+        }
     }
 
-    @Test
-    @DisplayName("INVALID_TENANT_STATUS 에러 코드 검증")
-    void shouldHaveInvalidTenantStatusErrorCode() {
-        // When
-        TenantErrorCode errorCode = TenantErrorCode.INVALID_TENANT_STATUS;
+    @Nested
+    @DisplayName("TENANT_HAS_ACTIVE_ORGANIZATIONS")
+    class TenantHasActiveOrganizationsTest {
 
-        // Then
-        assertThat(errorCode.getCode()).isEqualTo("TENANT-004");
-        assertThat(errorCode.getHttpStatus()).isEqualTo(400);
-        assertThat(errorCode.getMessage()).isEqualTo("Invalid tenant status");
+        @Test
+        @DisplayName("올바른 코드를 반환한다")
+        void shouldReturnCorrectCode() {
+            assertThat(TenantErrorCode.TENANT_HAS_ACTIVE_ORGANIZATIONS.getCode())
+                    .isEqualTo("TENANT-004");
+        }
+
+        @Test
+        @DisplayName("올바른 HTTP 상태 코드를 반환한다")
+        void shouldReturnCorrectHttpStatus() {
+            assertThat(TenantErrorCode.TENANT_HAS_ACTIVE_ORGANIZATIONS.getHttpStatus())
+                    .isEqualTo(400);
+        }
+
+        @Test
+        @DisplayName("올바른 메시지를 반환한다")
+        void shouldReturnCorrectMessage() {
+            assertThat(TenantErrorCode.TENANT_HAS_ACTIVE_ORGANIZATIONS.getMessage())
+                    .isEqualTo("Cannot deactivate tenant with active organizations");
+        }
+    }
+
+    @Nested
+    @DisplayName("ErrorCode 인터페이스 구현")
+    class ErrorCodeInterfaceTest {
+
+        @Test
+        @DisplayName("ErrorCode 인터페이스를 구현한다")
+        void shouldImplementErrorCodeInterface() {
+            assertThat(TenantErrorCode.TENANT_NOT_FOUND).isInstanceOf(ErrorCode.class);
+        }
+
+        @Test
+        @DisplayName("모든 에러 코드가 존재한다")
+        void shouldHaveAllErrorCodes() {
+            TenantErrorCode[] values = TenantErrorCode.values();
+
+            assertThat(values).hasSize(4);
+            assertThat(values)
+                    .containsExactly(
+                            TenantErrorCode.TENANT_NOT_FOUND,
+                            TenantErrorCode.INVALID_TENANT_STATE,
+                            TenantErrorCode.DUPLICATE_TENANT_NAME,
+                            TenantErrorCode.TENANT_HAS_ACTIVE_ORGANIZATIONS);
+        }
     }
 }

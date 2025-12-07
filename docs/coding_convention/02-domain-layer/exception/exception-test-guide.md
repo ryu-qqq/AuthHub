@@ -12,10 +12,19 @@ Domain Exception은 **ErrorCode, 구체적인 예외 클래스, 예외 발생 �
 ```
 ✅ 테스트 항목:
 1. ErrorCode Enum (getCode, getHttpStatus, getMessage)
+   - getHttpStatus()는 int 반환 (Spring HttpStatus 금지!)
 2. 구체적인 예외 클래스 (생성자, 에러 코드 매핑, args)
+   - DomainException.code(), httpStatus(), args() 메서드 검증
 3. Domain Layer 예외 발생 (IllegalArgumentException, DomainException)
+   - IllegalArgumentException: 개발자 버그 (500)
+   - DomainException: 클라이언트 입력/비즈니스 규칙 (400/404/409)
 4. 예외 메시지 검증 (비즈니스 용어, 컨텍스트 정보)
 ```
+
+### ⚠️ 중요: HttpStatus 타입
+**Domain Layer는 Spring에 의존하지 않습니다!**
+- ✅ `int httpStatus` 사용
+- ❌ `org.springframework.http.HttpStatus` 사용 금지
 
 ### 테스트 범위
 - ✅ **Pure Java 단위 테스트** (외부 의존성 제로)
@@ -33,9 +42,9 @@ Domain Exception은 **ErrorCode, 구체적인 예외 클래스, 예외 발생 �
 ### 2-1) ErrorCode Enum 테스트 템플릿
 
 ```java
-package com.ryuqq.domain.{bc}.exception;
+package com.ryuqq.authhub.domain.{bc}.exception;
 
-import com.ryuqq.domain.common.exception.ErrorCode;
+import com.ryuqq.authhub.domain.common.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -219,9 +228,9 @@ class {Bc}ErrorCodeTest {
 ### 2-2) 구체적인 예외 클래스 테스트 템플릿
 
 ```java
-package com.ryuqq.domain.{bc}.exception;
+package com.ryuqq.authhub.domain.{bc}.exception;
 
-import com.ryuqq.domain.common.exception.DomainException;
+import com.ryuqq.authhub.domain.common.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -310,6 +319,19 @@ class {Bc}NotFoundExceptionTest {
             // Then
             assertThat(code).isEqualTo("{BC}-001");
         }
+
+        @Test
+        @DisplayName("httpStatus()는 404를 반환해야 한다")
+        void httpStatus_ShouldReturn404() {
+            // Given
+            {Bc}NotFoundException exception = new {Bc}NotFoundException(1L);
+
+            // When
+            int httpStatus = exception.httpStatus();
+
+            // Then
+            assertThat(httpStatus).isEqualTo(404);
+        }
     }
 
     @Nested
@@ -352,9 +374,9 @@ class {Bc}NotFoundExceptionTest {
 ### 2-3) args를 사용하는 복잡한 예외 클래스 테스트 템플릿
 
 ```java
-package com.ryuqq.domain.order.exception;
+package com.ryuqq.authhub.domain.order.exception;
 
-import com.ryuqq.domain.common.exception.DomainException;
+import com.ryuqq.authhub.domain.common.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -487,11 +509,11 @@ class OrderCancellationExceptionTest {
 ### 2-4) Domain Layer 예외 발생 테스트 (Aggregate/VO)
 
 ```java
-package com.ryuqq.domain.order.aggregate.order;
+package com.ryuqq.authhub.domain.order.aggregate.order;
 
-import com.ryuqq.domain.order.exception.OrderCancellationException;
-import com.ryuqq.domain.order.exception.InvalidOrderStateException;
-import com.ryuqq.domain.order.mother.Orders;
+import com.ryuqq.authhub.domain.order.exception.OrderCancellationException;
+import com.ryuqq.authhub.domain.order.exception.InvalidOrderStateException;
+import com.ryuqq.authhub.domain.order.mother.Orders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -922,8 +944,10 @@ Domain Exception 테스트 작성 후 다음을 확인:
 - [ ] **@Nested 클래스로 관심사 분리** (ErrorCodeInterfaceTests, CodeFormatTests, HttpStatusMappingTests, ErrorMessageTests)
 - [ ] **@ParameterizedTest 사용** (모든 ErrorCode에 대해)
 - [ ] ErrorCode 인터페이스 구현 검증 (getCode, getHttpStatus, getMessage)
+- [ ] **getHttpStatus()는 int 반환 확인 (Spring HttpStatus 금지!)**
 - [ ] 에러 코드 형식 검증 ({BC}-{3자리 숫자})
 - [ ] HTTP 상태 코드 매핑 검증 (404, 400, 409, 500 등)
+- [ ] HTTP 상태 코드 범위 검증 (100-599)
 - [ ] 에러 메시지 null 체크
 
 ### 구체적인 예외 클래스 테스트
@@ -933,6 +957,7 @@ Domain Exception 테스트 작성 후 다음을 확인:
 - [ ] 파라미터 생성자 테스트
 - [ ] 기본 생성자 테스트 (있는 경우)
 - [ ] 에러 코드 매핑 검증 (code())
+- [ ] **HTTP 상태 코드 검증 (httpStatus()) - int 반환 확인**
 - [ ] args 매핑 검증 (복잡한 예외)
 - [ ] 에러 메시지 컨텍스트 정보 포함 검증
 

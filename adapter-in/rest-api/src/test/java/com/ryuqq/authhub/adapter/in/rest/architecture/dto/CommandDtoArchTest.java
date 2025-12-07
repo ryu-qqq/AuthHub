@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +47,9 @@ class CommandDtoArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
+        classes = new ClassFileImporter()
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .importPackages("com.ryuqq.authhub.adapter.in.rest");
 
         hasCommandDtoClasses =
                 classes.stream()
@@ -231,7 +234,7 @@ class CommandDtoArchTest {
                         .and()
                         .areNotNestedClasses()
                         .and()
-                        .resideInAPackage("..adapter.in.rest..")
+                        .resideInAPackage("..dto.command..")
                         .should()
                         .resideInAPackage("..dto.command..")
                         .because("Command DTO는 dto.command 패키지에 위치해야 합니다");

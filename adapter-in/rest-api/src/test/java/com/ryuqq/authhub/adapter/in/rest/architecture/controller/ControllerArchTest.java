@@ -6,8 +6,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import com.ryuqq.authhub.adapter.in.rest.architecture.ArchTestConfig;
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +47,7 @@ class ControllerArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
+        classes = ArchTestConfig.getRestApiClassesExcludingAuth();
 
         hasControllerClasses =
                 classes.stream()

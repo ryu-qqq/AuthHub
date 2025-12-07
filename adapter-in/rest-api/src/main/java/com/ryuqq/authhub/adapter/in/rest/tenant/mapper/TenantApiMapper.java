@@ -1,23 +1,27 @@
 package com.ryuqq.authhub.adapter.in.rest.tenant.mapper;
 
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.CreateTenantApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.query.SearchTenantsApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.CreateTenantApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantApiResponse;
+import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
+import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.CreateTenantApiRequest;
-import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
-
 /**
- * Tenant REST API ↔ Application Layer 변환 Mapper
+ * TenantApiMapper - 테넌트 API DTO 변환기
  *
- * <p>REST API Layer와 Application Layer 간의 DTO 변환을 담당합니다.
+ * <p>REST API DTO와 Application DTO 간의 변환을 담당합니다.
  *
- * <p><strong>변환 방향:</strong>
+ * <p><strong>Zero-Tolerance 규칙:</strong>
+ *
  * <ul>
- *   <li>API Request → Command (Controller → Application)</li>
- * </ul>
- *
- * <p><strong>Response 변환:</strong>
- * <ul>
- *   <li>Application Response → API Response 변환은 각 Response DTO의 from() 메서드 사용</li>
+ *   <li>{@code @Component} 어노테이션 필수
+ *   <li>Lombok 금지
+ *   <li>비즈니스 로직 금지
+ *   <li>단순 변환만 수행
  * </ul>
  *
  * @author development-team
@@ -29,10 +33,56 @@ public class TenantApiMapper {
     /**
      * CreateTenantApiRequest → CreateTenantCommand 변환
      *
-     * @param request REST API 테넌트 생성 요청
-     * @return Application Layer 테넌트 생성 명령
+     * @param request API 요청 DTO
+     * @return Application Command DTO
      */
-    public CreateTenantCommand toCreateTenantCommand(CreateTenantApiRequest request) {
+    public CreateTenantCommand toCommand(CreateTenantApiRequest request) {
         return new CreateTenantCommand(request.name());
+    }
+
+    /**
+     * SearchTenantsApiRequest → SearchTenantsQuery 변환
+     *
+     * @param request API 요청 DTO
+     * @return Application Query DTO
+     */
+    public SearchTenantsQuery toQuery(SearchTenantsApiRequest request) {
+        return new SearchTenantsQuery(
+                request.name(), request.status(), request.page(), request.size());
+    }
+
+    /**
+     * TenantResponse → CreateTenantApiResponse 변환
+     *
+     * @param response 생성된 테넌트 Response
+     * @return API 응답 DTO
+     */
+    public CreateTenantApiResponse toCreateResponse(TenantResponse response) {
+        return new CreateTenantApiResponse(response.tenantId().toString());
+    }
+
+    /**
+     * TenantResponse → TenantApiResponse 변환
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public TenantApiResponse toApiResponse(TenantResponse response) {
+        return new TenantApiResponse(
+                response.tenantId().toString(),
+                response.name(),
+                response.status(),
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * TenantResponse 목록 → TenantApiResponse 목록 변환
+     *
+     * @param responses Application Response DTO 목록
+     * @return API 응답 DTO 목록
+     */
+    public List<TenantApiResponse> toApiResponseList(List<TenantResponse> responses) {
+        return responses.stream().map(this::toApiResponse).toList();
     }
 }

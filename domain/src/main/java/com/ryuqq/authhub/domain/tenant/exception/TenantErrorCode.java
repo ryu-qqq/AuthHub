@@ -5,18 +5,17 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
 /**
  * TenantErrorCode - Tenant 도메인 에러 코드
  *
- * <p>Tenant 도메인에서 발생할 수 있는 모든 에러 코드를 정의합니다.
+ * <p>Tenant Aggregate 관련 비즈니스 예외 에러 코드입니다.
  *
  * @author development-team
  * @since 1.0.0
  */
 public enum TenantErrorCode implements ErrorCode {
     TENANT_NOT_FOUND("TENANT-001", 404, "Tenant not found"),
-    INVALID_TENANT_ID("TENANT-002", 400, "Invalid tenant ID"),
-    INVALID_TENANT_NAME("TENANT-003", 400, "Invalid tenant name"),
-    INVALID_TENANT_STATUS("TENANT-004", 400, "Invalid tenant status"),
-    ACTIVE_ORGANIZATIONS_EXIST(
-            "TENANT-005", 409, "Cannot suspend tenant with active organizations");
+    INVALID_TENANT_STATE("TENANT-002", 400, "Invalid tenant state transition"),
+    DUPLICATE_TENANT_NAME("TENANT-003", 409, "Tenant name already exists"),
+    TENANT_HAS_ACTIVE_ORGANIZATIONS(
+            "TENANT-004", 400, "Cannot deactivate tenant with active organizations");
 
     private final String code;
     private final int httpStatus;

@@ -577,7 +577,7 @@ class ExceptionArchTest {
                 String simpleName = javaClass.getSimpleName();
                 boolean hasMeaningfulName =
                         simpleName.matches(
-                                ".*(?:NotFound|Invalid|Already|Cannot|Failed|Exceeded|Unsupported).*Exception");
+                                ".*(?:NotFound|Invalid|Already|Cannot|Failed|Exceeded|Unsupported|Duplicate).*Exception");
 
                 if (!hasMeaningfulName) {
                     String message =

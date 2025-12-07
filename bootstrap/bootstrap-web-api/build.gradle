@@ -31,6 +31,7 @@ dependencies {
 
     // Outbound
     implementation project(':adapter-out:persistence-mysql')
+    implementation project(':adapter-out:persistence-redis')
 
     // ========================================
     // Spring Boot Starters
@@ -40,6 +41,13 @@ dependencies {
     implementation libs.spring.boot.starter.validation
     implementation libs.spring.boot.starter.security
     implementation libs.spring.boot.starter.actuator
+
+    // ========================================
+    // JWT (JJWT)
+    // ========================================
+    implementation libs.jjwt.api
+    runtimeOnly libs.jjwt.impl
+    runtimeOnly libs.jjwt.jackson
 
     // Configuration Processing
     annotationProcessor libs.spring.boot.configuration.processor

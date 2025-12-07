@@ -6,135 +6,80 @@ import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
 import java.time.Instant;
+import java.util.UUID;
 
 /**
- * TenantFixture - Tenant Aggregate 테스트 픽스처
- *
- * <p>테스트에서 Tenant 객체를 쉽게 생성할 수 있도록 도와주는 빌더 패턴 기반 픽스처입니다.
+ * Tenant 테스트 픽스처
  *
  * @author development-team
  * @since 1.0.0
  */
 public final class TenantFixture {
 
-    private static final Long DEFAULT_TENANT_ID = 1L;
-    private static final String DEFAULT_TENANT_NAME = "Default Tenant";
-    private static final Clock DEFAULT_CLOCK = () -> Instant.parse("2025-11-24T00:00:00Z");
+    private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
+    private static final UUID DEFAULT_UUID =
+            UUID.fromString("01941234-5678-7000-8000-123456789abc");
 
     private TenantFixture() {}
 
-    // ========== Simple Factory Methods ==========
-
-    public static Tenant aTenant() {
-        return builder().asExisting().build();
+    /** 기본 Tenant 생성 (ID 할당됨) */
+    public static Tenant create() {
+        return Tenant.reconstitute(
+                TenantId.of(DEFAULT_UUID),
+                TenantName.of("Test Tenant"),
+                TenantStatus.ACTIVE,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    public static Tenant aTenant(TenantId tenantId) {
-        return builder().asExisting().tenantId(tenantId).build();
+    /** 지정된 이름으로 Tenant 생성 */
+    public static Tenant createWithName(String name) {
+        return Tenant.reconstitute(
+                TenantId.of(DEFAULT_UUID),
+                TenantName.of(name),
+                TenantStatus.ACTIVE,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    public static Tenant aTenant(TenantName tenantName) {
-        return builder().asExisting().tenantName(tenantName).build();
+    /** 새로운 Tenant 생성 (ID 미할당) */
+    public static Tenant createNew() {
+        Clock fixedClock = () -> FIXED_TIME;
+        return Tenant.create(TenantName.of("New Tenant"), fixedClock);
     }
 
-    public static Tenant aNewTenant() {
-        return builder().asNew().build();
+    /** 지정된 상태로 Tenant 생성 */
+    public static Tenant createWithStatus(TenantStatus status) {
+        return Tenant.reconstitute(
+                TenantId.of(DEFAULT_UUID),
+                TenantName.of("Test Tenant"),
+                status,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    public static Tenant anInactiveTenant() {
-        return builder().asExisting().asInactive().build();
+    /** 비활성화된 Tenant 생성 */
+    public static Tenant createInactive() {
+        return createWithStatus(TenantStatus.INACTIVE);
     }
 
-    public static Tenant aDeletedTenant() {
-        return builder().asExisting().asDeleted().build();
+    /** 삭제된 Tenant 생성 */
+    public static Tenant createDeleted() {
+        return createWithStatus(TenantStatus.DELETED);
     }
 
-    // ========== Builder ==========
-
-    public static TenantBuilder builder() {
-        return new TenantBuilder();
+    /** 테스트용 고정 Clock 반환 */
+    public static Clock fixedClock() {
+        return () -> FIXED_TIME;
     }
 
-    public static final class TenantBuilder {
+    /** 기본 TenantId 반환 */
+    public static TenantId defaultId() {
+        return TenantId.of(DEFAULT_UUID);
+    }
 
-        private TenantId tenantId;
-        private TenantName tenantName = TenantName.of(DEFAULT_TENANT_NAME);
-        private TenantStatus tenantStatus = TenantStatus.ACTIVE;
-        private Instant createdAt = DEFAULT_CLOCK.now();
-        private Instant updatedAt = DEFAULT_CLOCK.now();
-        private boolean isNew = false;
-
-        private TenantBuilder() {}
-
-        public TenantBuilder asNew() {
-            this.isNew = true;
-            this.tenantId = null;
-            return this;
-        }
-
-        public TenantBuilder asExisting() {
-            this.isNew = false;
-            this.tenantId = TenantId.of(DEFAULT_TENANT_ID);
-            return this;
-        }
-
-        public TenantBuilder tenantId(TenantId tenantId) {
-            this.tenantId = tenantId;
-            this.isNew = (tenantId == null);
-            return this;
-        }
-
-        public TenantBuilder tenantName(TenantName tenantName) {
-            this.tenantName = tenantName;
-            return this;
-        }
-
-        public TenantBuilder tenantName(String tenantName) {
-            this.tenantName = TenantName.of(tenantName);
-            return this;
-        }
-
-        public TenantBuilder tenantStatus(TenantStatus tenantStatus) {
-            this.tenantStatus = tenantStatus;
-            return this;
-        }
-
-        public TenantBuilder asActive() {
-            this.tenantStatus = TenantStatus.ACTIVE;
-            return this;
-        }
-
-        public TenantBuilder asInactive() {
-            this.tenantStatus = TenantStatus.INACTIVE;
-            return this;
-        }
-
-        public TenantBuilder asDeleted() {
-            this.tenantStatus = TenantStatus.DELETED;
-            return this;
-        }
-
-        public TenantBuilder createdAt(Instant createdAt) {
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public TenantBuilder updatedAt(Instant updatedAt) {
-            this.updatedAt = updatedAt;
-            return this;
-        }
-
-        public TenantBuilder clock(Clock clock) {
-            this.createdAt = clock.now();
-            this.updatedAt = clock.now();
-            return this;
-        }
-
-        public Tenant build() {
-            if (isNew) {
-                return Tenant.forNew(tenantName, DEFAULT_CLOCK);
-            }
-            return Tenant.of(tenantId, tenantName, tenantStatus, createdAt, updatedAt);
-        }
+    /** 기본 UUID 반환 */
+    public static UUID defaultUUID() {
+        return DEFAULT_UUID;
     }
 }

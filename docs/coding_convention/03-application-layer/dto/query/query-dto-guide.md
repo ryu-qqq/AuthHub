@@ -54,7 +54,7 @@ application/{bc}/dto/query/
 
 ### 단건 조회
 ```java
-package com.ryuqq.application.{bc}.dto.query;
+package com.ryuqq.authhub.application.{bc}.dto.query;
 
 public record Get{Bc}Query(
     Long id
@@ -63,7 +63,7 @@ public record Get{Bc}Query(
 
 ### Offset 페이징
 ```java
-package com.ryuqq.application.{bc}.dto.query;
+package com.ryuqq.authhub.application.{bc}.dto.query;
 
 import java.time.Instant;
 
@@ -81,7 +81,7 @@ public record Search{Bc}Query(
 
 ### No-Offset (커서) 페이징
 ```java
-package com.ryuqq.application.{bc}.dto.query;
+package com.ryuqq.authhub.application.{bc}.dto.query;
 
 import java.time.Instant;
 
@@ -100,7 +100,7 @@ public record Search{Bc}CursorQuery(
 
 ### Offset 페이징
 ```java
-package com.ryuqq.application.order.dto.query;
+package com.ryuqq.authhub.application.order.dto.query;
 
 import java.time.Instant;
 
@@ -118,7 +118,7 @@ public record SearchOrdersQuery(
 
 ### No-Offset (커서) 페이징
 ```java
-package com.ryuqq.application.order.dto.query;
+package com.ryuqq.authhub.application.order.dto.query;
 
 import java.time.Instant;
 

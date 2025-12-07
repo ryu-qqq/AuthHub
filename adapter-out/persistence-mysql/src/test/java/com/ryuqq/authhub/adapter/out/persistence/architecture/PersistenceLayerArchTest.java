@@ -117,15 +117,16 @@ class PersistenceLayerArchTest {
                         .implement(
                                 com.tngtech.archunit.base.DescribedPredicate.describe(
                                         "PersistencePort interface",
-                                        javaClass -> javaClass.getSimpleName().endsWith("PersistencePort")))
+                                        javaClass ->
+                                                javaClass
+                                                        .getSimpleName()
+                                                        .endsWith("PersistencePort")))
                         .because("CommandAdapter는 PersistencePort 인터페이스를 구현해야 합니다");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
 
-    /**
-     * QueryAdapter는 QueryPort를 구현해야 합니다 (헥사고날 아키텍처 패턴)
-     */
+    /** QueryAdapter는 QueryPort를 구현해야 합니다 (헥사고날 아키텍처 패턴) */
     @Test
     @DisplayName("[필수] QueryAdapter는 QueryPort를 구현해야 한다")
     void persistence_QueryAdapterMustImplementQueryPort() {
@@ -141,7 +142,9 @@ class PersistenceLayerArchTest {
                                         "QueryPort interface (ending with QueryPort)",
                                         javaClass ->
                                                 javaClass.getSimpleName().endsWith("QueryPort")
-                                                        && !javaClass.getSimpleName().contains("Lock")))
+                                                        && !javaClass
+                                                                .getSimpleName()
+                                                                .contains("Lock")))
                         .because("QueryAdapter는 QueryPort 인터페이스를 구현해야 합니다");
 
         rule.allowEmptyShould(true).check(allClasses);
@@ -158,7 +161,10 @@ class PersistenceLayerArchTest {
                         .implement(
                                 com.tngtech.archunit.base.DescribedPredicate.describe(
                                         "LockQueryPort interface",
-                                        javaClass -> javaClass.getSimpleName().endsWith("LockQueryPort")))
+                                        javaClass ->
+                                                javaClass
+                                                        .getSimpleName()
+                                                        .endsWith("LockQueryPort")))
                         .because("LockQueryAdapter는 LockQueryPort 인터페이스를 구현해야 합니다");
 
         rule.allowEmptyShould(true).check(allClasses);
@@ -224,11 +230,11 @@ class PersistenceLayerArchTest {
     /**
      * 규칙 5: Application Layer 의존 검증
      *
-     * <p>헥사고날 아키텍처에서 Adapter는 Application Layer의 Port 인터페이스를 구현합니다.
-     * 따라서 Port 의존은 허용하고, Port가 아닌 Application Layer 클래스 의존만 금지합니다.
+     * <p>헥사고날 아키텍처에서 Adapter는 Application Layer의 Port 인터페이스를 구현합니다. 따라서 Port 의존은 허용하고, Port가 아닌
+     * Application Layer 클래스 의존만 금지합니다.
      *
-     * <p>현재 프로젝트에서 Port는 application..port.. 패키지에 위치하므로,
-     * Adapter는 Port만 의존하고 UseCase, Service 등 다른 클래스는 의존하면 안됩니다.
+     * <p>현재 프로젝트에서 Port는 application..port.. 패키지에 위치하므로, Adapter는 Port만 의존하고 UseCase, Service 등 다른
+     * 클래스는 의존하면 안됩니다.
      */
     @Test
     @DisplayName("[금지] Persistence Adapter는 Application Layer의 UseCase/Service를 직접 의존하지 않아야 한다")
@@ -241,8 +247,8 @@ class PersistenceLayerArchTest {
                         .dependOnClassesThat()
                         .resideInAnyPackage("..application..service..", "..application..usecase..")
                         .because(
-                                "Persistence Layer는 Application Layer의 UseCase/Service를 직접 의존하면 안 됩니다"
-                                        + " (Port만 구현)");
+                                "Persistence Layer는 Application Layer의 UseCase/Service를 직접 의존하면 안"
+                                        + " 됩니다 (Port만 구현)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }

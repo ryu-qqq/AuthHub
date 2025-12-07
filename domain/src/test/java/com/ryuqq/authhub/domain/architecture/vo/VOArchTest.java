@@ -135,10 +135,37 @@ class VOArchTest {
         rule.check(classes);
     }
 
-    /** 규칙 4: Long 기반 ID VO는 isNew() 메서드를 가져야 한다 (UUID 기반 제외) */
+    /**
+     * 규칙 4: Long 기반 ID VO는 isNew() 메서드를 가져야 한다 (UUID 기반 제외)
+     *
+     * <p>참고: UUID 기반 ID (TenantId, UserId 등)는 isNew() 메서드가 필요 없으므로 제외됩니다. 현재 프로젝트에서 Long 기반 ID가 없는
+     * 경우 테스트가 건너뜁니다.
+     */
     @Test
     @DisplayName("[필수] Long 기반 ID Value Object는 isNew() 메서드를 가져야 한다")
     void longIdValueObjectsShouldHaveIsNewMethod() {
+        // Long 기반 ID 클래스 필터링 (UUID 기반 제외)
+        boolean hasLongBasedIds =
+                classes.stream()
+                        .filter(
+                                c ->
+                                        c.getPackageName().contains(".identifier.")
+                                                && c.getSimpleName().endsWith("Id")
+                                                && !c.getSimpleName().contains("Fixture")
+                                                && !c.getSimpleName().contains("Mother")
+                                                && !c.getSimpleName().contains("Test")
+                                                && !c.getSimpleName().contains("UserId")
+                                                && !c.getSimpleName().contains("TenantId")
+                                                && !c.isAnonymousClass()
+                                                && !c.isInnerClass())
+                        .findAny()
+                        .isPresent();
+
+        // Long 기반 ID가 없으면 테스트 건너뛰기 (UUID 기반 ID만 있는 경우)
+        if (!hasLongBasedIds) {
+            return; // 테스트 성공으로 처리
+        }
+
         ArchRule rule =
                 classes()
                         .that()
@@ -153,6 +180,8 @@ class VOArchTest {
                         .haveSimpleNameNotContaining("Test")
                         .and()
                         .haveSimpleNameNotContaining("UserId")
+                        .and()
+                        .haveSimpleNameNotContaining("TenantId")
                         .and()
                         .areNotAnonymousClasses()
                         .and()

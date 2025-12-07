@@ -27,6 +27,11 @@ dependencies {
     // Spring Security (Optional)
     implementation libs.spring.boot.starter.security
 
+    // JWT (JJWT)
+    implementation libs.jjwt.api
+    runtimeOnly libs.jjwt.impl
+    runtimeOnly libs.jjwt.jackson
+
     // JSON Processing
     implementation libs.jackson.databind
     implementation libs.jackson.datatype.jsr310

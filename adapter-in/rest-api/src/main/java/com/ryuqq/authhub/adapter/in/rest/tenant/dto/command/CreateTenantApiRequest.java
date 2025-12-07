@@ -1,15 +1,22 @@
 package com.ryuqq.authhub.adapter.in.rest.tenant.dto.command;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /**
- * 테넌트 생성 API 요청 DTO
+ * CreateTenantApiRequest - 테넌트 생성 요청 DTO
  *
- * <p>REST API로 테넌트 생성 요청을 받을 때 사용되는 불변 DTO입니다.
+ * <p>테넌트 등록 API의 요청 본문을 표현합니다.
  *
- * <p><strong>Validation 규칙:</strong>
+ * <p><strong>Zero-Tolerance 규칙:</strong>
+ *
  * <ul>
- *   <li>name: 필수, 빈 문자열 불가 (NotBlank)</li>
+ *   <li>Record 타입 필수
+ *   <li>*ApiRequest 네이밍 규칙
+ *   <li>Bean Validation 어노테이션 사용
+ *   <li>Lombok 금지
+ *   <li>Jackson 어노테이션 금지
+ *   <li>Domain 변환 메서드 금지
  * </ul>
  *
  * @author development-team
@@ -17,5 +24,5 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record CreateTenantApiRequest(
         @NotBlank(message = "테넌트 이름은 필수입니다")
-        String name
-) {}
+                @Size(min = 2, max = 100, message = "테넌트 이름은 2자 이상 100자 이하여야 합니다")
+                String name) {}

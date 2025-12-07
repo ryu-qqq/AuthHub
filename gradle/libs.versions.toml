@@ -18,10 +18,17 @@ springDependencyManagement = "1.1.5"
 querydsl = "5.1.0"
 hibernate = "6.4.4.Final"
 flyway = "10.10.0"
-postgresql = "42.7.3"
 mysql = "8.3.0"
+postgresql = "42.7.3"
 h2 = "2.2.224"
 hikaricp = "5.1.0"
+snakeyaml = "2.2"
+
+# ========================================
+# Redis
+# ========================================
+redisson = "3.27.2"
+commonsPool2 = "2.12.0"
 
 # ========================================
 # AWS SDK
@@ -35,6 +42,7 @@ junit = "5.10.2"
 assertj = "3.25.3"
 mockito = "5.11.0"
 testcontainers = "1.19.7"
+testcontainersRedis = "2.2.2"
 restAssured = "5.4.0"
 restdocs = "3.0.1"
 
@@ -49,6 +57,8 @@ jacoco = "0.8.11"
 pmd = "7.0.0"
 pmdPlugin = "6.55.0"
 spotless = "7.0.0.BETA4"
+googleJavaFormat = "1.22.0"
+asciidoctor = "3.3.2"
 
 # ========================================
 # API Documentation
@@ -62,10 +72,22 @@ logstashLogback = "7.4"
 micrometer = "1.12.4"
 
 # ========================================
+# Security / JWT
+# ========================================
+jjwt = "0.12.5"
+
+# ========================================
 # Utilities
 # ========================================
 commonsLang3 = "3.14.0"
+uuidCreator = "6.0.0"
 jackson = "2.17.0"
+
+# ========================================
+# Jakarta APIs
+# ========================================
+jakartaValidation = "3.0.2"
+jakartaPersistence = "3.1.0"
 
 [libraries]
 # ========================================
@@ -75,10 +97,8 @@ spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-start
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
-spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
-spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 
 # ========================================
@@ -87,8 +107,8 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 spring-context = { module = "org.springframework:spring-context" }
 spring-tx = { module = "org.springframework:spring-tx" }
 spring-messaging = { module = "org.springframework:spring-messaging" }
-spring-security-crypto = { module = "org.springframework.security:spring-security-crypto" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
+spring-security-crypto = { module = "org.springframework.security:spring-security-crypto" }
 
 # ========================================
 # QueryDSL
@@ -99,13 +119,21 @@ querydsl-apt = { module = "com.querydsl:querydsl-apt", version.ref = "querydsl" 
 # ========================================
 # Database
 # ========================================
+mysql-connector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
-mysql = { module = "com.mysql:mysql-connector-j", version.ref = "mysql" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
-flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 flyway-mysql = { module = "org.flywaydb:flyway-mysql", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+
+# ========================================
+# Redis
+# ========================================
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+redisson-spring-boot-starter = { module = "org.redisson:redisson-spring-boot-starter", version.ref = "redisson" }
+commons-pool2 = { module = "org.apache.commons:commons-pool2", version.ref = "commonsPool2" }
 
 # ========================================
 # AWS SDK v2
@@ -128,8 +156,10 @@ testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.re
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers" }
 testcontainers-localstack = { module = "org.testcontainers:localstack", version.ref = "testcontainers" }
+testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "testcontainersRedis" }
 rest-assured = { module = "io.rest-assured:rest-assured", version.ref = "restAssured" }
 spring-restdocs-mockmvc = { module = "org.springframework.restdocs:spring-restdocs-mockmvc", version.ref = "restdocs" }
+spring-restdocs-asciidoctor = { module = "org.springframework.restdocs:spring-restdocs-asciidoctor", version.ref = "restdocs" }
 
 # ========================================
 # Architecture Testing
@@ -153,13 +183,21 @@ logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-enc
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 
 # ========================================
+# Security / JWT
+# ========================================
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+# ========================================
 # Utilities
 # ========================================
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
+uuid-creator = { module = "com.github.f4b6a3:uuid-creator", version.ref = "uuidCreator" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
-jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
-jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version = "3.1.0" }
+jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakartaValidation" }
+jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakartaPersistence" }
 
 [bundles]
 # ========================================
@@ -214,4 +252,5 @@ spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
 spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugsPlugin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+asciidoctor = { id = "org.asciidoctor.jvm.convert", version.ref = "asciidoctor" }
 # Note: PMD is a core Gradle plugin, applied via `id("pmd")` in build.gradle.kts

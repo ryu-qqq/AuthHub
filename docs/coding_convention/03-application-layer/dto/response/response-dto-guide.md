@@ -55,7 +55,7 @@ application/{bc}/dto/response/
 
 ### 기본 패턴
 ```java
-package com.ryuqq.application.{bc}.dto.response;
+package com.ryuqq.authhub.application.{bc}.dto.response;
 
 import java.time.Instant;
 import java.util.List;
@@ -86,7 +86,7 @@ public record {Bc}Response(
 
 ### Detail Response
 ```java
-package com.ryuqq.application.order.dto.response;
+package com.ryuqq.authhub.application.order.dto.response;
 
 import java.time.Instant;
 import java.util.List;
@@ -116,7 +116,7 @@ public record OrderDetailResponse(
 
 ### Summary Response
 ```java
-package com.ryuqq.application.order.dto.response;
+package com.ryuqq.authhub.application.order.dto.response;
 
 import java.time.Instant;
 

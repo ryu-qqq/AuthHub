@@ -1,0 +1,162 @@
+ 🔍 AuthHub 토큰 및 헤더 전달 방식 분석 결과
+
+  1. 토큰 전달 형태
+
+  Access Token (Authorization 헤더)
+
+  Authorization: Bearer <JWT_ACCESS_TOKEN>
+  - 위치: HTTP Request Header
+  - 형식: Bearer  prefix + JWT 토큰
+  - 처리: JwtAuthenticationFilter (Order: +3)
+
+  Refresh Token (Cookie)
+
+  Cookie: refresh_token=<REFRESH_TOKEN_VALUE>
+  - 위치: HTTP Cookie
+  - 속성: HttpOnly, Secure, SameSite=Strict
+  - MaxAge: 7일
+  - 처리: TokenRefreshFilter (Order: +2)
+
+  ---
+  2. Gateway Filter 실행 순서 및 헤더 추가
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  Filter Chain 실행 순서 (HIGHEST_PRECEDENCE 기준)                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+  +0  TraceIdFilter
+      └─ 추가: X-Trace-Id (Request/Response)
+
+  +1  RateLimitFilter
+      └─ IP/Endpoint Rate Limiting
+
+  +2  TokenRefreshFilter
+      └─ Access Token 만료 시 갱신
+      └─ 갱신 시 추가:
+         - Authorization: Bearer <new_access_token>
+         - X-User-Id: <user_id>
+         - Cookie: refresh_token=<new_refresh_token>
+
+  +3  JwtAuthenticationFilter
+      └─ JWT 검증 후 추가: X-User-Id
+
+  +4  UserRateLimitFilter
+      └─ User Rate Limiting
+
+  +5  TenantIsolationFilter
+      └─ 추가: X-Tenant-Id, X-Roles
+
+  +6  PermissionFilter
+      └─ 권한 검증
+
+  +7  MfaVerificationFilter
+      └─ MFA 검증
+
+  ---
+  3. Downstream 서비스로 전달되는 헤더
+
+  | 헤더            | 값                | 설정 위치                                        | 설명                           |
+  |---------------|------------------|----------------------------------------------|------------------------------|
+  | Authorization | Bearer <jwt>     | 클라이언트 (원본 또는 갱신됨)                            | JWT Access Token             |
+  | X-Trace-Id    | UUID 형식          | TraceIdFilter                                | 분산 추적 ID                     |
+  | X-User-Id     | 사용자 ID (subject) | JwtAuthenticationFilter / TokenRefreshFilter | JWT에서 추출된 userId             |
+  | X-Tenant-Id   | 테넌트 ID           | TenantIsolationFilter                        | JWT에서 추출된 tenantId           |
+  | X-Roles       | JSON 배열          | TenantIsolationFilter                        | 사용자 역할 (예: ["ADMIN","USER"]) |
+
+  ---
+  4. AuthHub와의 통신
+
+  4.1 AuthHub Adapter 엔드포인트 (AuthHubAdapter.java)
+
+  | 메서드                       | 엔드포인트                             | 요청                                      | 응답                                           |
+  |---------------------------|-----------------------------------|-----------------------------------------|----------------------------------------------|
+  | fetchPublicKeys()         | GET /api/v1/auth/jwks             | -                                       | List<PublicKey> (JWKS)                       |
+  | refreshAccessToken()      | POST {refreshEndpoint}            | X-Tenant-ID 헤더 + {"refreshToken":"..."} | TokenPair (accessToken, refreshToken)        |
+  | extractExpiredTokenInfo() | POST {extractExpiredInfoEndpoint} | {"token":"..."}                         | ExpiredTokenInfo (expired, userId, tenantId) |
+
+  4.2 AuthHub 호출 시 전달되는 헤더
+
+  // refreshAccessToken 호출 시
+  webClient.post()
+      .uri(properties.getRefreshEndpoint())
+      .header("X-Tenant-ID", tenantId)  // ← Tenant 식별자
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(new RefreshTokenRequest(refreshToken))
+
+  ---
+  5. Exchange Attribute (Gateway 내부 전파)
+
+  필터 간 데이터 공유를 위해 ServerWebExchange.getAttributes()에 저장:
+
+  | Attribute      | 타입           | 설정 위치                   | 용도        |
+  |----------------|--------------|-------------------------|-----------|
+  | userId         | String       | JwtAuthenticationFilter | 사용자 식별    |
+  | tenantId       | String       | JwtAuthenticationFilter | 테넌트 식별    |
+  | permissionHash | String       | JwtAuthenticationFilter | 권한 해시     |
+  | roles          | Set<String>  | JwtAuthenticationFilter | 역할 목록     |
+  | mfaVerified    | Boolean      | JwtAuthenticationFilter | MFA 인증 여부 |
+  | tenantContext  | TenantConfig | TenantIsolationFilter   | 테넌트 설정    |
+  | traceId        | String       | TraceIdFilter           | 추적 ID     |
+
+  ---
+  6. 전체 흐름 다이어그램
+
+  Client Request
+      │
+      ├─ Authorization: Bearer <access_token>
+      ├─ Cookie: refresh_token=<refresh_token>
+      │
+      ▼
+  ┌─────────────────┐
+  │ TraceIdFilter   │ ─→ X-Trace-Id 생성/전파
+  └────────┬────────┘
+           ▼
+  ┌─────────────────┐
+  │ RateLimitFilter │ ─→ IP/Endpoint Rate Limit
+  └────────┬────────┘
+           ▼
+  ┌─────────────────────┐
+  │ TokenRefreshFilter  │ ─→ Access Token 만료 시:
+  │                     │    1. AuthHub.extractExpiredTokenInfo() 호출
+  │                     │    2. AuthHub.refreshAccessToken() 호출
+  │                     │    3. Authorization 헤더 교체
+  │                     │    4. X-User-Id 추가
+  │                     │    5. 새 refresh_token Cookie 설정
+  └─────────┬───────────┘
+            ▼
+  ┌─────────────────────────┐
+  │ JwtAuthenticationFilter │ ─→ JWT 검증 후:
+  │                         │    1. Exchange Attribute 설정
+  │                         │    2. X-User-Id 헤더 추가
+  └─────────┬───────────────┘
+            ▼
+  ┌─────────────────────────┐
+  │ TenantIsolationFilter   │ ─→ Tenant Config 조회 후:
+  │                         │    1. X-Tenant-Id 헤더 추가
+  │                         │    2. X-Roles 헤더 추가 (JSON)
+  └─────────┬───────────────┘
+            ▼
+      Backend Service
+           │
+           ├─ Authorization: Bearer <access_token>
+           ├─ X-Trace-Id: <uuid>
+           ├─ X-User-Id: <user_id>
+           ├─ X-Tenant-Id: <tenant_id>
+           └─ X-Roles: ["ADMIN","USER"]
+
+  ---
+
+⏺ 📋 요약
+
+  토큰 형태:
+  - Access Token: Authorization: Bearer <JWT> 헤더
+  - Refresh Token: refresh_token Cookie (HttpOnly, Secure, SameSite=Strict)
+
+  Downstream 서비스로 전달되는 커스텀 헤더:
+  1. X-Trace-Id - 분산 추적 ID
+  2. X-User-Id - JWT subject (사용자 ID)
+  3. X-Tenant-Id - 테넌트 식별자
+  4. X-Roles - 사용자 역할 (JSON 배열)
+
+  AuthHub 호출 시 사용하는 헤더:
+  - X-Tenant-ID - Token Refresh 시 테넌트 식별용

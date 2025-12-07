@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +48,9 @@ class ResponseDtoArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
+        classes = new ClassFileImporter()
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .importPackages("com.ryuqq.authhub.adapter.in.rest");
 
         hasResponseDtoClasses =
                 classes.stream()
@@ -233,6 +236,8 @@ class ResponseDtoArchTest {
     void responseDto_MustBeInCorrectPackage() {
         assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
 
+        // Note: common.dto 패키지의 공용 DTO(ApiResponse, PageApiResponse 등)는 제외
+        // BC별 *ApiResponse만 dto.response 패키지에 위치해야 함
         ArchRule rule =
                 classes()
                         .that()
@@ -244,10 +249,12 @@ class ResponseDtoArchTest {
                         .and()
                         .resideInAPackage("..dto..")
                         .and()
+                        .resideOutsideOfPackage("..common.dto..")
+                        .and()
                         .areNotInterfaces()
                         .should()
                         .resideInAPackage("..dto.response..")
-                        .because("Response DTO는 dto.response 패키지에 위치해야 합니다");
+                        .because("Response DTO는 dto.response 패키지에 위치해야 합니다 (common.dto 제외)");
 
         rule.check(classes);
     }

@@ -5,7 +5,6 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +51,7 @@ class RestApiLayerArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
+        classes = ArchTestConfig.getRestApiClassesExcludingAuth();
     }
 
     /** 규칙 1: Package 구조 검증 (controller, dto, mapper, error) */
@@ -273,9 +272,9 @@ class RestApiLayerArchTest {
         rule.allowEmptyShould(true).check(classes);
     }
 
-    /** 규칙 11: Config 클래스는 config 패키지에 위치 */
+    /** 규칙 11: Config 클래스는 config 또는 filter 패키지에 위치 */
     @Test
-    @DisplayName("[필수] Config 클래스는 config 패키지에 위치해야 한다")
+    @DisplayName("[필수] Config 클래스는 config 또는 filter 패키지에 위치해야 한다")
     void config_MustBeInConfigPackage() {
         ArchRule rule =
                 classes()
@@ -286,8 +285,8 @@ class RestApiLayerArchTest {
                         .and()
                         .areNotNestedClasses()
                         .should()
-                        .resideInAPackage("..config..")
-                        .because("Config 클래스는 config 패키지에 위치해야 합니다");
+                        .resideInAnyPackage("..config..", "..filter..")
+                        .because("Config 클래스는 config 또는 filter 패키지에 위치해야 합니다");
 
         rule.allowEmptyShould(true).check(classes);
     }

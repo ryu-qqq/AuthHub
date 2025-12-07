@@ -50,6 +50,7 @@ import org.junit.jupiter.api.Test;
  * @since 1.0.0
  */
 @DisplayName("QueryAdapter 아키텍처 규칙 검증 (Zero-Tolerance)")
+@SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass")
 class QueryAdapterArchTest {
 
     private static JavaClasses queryAdapterClasses;
@@ -370,8 +371,11 @@ class QueryAdapterArchTest {
         /**
          * 규칙 3: 정확히 2개 필드 (QueryDslRepository, Mapper)
          */
+        private static final int EXPECTED_FIELD_COUNT = 2;
+
         @Test
         @DisplayName("규칙 3: 정확히 2개 필드 (QueryDslRepository, Mapper)")
+        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
         void queryAdapter_ShouldHaveExactlyTwoFields() {
             assumeTrue(hasQueryAdapterClasses, "QueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
 
@@ -381,18 +385,21 @@ class QueryAdapterArchTest {
                     .filter(javaClass -> !javaClass.getSimpleName().contains(EXCLUDED_ADAPTER))
                     .forEach(javaClass -> {
                         int fieldCount = javaClass.getAllFields().size();
-                        if (fieldCount != 2) {
+                        if (fieldCount != EXPECTED_FIELD_COUNT) {
                             System.out.println("[WARNING] SHOULD 규칙 위반: " + javaClass.getSimpleName()
                                     + " - 필드 개수 " + fieldCount + "개 (권장: 2개)");
                         }
                     });
         }
 
+        private static final int EXPECTED_METHOD_COUNT = 4;
+
         /**
          * 규칙 6: 정확히 4개의 public 메서드
          */
         @Test
         @DisplayName("규칙 6: 정확히 4개의 public 메서드")
+        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
         void queryAdapter_ShouldHaveExactlyFourPublicMethods() {
             assumeTrue(hasQueryAdapterClasses, "QueryAdapter 클래스가 없으므로 테스트를 스킵합니다");
 
@@ -405,7 +412,7 @@ class QueryAdapterArchTest {
                                 .filter(method -> method.getModifiers().contains(JavaModifier.PUBLIC))
                                 .filter(method -> !method.getName().equals("<init>"))
                                 .count();
-                        if (methodCount != 4) {
+                        if (methodCount != EXPECTED_METHOD_COUNT) {
                             System.out.println("[WARNING] SHOULD 규칙 위반: " + javaClass.getSimpleName()
                                     + " - public 메서드 " + methodCount + "개 (권장: 4개)");
                         }

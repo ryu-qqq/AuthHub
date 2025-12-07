@@ -56,10 +56,14 @@ class ApiResponseArchTest {
     @Test
     @DisplayName("[필수] Common Response DTOs는 common.dto 패키지에 위치해야 한다")
     void commonResponseDtos_MustBeInCommonDtoPackage() {
+        // Note: BC별 *ApiResponse (예: TenantApiResponse)는 제외하고,
+        // 공용 DTO인 ApiResponse, PageApiResponse, SliceApiResponse, ErrorInfo만 검증
+        // haveNameMatching은 fully qualified name에 대해 매칭
         ArchRule rule =
                 classes()
                         .that()
-                        .haveNameMatching(".*ApiResponse|.*ErrorInfo")
+                        .haveNameMatching(
+                                ".*\\.(ApiResponse|PageApiResponse|SliceApiResponse|ErrorInfo)$")
                         .and()
                         .resideInAPackage("..adapter.in.rest..")
                         .and()

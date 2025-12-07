@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
  * @since 1.0.0
  */
 @SpringBootApplication
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
 public class TestJpaConfig {
 
     /**

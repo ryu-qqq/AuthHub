@@ -43,11 +43,7 @@ class JpaRepositoryArchTest {
     private static JavaClasses jpaRepositoryClasses;
     private static boolean hasJpaRepositoryClasses;
 
-    /**
-     * RefreshToken은 특수 패턴이므로 제외:
-     * - @Query 어노테이션 사용 (deleteByUserId 등)
-     * - 표준 CRUD 외 추가 메서드 존재
-     */
+    /** RefreshToken은 특수 패턴이므로 제외: - @Query 어노테이션 사용 (deleteByUserId 등) - 표준 CRUD 외 추가 메서드 존재 */
     private static final String EXCLUDED_PATTERN = "RefreshToken";
 
     @BeforeAll

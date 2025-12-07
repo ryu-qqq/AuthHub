@@ -3,29 +3,34 @@ package com.ryuqq.authhub.domain.tenant.vo;
 import java.util.Objects;
 
 /**
- * TenantName - Tenant 이름 Value Object
+ * TenantName - 테넌트 이름 Value Object
  *
- * <p>Tenant 이름은 2자 이상 100자 이하여야 합니다.
+ * <p>1-100자 길이의 문자열입니다.
  *
  * @author development-team
  * @since 1.0.0
  */
 public final class TenantName {
 
-    private static final int MIN_LENGTH = 2;
+    private static final int MIN_LENGTH = 1;
     private static final int MAX_LENGTH = 100;
 
     private final String value;
 
-    private TenantName(String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("TenantName은 null일 수 없습니다");
+    TenantName(String value) {
+        validate(value);
+        this.value = value.trim();
+    }
+
+    private void validate(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("TenantName은 null이거나 빈 문자열일 수 없습니다");
         }
-        if (value.length() < MIN_LENGTH || value.length() > MAX_LENGTH) {
+        String trimmed = value.trim();
+        if (trimmed.isEmpty() || trimmed.length() > MAX_LENGTH) {
             throw new IllegalArgumentException(
-                    "TenantName은 " + MIN_LENGTH + "자 이상 " + MAX_LENGTH + "자 이하여야 합니다");
+                    String.format("TenantName은 %d자 이상 %d자 이하여야 합니다", MIN_LENGTH, MAX_LENGTH));
         }
-        this.value = value;
     }
 
     public static TenantName of(String value) {

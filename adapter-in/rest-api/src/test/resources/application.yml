@@ -16,3 +16,9 @@ api:
       base: /organizations
     tenant:
       base: /tenants
+
+# JWT Configuration for tests (minimum 256 bits = 32 bytes for HS256)
+jwt:
+  secret-key: test-secret-key-that-is-at-least-32-bytes-long-for-hs256
+  access-token-validity-ms: 3600000
+  refresh-token-validity-ms: 604800000

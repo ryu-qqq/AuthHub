@@ -37,16 +37,16 @@
 ### 기본 테스트 클래스 구조
 
 ```java
-package com.ryuqq.adapter.in.rest.order.controller;
+package com.ryuqq.authhub.adapter.in.rest.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ryuqq.adapter.in.rest.common.dto.ApiResponse;
-import com.ryuqq.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
-import com.ryuqq.adapter.in.rest.order.dto.response.OrderApiResponse;
-import com.ryuqq.adapter.in.rest.order.mapper.OrderApiMapper;
-import com.ryuqq.application.order.port.in.CreateOrderUseCase;
-import com.ryuqq.application.order.dto.command.CreateOrderCommand;
-import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.order.mapper.OrderApiMapper;
+import com.ryuqq.authhub.application.order.port.in.CreateOrderUseCase;
+import com.ryuqq.authhub.application.order.dto.command.CreateOrderCommand;
+import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -464,11 +464,11 @@ mockMvc.perform(put("/api/v1/orders/{id}", orderId)
 ### Fixture 클래스 작성
 
 ```java
-package com.ryuqq.adapter.in.rest.order.fixture;
+package com.ryuqq.authhub.adapter.in.rest.order.fixture;
 
-import com.ryuqq.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
-import com.ryuqq.adapter.in.rest.order.dto.response.OrderApiResponse;
-import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderApiResponse;
+import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -691,7 +691,7 @@ void createOrder() {
 adapter-in/rest-api/
 └── src/
     ├── main/java/
-    │   └── com/ryuqq/adapter/in/rest/
+    │   └── com.ryuqq.authhub/adapter/in/rest/
     │       └── order/
     │           ├── controller/
     │           │   ├── OrderCommandController.java
@@ -705,7 +705,7 @@ adapter-in/rest-api/
     │               └── OrderApiMapper.java
     │
     └── test/java/
-        └── com/ryuqq/adapter/in/rest/
+        └── com.ryuqq.authhub/adapter/in/rest/
             └── order/
                 ├── controller/
                 │   ├── OrderCommandControllerTest.java  # ← Controller 단위 테스트

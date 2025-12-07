@@ -8,126 +8,211 @@ import com.ryuqq.authhub.adapter.out.persistence.tenant.entity.TenantJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.tenant.mapper.TenantJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantQueryDslRepository;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
+import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * TenantQueryAdapter 테스트
+ * TenantQueryAdapter 단위 테스트
  *
- * <p>TenantQueryPort 구현체 테스트
- *
- * @author AuthHub Team
+ * @author development-team
  * @since 1.0.0
  */
+@Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("TenantQueryAdapter 테스트")
+@DisplayName("TenantQueryAdapter 단위 테스트")
 class TenantQueryAdapterTest {
 
-    @Mock private TenantQueryDslRepository tenantQueryDslRepository;
+    @Mock private TenantQueryDslRepository repository;
 
-    @Mock private TenantJpaEntityMapper tenantJpaEntityMapper;
+    @Mock private TenantJpaEntityMapper mapper;
 
-    private TenantQueryAdapter tenantQueryAdapter;
+    private TenantQueryAdapter adapter;
 
-    private static final Long ID = 1L;
-    private static final String NAME = "Test Tenant";
-    private static final TenantStatus STATUS = TenantStatus.ACTIVE;
-    private static final Instant CREATED_AT = Instant.parse("2025-01-01T10:00:00Z");
-    private static final Instant UPDATED_AT = Instant.parse("2025-01-02T15:30:00Z");
-    private static final LocalDateTime CREATED_AT_LOCAL = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
-    private static final LocalDateTime UPDATED_AT_LOCAL = LocalDateTime.of(2025, 1, 2, 15, 30, 0);
+    private static final UUID TENANT_UUID = TenantFixture.defaultUUID();
+    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
 
     @BeforeEach
     void setUp() {
-        tenantQueryAdapter =
-                new TenantQueryAdapter(tenantQueryDslRepository, tenantJpaEntityMapper);
+        adapter = new TenantQueryAdapter(repository, mapper);
     }
 
     @Nested
-    @DisplayName("findById() 메서드는")
-    class FindByIdMethod {
+    @DisplayName("findById 메서드")
+    class FindByIdTest {
 
         @Test
-        @DisplayName("ID로 Tenant를 조회한다")
+        @DisplayName("ID로 테넌트를 조회한다")
         void shouldFindTenantById() {
-            // Given
-            TenantId tenantId = TenantId.of(ID);
+            // given
+            TenantId tenantId = TenantFixture.defaultId();
             TenantJpaEntity entity =
-                    TenantJpaEntity.of(ID, NAME, STATUS, CREATED_AT_LOCAL, UPDATED_AT_LOCAL);
-            Tenant tenant =
-                    Tenant.reconstitute(
-                            TenantId.of(ID), TenantName.of(NAME), STATUS, CREATED_AT, UPDATED_AT);
+                    TenantJpaEntity.of(
+                            1L,
+                            TENANT_UUID,
+                            "Test Tenant",
+                            TenantStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            Tenant expectedDomain = TenantFixture.create();
 
-            given(tenantQueryDslRepository.findById(ID)).willReturn(Optional.of(entity));
-            given(tenantJpaEntityMapper.toDomain(entity)).willReturn(tenant);
+            given(repository.findByTenantId(TENANT_UUID)).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
-            // When
-            Optional<Tenant> result = tenantQueryAdapter.findById(tenantId);
+            // when
+            Optional<Tenant> result = adapter.findById(tenantId);
 
-            // Then
+            // then
             assertThat(result).isPresent();
-            assertThat(result.get().tenantIdValue()).isEqualTo(ID);
-            verify(tenantQueryDslRepository).findById(ID);
-            verify(tenantJpaEntityMapper).toDomain(entity);
+            assertThat(result.get()).isEqualTo(expectedDomain);
+            verify(repository).findByTenantId(TENANT_UUID);
+            verify(mapper).toDomain(entity);
         }
 
         @Test
-        @DisplayName("존재하지 않는 ID는 빈 Optional을 반환한다")
-        void shouldReturnEmptyForNonExistentId() {
-            // Given
-            TenantId tenantId = TenantId.of(999L);
-            given(tenantQueryDslRepository.findById(999L)).willReturn(Optional.empty());
+        @DisplayName("존재하지 않는 ID로 조회 시 빈 Optional을 반환한다")
+        void shouldReturnEmptyWhenTenantNotFound() {
+            // given
+            TenantId tenantId = TenantId.of(UUID.randomUUID());
+            given(repository.findByTenantId(tenantId.value())).willReturn(Optional.empty());
 
-            // When
-            Optional<Tenant> result = tenantQueryAdapter.findById(tenantId);
+            // when
+            Optional<Tenant> result = adapter.findById(tenantId);
 
-            // Then
+            // then
             assertThat(result).isEmpty();
+            verify(repository).findByTenantId(tenantId.value());
         }
     }
 
     @Nested
-    @DisplayName("existsById() 메서드는")
-    class ExistsByIdMethod {
+    @DisplayName("existsById 메서드")
+    class ExistsByIdTest {
 
         @Test
-        @DisplayName("존재하는 ID는 true를 반환한다")
-        void shouldReturnTrueForExistingId() {
-            // Given
-            TenantId tenantId = TenantId.of(ID);
-            given(tenantQueryDslRepository.existsById(ID)).willReturn(true);
+        @DisplayName("존재하는 ID면 true를 반환한다")
+        void shouldReturnTrueWhenIdExists() {
+            // given
+            TenantId tenantId = TenantFixture.defaultId();
+            given(repository.existsByTenantId(TENANT_UUID)).willReturn(true);
 
-            // When
-            boolean result = tenantQueryAdapter.existsById(tenantId);
+            // when
+            boolean result = adapter.existsById(tenantId);
 
-            // Then
+            // then
             assertThat(result).isTrue();
-            verify(tenantQueryDslRepository).existsById(ID);
+            verify(repository).existsByTenantId(TENANT_UUID);
         }
 
         @Test
-        @DisplayName("존재하지 않는 ID는 false를 반환한다")
-        void shouldReturnFalseForNonExistentId() {
-            // Given
-            TenantId tenantId = TenantId.of(999L);
-            given(tenantQueryDslRepository.existsById(999L)).willReturn(false);
+        @DisplayName("존재하지 않는 ID면 false를 반환한다")
+        void shouldReturnFalseWhenIdDoesNotExist() {
+            // given
+            UUID nonExistingUuid = UUID.randomUUID();
+            TenantId tenantId = TenantId.of(nonExistingUuid);
+            given(repository.existsByTenantId(nonExistingUuid)).willReturn(false);
 
-            // When
-            boolean result = tenantQueryAdapter.existsById(tenantId);
+            // when
+            boolean result = adapter.existsById(tenantId);
 
-            // Then
+            // then
             assertThat(result).isFalse();
+            verify(repository).existsByTenantId(nonExistingUuid);
+        }
+    }
+
+    @Nested
+    @DisplayName("existsByName 메서드")
+    class ExistsByNameTest {
+
+        @Test
+        @DisplayName("존재하는 이름이면 true를 반환한다")
+        void shouldReturnTrueWhenNameExists() {
+            // given
+            TenantName name = TenantName.of("Existing Tenant");
+            given(repository.existsByName("Existing Tenant")).willReturn(true);
+
+            // when
+            boolean result = adapter.existsByName(name);
+
+            // then
+            assertThat(result).isTrue();
+            verify(repository).existsByName("Existing Tenant");
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 이름이면 false를 반환한다")
+        void shouldReturnFalseWhenNameDoesNotExist() {
+            // given
+            TenantName name = TenantName.of("Non-Existing Tenant");
+            given(repository.existsByName("Non-Existing Tenant")).willReturn(false);
+
+            // when
+            boolean result = adapter.existsByName(name);
+
+            // then
+            assertThat(result).isFalse();
+            verify(repository).existsByName("Non-Existing Tenant");
+        }
+    }
+
+    @Nested
+    @DisplayName("findByName 메서드")
+    class FindByNameTest {
+
+        @Test
+        @DisplayName("이름으로 테넌트를 조회한다")
+        void shouldFindTenantByName() {
+            // given
+            TenantName name = TenantName.of("Test Tenant");
+            TenantJpaEntity entity =
+                    TenantJpaEntity.of(
+                            1L,
+                            TENANT_UUID,
+                            "Test Tenant",
+                            TenantStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            Tenant expectedDomain = TenantFixture.create();
+
+            given(repository.findByName("Test Tenant")).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
+
+            // when
+            Optional<Tenant> result = adapter.findByName(name);
+
+            // then
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(expectedDomain);
+            verify(repository).findByName("Test Tenant");
+            verify(mapper).toDomain(entity);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 이름으로 조회 시 빈 Optional을 반환한다")
+        void shouldReturnEmptyWhenTenantNotFoundByName() {
+            // given
+            TenantName name = TenantName.of("Non-Existing Tenant");
+            given(repository.findByName("Non-Existing Tenant")).willReturn(Optional.empty());
+
+            // when
+            Optional<Tenant> result = adapter.findByName(name);
+
+            // then
+            assertThat(result).isEmpty();
+            verify(repository).findByName("Non-Existing Tenant");
         }
     }
 }

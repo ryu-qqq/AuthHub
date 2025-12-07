@@ -48,7 +48,7 @@ application/{bc}/dto/command/
 
 ### 기본 패턴
 ```java
-package com.ryuqq.application.{bc}.dto.command;
+package com.ryuqq.authhub.application.{bc}.dto.command;
 
 import java.util.List;
 
@@ -83,7 +83,7 @@ public record {Action}{Bc}Command(
 
 ### Command DTO
 ```java
-package com.ryuqq.application.order.dto.command;
+package com.ryuqq.authhub.application.order.dto.command;
 
 import java.util.List;
 

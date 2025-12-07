@@ -28,13 +28,13 @@ CommandAdapter는 **Mapper와 Repository 호출**만 검증합니다:
 ## 2️⃣ 기본 템플릿
 
 ```java
-package com.ryuqq.adapter.out.persistence.{bc}.adapter;
+package com.ryuqq.authhub.adapter.out.persistence.{bc}.adapter;
 
-import com.ryuqq.adapter.out.persistence.{bc}.entity.{Bc}JpaEntity;
-import com.ryuqq.adapter.out.persistence.{bc}.mapper.{Bc}JpaEntityMapper;
-import com.ryuqq.adapter.out.persistence.{bc}.repository.{Bc}JpaRepository;
-import com.ryuqq.domain.{bc}.{Bc};
-import com.ryuqq.domain.{bc}.{Bc}Id;
+import com.ryuqq.authhub.adapter.out.persistence.{bc}.entity.{Bc}JpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.{bc}.mapper.{Bc}JpaEntityMapper;
+import com.ryuqq.authhub.adapter.out.persistence.{bc}.repository.{Bc}JpaRepository;
+import com.ryuqq.authhub.domain.{bc}.{Bc};
+import com.ryuqq.authhub.domain.{bc}.{Bc}Id;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

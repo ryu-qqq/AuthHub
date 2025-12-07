@@ -5,49 +5,66 @@ import com.ryuqq.authhub.adapter.out.persistence.tenant.mapper.TenantJpaEntityMa
 import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantJpaRepository;
 import com.ryuqq.authhub.application.tenant.port.out.command.TenantPersistencePort;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import org.springframework.stereotype.Component;
 
 /**
- * TenantCommandAdapter - Tenant Command Adapter
+ * TenantCommandAdapter - 테넌트 Command Adapter (CUD 전용)
  *
- * <p>TenantPersistencePort 구현체입니다. 신규 저장 및 수정 작업을 담당합니다.
+ * <p>TenantPersistencePort 구현체로서 테넌트 저장 작업을 담당합니다.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p><strong>1:1 매핑 원칙:</strong>
  *
  * <ul>
- *   <li>@Transactional 사용 금지 (UseCase에서 관리)
- *   <li>persist() 메서드만 제공
- *   <li>비즈니스 로직 포함 금지
+ *   <li>TenantJpaRepository (1개) + TenantJpaEntityMapper (1개)
+ *   <li>필드 2개만 허용
+ *   <li>다른 Repository 주입 금지
  * </ul>
  *
- * @author AuthHub Team
+ * <p><strong>책임:</strong>
+ *
+ * <ul>
+ *   <li>persist() - 테넌트 저장 (생성/수정)
+ * </ul>
+ *
+ * <p><strong>규칙:</strong>
+ *
+ * <ul>
+ *   <li>@Transactional 금지 (Manager/Facade에서 관리)
+ *   <li>비즈니스 로직 금지 (단순 위임 + 변환만)
+ * </ul>
+ *
+ * @author development-team
  * @since 1.0.0
  */
 @Component
 public class TenantCommandAdapter implements TenantPersistencePort {
 
-    private final TenantJpaRepository tenantJpaRepository;
-    private final TenantJpaEntityMapper tenantJpaEntityMapper;
+    private final TenantJpaRepository repository;
+    private final TenantJpaEntityMapper mapper;
 
-    public TenantCommandAdapter(
-            TenantJpaRepository tenantJpaRepository, TenantJpaEntityMapper tenantJpaEntityMapper) {
-        this.tenantJpaRepository = tenantJpaRepository;
-        this.tenantJpaEntityMapper = tenantJpaEntityMapper;
+    public TenantCommandAdapter(TenantJpaRepository repository, TenantJpaEntityMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
     /**
-     * Tenant 저장 (신규 및 수정)
+     * 테넌트 저장 (생성/수정)
      *
-     * <p>JPA의 save() 메서드는 ID 유무에 따라 INSERT/UPDATE를 자동 결정합니다.
+     * <p><strong>처리 흐름:</strong>
      *
-     * @param tenant 저장할 Tenant Domain 객체
-     * @return 저장된 Tenant의 ID
+     * <ol>
+     *   <li>Domain → Entity 변환 (Mapper)
+     *   <li>Entity 저장 (JpaRepository)
+     *   <li>Entity → Domain 변환 (Mapper)
+     * </ol>
+     *
+     * @param tenant 저장할 테넌트 도메인
+     * @return 저장된 테넌트 도메인 (ID 할당됨)
      */
     @Override
-    public TenantId persist(Tenant tenant) {
-        TenantJpaEntity entity = tenantJpaEntityMapper.toEntity(tenant);
-        TenantJpaEntity savedEntity = tenantJpaRepository.save(entity);
-        return TenantId.of(savedEntity.getId());
+    public Tenant persist(Tenant tenant) {
+        TenantJpaEntity entity = mapper.toEntity(tenant);
+        TenantJpaEntity savedEntity = repository.save(entity);
+        return mapper.toDomain(savedEntity);
     }
 }

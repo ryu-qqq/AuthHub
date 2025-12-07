@@ -2,78 +2,84 @@ package com.ryuqq.authhub.adapter.in.rest.tenant.dto.response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import com.ryuqq.authhub.application.tenant.dto.response.CreateTenantResponse;
-
 /**
  * CreateTenantApiResponse 단위 테스트
  *
  * <p>검증 범위:
+ *
  * <ul>
- *   <li>Record 생성 및 접근자</li>
- *   <li>from() 팩토리 메서드</li>
- *   <li>equals/hashCode</li>
+ *   <li>Record 생성 검증
+ *   <li>필드 접근 검증
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
+@DisplayName("CreateTenantApiResponse 단위 테스트")
 @Tag("unit")
 @Tag("adapter-rest")
-@Tag("dto")
-@DisplayName("CreateTenantApiResponse 테스트")
 class CreateTenantApiResponseTest {
 
     @Nested
-    @DisplayName("Record 기본 동작 테스트")
-    class RecordBasicBehaviorTest {
+    @DisplayName("Record 생성 테스트")
+    class RecordCreationTest {
 
         @Test
-        @DisplayName("tenantId가 주어지면 Record가 정상 생성된다")
-        void givenTenantId_whenCreate_thenRecordCreated() {
-            // given
-            Long tenantId = 1L;
+        @DisplayName("[생성] tenantId로 생성 시 정상 생성")
+        void create_withTenantId_shouldCreateSuccessfully() {
+            // Given
+            String tenantId = UUID.randomUUID().toString();
 
-            // when
+            // When
             CreateTenantApiResponse response = new CreateTenantApiResponse(tenantId);
 
-            // then
+            // Then
             assertThat(response.tenantId()).isEqualTo(tenantId);
         }
 
         @Test
-        @DisplayName("동일한 값을 가진 두 Record는 동등하다")
-        void givenSameValues_whenCompare_thenEqual() {
-            // given
-            CreateTenantApiResponse response1 = new CreateTenantApiResponse(1L);
-            CreateTenantApiResponse response2 = new CreateTenantApiResponse(1L);
+        @DisplayName("[생성] null tenantId로 생성 시 정상 생성")
+        void create_withNullTenantId_shouldCreateSuccessfully() {
+            // When
+            CreateTenantApiResponse response = new CreateTenantApiResponse(null);
 
-            // then
-            assertThat(response1).isEqualTo(response2);
-            assertThat(response1.hashCode()).isEqualTo(response2.hashCode());
+            // Then
+            assertThat(response.tenantId()).isNull();
         }
     }
 
     @Nested
-    @DisplayName("from() 팩토리 메서드 테스트")
-    class FactoryMethodTest {
+    @DisplayName("equals/hashCode 테스트")
+    class EqualsHashCodeTest {
 
         @Test
-        @DisplayName("CreateTenantResponse로부터 정상적으로 변환된다")
-        void givenUseCaseResponse_whenFrom_thenCorrectlyMapped() {
-            // given
-            Long tenantId = 1L;
-            CreateTenantResponse useCaseResponse = new CreateTenantResponse(tenantId);
+        @DisplayName("[equals] 같은 tenantId면 같음")
+        void equals_withSameTenantId_shouldBeEqual() {
+            // Given
+            String tenantId = UUID.randomUUID().toString();
+            CreateTenantApiResponse response1 = new CreateTenantApiResponse(tenantId);
+            CreateTenantApiResponse response2 = new CreateTenantApiResponse(tenantId);
 
-            // when
-            CreateTenantApiResponse apiResponse = CreateTenantApiResponse.from(useCaseResponse);
+            // When & Then
+            assertThat(response1).isEqualTo(response2);
+            assertThat(response1.hashCode()).isEqualTo(response2.hashCode());
+        }
 
-            // then
-            assertThat(apiResponse.tenantId()).isEqualTo(tenantId);
+        @Test
+        @DisplayName("[equals] 다른 tenantId면 다름")
+        void equals_withDifferentTenantId_shouldNotBeEqual() {
+            // Given
+            CreateTenantApiResponse response1 = new CreateTenantApiResponse(UUID.randomUUID().toString());
+            CreateTenantApiResponse response2 = new CreateTenantApiResponse(UUID.randomUUID().toString());
+
+            // When & Then
+            assertThat(response1).isNotEqualTo(response2);
         }
     }
 }

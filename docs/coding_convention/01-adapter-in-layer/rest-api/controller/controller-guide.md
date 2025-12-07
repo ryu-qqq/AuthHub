@@ -53,13 +53,13 @@ HTTP Response
 ### Command Controller (POST, PUT, PATCH)
 
 ```java
-package com.ryuqq.adapter.in.rest.order.controller;
+package com.ryuqq.authhub.adapter.in.rest.order.controller;
 
-import com.ryuqq.adapter.in.rest.common.dto.ApiResponse;
-import com.ryuqq.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
-import com.ryuqq.adapter.in.rest.order.dto.response.OrderApiResponse;
-import com.ryuqq.adapter.in.rest.order.mapper.OrderApiMapper;
-import com.ryuqq.application.order.port.in.CreateOrderUseCase;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.order.mapper.OrderApiMapper;
+import com.ryuqq.authhub.application.order.port.in.CreateOrderUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -132,15 +132,15 @@ public class OrderCommandController {
 ### Query Controller (GET)
 
 ```java
-package com.ryuqq.adapter.in.rest.order.controller;
+package com.ryuqq.authhub.adapter.in.rest.order.controller;
 
-import com.ryuqq.adapter.in.rest.common.dto.ApiResponse;
-import com.ryuqq.adapter.in.rest.order.dto.query.OrderSearchApiRequest;
-import com.ryuqq.adapter.in.rest.order.dto.response.OrderApiResponse;
-import com.ryuqq.adapter.in.rest.order.dto.response.OrderDetailApiResponse;
-import com.ryuqq.adapter.in.rest.order.mapper.OrderApiMapper;
-import com.ryuqq.application.order.port.in.GetOrderQueryService;
-import com.ryuqq.application.order.port.in.SearchOrderQueryService;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.query.OrderSearchApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderDetailApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.order.mapper.OrderApiMapper;
+import com.ryuqq.authhub.application.order.port.in.GetOrderQueryService;
+import com.ryuqq.authhub.application.order.port.in.SearchOrderQueryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;

@@ -36,6 +36,14 @@ spring:
     import:
       - optional:classpath:rest-api.yml
 
+# ===============================================
+# JWT Configuration (Test)
+# ===============================================
+jwt:
+  secret-key: test-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm-testing
+  access-token-validity-ms: 3600000
+  refresh-token-validity-ms: 604800000
+
 # 로깅 설정
 logging:
   level:
@@ -43,3 +51,4 @@ logging:
     com.ryuqq.authhub: INFO
     org.springframework.test: INFO
     org.testcontainers: INFO
+    org.springframework.security: DEBUG

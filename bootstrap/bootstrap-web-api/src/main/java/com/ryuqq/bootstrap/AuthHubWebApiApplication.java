@@ -22,10 +22,10 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
  * <p><strong>Component Scan 범위:</strong>
  *
  * <ul>
- *   <li>com.ryuqq.domain
- *   <li>com.ryuqq.application
- *   <li>com.ryuqq.adapter.in.rest
- *   <li>com.ryuqq.adapter.out.persistence
+ *   <li>com.ryuqq.authhub.domain
+ *   <li>com.ryuqq.authhub.application
+ *   <li>com.ryuqq.authhub.adapter.in.rest
+ *   <li>com.ryuqq.authhub.adapter.out.persistence
  *   <li>com.ryuqq.bootstrap
  * </ul>
  *
@@ -47,13 +47,13 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
  */
 @SpringBootApplication(
         scanBasePackages = {
-            "com.ryuqq.domain",
-            "com.ryuqq.application",
-            "com.ryuqq.adapter.in.rest",
-            "com.ryuqq.adapter.out.persistence",
+            "com.ryuqq.authhub.domain",
+            "com.ryuqq.authhub.application",
+            "com.ryuqq.authhub.adapter.in.rest",
+            "com.ryuqq.authhub.adapter.out.persistence",
             "com.ryuqq.bootstrap"
         })
-@ConfigurationPropertiesScan(basePackages = {"com.ryuqq.adapter.in.rest.config.properties"})
+@ConfigurationPropertiesScan(basePackages = {"com.ryuqq.authhub.adapter.in.rest.config.properties"})
 public class AuthHubWebApiApplication {
 
     /**
