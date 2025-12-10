@@ -69,13 +69,13 @@ Domain Layer의 핵심 객체(Aggregate, Value Object, Domain Event, Domain Exce
 ### 1. Aggregate Root 템플릿
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.aggregate.{name};
+package com.ryuqq.domain.{bc}.aggregate.{name};
 
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
-import com.ryuqq.authhub.domain.{bc}.vo.{Name}Id;
-import com.ryuqq.authhub.domain.{bc}.vo.{Name}Status;
-import com.ryuqq.authhub.domain.{bc}.event.{Name}CreatedEvent;
-import com.ryuqq.authhub.domain.{bc}.exception.{Name}InvalidStateException;
+import com.ryuqq.domain.common.event.DomainEvent;
+import com.ryuqq.domain.{bc}.vo.{Name}Id;
+import com.ryuqq.domain.{bc}.vo.{Name}Status;
+import com.ryuqq.domain.{bc}.event.{Name}CreatedEvent;
+import com.ryuqq.domain.{bc}.exception.{Name}InvalidStateException;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -209,7 +209,7 @@ public class {Name} {
 ### 2. ID Value Object 템플릿 (Long - Auto Increment)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.vo;
+package com.ryuqq.domain.{bc}.vo;
 
 /**
  * {Name} ID Value Object (Auto Increment)
@@ -260,9 +260,9 @@ public record {Name}Id(Long value) {
 ### 3. 일반 Value Object 템플릿 (Money)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.vo;
+package com.ryuqq.domain.{bc}.vo;
 
-import com.ryuqq.authhub.domain.{bc}.exception.MoneyValidationException;
+import com.ryuqq.domain.{bc}.exception.MoneyValidationException;
 
 /**
  * Money Value Object
@@ -316,9 +316,9 @@ public record Money(Long amount) {
 ### 4. ErrorCode Enum 템플릿
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.exception;
+package com.ryuqq.domain.{bc}.exception;
 
-import com.ryuqq.authhub.domain.common.exception.ErrorCode;
+import com.ryuqq.domain.common.exception.ErrorCode;
 
 /**
  * {BC} Bounded Context 에러 코드
@@ -374,9 +374,9 @@ public enum {BC}ErrorCode implements ErrorCode {
 ### 5. Domain Exception 템플릿 (Not Found)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.exception;
+package com.ryuqq.domain.{bc}.exception;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -402,9 +402,9 @@ public class {Name}NotFoundException extends DomainException {
 ### 6. Domain Exception 템플릿 (Invalid State)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.exception;
+package com.ryuqq.domain.{bc}.exception;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -440,12 +440,12 @@ public class {Name}InvalidStateException extends DomainException {
 ### 7. Domain Event 템플릿
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.event;
+package com.ryuqq.domain.{bc}.event;
 
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
-import com.ryuqq.authhub.domain.{bc}.aggregate.{name}.{Name};
-import com.ryuqq.authhub.domain.{bc}.vo.{Name}Id;
-import com.ryuqq.authhub.domain.{bc}.vo.{Name}Status;
+import com.ryuqq.domain.common.event.DomainEvent;
+import com.ryuqq.domain.{bc}.aggregate.{name}.{Name};
+import com.ryuqq.domain.{bc}.vo.{Name}Id;
+import com.ryuqq.domain.{bc}.vo.{Name}Status;
 
 import java.time.Instant;
 

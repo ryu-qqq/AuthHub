@@ -10,7 +10,7 @@
 
 ```java
 @AnalyzeClasses(
-    packages = "com.ryuqq.authhub.adapter.in.rest",
+    packages = "com.ryuqq.adapter.in.rest",
     importOptions = ImportOption.DoNotIncludeTests.class
 )
 @DisplayName("OpenAPI ArchUnit 규칙")
@@ -315,7 +315,7 @@ static final ArchRule enum_should_have_schema_enum_as_ref =
 ## 4) 전체 테스트 클래스
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.architecture.openapi;
+package com.ryuqq.adapter.in.rest.architecture.openapi;
 
 import com.tngtech.archunit.core.domain.*;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -330,7 +330,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.springframework.web.bind.annotation.*;
 
 @AnalyzeClasses(
-    packages = "com.ryuqq.authhub.adapter.in.rest",
+    packages = "com.ryuqq.adapter.in.rest",
     importOptions = ImportOption.DoNotIncludeTests.class
 )
 @DisplayName("OpenAPI ArchUnit 규칙")

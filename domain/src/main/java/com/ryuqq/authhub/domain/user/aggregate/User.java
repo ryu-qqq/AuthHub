@@ -4,7 +4,6 @@ import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
@@ -15,6 +14,7 @@ import java.util.UUID;
  * <p>사용자 도메인의 핵심 엔티티입니다.
  *
  * <p><strong>불변 규칙:</strong>
+ *
  * <ul>
  *   <li>모든 필드는 final
  *   <li>상태 변경은 새 인스턴스 반환
@@ -87,9 +87,7 @@ public final class User {
                 now);
     }
 
-    /**
-     * 영속성에서 복원
-     */
+    /** 영속성에서 복원 */
     public static User reconstitute(
             UserId userId,
             TenantId tenantId,
@@ -156,5 +154,72 @@ public final class User {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    /**
+     * 상태 변경
+     *
+     * @param newStatus 새 상태
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User changeStatus(UserStatus newStatus, Clock clock) {
+        return new User(
+                this.userId,
+                this.tenantId,
+                this.organizationId,
+                this.identifier,
+                this.hashedPassword,
+                newStatus,
+                this.createdAt,
+                clock.instant());
+    }
+
+    /**
+     * 비밀번호 변경
+     *
+     * @param newHashedPassword 새 해시된 비밀번호
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User changePassword(String newHashedPassword, Clock clock) {
+        return new User(
+                this.userId,
+                this.tenantId,
+                this.organizationId,
+                this.identifier,
+                newHashedPassword,
+                this.userStatus,
+                this.createdAt,
+                clock.instant());
+    }
+
+    /**
+     * 식별자 변경
+     *
+     * @param newIdentifier 새 식별자
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User changeIdentifier(String newIdentifier, Clock clock) {
+        return new User(
+                this.userId,
+                this.tenantId,
+                this.organizationId,
+                newIdentifier,
+                this.hashedPassword,
+                this.userStatus,
+                this.createdAt,
+                clock.instant());
+    }
+
+    /**
+     * 삭제 처리 (상태를 DELETED로 변경)
+     *
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User markAsDeleted(Clock clock) {
+        return changeStatus(UserStatus.DELETED, clock);
     }
 }

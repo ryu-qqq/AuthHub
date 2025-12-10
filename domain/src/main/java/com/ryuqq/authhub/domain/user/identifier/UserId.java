@@ -40,8 +40,12 @@ public final class UserId {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         UserId userId = (UserId) o;
         return Objects.equals(value, userId.value);
     }

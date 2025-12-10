@@ -230,7 +230,7 @@ http_server_requests_seconds_count{application="spring-standards-api", environme
 | `http.status_code` | 응답 코드 | 200, 404, 500 |
 | `http.route` | 요청 경로 | /api/v1/orders/{id} |
 | `http.url` | 전체 URL | https://api.example.com/... |
-| `db.system` | DB 시스템 | mysql, postgresql |
+| `db.system` | DB 시스템 | mysql, mysql |
 | `db.name` | 데이터베이스명 | spring_standards |
 | `db.statement` | SQL 쿼리 | SELECT * FROM ... |
 | `rpc.service` | gRPC 서비스 | OrderService |

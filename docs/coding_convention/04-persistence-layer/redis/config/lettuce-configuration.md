@@ -148,7 +148,7 @@ YAML로 부족한 고급 설정이 필요할 때만 사용합니다.
 ### LettuceConfig.java
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.config;
+package com.ryuqq.adapter.out.persistence.redis.config;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;

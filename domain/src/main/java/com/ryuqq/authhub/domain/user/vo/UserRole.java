@@ -2,7 +2,6 @@ package com.ryuqq.authhub.domain.user.vo;
 
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
-
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -13,6 +12,7 @@ import java.util.UUID;
  * <p>Long FK 전략을 따라 JPA 관계 어노테이션 없이 ID만 보관합니다.
  *
  * <p><strong>불변 규칙:</strong>
+ *
  * <ul>
  *   <li>모든 필드는 final
  *   <li>Lombok 금지
@@ -55,9 +55,7 @@ public final class UserRole {
         return new UserRole(userId, roleId, assignedAt);
     }
 
-    /**
-     * UserRole 재구성 (영속성에서 복원)
-     */
+    /** UserRole 재구성 (영속성에서 복원) */
     public static UserRole reconstitute(UserId userId, RoleId roleId, Instant assignedAt) {
         return new UserRole(userId, roleId, assignedAt);
     }
@@ -91,8 +89,7 @@ public final class UserRole {
             return false;
         }
         UserRole userRole = (UserRole) o;
-        return Objects.equals(userId, userRole.userId)
-                && Objects.equals(roleId, userRole.roleId);
+        return Objects.equals(userId, userRole.userId) && Objects.equals(roleId, userRole.roleId);
     }
 
     @Override
@@ -102,6 +99,12 @@ public final class UserRole {
 
     @Override
     public String toString() {
-        return "UserRole{userId=" + userId + ", roleId=" + roleId + ", assignedAt=" + assignedAt + "}";
+        return "UserRole{userId="
+                + userId
+                + ", roleId="
+                + roleId
+                + ", assignedAt="
+                + assignedAt
+                + "}";
     }
 }

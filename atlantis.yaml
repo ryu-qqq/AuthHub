@@ -1,0 +1,58 @@
+# ============================================================================
+# AuthHub - Atlantis Configuration
+# ============================================================================
+# PR-based Terraform automation for AuthHub infrastructure
+# ============================================================================
+
+version: 3
+
+automerge: false
+delete_source_branch_on_merge: false
+# Disable parallel plan to prevent plugin cache conflicts
+parallel_plan: false
+parallel_apply: false
+
+projects:
+  # ============================================================================
+  # Container Registry
+  # ============================================================================
+
+  # ECR repository for web-api
+  - name: authhub-ecr-prod
+    dir: terraform/ecr
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # ============================================================================
+  # Core Infrastructure
+  # ============================================================================
+
+  # ECS Cluster (dedicated for authhub)
+  - name: authhub-ecs-cluster-prod
+    dir: terraform/ecs-cluster
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # ElastiCache (Redis for Redisson Lock + Cache)
+  - name: authhub-elasticache-prod
+    dir: terraform/elasticache
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # ============================================================================
+  # Application Infrastructure
+  # ============================================================================
+
+  # ECS Service for web-api (ALB + Auto Scaling)
+  - name: authhub-ecs-web-api-prod
+    dir: terraform/ecs-web-api
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true

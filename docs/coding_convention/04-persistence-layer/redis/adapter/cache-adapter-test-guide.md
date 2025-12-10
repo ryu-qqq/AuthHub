@@ -30,9 +30,9 @@ CacheAdapter는 **RedisTemplate 호출**만 검증합니다:
 ## 2️⃣ 기본 템플릿
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.{bc}.adapter;
+package com.ryuqq.adapter.out.persistence.redis.{bc}.adapter;
 
-import com.ryuqq.authhub.domain.{bc}.{Bc};
+import com.ryuqq.domain.{bc}.{Bc};
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

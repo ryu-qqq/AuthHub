@@ -1,11 +1,13 @@
 package com.ryuqq.authhub.domain.tenant.fixture;
 
-import com.ryuqq.authhub.domain.common.Clock;
+import com.ryuqq.authhub.domain.common.util.ClockHolder;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
@@ -44,8 +46,8 @@ public final class TenantFixture {
 
     /** 새로운 Tenant 생성 (ID 미할당) */
     public static Tenant createNew() {
-        Clock fixedClock = () -> FIXED_TIME;
-        return Tenant.create(TenantName.of("New Tenant"), fixedClock);
+        ClockHolder clockHolder = () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
+        return Tenant.create(TenantName.of("New Tenant"), clockHolder.clock());
     }
 
     /** 지정된 상태로 Tenant 생성 */
@@ -68,9 +70,14 @@ public final class TenantFixture {
         return createWithStatus(TenantStatus.DELETED);
     }
 
+    /** 테스트용 고정 ClockHolder 반환 */
+    public static ClockHolder fixedClockHolder() {
+        return () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
+    }
+
     /** 테스트용 고정 Clock 반환 */
     public static Clock fixedClock() {
-        return () -> FIXED_TIME;
+        return fixedClockHolder().clock();
     }
 
     /** 기본 TenantId 반환 */

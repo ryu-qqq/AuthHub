@@ -8,7 +8,6 @@ import com.ryuqq.authhub.domain.role.vo.RoleName;
 import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
@@ -81,11 +80,7 @@ public final class Role {
     }
 
     private void validateRequired(
-            RoleName name,
-            RoleScope scope,
-            RoleType type,
-            Instant createdAt,
-            Instant updatedAt) {
+            RoleName name, RoleScope scope, RoleType type, Instant createdAt, Instant updatedAt) {
         if (name == null) {
             throw new IllegalArgumentException("RoleName은 null일 수 없습니다");
         }
@@ -115,7 +110,8 @@ public final class Role {
      */
     public static Role createSystemGlobal(RoleName name, RoleDescription description, Clock clock) {
         Instant now = clock.instant();
-        return new Role(null, null, name, description, RoleScope.GLOBAL, RoleType.SYSTEM, false, now, now);
+        return new Role(
+                null, null, name, description, RoleScope.GLOBAL, RoleType.SYSTEM, false, now, now);
     }
 
     /**
@@ -133,7 +129,16 @@ public final class Role {
             throw new IllegalArgumentException("TENANT 범위 역할은 tenantId가 필수입니다");
         }
         Instant now = clock.instant();
-        return new Role(null, tenantId, name, description, RoleScope.TENANT, RoleType.CUSTOM, false, now, now);
+        return new Role(
+                null,
+                tenantId,
+                name,
+                description,
+                RoleScope.TENANT,
+                RoleType.CUSTOM,
+                false,
+                now,
+                now);
     }
 
     /**
@@ -151,7 +156,16 @@ public final class Role {
             throw new IllegalArgumentException("ORGANIZATION 범위 역할은 tenantId가 필수입니다");
         }
         Instant now = clock.instant();
-        return new Role(null, tenantId, name, description, RoleScope.ORGANIZATION, RoleType.CUSTOM, false, now, now);
+        return new Role(
+                null,
+                tenantId,
+                name,
+                description,
+                RoleScope.ORGANIZATION,
+                RoleType.CUSTOM,
+                false,
+                now,
+                now);
     }
 
     /**
@@ -181,7 +195,8 @@ public final class Role {
         if (roleId == null) {
             throw new IllegalArgumentException("reconstitute requires non-null roleId");
         }
-        return new Role(roleId, tenantId, name, description, scope, type, deleted, createdAt, updatedAt);
+        return new Role(
+                roleId, tenantId, name, description, scope, type, deleted, createdAt, updatedAt);
     }
 
     // ========== Business Methods ==========

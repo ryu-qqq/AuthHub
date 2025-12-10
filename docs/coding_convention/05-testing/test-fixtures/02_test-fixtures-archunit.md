@@ -19,10 +19,10 @@
 
 ### 전체 테스트 클래스
 
-**위치**: `application/src/test/java/com.ryuqq.authhub/application/architecture/TestFixturesArchTest.java`
+**위치**: `application/src/test/java/com/ryuqq/application/architecture/TestFixturesArchTest.java`
 
 ```java
-package com.ryuqq.authhub.application.architecture;
+package com.ryuqq.application.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -58,7 +58,7 @@ class TestFixturesArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub");
+            .importPackages("com.ryuqq");
     }
 
     /**
@@ -297,9 +297,9 @@ jobs:
 **❌ Bad**:
 ```java
 // domain/src/testFixtures/java/.../OrderFixture.java
-package com.ryuqq.authhub.fixture.domain;
+package com.ryuqq.fixture.domain;
 
-import com.ryuqq.authhub.fixture.application.command.PlaceOrderCommandFixture;  // ❌
+import com.ryuqq.fixture.application.command.PlaceOrderCommandFixture;  // ❌
 
 public final class OrderFixture {
     public static Order fromCommand(PlaceOrderCommand command) {  // ❌
@@ -311,13 +311,13 @@ public final class OrderFixture {
 **ArchUnit 실패 메시지**:
 ```
 java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] - Rule 'no classes that reside in a package '..fixture.domain..' should depend on classes that reside in a package '..fixture.application..'' was violated (1 times):
-Class <com.ryuqq.authhub.fixture.domain.OrderFixture> depends on class <com.ryuqq.authhub.fixture.application.command.PlaceOrderCommandFixture>
+Class <com.ryuqq.fixture.domain.OrderFixture> depends on class <com.ryuqq.fixture.application.command.PlaceOrderCommandFixture>
 ```
 
 **✅ Good**:
 ```java
 // domain/src/testFixtures/java/.../OrderFixture.java
-package com.ryuqq.authhub.fixture.domain;
+package com.ryuqq.fixture.domain;
 
 public final class OrderFixture {
 
@@ -339,7 +339,7 @@ public final class OrderFixture {
 **❌ Bad**:
 ```java
 // domain/src/testFixtures/java/.../OrderFactory.java
-package com.ryuqq.authhub.fixture.domain;
+package com.ryuqq.fixture.domain;
 
 public final class OrderFactory {  // ❌ 'Fixture' 접미사 누락
     public static Order create() { ... }
@@ -349,13 +349,13 @@ public final class OrderFactory {  // ❌ 'Fixture' 접미사 누락
 **ArchUnit 실패 메시지**:
 ```
 java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] - Rule 'classes that reside in a package '..fixture..' should have simple name ending with 'Fixture'' was violated (1 times):
-Class <com.ryuqq.authhub.fixture.domain.OrderFactory> does not have simple name ending with 'Fixture'
+Class <com.ryuqq.fixture.domain.OrderFactory> does not have simple name ending with 'Fixture'
 ```
 
 **✅ Good**:
 ```java
 // domain/src/testFixtures/java/.../OrderFixture.java
-package com.ryuqq.authhub.fixture.domain;
+package com.ryuqq.fixture.domain;
 
 public final class OrderFixture {  // ✅ 'Fixture' 접미사 사용
     public static Order create() { ... }
@@ -369,7 +369,7 @@ public final class OrderFixture {  // ✅ 'Fixture' 접미사 사용
 ### 권장 패턴
 
 ```java
-package com.ryuqq.authhub.fixture.domain;
+package com.ryuqq.fixture.domain;
 
 /**
  * Order Domain 객체 Test Fixture

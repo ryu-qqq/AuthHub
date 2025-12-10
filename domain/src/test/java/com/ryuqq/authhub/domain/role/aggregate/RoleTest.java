@@ -13,12 +13,10 @@ import com.ryuqq.authhub.domain.role.vo.RoleName;
 import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.UUID;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -152,7 +150,10 @@ class RoleTest {
             RoleDescription description = RoleDescription.of("Description");
 
             // when/then
-            assertThatThrownBy(() -> Role.createCustomOrganization(null, name, description, FIXED_CLOCK))
+            assertThatThrownBy(
+                            () ->
+                                    Role.createCustomOrganization(
+                                            null, name, description, FIXED_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("ORGANIZATION 범위 역할은 tenantId가 필수입니다");
         }
@@ -176,10 +177,17 @@ class RoleTest {
             Instant updatedAt = Instant.parse("2024-06-01T00:00:00Z");
 
             // when
-            Role role = Role.reconstitute(
-                    roleId, tenantId, name, description,
-                    RoleScope.ORGANIZATION, RoleType.CUSTOM, false,
-                    createdAt, updatedAt);
+            Role role =
+                    Role.reconstitute(
+                            roleId,
+                            tenantId,
+                            name,
+                            description,
+                            RoleScope.ORGANIZATION,
+                            RoleType.CUSTOM,
+                            false,
+                            createdAt,
+                            updatedAt);
 
             // then
             assertThat(role).isNotNull();
@@ -194,16 +202,18 @@ class RoleTest {
         @Test
         @DisplayName("roleId가 null이면 예외 발생")
         void shouldThrowExceptionWhenRoleIdIsNull() {
-            assertThatThrownBy(() -> Role.reconstitute(
-                    null,
-                    TenantId.of(UUID.randomUUID()),
-                    RoleName.of("TEST"),
-                    RoleDescription.of("Test"),
-                    RoleScope.ORGANIZATION,
-                    RoleType.CUSTOM,
-                    false,
-                    FIXED_TIME,
-                    FIXED_TIME))
+            assertThatThrownBy(
+                            () ->
+                                    Role.reconstitute(
+                                            null,
+                                            TenantId.of(UUID.randomUUID()),
+                                            RoleName.of("TEST"),
+                                            RoleDescription.of("Test"),
+                                            RoleScope.ORGANIZATION,
+                                            RoleType.CUSTOM,
+                                            false,
+                                            FIXED_TIME,
+                                            FIXED_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("reconstitute requires non-null roleId");
         }
@@ -214,24 +224,48 @@ class RoleTest {
             RoleId id = RoleId.forNew(UUID.randomUUID());
             TenantId tenantId = TenantId.of(UUID.randomUUID());
 
-            assertThatThrownBy(() -> Role.reconstitute(
-                    id, tenantId, null, RoleDescription.of("Test"),
-                    RoleScope.ORGANIZATION, RoleType.CUSTOM, false,
-                    FIXED_TIME, FIXED_TIME))
+            assertThatThrownBy(
+                            () ->
+                                    Role.reconstitute(
+                                            id,
+                                            tenantId,
+                                            null,
+                                            RoleDescription.of("Test"),
+                                            RoleScope.ORGANIZATION,
+                                            RoleType.CUSTOM,
+                                            false,
+                                            FIXED_TIME,
+                                            FIXED_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("RoleName은 null일 수 없습니다");
 
-            assertThatThrownBy(() -> Role.reconstitute(
-                    id, tenantId, RoleName.of("TEST"), RoleDescription.of("Test"),
-                    null, RoleType.CUSTOM, false,
-                    FIXED_TIME, FIXED_TIME))
+            assertThatThrownBy(
+                            () ->
+                                    Role.reconstitute(
+                                            id,
+                                            tenantId,
+                                            RoleName.of("TEST"),
+                                            RoleDescription.of("Test"),
+                                            null,
+                                            RoleType.CUSTOM,
+                                            false,
+                                            FIXED_TIME,
+                                            FIXED_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("RoleScope는 null일 수 없습니다");
 
-            assertThatThrownBy(() -> Role.reconstitute(
-                    id, tenantId, RoleName.of("TEST"), RoleDescription.of("Test"),
-                    RoleScope.ORGANIZATION, null, false,
-                    FIXED_TIME, FIXED_TIME))
+            assertThatThrownBy(
+                            () ->
+                                    Role.reconstitute(
+                                            id,
+                                            tenantId,
+                                            RoleName.of("TEST"),
+                                            RoleDescription.of("Test"),
+                                            RoleScope.ORGANIZATION,
+                                            null,
+                                            false,
+                                            FIXED_TIME,
+                                            FIXED_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("RoleType은 null일 수 없습니다");
         }
@@ -405,26 +439,28 @@ class RoleTest {
         void shouldBeEqualWhenSameRoleId() {
             // given
             UUID uuid = UUID.randomUUID();
-            Role role1 = Role.reconstitute(
-                    RoleId.of(uuid),
-                    TenantId.of(UUID.randomUUID()),
-                    RoleName.of("ROLE1"),
-                    RoleDescription.of("Role 1"),
-                    RoleScope.ORGANIZATION,
-                    RoleType.CUSTOM,
-                    false,
-                    FIXED_TIME,
-                    FIXED_TIME);
-            Role role2 = Role.reconstitute(
-                    RoleId.of(uuid),
-                    TenantId.of(UUID.randomUUID()),
-                    RoleName.of("ROLE2"),
-                    RoleDescription.of("Role 2"),
-                    RoleScope.TENANT,
-                    RoleType.SYSTEM,
-                    false,
-                    FIXED_TIME,
-                    FIXED_TIME);
+            Role role1 =
+                    Role.reconstitute(
+                            RoleId.of(uuid),
+                            TenantId.of(UUID.randomUUID()),
+                            RoleName.of("ROLE1"),
+                            RoleDescription.of("Role 1"),
+                            RoleScope.ORGANIZATION,
+                            RoleType.CUSTOM,
+                            false,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            Role role2 =
+                    Role.reconstitute(
+                            RoleId.of(uuid),
+                            TenantId.of(UUID.randomUUID()),
+                            RoleName.of("ROLE2"),
+                            RoleDescription.of("Role 2"),
+                            RoleScope.TENANT,
+                            RoleType.SYSTEM,
+                            false,
+                            FIXED_TIME,
+                            FIXED_TIME);
 
             // then
             assertThat(role1).isEqualTo(role2);
@@ -435,26 +471,28 @@ class RoleTest {
         @DisplayName("다른 ID를 가진 Role은 다르다")
         void shouldNotBeEqualWhenDifferentRoleId() {
             // given
-            Role role1 = Role.reconstitute(
-                    RoleId.of(UUID.randomUUID()),
-                    TenantId.of(UUID.randomUUID()),
-                    RoleName.of("ROLE"),
-                    RoleDescription.of("Role"),
-                    RoleScope.ORGANIZATION,
-                    RoleType.CUSTOM,
-                    false,
-                    FIXED_TIME,
-                    FIXED_TIME);
-            Role role2 = Role.reconstitute(
-                    RoleId.of(UUID.randomUUID()),
-                    TenantId.of(UUID.randomUUID()),
-                    RoleName.of("ROLE"),
-                    RoleDescription.of("Role"),
-                    RoleScope.ORGANIZATION,
-                    RoleType.CUSTOM,
-                    false,
-                    FIXED_TIME,
-                    FIXED_TIME);
+            Role role1 =
+                    Role.reconstitute(
+                            RoleId.of(UUID.randomUUID()),
+                            TenantId.of(UUID.randomUUID()),
+                            RoleName.of("ROLE"),
+                            RoleDescription.of("Role"),
+                            RoleScope.ORGANIZATION,
+                            RoleType.CUSTOM,
+                            false,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            Role role2 =
+                    Role.reconstitute(
+                            RoleId.of(UUID.randomUUID()),
+                            TenantId.of(UUID.randomUUID()),
+                            RoleName.of("ROLE"),
+                            RoleDescription.of("Role"),
+                            RoleScope.ORGANIZATION,
+                            RoleType.CUSTOM,
+                            false,
+                            FIXED_TIME,
+                            FIXED_TIME);
 
             // then
             assertThat(role1).isNotEqualTo(role2);

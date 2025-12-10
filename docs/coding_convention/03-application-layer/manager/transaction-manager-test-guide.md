@@ -31,11 +31,11 @@ Transaction Manager는 **단일 Port 트랜잭션 처리**만 검증합니다:
 ## 2️⃣ 기본 템플릿
 
 ```java
-package com.ryuqq.authhub.application.{bc}.manager;
+package com.ryuqq.application.{bc}.manager;
 
-import com.ryuqq.authhub.application.{bc}.port.out.{Bc}PersistencePort;
-import com.ryuqq.authhub.domain.{bc}.{Bc};
-import com.ryuqq.authhub.domain.{bc}.{Bc}Id;
+import com.ryuqq.application.{bc}.port.out.{Bc}PersistencePort;
+import com.ryuqq.domain.{bc}.{Bc};
+import com.ryuqq.domain.{bc}.{Bc}Id;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -116,12 +116,12 @@ class {Bc}TransactionManagerTest {
 ## 3️⃣ 실전 예시 (Order)
 
 ```java
-package com.ryuqq.authhub.application.order.manager;
+package com.ryuqq.application.order.manager;
 
-import com.ryuqq.authhub.application.order.port.out.OrderPersistencePort;
-import com.ryuqq.authhub.domain.order.Order;
-import com.ryuqq.authhub.domain.order.OrderId;
-import com.ryuqq.authhub.domain.order.Money;
+import com.ryuqq.application.order.port.out.OrderPersistencePort;
+import com.ryuqq.domain.order.Order;
+import com.ryuqq.domain.order.OrderId;
+import com.ryuqq.domain.order.Money;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

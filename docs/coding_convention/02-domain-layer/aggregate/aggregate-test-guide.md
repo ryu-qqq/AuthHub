@@ -33,13 +33,13 @@
 ## 2) 기본 템플릿
 
 ```java
-package com.ryuqq.authhub.domain.order.aggregate.order;
+package com.ryuqq.domain.order.aggregate.order;
 
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.mother.Orders;
-import com.ryuqq.authhub.domain.order.exception.InvalidOrderStateException;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderStatus;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.mother.Orders;
+import com.ryuqq.domain.order.exception.InvalidOrderStateException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -354,14 +354,14 @@ class OrderTest {
 
 ### Object Mother 클래스
 
-**위치**: `domain/src/testFixtures/java/com.ryuqq.authhub/domain/order/mother/`
+**위치**: `domain/src/testFixtures/java/com/ryuqq/domain/order/mother/`
 
 ```java
-package com.ryuqq.authhub.domain.order.mother;
+package com.ryuqq.domain.order.mother;
 
-import com.ryuqq.authhub.domain.order.aggregate.order.Order;
-import com.ryuqq.authhub.domain.order.vo.*;
-import com.ryuqq.authhub.domain.order.fixture.OrderFixture;
+import com.ryuqq.domain.order.aggregate.order.Order;
+import com.ryuqq.domain.order.vo.*;
+import com.ryuqq.domain.order.fixture.OrderFixture;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -428,13 +428,13 @@ public final class Orders {
 
 ### TestFixture 클래스
 
-**위치**: `domain/src/testFixtures/java/com.ryuqq.authhub/domain/order/fixture/`
+**위치**: `domain/src/testFixtures/java/com/ryuqq/domain/order/fixture/`
 
 ```java
-package com.ryuqq.authhub.domain.order.fixture;
+package com.ryuqq.domain.order.fixture;
 
-import com.ryuqq.authhub.domain.order.aggregate.order.Order;
-import com.ryuqq.authhub.domain.order.vo.*;
+import com.ryuqq.domain.order.aggregate.order.Order;
+import com.ryuqq.domain.order.vo.*;
 
 import java.time.Clock;
 import java.time.Instant;

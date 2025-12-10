@@ -5,13 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
+import java.time.Instant;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * UserRole Value Object 단위 테스트
@@ -125,10 +124,9 @@ class UserRoleTest {
             // given
             UUID userUuid = UUID.randomUUID();
             UUID roleUuid = UUID.randomUUID();
-            UserRole userRole1 = UserRole.of(
-                    UserId.of(userUuid), RoleId.of(roleUuid), FIXED_TIME);
-            UserRole userRole2 = UserRole.of(
-                    UserId.of(userUuid), RoleId.of(roleUuid), Instant.now());
+            UserRole userRole1 = UserRole.of(UserId.of(userUuid), RoleId.of(roleUuid), FIXED_TIME);
+            UserRole userRole2 =
+                    UserRole.of(UserId.of(userUuid), RoleId.of(roleUuid), Instant.now());
 
             // then - assignedAt이 달라도 동일
             assertThat(userRole1).isEqualTo(userRole2);
@@ -140,10 +138,10 @@ class UserRoleTest {
         void shouldNotBeEqualWhenDifferentUserId() {
             // given
             UUID roleUuid = UUID.randomUUID();
-            UserRole userRole1 = UserRole.of(
-                    UserId.of(UUID.randomUUID()), RoleId.of(roleUuid), FIXED_TIME);
-            UserRole userRole2 = UserRole.of(
-                    UserId.of(UUID.randomUUID()), RoleId.of(roleUuid), FIXED_TIME);
+            UserRole userRole1 =
+                    UserRole.of(UserId.of(UUID.randomUUID()), RoleId.of(roleUuid), FIXED_TIME);
+            UserRole userRole2 =
+                    UserRole.of(UserId.of(UUID.randomUUID()), RoleId.of(roleUuid), FIXED_TIME);
 
             // then
             assertThat(userRole1).isNotEqualTo(userRole2);
@@ -154,10 +152,10 @@ class UserRoleTest {
         void shouldNotBeEqualWhenDifferentRoleId() {
             // given
             UUID userUuid = UUID.randomUUID();
-            UserRole userRole1 = UserRole.of(
-                    UserId.of(userUuid), RoleId.of(UUID.randomUUID()), FIXED_TIME);
-            UserRole userRole2 = UserRole.of(
-                    UserId.of(userUuid), RoleId.of(UUID.randomUUID()), FIXED_TIME);
+            UserRole userRole1 =
+                    UserRole.of(UserId.of(userUuid), RoleId.of(UUID.randomUUID()), FIXED_TIME);
+            UserRole userRole2 =
+                    UserRole.of(UserId.of(userUuid), RoleId.of(UUID.randomUUID()), FIXED_TIME);
 
             // then
             assertThat(userRole1).isNotEqualTo(userRole2);

@@ -240,7 +240,7 @@ COPY bootstrap/bootstrap-web-api/build/libs/*.jar app.jar
 
 ### REST Docs 테스트 Base 클래스
 
-**위치**: `adapter-in/rest-api/src/test/java/com.ryuqq.authhub/adapter/in/rest/common/RestDocsTestSupport.java`
+**위치**: `adapter-in/rest-api/src/test/java/com/ryuqq/adapter/in/rest/common/RestDocsTestSupport.java`
 
 > ✅ **프로젝트에 이미 생성되어 있습니다!**
 >
@@ -274,17 +274,17 @@ class OrderCommandControllerDocsTest extends RestDocsTestSupport {  // ✅ 상�
 }
 ```
 
-**전체 코드 확인**: `com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport`
+**전체 코드 확인**: `com.ryuqq.adapter.in.rest.common.RestDocsTestSupport`
 
 ### Controller 테스트에 REST Docs 적용
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.controller;
+package com.ryuqq.adapter.in.rest.order.controller;
 
-import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.mapper.OrderApiMapper;
-import com.ryuqq.authhub.application.order.port.in.CreateOrderUseCase;
+import com.ryuqq.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
+import com.ryuqq.adapter.in.rest.order.mapper.OrderApiMapper;
+import com.ryuqq.application.order.port.in.CreateOrderUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -725,7 +725,7 @@ open bootstrap/bootstrap-web-api/build/docs/asciidoc/index.html
 ### 애플리케이션에서 서빙
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.config;
+package com.ryuqq.adapter.in.rest.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;

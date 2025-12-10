@@ -42,12 +42,12 @@ Assembler는 **Domain → Response 변환만** 검증합니다:
 ## 2) 기본 템플릿
 
 ```java
-package com.ryuqq.authhub.application.{bc}.assembler;
+package com.ryuqq.application.{bc}.assembler;
 
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}Response;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}DetailResponse;
-import com.ryuqq.authhub.domain.{bc}.aggregate.{bc}.{Bc};
-import com.ryuqq.authhub.domain.{bc}.vo.{Bc}Id;
+import com.ryuqq.application.{bc}.dto.response.{Bc}Response;
+import com.ryuqq.application.{bc}.dto.response.{Bc}DetailResponse;
+import com.ryuqq.domain.{bc}.aggregate.{bc}.{Bc};
+import com.ryuqq.domain.{bc}.vo.{Bc}Id;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -168,18 +168,18 @@ class {Bc}AssemblerTest {
 ## 3) 실전 예시 (Order)
 
 ```java
-package com.ryuqq.authhub.application.order.assembler;
+package com.ryuqq.application.order.assembler;
 
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
-import com.ryuqq.authhub.domain.order.aggregate.order.Order;
-import com.ryuqq.authhub.domain.order.aggregate.order.OrderLineItem;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
-import com.ryuqq.authhub.domain.order.vo.Money;
-import com.ryuqq.authhub.domain.order.vo.Quantity;
-import com.ryuqq.authhub.domain.member.vo.MemberId;
-import com.ryuqq.authhub.domain.product.vo.ProductId;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.domain.order.aggregate.order.Order;
+import com.ryuqq.domain.order.aggregate.order.OrderLineItem;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderStatus;
+import com.ryuqq.domain.order.vo.Money;
+import com.ryuqq.domain.order.vo.Quantity;
+import com.ryuqq.domain.member.vo.MemberId;
+import com.ryuqq.domain.product.vo.ProductId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

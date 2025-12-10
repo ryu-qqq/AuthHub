@@ -30,14 +30,14 @@
 
 ```
 application/src/test/java/
-└─ com.ryuqq.authhub/application/architecture/service/
+└─ com/ryuqq/application/architecture/service/
    └─ CommandServiceArchTest.java
 ```
 
 ### 전체 코드
 
 ```java
-package com.ryuqq.authhub.application.architecture.service;
+package com.ryuqq.application.architecture.service;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -70,7 +70,7 @@ class CommandServiceArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.application");
+            .importPackages("com.ryuqq.application");
 
         hasCommandServiceClasses = classes.stream()
             .anyMatch(javaClass ->
@@ -271,8 +271,8 @@ class CommandServiceArchTest {
                 .and().haveSimpleNameEndingWith("Service")
                 .should().onlyAccessClassesThat()
                 .resideInAnyPackage(
-                    "com.ryuqq.authhub.application..",
-                    "com.ryuqq.authhub.domain..",
+                    "com.ryuqq.application..",
+                    "com.ryuqq.domain..",
                     "org.springframework..",
                     "java..",
                     "jakarta.."

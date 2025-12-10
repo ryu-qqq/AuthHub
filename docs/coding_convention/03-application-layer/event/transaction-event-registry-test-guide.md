@@ -31,10 +31,10 @@
 application/
 └─ src/
    ├─ main/java/
-   │  └─ com.ryuqq.authhub/application/common/config/
+   │  └─ com/ryuqq/application/common/config/
    │      └─ TransactionEventRegistry.java
    └─ test/java/
-      └─ com.ryuqq.authhub/application/common/config/
+      └─ com/ryuqq/application/common/config/
           ├─ TransactionEventRegistryTest.java           # 단위 테스트
           └─ TransactionEventRegistryIntegrationTest.java # 통합 테스트
 ```
@@ -46,9 +46,9 @@ application/
 ### 기본 테스트
 
 ```java
-package com.ryuqq.authhub.application.common.config;
+package com.ryuqq.application.common.config;
 
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
+import com.ryuqq.domain.common.event.DomainEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -246,9 +246,9 @@ class TransactionEventRegistryTest {
 ## 4) 통합 테스트 예시
 
 ```java
-package com.ryuqq.authhub.application.common.config;
+package com.ryuqq.application.common.config;
 
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
+import com.ryuqq.domain.common.event.DomainEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

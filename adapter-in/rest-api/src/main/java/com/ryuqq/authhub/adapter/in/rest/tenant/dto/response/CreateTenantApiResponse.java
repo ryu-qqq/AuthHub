@@ -1,5 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.tenant.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * CreateTenantApiResponse - 테넌트 생성 응답 DTO
  *
@@ -17,4 +19,5 @@ package com.ryuqq.authhub.adapter.in.rest.tenant.dto.response;
  * @author development-team
  * @since 1.0.0
  */
-public record CreateTenantApiResponse(String tenantId) {}
+@Schema(description = "테넌트 생성 응답")
+public record CreateTenantApiResponse(@Schema(description = "생성된 테넌트 ID") String tenantId) {}

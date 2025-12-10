@@ -52,7 +52,7 @@ Domain Layer와 Infrastructure(JPA)를 깔끔하게 분리하여 헥사고날 �
 ### 1. BaseAuditEntity 상속 (시간 정보만)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.entity;
+package com.ryuqq.adapter.out.persistence.order.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -63,8 +63,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.ryuqq.authhub.adapter.out.persistence.common.entity.BaseAuditEntity;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
+import com.ryuqq.adapter.out.persistence.common.entity.BaseAuditEntity;
+import com.ryuqq.domain.order.vo.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -168,7 +168,7 @@ public class OrderJpaEntity extends BaseAuditEntity {
 ### 2. SoftDeletableEntity 상속 (소프트 딜리트)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.product.entity;
+package com.ryuqq.adapter.out.persistence.product.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -177,7 +177,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.ryuqq.authhub.adapter.out.persistence.common.entity.SoftDeletableEntity;
+import com.ryuqq.adapter.out.persistence.common.entity.SoftDeletableEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -262,7 +262,7 @@ public class ProductJpaEntity extends SoftDeletableEntity {
 ### 3. 상속 없음 (시간/삭제 불필요)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.session.entity;
+package com.ryuqq.adapter.out.persistence.session.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -324,17 +324,17 @@ public class SessionTokenJpaEntity {
 ### 1. BaseAuditEntity 상속 경우
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.mapper;
+package com.ryuqq.adapter.out.persistence.order.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.OrderJpaEntity;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.vo.Money;
-import com.ryuqq.authhub.domain.order.vo.OrderAudit;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderNumber;
+import com.ryuqq.adapter.out.persistence.order.entity.OrderJpaEntity;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.vo.Money;
+import com.ryuqq.domain.order.vo.OrderAudit;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderNumber;
 
 /**
  * OrderJpaEntityMapper - Entity ↔ Domain 변환 Mapper
@@ -396,18 +396,18 @@ public class OrderJpaEntityMapper {
 ### 2. SoftDeletableEntity 상속 경우
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.product.mapper;
+package com.ryuqq.adapter.out.persistence.product.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.adapter.out.persistence.product.entity.ProductJpaEntity;
-import com.ryuqq.authhub.domain.product.aggregate.Product;
-import com.ryuqq.authhub.domain.product.vo.CategoryId;
-import com.ryuqq.authhub.domain.product.vo.Money;
-import com.ryuqq.authhub.domain.product.vo.ProductAudit;
-import com.ryuqq.authhub.domain.product.vo.ProductId;
-import com.ryuqq.authhub.domain.product.vo.ProductName;
-import com.ryuqq.authhub.domain.product.vo.Stock;
+import com.ryuqq.adapter.out.persistence.product.entity.ProductJpaEntity;
+import com.ryuqq.domain.product.aggregate.Product;
+import com.ryuqq.domain.product.vo.CategoryId;
+import com.ryuqq.domain.product.vo.Money;
+import com.ryuqq.domain.product.vo.ProductAudit;
+import com.ryuqq.domain.product.vo.ProductId;
+import com.ryuqq.domain.product.vo.ProductName;
+import com.ryuqq.domain.product.vo.Stock;
 
 /**
  * ProductJpaEntityMapper - Entity ↔ Domain 변환 Mapper (Soft Delete 지원)
@@ -520,7 +520,7 @@ public class ProductJpaEntityMapper {
 
 ```
 adapter-out/persistence-mysql/
-└── src/main/java/com.ryuqq.authhub/adapter/out/persistence/
+└── src/main/java/com/ryuqq/adapter/out/persistence/
     ├── common/
     │   └── entity/
     │       ├── BaseAuditEntity.java

@@ -2,7 +2,6 @@ package com.ryuqq.authhub.domain.role.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,6 +22,8 @@ public class DuplicateRoleNameException extends DomainException {
     }
 
     public DuplicateRoleNameException(UUID tenantId, String roleName) {
-        super(RoleErrorCode.DUPLICATE_ROLE_NAME, Map.of("tenantId", tenantId, "roleName", roleName));
+        super(
+                RoleErrorCode.DUPLICATE_ROLE_NAME,
+                Map.of("tenantId", tenantId, "roleName", roleName));
     }
 }

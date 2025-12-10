@@ -21,7 +21,7 @@ UseCase (Application Layer)
     ↓
 Repository (Persistence Layer)
     ↓
-Real Database (PostgreSQL via TestContainers)
+Real Database (MySQL via TestContainers)
     ↓
 HTTP Response
 ```
@@ -36,7 +36,7 @@ HTTP Response
 | **목적** | 로직 정확도 | 전체 흐름 검증 |
 | **테스트** | `@DataJpaTest`, `@WebMvcTest` | `@SpringBootTest` |
 | **HTTP** | MockMvc (가짜) | TestRestTemplate (실제) |
-| **DB** | H2 (인메모리) | PostgreSQL (실제) |
+| **DB** | H2 (인메모리) | MySQL (실제) |
 | **신뢰도** | 중간 | 높음 |
 
 **예시**:
@@ -201,7 +201,7 @@ Integration 테스트의 전체 실행 흐름을 이해하면 복잡성이 많�
 
 ```
 1. TestContainers 시작
-   └─ Docker로 PostgreSQL 컨테이너 시작
+   └─ Docker로 MySQL 컨테이너 시작
    └─ 임시 데이터베이스 생성
 
 2. Spring Boot 애플리케이션 시작
@@ -230,15 +230,15 @@ Integration 테스트의 전체 실행 흐름을 이해하면 복잡성이 많�
 
 8. 모든 테스트 완료 후
    └─ TestContainers 종료
-   └─ PostgreSQL 컨테이너 자동 삭제
+   └─ MySQL 컨테이너 자동 삭제
 ```
 
 ### 다이어그램
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ 1. TestContainers Start (PostgreSQL)                    │
-│    Docker → PostgreSQL Container → 임시 DB 생성          │
+│ 1. TestContainers Start (MySQL)                    │
+│    Docker → MySQL Container → 임시 DB 생성          │
 └─────────────────────────────────────────────────────────┘
                          ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -270,7 +270,7 @@ Integration 테스트의 전체 실행 흐름을 이해하면 복잡성이 많�
                          ↓
 ┌─────────────────────────────────────────────────────────┐
 │ 7. TestContainers Stop                                  │
-│    PostgreSQL Container 자동 삭제                        │
+│    MySQL Container 자동 삭제                        │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -291,14 +291,14 @@ dependencies {
 
     // Flyway
     implementation libs.flyway.core
-    implementation libs.flyway.postgresql
+    implementation libs.flyway.mysql
 
-    // PostgreSQL
-    runtimeOnly libs.postgresql
+    // MySQL
+    runtimeOnly libs.mysql
 
     // 테스트
     testImplementation libs.spring.boot.starter.test
-    testImplementation libs.testcontainers.postgresql
+    testImplementation libs.testcontainers.mysql
     testImplementation libs.testcontainers.junit
 }
 ```
@@ -308,13 +308,13 @@ dependencies {
 [versions]
 flyway = "10.10.0"
 testcontainers = "1.19.7"
-postgresql = "42.7.3"
+mysql = "42.7.3"
 
 [libraries]
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
-flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+flyway-mysql = { module = "org.flywaydb:flyway-database-mysql", version.ref = "flyway" }
+mysql = { module = "org.mysql:mysql", version.ref = "mysql" }
+testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 ```
 
@@ -343,7 +343,7 @@ spring:
 ### 테스트 클래스 기본 템플릿
 
 ```java
-package com.ryuqq.authhub.adapter.in.restapi;
+package com.ryuqq.adapter.in.restapi;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -355,7 +355,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -382,7 +382,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderIntegrationTest {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:15-alpine")
         .withDatabaseName("test")
         .withUsername("test")
         .withPassword("test");
@@ -458,7 +458,7 @@ Integration 테스트에서 반드시 지켜야 할 규칙:
 
 7. @Testcontainers 필수
    - 실제 DB 사용 (H2 금지)
-   - TestContainers로 PostgreSQL 시작
+   - TestContainers로 MySQL 시작
 ```
 
 ### 금지 규칙 ❌
@@ -507,8 +507,8 @@ Integration 테스트 작성 시 확인:
 ### Gradle 의존성 (Version Catalog 사용)
 - [ ] `libs.spring.boot.starter.web` 존재
 - [ ] `libs.spring.boot.starter.data.jpa` 존재
-- [ ] `libs.flyway.core`, `libs.flyway.postgresql` 존재
-- [ ] `libs.testcontainers.postgresql`, `libs.testcontainers.junit` 존재
+- [ ] `libs.flyway.core`, `libs.flyway.mysql` 존재
+- [ ] `libs.testcontainers.mysql`, `libs.testcontainers.junit` 존재
 
 ### 설정 파일
 - [ ] `spring.flyway.enabled=true` (application-test.yml)
@@ -520,7 +520,7 @@ Integration 테스트 작성 시 확인:
 - [ ] `@ActiveProfiles("test")` 존재
 - [ ] `@Testcontainers` 존재
 - [ ] `@Transactional` 존재
-- [ ] `@Container static PostgreSQLContainer` 존재
+- [ ] `@Container static MySQLContainer` 존재
 - [ ] `TestRestTemplate` 주입 존재
 
 ### 테스트 메서드

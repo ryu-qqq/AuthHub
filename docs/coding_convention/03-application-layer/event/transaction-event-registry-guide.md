@@ -85,9 +85,9 @@ application/
 ### TransactionEventRegistry
 
 ```java
-package com.ryuqq.authhub.application.common.config;
+package com.ryuqq.application.common.config;
 
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
+import com.ryuqq.domain.common.event.DomainEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -220,9 +220,9 @@ public class OrderFacade {
 ## 7) Listener에서 Event 수신
 
 ```java
-package com.ryuqq.authhub.application.order.listener;
+package com.ryuqq.application.order.listener;
 
-import com.ryuqq.authhub.domain.order.event.OrderPlacedEvent;
+import com.ryuqq.domain.order.event.OrderPlacedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

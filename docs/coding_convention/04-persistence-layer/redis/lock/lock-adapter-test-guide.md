@@ -30,7 +30,7 @@ LockAdapter는 **Redisson 호출**만 검증합니다:
 ## 2) 기본 템플릿
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.common.adapter;
+package com.ryuqq.adapter.out.persistence.redis.common.adapter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -279,7 +279,7 @@ class DistributedLockAdapterTest {
 분산락의 동시성 보장은 통합 테스트에서 검증합니다.
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.integration;
+package com.ryuqq.adapter.out.persistence.redis.integration;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

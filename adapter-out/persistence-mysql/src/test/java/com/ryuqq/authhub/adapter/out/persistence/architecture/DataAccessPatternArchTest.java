@@ -1,6 +1,12 @@
 package com.ryuqq.authhub.adapter.out.persistence.architecture;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static com.ryuqq.authhub.adapter.out.persistence.architecture.ArchUnitPackageConstants.CONFIG_PATTERN;
+import static com.ryuqq.authhub.adapter.out.persistence.architecture.ArchUnitPackageConstants.PERSISTENCE;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -44,13 +50,9 @@ class DataAccessPatternArchTest {
 
     private static JavaClasses allClasses;
 
-    /** RefreshToken은 특수 패턴이므로 제외: - Mapper 없이 직접 변환 (단순 VO 변환) - 표준 4개 메서드가 아닌 특화된 메서드 */
-    private static final String EXCLUDED_PATTERN = "RefreshToken";
-
     @BeforeAll
     static void setUp() {
-        allClasses =
-                new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.out.persistence");
+        allClasses = new ClassFileImporter().importPackages(PERSISTENCE);
     }
 
     /** 규칙 1: QueryDslRepository는 JPAQueryFactory 필드 필수 */
@@ -218,57 +220,60 @@ class DataAccessPatternArchTest {
     }
 
     /**
-     * 규칙 9: Adapter는 Mapper를 통해 변환해야 함
+     * 규칙 9: Adapter는 Mapper를 통해 변환해야 함 (권장)
      *
-     * <p>RefreshToken 제외: 단순 VO 변환이므로 Mapper 없이 직접 변환
+     * <p>단순한 Adapter(예: RefreshToken 등)는 Mapper 없이 직접 변환할 수 있습니다. 복잡한 Domain 변환이 필요한 Adapter는
+     * Mapper를 사용하는 것을 권장합니다.
      */
     @Test
-    @DisplayName("[필수] Adapter는 Mapper를 의존해야 한다 (RefreshToken 제외)")
-    void adapter_MustDependOnMapper() {
+    @DisplayName("[권장] QueryAdapter/CommandAdapter는 Mapper를 의존해야 한다")
+    void adapter_ShouldDependOnMapper() {
         ArchRule rule =
                 classes()
                         .that()
                         .haveSimpleNameEndingWith("Adapter")
                         .and()
-                        .haveSimpleNameNotContaining(EXCLUDED_PATTERN)
+                        .haveSimpleNameNotContaining("RefreshToken") // RefreshToken은 예외
                         .should()
                         .dependOnClassesThat()
                         .haveSimpleNameEndingWith("Mapper")
-                        .because("Adapter는 Entity ↔ Domain 변환을 위해 Mapper를 의존해야 합니다");
+                        .because("Adapter는 Entity ↔ Domain 변환을 위해 Mapper를 의존하는 것을 권장합니다");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
 
     /**
-     * 규칙 10: QueryDslRepository는 표준 메서드 패턴 권장
+     * 규칙 10: QueryDslRepository 메서드 네이밍 패턴 검증 (완화된 규칙)
      *
-     * <p>참고: 이 규칙은 가이드라인이며, 비즈니스 요구사항에 따라 특화된 메서드가 필요할 수 있습니다. 현재 프로젝트에서는 다양한 조회 조건이 필요하여
-     * findByXxx, existsByXxx 등의 특화 메서드를 허용합니다.
-     *
-     * <p>핵심 원칙:
+     * <p>다양한 쿼리 패턴을 지원하기 위해 다음 패턴을 허용합니다:
      *
      * <ul>
-     *   <li>DTO Projection 사용 (Entity 반환 금지)
-     *   <li>Join 사용 금지 (N+1 예방)
-     *   <li>단순한 단일 테이블 조회만 허용
+     *   <li>findBy* / findAllBy* - 조회
+     *   <li>existsBy* - 존재 여부 확인
+     *   <li>countBy* / count / countAll - 개수 조회
+     *   <li>search - 검색
      * </ul>
-     *
-     * <p>특수 패턴 Repository 제외:
-     *
-     * <ul>
-     *   <li>RefreshToken: 토큰 기반 조회
-     *   <li>Role/Permission/UserRole: RBAC 특화 조회
-     *   <li>Organization: 테넌트 기반 조회
-     *   <li>User: 다양한 조회 조건
-     * </ul>
-     *
-     * <p>이 테스트는 비활성화되어 있습니다. 코드 리뷰로 메서드 적절성을 검증합니다.
      */
-    // @Test - 비활성화 (비즈니스 요구사항에 따른 특화 메서드 허용)
-    @DisplayName("[참고] QueryDslRepository는 표준 메서드 패턴 권장 (비활성화)")
-    void queryDslRepository_StandardMethodsGuideline() {
-        // 비활성화: 현재 프로젝트는 비즈니스 요구사항에 따른 특화 메서드 사용
-        // 핵심 규칙 (DTO Projection, No Join)은 별도 테스트에서 검증
+    @Test
+    @DisplayName("[필수] QueryDslRepository 메서드는 표준 네이밍 패턴을 따라야 한다")
+    void queryDslRepository_MustFollowNamingConvention() {
+        ArchRule rule =
+                methods()
+                        .that()
+                        .areDeclaredInClassesThat()
+                        .haveSimpleNameEndingWith("QueryDslRepository")
+                        .and()
+                        .arePublic()
+                        .and()
+                        .areNotStatic()
+                        .should()
+                        .haveNameMatching(
+                                "^(findBy|existsBy|countBy|findAllBy|count|countAll|search).*")
+                        .because(
+                                "QueryDslRepository 메서드는 findBy*, existsBy*, countBy*, findAllBy*,"
+                                        + " count*, search* 패턴을 따라야 합니다");
+
+        rule.allowEmptyShould(true).check(allClasses);
     }
 
     /** 규칙 11: Adapter는 JPAQueryFactory를 직접 사용 금지 */
@@ -298,7 +303,7 @@ class DataAccessPatternArchTest {
                         .that()
                         .haveSimpleNameEndingWith("Config")
                         .and()
-                        .resideInAPackage("..config..")
+                        .resideInAPackage(CONFIG_PATTERN)
                         .should()
                         .beAnnotatedWith(org.springframework.context.annotation.Configuration.class)
                         .because("Config 클래스는 @Configuration 어노테이션이 필수입니다");

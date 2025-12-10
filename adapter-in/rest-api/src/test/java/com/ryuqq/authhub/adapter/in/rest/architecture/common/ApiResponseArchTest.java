@@ -1,11 +1,13 @@
 package com.ryuqq.authhub.adapter.in.rest.architecture.common;
 
+import static com.ryuqq.authhub.adapter.in.rest.architecture.ArchUnitPackageConstants.ADAPTER_IN_REST;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -49,30 +51,39 @@ class ApiResponseArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(ADAPTER_IN_REST);
     }
 
-    /** 규칙 1: Common Response DTOs는 common.dto 패키지에 위치 */
+    /**
+     * 규칙 1: Common Response DTOs는 common.dto 패키지에 위치
+     *
+     * <p>Note: ApiResponse, PageApiResponse, SliceApiResponse, ErrorInfo 등 공통 Response 래퍼만
+     * common.dto에 있어야 합니다. 도메인별 Response DTO(예: TenantApiResponse, UserApiResponse)는 해당 도메인 패키지의
+     * dto.response에 위치합니다.
+     */
     @Test
     @DisplayName("[필수] Common Response DTOs는 common.dto 패키지에 위치해야 한다")
     void commonResponseDtos_MustBeInCommonDtoPackage() {
-        // Note: BC별 *ApiResponse (예: TenantApiResponse)는 제외하고,
-        // 공용 DTO인 ApiResponse, PageApiResponse, SliceApiResponse, ErrorInfo만 검증
-        // haveNameMatching은 fully qualified name에 대해 매칭
+        // Common Response 래퍼 클래스만 체크 (도메인별 Response DTO 제외)
+        // ApiResponse, PageApiResponse, SliceApiResponse, ErrorInfo만 체크
         ArchRule rule =
                 classes()
                         .that()
-                        .haveNameMatching(
-                                ".*\\.(ApiResponse|PageApiResponse|SliceApiResponse|ErrorInfo)$")
-                        .and()
-                        .resideInAPackage("..adapter.in.rest..")
-                        .and()
-                        .areNotNestedClasses()
+                        .haveSimpleName("ApiResponse")
+                        .or()
+                        .haveSimpleName("PageApiResponse")
+                        .or()
+                        .haveSimpleName("SliceApiResponse")
+                        .or()
+                        .haveSimpleName("ErrorInfo")
                         .should()
                         .resideInAPackage("..common.dto..")
                         .because(
-                                "Common Response DTOs(ApiResponse, PageApiResponse,"
-                                    + " SliceApiResponse, ErrorInfo)는 common.dto 패키지에 위치해야 합니다");
+                                "Common Response 래퍼(ApiResponse, PageApiResponse, SliceApiResponse,"
+                                        + " ErrorInfo)는 common.dto 패키지에 위치해야 합니다");
 
         rule.allowEmptyShould(true).check(classes);
     }

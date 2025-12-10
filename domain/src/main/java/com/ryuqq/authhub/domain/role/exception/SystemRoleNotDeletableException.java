@@ -2,7 +2,6 @@ package com.ryuqq.authhub.domain.role.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
-
 import java.util.Map;
 import java.util.UUID;
 

@@ -161,17 +161,17 @@ application/{bc}/
 ### Command Service (복잡한 경우)
 
 ```java
-package com.ryuqq.authhub.application.order.service.command;
+package com.ryuqq.application.order.service.command;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderPersistBundle;
-import com.ryuqq.authhub.application.order.dto.command.PlaceOrderCommand;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.facade.command.OrderFacade;
-import com.ryuqq.authhub.application.order.factory.command.OrderCommandFactory;
-import com.ryuqq.authhub.application.common.config.TransactionEventRegistry;
-import com.ryuqq.authhub.application.port.in.command.PlaceOrderUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.bundle.OrderPersistBundle;
+import com.ryuqq.application.order.dto.command.PlaceOrderCommand;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.facade.command.OrderFacade;
+import com.ryuqq.application.order.factory.command.OrderCommandFactory;
+import com.ryuqq.application.common.config.TransactionEventRegistry;
+import com.ryuqq.application.port.in.command.PlaceOrderUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
 import org.springframework.stereotype.Service;
 
 /**
@@ -218,15 +218,15 @@ public class PlaceOrderService implements PlaceOrderUseCase {
 ### Command Service (단순한 경우)
 
 ```java
-package com.ryuqq.authhub.application.order.service.command;
+package com.ryuqq.application.order.service.command;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.command.UpdateOrderStatusCommand;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.factory.command.OrderCommandFactory;
-import com.ryuqq.authhub.application.order.manager.command.OrderTransactionManager;
-import com.ryuqq.authhub.application.port.in.command.UpdateOrderStatusUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.command.UpdateOrderStatusCommand;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.factory.command.OrderCommandFactory;
+import com.ryuqq.application.order.manager.command.OrderTransactionManager;
+import com.ryuqq.application.port.in.command.UpdateOrderStatusUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
 import org.springframework.stereotype.Service;
 
 /**
@@ -267,16 +267,16 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
 ### Query Service (복잡한 경우)
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderDetailQueryBundle;
-import com.ryuqq.authhub.application.order.dto.query.OrderDetailQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
-import com.ryuqq.authhub.application.order.facade.query.OrderQueryFacade;
-import com.ryuqq.authhub.application.order.factory.query.OrderQueryFactory;
-import com.ryuqq.authhub.application.port.in.query.GetOrderDetailUseCase;
-import com.ryuqq.authhub.domain.order.criteria.OrderDetailCriteria;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.bundle.OrderDetailQueryBundle;
+import com.ryuqq.application.order.dto.query.OrderDetailQuery;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.application.order.facade.query.OrderQueryFacade;
+import com.ryuqq.application.order.factory.query.OrderQueryFactory;
+import com.ryuqq.application.port.in.query.GetOrderDetailUseCase;
+import com.ryuqq.domain.order.criteria.OrderDetailCriteria;
 import org.springframework.stereotype.Service;
 
 /**
@@ -317,16 +317,16 @@ public class GetOrderDetailService implements GetOrderDetailUseCase {
 ### Query Service (단순한 경우)
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.query.OrderSearchQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderListResponse;
-import com.ryuqq.authhub.application.order.factory.query.OrderQueryFactory;
-import com.ryuqq.authhub.application.order.manager.query.OrderReadManager;
-import com.ryuqq.authhub.application.port.in.query.SearchOrdersUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.criteria.OrderSearchCriteria;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.query.OrderSearchQuery;
+import com.ryuqq.application.order.dto.response.OrderListResponse;
+import com.ryuqq.application.order.factory.query.OrderQueryFactory;
+import com.ryuqq.application.order.manager.query.OrderReadManager;
+import com.ryuqq.application.port.in.query.SearchOrdersUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.criteria.OrderSearchCriteria;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

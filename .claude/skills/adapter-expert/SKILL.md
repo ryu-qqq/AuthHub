@@ -109,16 +109,16 @@ CQRS 원칙에 따라 Command/Query를 완전 분리하고, Repository ↔ Adapt
 ### 1. CommandAdapter (JpaRepository 1:1)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.adapter;
+package com.ryuqq.adapter.out.persistence.order.adapter;
 
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.common.port.out.OrderPersistencePort;
-import com.ryuqq.authhub.adapter.out.persistence.order.repository.OrderJpaRepository;
-import com.ryuqq.authhub.adapter.out.persistence.order.mapper.OrderJpaEntityMapper;
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.OrderJpaEntity;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.common.port.out.OrderPersistencePort;
+import com.ryuqq.adapter.out.persistence.order.repository.OrderJpaRepository;
+import com.ryuqq.adapter.out.persistence.order.mapper.OrderJpaEntityMapper;
+import com.ryuqq.adapter.out.persistence.order.entity.OrderJpaEntity;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
 
 @Component
 public class OrderCommandAdapter implements OrderPersistencePort {
@@ -167,20 +167,20 @@ public class OrderCommandAdapter implements OrderPersistencePort {
 ### 2. QueryAdapter (QueryDslRepository 1:1)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.adapter;
+package com.ryuqq.adapter.out.persistence.order.adapter;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.common.port.out.OrderQueryPort;
-import com.ryuqq.authhub.adapter.out.persistence.order.repository.OrderQueryDslRepository;
-import com.ryuqq.authhub.adapter.out.persistence.order.mapper.OrderJpaEntityMapper;
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.OrderJpaEntity;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderSearchCriteria;
+import com.ryuqq.application.common.port.out.OrderQueryPort;
+import com.ryuqq.adapter.out.persistence.order.repository.OrderQueryDslRepository;
+import com.ryuqq.adapter.out.persistence.order.mapper.OrderJpaEntityMapper;
+import com.ryuqq.adapter.out.persistence.order.entity.OrderJpaEntity;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderSearchCriteria;
 
 @Component
 public class OrderQueryAdapter implements OrderQueryPort {
@@ -256,7 +256,7 @@ public class OrderQueryAdapter implements OrderQueryPort {
 ### 3. AdminQueryAdapter (AdminQueryDslRepository 1:1)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.adapter;
+package com.ryuqq.adapter.out.persistence.order.adapter;
 
 import java.util.List;
 import java.util.Optional;
@@ -265,12 +265,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.common.port.out.OrderAdminQueryPort;
-import com.ryuqq.authhub.adapter.out.persistence.order.repository.OrderAdminQueryDslRepository;
-import com.ryuqq.authhub.application.order.dto.AdminOrderListResponse;
-import com.ryuqq.authhub.application.order.dto.AdminOrderDetailResponse;
-import com.ryuqq.authhub.application.order.dto.AdminOrderSearchCriteria;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.common.port.out.OrderAdminQueryPort;
+import com.ryuqq.adapter.out.persistence.order.repository.OrderAdminQueryDslRepository;
+import com.ryuqq.application.order.dto.AdminOrderListResponse;
+import com.ryuqq.application.order.dto.AdminOrderDetailResponse;
+import com.ryuqq.application.order.dto.AdminOrderSearchCriteria;
+import com.ryuqq.domain.order.vo.OrderId;
 
 @Component
 public class OrderAdminQueryAdapter implements OrderAdminQueryPort {
@@ -329,20 +329,20 @@ public class OrderAdminQueryAdapter implements OrderAdminQueryPort {
 ### 4. LockQueryAdapter (LockRepository 1:1)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.adapter;
+package com.ryuqq.adapter.out.persistence.order.adapter;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.common.port.out.OrderLockQueryPort;
-import com.ryuqq.authhub.adapter.out.persistence.order.repository.OrderLockRepository;
-import com.ryuqq.authhub.adapter.out.persistence.order.mapper.OrderJpaEntityMapper;
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.OrderJpaEntity;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderSearchCriteria;
+import com.ryuqq.application.common.port.out.OrderLockQueryPort;
+import com.ryuqq.adapter.out.persistence.order.repository.OrderLockRepository;
+import com.ryuqq.adapter.out.persistence.order.mapper.OrderJpaEntityMapper;
+import com.ryuqq.adapter.out.persistence.order.entity.OrderJpaEntity;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderSearchCriteria;
 
 @Component
 public class OrderLockQueryAdapter implements OrderLockQueryPort {

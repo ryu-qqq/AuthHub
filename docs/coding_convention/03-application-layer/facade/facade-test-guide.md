@@ -30,10 +30,10 @@
 application/
 └─ src/
    ├─ main/java/
-   │  └─ com.ryuqq.authhub/application/{bc}/facade/
+   │  └─ com/ryuqq/application/{bc}/facade/
    │      └─ {Bc}Facade.java
    └─ test/java/
-      └─ com.ryuqq.authhub/application/{bc}/facade/
+      └─ com/ryuqq/application/{bc}/facade/
           └─ {Bc}FacadeTest.java
 ```
 
@@ -44,16 +44,16 @@ application/
 ### 기본 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.facade;
+package com.ryuqq.application.order.facade;
 
-import com.ryuqq.authhub.application.order.dto.bundle.OrderPersistBundle;
-import com.ryuqq.authhub.application.order.manager.OrderTransactionManager;
-import com.ryuqq.authhub.application.order.manager.OrderHistoryTransactionManager;
-import com.ryuqq.authhub.application.outbox.manager.OutboxTransactionManager;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderHistory;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.application.order.dto.bundle.OrderPersistBundle;
+import com.ryuqq.application.order.manager.OrderTransactionManager;
+import com.ryuqq.application.order.manager.OrderHistoryTransactionManager;
+import com.ryuqq.application.outbox.manager.OutboxTransactionManager;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderHistory;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.outbox.OutboxEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -355,9 +355,9 @@ facade.saveOrderWithOutbox(order, event);  // ❌
 ## 6) Fixture 활용
 
 ```java
-import com.ryuqq.authhub.fixture.domain.OrderFixture;
-import com.ryuqq.authhub.fixture.domain.OrderHistoryFixture;
-import com.ryuqq.authhub.fixture.application.OrderPersistBundleFixture;
+import com.ryuqq.fixture.domain.OrderFixture;
+import com.ryuqq.fixture.domain.OrderHistoryFixture;
+import com.ryuqq.fixture.application.OrderPersistBundleFixture;
 
 @DisplayName("OrderFacade 단위 테스트")
 class OrderFacadeTest {

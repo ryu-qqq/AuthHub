@@ -42,9 +42,9 @@ Domain Exception은 **ErrorCode, 구체적인 예외 클래스, 예외 발생 �
 ### 2-1) ErrorCode Enum 테스트 템플릿
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.exception;
+package com.ryuqq.domain.{bc}.exception;
 
-import com.ryuqq.authhub.domain.common.exception.ErrorCode;
+import com.ryuqq.domain.common.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -228,9 +228,9 @@ class {Bc}ErrorCodeTest {
 ### 2-2) 구체적인 예외 클래스 테스트 템플릿
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.exception;
+package com.ryuqq.domain.{bc}.exception;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -374,9 +374,9 @@ class {Bc}NotFoundExceptionTest {
 ### 2-3) args를 사용하는 복잡한 예외 클래스 테스트 템플릿
 
 ```java
-package com.ryuqq.authhub.domain.order.exception;
+package com.ryuqq.domain.order.exception;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -509,11 +509,11 @@ class OrderCancellationExceptionTest {
 ### 2-4) Domain Layer 예외 발생 테스트 (Aggregate/VO)
 
 ```java
-package com.ryuqq.authhub.domain.order.aggregate.order;
+package com.ryuqq.domain.order.aggregate.order;
 
-import com.ryuqq.authhub.domain.order.exception.OrderCancellationException;
-import com.ryuqq.authhub.domain.order.exception.InvalidOrderStateException;
-import com.ryuqq.authhub.domain.order.mother.Orders;
+import com.ryuqq.domain.order.exception.OrderCancellationException;
+import com.ryuqq.domain.order.exception.InvalidOrderStateException;
+import com.ryuqq.domain.order.mother.Orders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;

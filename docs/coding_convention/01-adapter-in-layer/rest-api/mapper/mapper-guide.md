@@ -34,7 +34,7 @@ adapter-in/rest-api/order/mapper/
 ## 3) 기본 구조
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.{bc}.mapper;
+package com.ryuqq.adapter.in.rest.{bc}.mapper;
 
 import org.springframework.stereotype.Component;
 import java.util.List;
@@ -393,21 +393,21 @@ public OrderApiResponse toApiResponse(OrderResponse appResponse) {
 ### OrderApiMapper
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.mapper;
+package com.ryuqq.adapter.in.rest.order.mapper;
 
-import com.ryuqq.authhub.adapter.in.rest.order.dto.request.CreateOrderApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.request.OrderSearchApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderDetailApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderPageApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderSliceApiResponse;
-import com.ryuqq.authhub.application.common.dto.response.PageResponse;
-import com.ryuqq.authhub.application.common.dto.response.SliceResponse;
-import com.ryuqq.authhub.application.order.dto.command.CreateOrderCommand;
-import com.ryuqq.authhub.application.order.dto.query.GetOrderQuery;
-import com.ryuqq.authhub.application.order.dto.query.SearchOrdersQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
+import com.ryuqq.adapter.in.rest.order.dto.request.CreateOrderApiRequest;
+import com.ryuqq.adapter.in.rest.order.dto.request.OrderSearchApiRequest;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderApiResponse;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderDetailApiResponse;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderPageApiResponse;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderSliceApiResponse;
+import com.ryuqq.application.common.dto.response.PageResponse;
+import com.ryuqq.application.common.dto.response.SliceResponse;
+import com.ryuqq.application.order.dto.command.CreateOrderCommand;
+import com.ryuqq.application.order.dto.query.GetOrderQuery;
+import com.ryuqq.application.order.dto.query.SearchOrdersQuery;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.application.order.dto.response.OrderResponse;
 
 import org.springframework.stereotype.Component;
 import java.util.List;

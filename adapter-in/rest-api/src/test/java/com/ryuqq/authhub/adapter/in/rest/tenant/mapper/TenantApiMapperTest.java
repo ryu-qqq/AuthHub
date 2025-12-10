@@ -112,7 +112,8 @@ class TenantApiMapperTest {
             // Given
             UUID tenantId = UUID.randomUUID();
             TenantResponse response =
-                    new TenantResponse(tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
+                    new TenantResponse(
+                            tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
 
             // When
             CreateTenantApiResponse result = mapper.toCreateResponse(response);
@@ -161,12 +162,15 @@ class TenantApiMapperTest {
             UUID tenantId1 = UUID.randomUUID();
             UUID tenantId2 = UUID.randomUUID();
             TenantResponse response1 =
-                    new TenantResponse(tenantId1, "Tenant1", "ACTIVE", Instant.now(), Instant.now());
+                    new TenantResponse(
+                            tenantId1, "Tenant1", "ACTIVE", Instant.now(), Instant.now());
             TenantResponse response2 =
-                    new TenantResponse(tenantId2, "Tenant2", "INACTIVE", Instant.now(), Instant.now());
+                    new TenantResponse(
+                            tenantId2, "Tenant2", "INACTIVE", Instant.now(), Instant.now());
 
             // When
-            List<TenantApiResponse> results = mapper.toApiResponseList(List.of(response1, response2));
+            List<TenantApiResponse> results =
+                    mapper.toApiResponseList(List.of(response1, response2));
 
             // Then
             assertThat(results).hasSize(2);

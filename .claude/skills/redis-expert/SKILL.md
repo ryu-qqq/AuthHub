@@ -86,7 +86,7 @@ Lettuce(캐싱)와 Redisson(분산락) 듀얼 전략으로 각 라이브러리�
 ### 1. CachePort 인터페이스 (Application Layer)
 
 ```java
-package com.ryuqq.authhub.application.common.port.out;
+package com.ryuqq.application.common.port.out;
 
 import java.util.Optional;
 
@@ -141,7 +141,7 @@ public interface OrderCachePort {
 ### 2. CacheAdapter 구현 (Cache-Aside 패턴)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.order.adapter;
+package com.ryuqq.adapter.out.persistence.redis.order.adapter;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -151,8 +151,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.common.port.out.OrderCachePort;
-import com.ryuqq.authhub.adapter.out.persistence.redis.order.dto.OrderCacheData;
+import com.ryuqq.application.common.port.out.OrderCachePort;
+import com.ryuqq.adapter.out.persistence.redis.order.dto.OrderCacheData;
 
 /**
  * 주문 캐시 Adapter
@@ -246,7 +246,7 @@ public class OrderCacheAdapter implements OrderCachePort {
 ### 3. DistributedLockPort 인터페이스 (Application Layer)
 
 ```java
-package com.ryuqq.authhub.application.common.port.out;
+package com.ryuqq.application.common.port.out;
 
 import java.util.concurrent.TimeUnit;
 
@@ -309,7 +309,7 @@ public interface DistributedLockPort {
 ### 4. DistributedLockAdapter 구현 (Redisson)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.common.adapter;
+package com.ryuqq.adapter.out.persistence.redis.common.adapter;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -318,8 +318,8 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.common.port.out.DistributedLockPort;
-import com.ryuqq.authhub.adapter.out.persistence.redis.common.exception.LockAcquisitionException;
+import com.ryuqq.application.common.port.out.DistributedLockPort;
+import com.ryuqq.adapter.out.persistence.redis.common.exception.LockAcquisitionException;
 
 /**
  * Redisson 분산락 Adapter
@@ -402,7 +402,7 @@ public class DistributedLockAdapter implements DistributedLockPort {
 ### 5. Lettuce 설정 (LettuceConfig)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.config;
+package com.ryuqq.adapter.out.persistence.redis.config;
 
 import java.time.Duration;
 
@@ -479,7 +479,7 @@ public class LettuceConfig {
 ### 6. Redisson 설정 (RedissonConfig)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.config;
+package com.ryuqq.adapter.out.persistence.redis.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
@@ -571,15 +571,15 @@ spring:
 ### 8. UseCase에서 분산락 사용 예시
 
 ```java
-package com.ryuqq.authhub.application.stock.service;
+package com.ryuqq.application.stock.service;
 
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ryuqq.authhub.application.common.port.out.DistributedLockPort;
-import com.ryuqq.authhub.application.stock.port.in.DecreaseStockUseCase;
+import com.ryuqq.application.common.port.out.DistributedLockPort;
+import com.ryuqq.application.stock.port.in.DecreaseStockUseCase;
 
 /**
  * 재고 차감 Service (분산락 적용)
@@ -732,7 +732,7 @@ unlock() 호출 → Watchdog 종료
 
 ```
 adapter-out/persistence-redis/
-├── src/main/java/com.ryuqq.authhub/adapter/out/persistence/redis/
+├── src/main/java/com/ryuqq/adapter/out/persistence/redis/
 │   ├── config/
 │   │   ├── LettuceConfig.java          # 캐싱용 Lettuce 설정
 │   │   └── RedissonConfig.java         # 분산락용 Redisson 설정

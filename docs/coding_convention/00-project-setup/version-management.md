@@ -93,7 +93,7 @@ springDependencyManagement = "1.1.5"
 # Database & Persistence
 # ========================================
 querydsl = "5.1.0"
-postgresql = "42.7.3"
+mysql = "42.7.3"
 
 # ========================================
 # Testing
@@ -113,7 +113,7 @@ spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-
 # 외부 라이브러리 (version.ref 필수)
 # ========================================
 querydsl-jpa = { module = "com.querydsl:querydsl-jpa", version.ref = "querydsl" }
-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+mysql = { module = "org.mysql:mysql", version.ref = "mysql" }
 archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
 
 [bundles]
@@ -121,7 +121,7 @@ archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref
 # 자주 사용하는 의존성 묶음
 # ========================================
 testing-basic = ["junit-jupiter", "assertj-core", "mockito-core"]
-testcontainers = ["testcontainers-junit", "testcontainers-postgresql"]
+testcontainers = ["testcontainers-junit", "testcontainers-mysql"]
 
 [plugins]
 # ========================================
@@ -231,7 +231,7 @@ dependencies {
 
     // 외부 라이브러리 (version.ref 관리)
     implementation libs.querydsl.jpa
-    runtimeOnly libs.postgresql
+    runtimeOnly libs.mysql
 
     // Bundle 사용
     testImplementation libs.bundles.testing.basic
@@ -264,7 +264,7 @@ org.gradle.configureondemand=true
 # Project Metadata
 # ========================================
 projectVersion=1.0.0-SNAPSHOT
-projectGroup=com.ryuqq.authhub
+projectGroup=com.ryuqq
 ```
 
 ---

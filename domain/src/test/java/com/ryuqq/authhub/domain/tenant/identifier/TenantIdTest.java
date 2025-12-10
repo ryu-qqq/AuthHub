@@ -27,7 +27,7 @@ class TenantIdTest {
         @DisplayName("새로운 UUIDv7 기반 TenantId를 생성한다")
         void shouldCreateNewTenantIdWithUuidV7() {
             // when
-            TenantId tenantId = TenantId.forNew();
+            TenantId tenantId = TenantId.forNew(UUID.randomUUID());
 
             // then
             assertThat(tenantId).isNotNull();
@@ -38,8 +38,8 @@ class TenantIdTest {
         @DisplayName("매번 새로운 ID를 생성한다")
         void shouldCreateUniqueIdEachTime() {
             // when
-            TenantId id1 = TenantId.forNew();
-            TenantId id2 = TenantId.forNew();
+            TenantId id1 = TenantId.forNew(UUID.randomUUID());
+            TenantId id2 = TenantId.forNew(UUID.randomUUID());
 
             // then
             assertThat(id1).isNotEqualTo(id2);
@@ -153,7 +153,7 @@ class TenantIdTest {
         @DisplayName("자기 자신과 같다")
         void shouldBeEqualToItself() {
             // given
-            TenantId tenantId = TenantId.forNew();
+            TenantId tenantId = TenantId.forNew(UUID.randomUUID());
 
             // then
             assertThat(tenantId).isEqualTo(tenantId);
@@ -163,7 +163,7 @@ class TenantIdTest {
         @DisplayName("null과 같지 않다")
         void shouldNotBeEqualToNull() {
             // given
-            TenantId tenantId = TenantId.forNew();
+            TenantId tenantId = TenantId.forNew(UUID.randomUUID());
 
             // then
             assertThat(tenantId).isNotEqualTo(null);
@@ -173,7 +173,7 @@ class TenantIdTest {
         @DisplayName("다른 타입과 같지 않다")
         void shouldNotBeEqualToDifferentType() {
             // given
-            TenantId tenantId = TenantId.forNew();
+            TenantId tenantId = TenantId.forNew(UUID.randomUUID());
 
             // then
             assertThat(tenantId).isNotEqualTo("not-a-tenant-id");

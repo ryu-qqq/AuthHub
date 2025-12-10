@@ -61,7 +61,7 @@ UseCase (Application Layer)
     ↓
 Repository (Persistence Layer)
     ↓
-Real Database (PostgreSQL via TestContainers)
+Real Database (MySQL via TestContainers)
     ↓
 HTTP Response
 ```
@@ -75,7 +75,7 @@ HTTP Response
 | **속도** | 빠름 (ms) | 느림 (초) |
 | **테스트** | `@DataJpaTest`, `@WebMvcTest` | `@SpringBootTest` |
 | **HTTP** | MockMvc (가짜) | TestRestTemplate (실제) |
-| **DB** | H2 (인메모리) | PostgreSQL (실제) |
+| **DB** | H2 (인메모리) | MySQL (실제) |
 
 ### Flyway vs @Sql 구분 (핵심!)
 
@@ -94,7 +94,7 @@ HTTP Response
 ### 1. Integration Test
 
 ```java
-package com.ryuqq.authhub.bootstrap;
+package com.ryuqq.bootstrap;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -108,7 +108,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -122,7 +122,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderIntegrationTest {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:15-alpine")
         .withDatabaseName("test")
         .withUsername("test")
         .withPassword("test");
@@ -179,17 +179,17 @@ class OrderIntegrationTest {
 - TestRestTemplate 주입 (MockMvc 금지)
 - `@Sql` 로 테스트 데이터 삽입 (DML만)
 - `@Transactional` 롤백으로 테스트 격리
-- `@Testcontainers` + PostgreSQL 실제 DB
+- `@Testcontainers` + MySQL 실제 DB
 
 ### 2. Domain Fixture (testFixtures 소스셋)
 
 ```java
-package com.ryuqq.authhub.fixture.domain;
+package com.ryuqq.fixture.domain;
 
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
-import com.ryuqq.authhub.domain.order.vo.Money;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderStatus;
+import com.ryuqq.domain.order.vo.Money;
 
 import java.math.BigDecimal;
 
@@ -259,7 +259,7 @@ public final class OrderFixture {
 ```
 
 **핵심 규칙**:
-- **위치**: `domain/src/testFixtures/java/com.ryuqq.authhub/fixture/domain/`
+- **위치**: `domain/src/testFixtures/java/com/ryuqq/fixture/domain/`
 - `final` 클래스
 - `private` 생성자 (인스턴스 생성 방지)
 - `static` 메서드만 사용
@@ -268,9 +268,9 @@ public final class OrderFixture {
 ### 3. Application Fixture
 
 ```java
-package com.ryuqq.authhub.fixture.application.command;
+package com.ryuqq.fixture.application.command;
 
-import com.ryuqq.authhub.application.order.dto.command.PlaceOrderCommand;
+import com.ryuqq.application.order.dto.command.PlaceOrderCommand;
 
 import java.math.BigDecimal;
 
@@ -299,9 +299,9 @@ public final class PlaceOrderCommandFixture {
 ### 4. Request Fixture (REST API)
 
 ```java
-package com.ryuqq.authhub.fixture.adapter.rest;
+package com.ryuqq.fixture.adapter.rest;
 
-import com.ryuqq.authhub.adapter.in.rest.order.dto.PlaceOrderRequest;
+import com.ryuqq.adapter.in.rest.order.dto.PlaceOrderRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -416,7 +416,7 @@ dependencies {
 // bootstrap/build.gradle (Integration Test)
 dependencies {
     testImplementation libs.spring.boot.starter.test
-    testImplementation libs.testcontainers.postgresql
+    testImplementation libs.testcontainers.mysql
     testImplementation libs.testcontainers.junit
 
     // Fixtures
@@ -432,7 +432,7 @@ dependencies {
 
 ```
 1. TestContainers 시작
-   └─ Docker → PostgreSQL 컨테이너 시작
+   └─ Docker → MySQL 컨테이너 시작
 
 2. Spring Boot 시작 (@SpringBootTest)
    └─ 전체 Bean 로딩
@@ -452,7 +452,7 @@ dependencies {
 7. 다음 테스트 메서드 (4~6 반복)
 
 8. TestContainers 종료
-   └─ PostgreSQL 컨테이너 삭제
+   └─ MySQL 컨테이너 삭제
 ```
 
 ---
@@ -505,7 +505,7 @@ adapter-in testFixtures → adapter-out testFixtures   ❌ 교차 금지
 | `@Transactional` | 테스트 격리, 자동 롤백 |
 | `@Sql` DML만 | INSERT, UPDATE, DELETE만 |
 | `@ActiveProfiles("test")` | 테스트 전용 설정 |
-| `@Testcontainers` | 실제 DB (PostgreSQL) |
+| `@Testcontainers` | 실제 DB (MySQL) |
 | Fixture: final 클래스 | 상속 금지 |
 | Fixture: private 생성자 | 인스턴스 생성 금지 |
 | Fixture: static 메서드 | 유틸리티 패턴 |
@@ -522,7 +522,7 @@ adapter-in testFixtures → adapter-out testFixtures   ❌ 교차 금지
 | EntityManager.persist() | @Sql 사용, SQL 파일로 관리 |
 | `@DirtiesContext` | 느림, `@Transactional` 롤백 사용 |
 | 역방향 Fixture 의존 | domain → application 금지 |
-| H2 사용 | PostgreSQL (TestContainers) 사용 |
+| H2 사용 | MySQL (TestContainers) 사용 |
 
 ---
 
@@ -534,7 +534,7 @@ project/
 │   ├── src/main/java/
 │   ├── src/test/java/
 │   └── src/testFixtures/java/
-│       └── com.ryuqq.authhub/fixture/domain/
+│       └── com/ryuqq/fixture/domain/
 │           ├── OrderFixture.java
 │           ├── ProductFixture.java
 │           └── CustomerFixture.java
@@ -543,7 +543,7 @@ project/
 │   ├── src/main/java/
 │   ├── src/test/java/
 │   └── src/testFixtures/java/
-│       └── com.ryuqq.authhub/fixture/application/
+│       └── com/ryuqq/fixture/application/
 │           ├── command/
 │           │   └── PlaceOrderCommandFixture.java
 │           └── response/
@@ -553,20 +553,20 @@ project/
 │   ├── src/main/java/
 │   ├── src/test/java/
 │   └── src/testFixtures/java/
-│       └── com.ryuqq.authhub/fixture/adapter/rest/
+│       └── com/ryuqq/fixture/adapter/rest/
 │           └── OrderRequestFixture.java
 │
 ├── adapter-out/persistence-mysql/
 │   ├── src/main/java/
 │   ├── src/test/java/
 │   └── src/testFixtures/java/
-│       └── com.ryuqq.authhub/fixture/adapter/persistence/
+│       └── com/ryuqq/fixture/adapter/persistence/
 │           └── OrderEntityFixture.java
 │
 └── bootstrap/
     └── src/test/
         ├── java/
-        │   └── com.ryuqq.authhub/bootstrap/
+        │   └── com/ryuqq/bootstrap/
         │       └── OrderIntegrationTest.java
         └── resources/sql/
             └── orders-test-data.sql
@@ -579,7 +579,7 @@ project/
 ### Integration Test
 - [ ] `@SpringBootTest(webEnvironment = RANDOM_PORT)`
 - [ ] `@ActiveProfiles("test")`
-- [ ] `@Testcontainers` + `@Container PostgreSQLContainer`
+- [ ] `@Testcontainers` + `@Container MySQLContainer`
 - [ ] `@Transactional` 테스트 격리
 - [ ] TestRestTemplate 주입 (MockMvc 금지)
 - [ ] `@Sql("/sql/test-data.sql")` 테스트 데이터

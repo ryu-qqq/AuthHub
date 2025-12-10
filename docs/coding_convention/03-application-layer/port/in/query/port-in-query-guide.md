@@ -68,10 +68,10 @@ application/order/
 
 ### UseCase Interface
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in;
+package com.ryuqq.application.{bc}.port.in;
 
-import com.ryuqq.authhub.application.{bc}.dto.query.Get{Bc}Query;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}DetailResponse;
+import com.ryuqq.application.{bc}.dto.query.Get{Bc}Query;
+import com.ryuqq.application.{bc}.dto.response.{Bc}DetailResponse;
 
 /**
  * Get {Bc} UseCase (Query)
@@ -99,10 +99,10 @@ public interface Get{Bc}UseCase {
 
 ### UseCase Interface
 ```java
-package com.ryuqq.authhub.application.order.port.in;
+package com.ryuqq.application.order.port.in;
 
-import com.ryuqq.authhub.application.order.dto.query.GetOrderQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.application.order.dto.query.GetOrderQuery;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
 
 /**
  * Get Order UseCase (Query)
@@ -127,10 +127,10 @@ public interface GetOrderUseCase {
 
 ### UseCase Interface
 ```java
-package com.ryuqq.authhub.application.order.port.in;
+package com.ryuqq.application.order.port.in;
 
-import com.ryuqq.authhub.application.order.dto.query.SearchOrdersQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderSummaryResponse;
+import com.ryuqq.application.order.dto.query.SearchOrdersQuery;
+import com.ryuqq.application.order.dto.response.OrderSummaryResponse;
 import java.util.List;
 
 /**
@@ -170,11 +170,11 @@ public interface SearchOrdersUseCase {
 ### PageResponse UseCase (Offset 기반)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.query;
+package com.ryuqq.application.{bc}.port.in.query;
 
-import com.ryuqq.authhub.application.{bc}.dto.query.Search{Bc}Query;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}SummaryResponse;
-import com.ryuqq.authhub.application.common.dto.PageResponse;
+import com.ryuqq.application.{bc}.dto.query.Search{Bc}Query;
+import com.ryuqq.application.{bc}.dto.response.{Bc}SummaryResponse;
+import com.ryuqq.application.common.dto.PageResponse;
 
 /**
  * Search {Bc} UseCase (Pagination)
@@ -199,11 +199,11 @@ public interface Search{Bc}UseCase {
 ### SliceResponse UseCase (무한 스크롤)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.query;
+package com.ryuqq.application.{bc}.port.in.query;
 
-import com.ryuqq.authhub.application.{bc}.dto.query.Search{Bc}Query;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}SummaryResponse;
-import com.ryuqq.authhub.application.common.dto.SliceResponse;
+import com.ryuqq.application.{bc}.dto.query.Search{Bc}Query;
+import com.ryuqq.application.{bc}.dto.response.{Bc}SummaryResponse;
+import com.ryuqq.application.common.dto.SliceResponse;
 
 /**
  * Search {Bc} UseCase (Infinite Scroll)
@@ -229,11 +229,11 @@ public interface Search{Bc}UseCase {
 ### CursorResponse UseCase (커서 기반)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.query;
+package com.ryuqq.application.{bc}.port.in.query;
 
-import com.ryuqq.authhub.application.{bc}.dto.query.Search{Bc}CursorQuery;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}SummaryResponse;
-import com.ryuqq.authhub.application.common.dto.CursorResponse;
+import com.ryuqq.application.{bc}.dto.query.Search{Bc}CursorQuery;
+import com.ryuqq.application.{bc}.dto.response.{Bc}SummaryResponse;
+import com.ryuqq.application.common.dto.CursorResponse;
 
 /**
  * Search {Bc} UseCase (Cursor-based)

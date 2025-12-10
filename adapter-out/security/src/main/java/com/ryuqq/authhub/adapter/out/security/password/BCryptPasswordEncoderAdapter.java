@@ -1,6 +1,6 @@
-package com.ryuqq.setof.adapter.out.security.password;
+package com.ryuqq.authhub.adapter.out.security.password;
 
-import com.ryuqq.setof.application.member.port.out.PasswordEncoderPort;
+import com.ryuqq.authhub.application.user.port.out.client.PasswordEncoderPort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -10,10 +10,11 @@ import org.springframework.stereotype.Component;
  * <p>Spring Security의 BCryptPasswordEncoder를 사용하여 PasswordEncoderPort를 구현합니다.
  *
  * <p><strong>BCrypt 특징:</strong>
+ *
  * <ul>
- *   <li>솔트 자동 생성 (매번 다른 해시값)</li>
- *   <li>Work Factor 조절 가능 (기본값 10)</li>
- *   <li>레인보우 테이블 공격 방지</li>
+ *   <li>솔트 자동 생성 (매번 다른 해시값)
+ *   <li>Work Factor 조절 가능 (기본값 10)
+ *   <li>레인보우 테이블 공격 방지
  * </ul>
  *
  * @author development-team
@@ -31,7 +32,7 @@ public class BCryptPasswordEncoderAdapter implements PasswordEncoderPort {
     }
 
     @Override
-    public String encode(String rawPassword) {
+    public String hash(String rawPassword) {
         if (rawPassword == null || rawPassword.isBlank()) {
             throw new IllegalArgumentException("Password cannot be null or blank");
         }
@@ -39,10 +40,10 @@ public class BCryptPasswordEncoderAdapter implements PasswordEncoderPort {
     }
 
     @Override
-    public boolean matches(String rawPassword, String encodedPassword) {
-        if (rawPassword == null || encodedPassword == null) {
+    public boolean matches(String rawPassword, String hashedPassword) {
+        if (rawPassword == null || hashedPassword == null) {
             return false;
         }
-        return passwordEncoder.matches(rawPassword, encodedPassword);
+        return passwordEncoder.matches(rawPassword, hashedPassword);
     }
 }

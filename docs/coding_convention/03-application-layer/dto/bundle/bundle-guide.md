@@ -87,11 +87,11 @@ historyManager.persist(enriched.history());
 ### 기본 Bundle
 
 ```java
-package com.ryuqq.authhub.application.order.dto.bundle;
+package com.ryuqq.application.order.dto.bundle;
 
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.outbox.OutboxEvent;
 
 /**
  * Order 영속화 Bundle
@@ -121,12 +121,12 @@ public record OrderPersistBundle(
 ### 여러 객체 포함 Bundle
 
 ```java
-package com.ryuqq.authhub.application.order.dto.bundle;
+package com.ryuqq.application.order.dto.bundle;
 
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderHistory;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderHistory;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.outbox.OutboxEvent;
 
 import java.util.List;
 

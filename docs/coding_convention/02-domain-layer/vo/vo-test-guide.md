@@ -32,7 +32,7 @@ Record 기반 VO는 **Compact Constructor 검증**과 **비즈니스 메서드**
 ### 2-1) Simple VO 템플릿 (Money, Email, Price 등)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.vo;
+package com.ryuqq.domain.{bc}.vo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -209,7 +209,7 @@ class {VoName}Test {
 > **isNew()**: 필수 (null 여부 확인)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.vo;
+package com.ryuqq.domain.{bc}.vo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -360,7 +360,7 @@ class {IdName}Test {
 > **isNew()**: 불필요 (항상 값 존재)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.vo;
+package com.ryuqq.domain.{bc}.vo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -526,7 +526,7 @@ class {IdName}Test {
 > **Record가 아님**: of() 메서드 불필요
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.vo;
+package com.ryuqq.domain.{bc}.vo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -687,7 +687,7 @@ class OrderStatusTest {
 ### 2-5) Multi-field VO 템플릿 (Address 등)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.vo;
+package com.ryuqq.domain.{bc}.vo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -827,7 +827,7 @@ class AddressTest {
 ### 2-6) Composite VO 템플릿 (FullAddress 등)
 
 ```java
-package com.ryuqq.authhub.domain.{bc}.vo;
+package com.ryuqq.domain.{bc}.vo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

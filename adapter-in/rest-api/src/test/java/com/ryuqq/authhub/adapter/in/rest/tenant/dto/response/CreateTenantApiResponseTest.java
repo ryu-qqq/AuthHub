@@ -75,8 +75,10 @@ class CreateTenantApiResponseTest {
         @DisplayName("[equals] 다른 tenantId면 다름")
         void equals_withDifferentTenantId_shouldNotBeEqual() {
             // Given
-            CreateTenantApiResponse response1 = new CreateTenantApiResponse(UUID.randomUUID().toString());
-            CreateTenantApiResponse response2 = new CreateTenantApiResponse(UUID.randomUUID().toString());
+            CreateTenantApiResponse response1 =
+                    new CreateTenantApiResponse(UUID.randomUUID().toString());
+            CreateTenantApiResponse response2 =
+                    new CreateTenantApiResponse(UUID.randomUUID().toString());
 
             // When & Then
             assertThat(response1).isNotEqualTo(response2);

@@ -113,8 +113,10 @@ class TenantApiResponseTest {
             // Given
             String tenantId = UUID.randomUUID().toString();
             Instant now = Instant.now();
-            TenantApiResponse response1 = new TenantApiResponse(tenantId, "Tenant1", "ACTIVE", now, now);
-            TenantApiResponse response2 = new TenantApiResponse(tenantId, "Tenant2", "ACTIVE", now, now);
+            TenantApiResponse response1 =
+                    new TenantApiResponse(tenantId, "Tenant1", "ACTIVE", now, now);
+            TenantApiResponse response2 =
+                    new TenantApiResponse(tenantId, "Tenant2", "ACTIVE", now, now);
 
             // When & Then
             assertThat(response1).isNotEqualTo(response2);
@@ -126,8 +128,10 @@ class TenantApiResponseTest {
             // Given
             String tenantId = UUID.randomUUID().toString();
             Instant now = Instant.now();
-            TenantApiResponse response1 = new TenantApiResponse(tenantId, "Test", "ACTIVE", now, now);
-            TenantApiResponse response2 = new TenantApiResponse(tenantId, "Test", "INACTIVE", now, now);
+            TenantApiResponse response1 =
+                    new TenantApiResponse(tenantId, "Test", "ACTIVE", now, now);
+            TenantApiResponse response2 =
+                    new TenantApiResponse(tenantId, "Test", "INACTIVE", now, now);
 
             // When & Then
             assertThat(response1).isNotEqualTo(response2);

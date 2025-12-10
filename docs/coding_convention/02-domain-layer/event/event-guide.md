@@ -34,7 +34,7 @@
 ## 2) DomainEvent 인터페이스
 
 ```java
-package com.ryuqq.authhub.domain.common.event;
+package com.ryuqq.domain.common.event;
 
 import java.time.Instant;
 
@@ -72,14 +72,14 @@ public interface DomainEvent {
 ### 기본 구조
 
 ```java
-package com.ryuqq.authhub.domain.order.event;
+package com.ryuqq.domain.order.event;
 
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
-import com.ryuqq.authhub.domain.order.aggregate.order.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
-import com.ryuqq.authhub.domain.order.vo.Money;
-import com.ryuqq.authhub.domain.member.vo.MemberId;
+import com.ryuqq.domain.common.event.DomainEvent;
+import com.ryuqq.domain.order.aggregate.order.Order;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderStatus;
+import com.ryuqq.domain.order.vo.Money;
+import com.ryuqq.domain.member.vo.MemberId;
 
 import java.time.Instant;
 
@@ -127,12 +127,12 @@ public record OrderCreatedEvent(
 ### 상태 변경 이벤트
 
 ```java
-package com.ryuqq.authhub.domain.order.event;
+package com.ryuqq.domain.order.event;
 
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
-import com.ryuqq.authhub.domain.order.aggregate.order.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
+import com.ryuqq.domain.common.event.DomainEvent;
+import com.ryuqq.domain.order.aggregate.order.Order;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderStatus;
 
 import java.time.Instant;
 
@@ -172,15 +172,15 @@ public record OrderCancelledEvent(
 ### Aggregate 내부 Event 관리
 
 ```java
-package com.ryuqq.authhub.domain.order.aggregate.order;
+package com.ryuqq.domain.order.aggregate.order;
 
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
-import com.ryuqq.authhub.domain.order.event.OrderCreatedEvent;
-import com.ryuqq.authhub.domain.order.event.OrderCancelledEvent;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
-import com.ryuqq.authhub.domain.order.vo.Money;
-import com.ryuqq.authhub.domain.member.vo.MemberId;
+import com.ryuqq.domain.common.event.DomainEvent;
+import com.ryuqq.domain.order.event.OrderCreatedEvent;
+import com.ryuqq.domain.order.event.OrderCancelledEvent;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderStatus;
+import com.ryuqq.domain.order.vo.Money;
+import com.ryuqq.domain.member.vo.MemberId;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -289,10 +289,10 @@ public class Order {
 ### Application Layer에서 Event 발행
 
 ```java
-package com.ryuqq.authhub.application.order.manager;
+package com.ryuqq.application.order.manager;
 
-import com.ryuqq.authhub.application.port.out.command.OrderPersistencePort;
-import com.ryuqq.authhub.domain.order.aggregate.order.Order;
+import com.ryuqq.application.port.out.command.OrderPersistencePort;
+import com.ryuqq.domain.order.aggregate.order.Order;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

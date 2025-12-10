@@ -1,9 +1,9 @@
 package com.ryuqq.authhub.application.tenant.factory.command;
 
 import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
-import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
+import java.time.Clock;
 import org.springframework.stereotype.Component;
 
 /**

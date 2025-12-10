@@ -87,20 +87,20 @@ CQRS 원칙에 따라 Command/Query 변환을 분리하고, 단방향 변환 원
 ### 1. CommandFactory (Command → Domain 변환)
 
 ```java
-package com.ryuqq.authhub.application.order.factory.command;
+package com.ryuqq.application.order.factory.command;
 
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.order.dto.command.PlaceOrderCommand;
-import com.ryuqq.authhub.application.order.dto.command.OrderItemCommand;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderPersistBundle;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderItem;
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.vo.Money;
-import com.ryuqq.authhub.domain.order.vo.ProductId;
-import com.ryuqq.authhub.domain.order.vo.Quantity;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.application.order.dto.command.PlaceOrderCommand;
+import com.ryuqq.application.order.dto.command.OrderItemCommand;
+import com.ryuqq.application.order.dto.bundle.OrderPersistBundle;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderItem;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.vo.Money;
+import com.ryuqq.domain.order.vo.ProductId;
+import com.ryuqq.domain.order.vo.Quantity;
+import com.ryuqq.domain.outbox.OutboxEvent;
 
 import java.util.List;
 
@@ -169,17 +169,17 @@ public class OrderCommandFactory {
 ### 2. QueryFactory (Query → Criteria 변환)
 
 ```java
-package com.ryuqq.authhub.application.order.factory.query;
+package com.ryuqq.application.order.factory.query;
 
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.order.dto.query.OrderDetailQuery;
-import com.ryuqq.authhub.application.order.dto.query.OrderSearchQuery;
-import com.ryuqq.authhub.domain.order.criteria.OrderDetailCriteria;
-import com.ryuqq.authhub.domain.order.criteria.OrderSearchCriteria;
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
+import com.ryuqq.application.order.dto.query.OrderDetailQuery;
+import com.ryuqq.application.order.dto.query.OrderSearchQuery;
+import com.ryuqq.domain.order.criteria.OrderDetailCriteria;
+import com.ryuqq.domain.order.criteria.OrderSearchCriteria;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderStatus;
 
 /**
  * Order Query Factory
@@ -244,14 +244,14 @@ public class OrderQueryFactory {
 ### 3. Assembler (Domain → Response 변환)
 
 ```java
-package com.ryuqq.authhub.application.order.assembler;
+package com.ryuqq.application.order.assembler;
 
 import org.springframework.stereotype.Component;
 
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderLineItem;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderLineItem;
 
 import java.util.List;
 
@@ -334,12 +334,12 @@ public class OrderAssembler {
 ### 4. PersistBundle (영속화 대상 묶음)
 
 ```java
-package com.ryuqq.authhub.application.order.dto.bundle;
+package com.ryuqq.application.order.dto.bundle;
 
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderHistory;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderHistory;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.outbox.OutboxEvent;
 
 /**
  * Order 영속화 Bundle
@@ -377,10 +377,10 @@ public record OrderPersistBundle(
 ### 5. QueryBundle (조회 결과 묶음)
 
 ```java
-package com.ryuqq.authhub.application.order.dto.bundle;
+package com.ryuqq.application.order.dto.bundle;
 
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.member.aggregate.Member;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.member.aggregate.Member;
 
 /**
  * Order 조회 결과 Bundle

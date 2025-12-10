@@ -5,8 +5,7 @@ import java.util.Objects;
 /**
  * Resource - 권한 대상 리소스 Value Object
  *
- * <p>권한이 적용되는 대상 리소스를 나타냅니다.
- * 1-50자 길이의 소문자 영문과 언더스코어, 하이픈만 허용합니다.
+ * <p>권한이 적용되는 대상 리소스를 나타냅니다. 1-50자 길이의 소문자 영문과 언더스코어, 하이픈만 허용합니다.
  *
  * <p>예시: user, organization, tenant, role, permission
  *

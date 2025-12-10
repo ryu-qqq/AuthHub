@@ -31,14 +31,14 @@
 
 ```
 application/src/test/java/
-└─ com.ryuqq.authhub/application/architecture/listener/
+└─ com/ryuqq/application/architecture/listener/
    └─ EventListenerArchTest.java
 ```
 
 ### 전체 코드
 
 ```java
-package com.ryuqq.authhub.application.architecture.listener;
+package com.ryuqq.application.architecture.listener;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -73,7 +73,7 @@ class EventListenerArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.application");
+            .importPackages("com.ryuqq.application");
 
         hasListenerClasses = classes.stream()
             .anyMatch(javaClass -> javaClass.getSimpleName().endsWith("EventListener"));
@@ -286,8 +286,8 @@ class EventListenerArchTest {
                 .that().haveSimpleNameEndingWith("EventListener")
                 .should().onlyAccessClassesThat()
                 .resideInAnyPackage(
-                    "com.ryuqq.authhub.application..",
-                    "com.ryuqq.authhub.domain..",
+                    "com.ryuqq.application..",
+                    "com.ryuqq.domain..",
                     "org.springframework..",
                     "org.slf4j..",
                     "java..",

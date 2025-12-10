@@ -5,13 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
+import java.time.Instant;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * RolePermission Value Object 단위 테스트
@@ -125,10 +124,12 @@ class RolePermissionTest {
             // given
             UUID roleUuid = UUID.randomUUID();
             UUID permissionUuid = UUID.randomUUID();
-            RolePermission rp1 = RolePermission.of(
-                    RoleId.of(roleUuid), PermissionId.of(permissionUuid), FIXED_TIME);
-            RolePermission rp2 = RolePermission.of(
-                    RoleId.of(roleUuid), PermissionId.of(permissionUuid), Instant.now());
+            RolePermission rp1 =
+                    RolePermission.of(
+                            RoleId.of(roleUuid), PermissionId.of(permissionUuid), FIXED_TIME);
+            RolePermission rp2 =
+                    RolePermission.of(
+                            RoleId.of(roleUuid), PermissionId.of(permissionUuid), Instant.now());
 
             // then - grantedAt이 달라도 동일
             assertThat(rp1).isEqualTo(rp2);
@@ -140,10 +141,16 @@ class RolePermissionTest {
         void shouldNotBeEqualWhenDifferentRoleId() {
             // given
             UUID permissionUuid = UUID.randomUUID();
-            RolePermission rp1 = RolePermission.of(
-                    RoleId.of(UUID.randomUUID()), PermissionId.of(permissionUuid), FIXED_TIME);
-            RolePermission rp2 = RolePermission.of(
-                    RoleId.of(UUID.randomUUID()), PermissionId.of(permissionUuid), FIXED_TIME);
+            RolePermission rp1 =
+                    RolePermission.of(
+                            RoleId.of(UUID.randomUUID()),
+                            PermissionId.of(permissionUuid),
+                            FIXED_TIME);
+            RolePermission rp2 =
+                    RolePermission.of(
+                            RoleId.of(UUID.randomUUID()),
+                            PermissionId.of(permissionUuid),
+                            FIXED_TIME);
 
             // then
             assertThat(rp1).isNotEqualTo(rp2);
@@ -154,10 +161,12 @@ class RolePermissionTest {
         void shouldNotBeEqualWhenDifferentPermissionId() {
             // given
             UUID roleUuid = UUID.randomUUID();
-            RolePermission rp1 = RolePermission.of(
-                    RoleId.of(roleUuid), PermissionId.of(UUID.randomUUID()), FIXED_TIME);
-            RolePermission rp2 = RolePermission.of(
-                    RoleId.of(roleUuid), PermissionId.of(UUID.randomUUID()), FIXED_TIME);
+            RolePermission rp1 =
+                    RolePermission.of(
+                            RoleId.of(roleUuid), PermissionId.of(UUID.randomUUID()), FIXED_TIME);
+            RolePermission rp2 =
+                    RolePermission.of(
+                            RoleId.of(roleUuid), PermissionId.of(UUID.randomUUID()), FIXED_TIME);
 
             // then
             assertThat(rp1).isNotEqualTo(rp2);
@@ -176,7 +185,8 @@ class RolePermissionTest {
             PermissionId permissionId = PermissionId.of(UUID.randomUUID());
 
             // when
-            RolePermission rolePermission = RolePermission.reconstitute(roleId, permissionId, FIXED_TIME);
+            RolePermission rolePermission =
+                    RolePermission.reconstitute(roleId, permissionId, FIXED_TIME);
 
             // then
             assertThat(rolePermission.getRoleId()).isEqualTo(roleId);

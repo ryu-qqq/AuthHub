@@ -1,5 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.common.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * ErrorInfo - API 에러 정보
  *
@@ -26,7 +28,10 @@ package com.ryuqq.authhub.adapter.in.rest.common.dto;
  * @author ryu-qqq
  * @since 2025-10-23
  */
-public record ErrorInfo(String errorCode, String message) {
+@Schema(description = "API 에러 정보")
+public record ErrorInfo(
+        @Schema(description = "에러 코드", example = "TENANT_NOT_FOUND") String errorCode,
+        @Schema(description = "에러 메시지", example = "존재하지 않는 테넌트입니다") String message) {
     /**
      * ErrorInfo 생성자
      *

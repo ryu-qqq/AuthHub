@@ -29,14 +29,14 @@
 
 ```
 application/src/test/java/
-└─ com.ryuqq.authhub/application/architecture/facade/
+└─ com/ryuqq/application/architecture/facade/
    └─ FacadeArchTest.java
 ```
 
 ### 전체 코드
 
 ```java
-package com.ryuqq.authhub.application.architecture.facade;
+package com.ryuqq.application.architecture.facade;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -70,7 +70,7 @@ class FacadeArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.application");
+            .importPackages("com.ryuqq.application");
 
         hasFacadeClasses = classes.stream()
             .anyMatch(javaClass -> javaClass.getSimpleName().endsWith("Facade"));
@@ -270,8 +270,8 @@ class FacadeArchTest {
                 .that().haveSimpleNameEndingWith("Facade")
                 .should().onlyAccessClassesThat()
                 .resideInAnyPackage(
-                    "com.ryuqq.authhub.application..",
-                    "com.ryuqq.authhub.domain..",
+                    "com.ryuqq.application..",
+                    "com.ryuqq.domain..",
                     "org.springframework..",
                     "java..",
                     "jakarta.."

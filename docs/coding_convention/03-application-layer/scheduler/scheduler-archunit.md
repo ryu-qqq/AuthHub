@@ -22,7 +22,7 @@
 ## 2) ArchUnit 테스트
 
 ```java
-package com.ryuqq.authhub.application.architecture.scheduler;
+package com.ryuqq.application.architecture.scheduler;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -53,7 +53,7 @@ class SchedulerArchTest {
     static void setUp() {
         applicationClasses = new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages("com.ryuqq.authhub.application");
+                .importPackages("com.ryuqq.application");
     }
 
     // =========================================================================
@@ -342,8 +342,8 @@ class SchedulerArchTest {
 Architecture Violation:
 Rule 'Scheduler는 QueryPort를 직접 의존하면 안 된다' was violated (1 times):
 
-Class <com.ryuqq.authhub.application.download.scheduler.ExternalDownloadOutBoxRetryScheduler>
-depends on class <com.ryuqq.authhub.application.download.port.out.query.ExternalDownloadOutboxQueryPort>
+Class <com.ryuqq.application.download.scheduler.ExternalDownloadOutBoxRetryScheduler>
+depends on class <com.ryuqq.application.download.port.out.query.ExternalDownloadOutboxQueryPort>
 
 Scheduler는 UseCase/Service를 통해 조회해야 합니다. QueryPort 직접 의존은 CQRS 원칙 위반입니다
 ```
@@ -354,7 +354,7 @@ Scheduler는 UseCase/Service를 통해 조회해야 합니다. QueryPort 직접 
 Architecture Violation:
 Rule 'Scheduler에 @Transactional이 있으면 안 된다' was violated (1 times):
 
-Class <com.ryuqq.authhub.application.order.scheduler.OrderCleanupScheduler>
+Class <com.ryuqq.application.order.scheduler.OrderCleanupScheduler>
 is annotated with @Transactional
 
 Scheduler는 트랜잭션 경계를 가지면 안 됩니다. 트랜잭션은 UseCase/Service에서 관리합니다

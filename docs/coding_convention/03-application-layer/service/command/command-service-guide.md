@@ -105,17 +105,17 @@ Assembler.toResponse(Domain) → Response
 ### 복잡한 Command Service
 
 ```java
-package com.ryuqq.authhub.application.order.service.command;
+package com.ryuqq.application.order.service.command;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderPersistBundle;
-import com.ryuqq.authhub.application.order.dto.command.PlaceOrderCommand;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.facade.command.OrderFacade;
-import com.ryuqq.authhub.application.order.factory.command.OrderCommandFactory;
-import com.ryuqq.authhub.application.common.config.TransactionEventRegistry;
-import com.ryuqq.authhub.application.port.in.command.PlaceOrderUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.bundle.OrderPersistBundle;
+import com.ryuqq.application.order.dto.command.PlaceOrderCommand;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.facade.command.OrderFacade;
+import com.ryuqq.application.order.factory.command.OrderCommandFactory;
+import com.ryuqq.application.common.config.TransactionEventRegistry;
+import com.ryuqq.application.port.in.command.PlaceOrderUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
 import org.springframework.stereotype.Service;
 
 /**
@@ -162,15 +162,15 @@ public class PlaceOrderService implements PlaceOrderUseCase {
 ### 단순 Command Service
 
 ```java
-package com.ryuqq.authhub.application.order.service.command;
+package com.ryuqq.application.order.service.command;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.command.UpdateOrderStatusCommand;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.factory.command.OrderCommandFactory;
-import com.ryuqq.authhub.application.order.manager.command.OrderTransactionManager;
-import com.ryuqq.authhub.application.port.in.command.UpdateOrderStatusUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.command.UpdateOrderStatusCommand;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.factory.command.OrderCommandFactory;
+import com.ryuqq.application.order.manager.command.OrderTransactionManager;
+import com.ryuqq.application.port.in.command.UpdateOrderStatusUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
 import org.springframework.stereotype.Service;
 
 /**
@@ -211,13 +211,13 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
 ### void 반환 Command Service
 
 ```java
-package com.ryuqq.authhub.application.order.service.command;
+package com.ryuqq.application.order.service.command;
 
-import com.ryuqq.authhub.application.order.dto.command.CancelOrderCommand;
-import com.ryuqq.authhub.application.order.manager.command.OrderTransactionManager;
-import com.ryuqq.authhub.application.port.in.command.CancelOrderUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.order.dto.command.CancelOrderCommand;
+import com.ryuqq.application.order.manager.command.OrderTransactionManager;
+import com.ryuqq.application.port.in.command.CancelOrderUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
 import org.springframework.stereotype.Service;
 
 /**

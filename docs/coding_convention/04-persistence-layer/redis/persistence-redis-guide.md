@@ -68,8 +68,9 @@
 |------|------|
 | Lombok | Plain Java 원칙 |
 | 비즈니스 로직 (Adapter 내) | Application/Domain에서 처리 |
-| `@Transactional` 내 Cache 무효화 | Rollback 시 불일치 |
-| Null 캐싱 (`cache-null-values: true`) | 메모리 낭비 |
+| `@Transactional` 내 Cache 무효화 | Rollback 시 불일치 → `@TransactionalEventListener` 사용 |
+| `String key` 파라미터 | 타입 안전성 없음 → `CacheKey`, `LockKey` VO 사용 |
+| Null 캐싱 | 메모리 낭비 → Cache Miss 시 Empty 반환 |
 | Prod에서 `KEYS` 명령어 | Redis 블로킹 → SCAN 사용 |
 | 대용량 데이터 단일 키 저장 (10MB 이상) | 네트워크 병목 |
 | Lettuce로 분산락 구현 | 스핀락 문제 → Redisson 사용 |
@@ -105,79 +106,110 @@ persistence-redis/
 
 ### **config/**
 * **Lettuce 설정**: [Lettuce Configuration](./config/lettuce-configuration.md) - Connection Pool 설정
-* **Cache 설정**: [Cache Configuration](./config/cache-configuration.md) - Spring Cache + RedisCacheManager
+* **Redisson 설정**: [Redisson Configuration](./redisson-configuration.md) - 분산락 설정
 
 ### **adapter/** (캐싱)
-* **Cache Adapter**: [Cache Adapter 가이드](./adapter/cache-adapter-guide.md) | [테스트](./adapter/cache-adapter-test-guide.md) | [ArchUnit](./adapter/cache-adapter-archunit.md)
+* **Cache Adapter**: [Cache Adapter 가이드](./adapter/cache-adapter-guide.md) | [ArchUnit](./adapter/cache-adapter-archunit.md)
 
 ### **lock/** (분산락)
-* **분산락 개요**: [Distributed Lock 가이드](./lock/distributed-lock-guide.md) - Redisson 기반 분산락 전략
-* **Lock Adapter**: [Lock Adapter 가이드](./lock/lock-adapter-guide.md) | [테스트](./lock/lock-adapter-test-guide.md) | [ArchUnit](./lock/lock-adapter-archunit.md)
+* **Lock Adapter**: [Lock Adapter 가이드](./lock/lock-adapter-guide.md) | [ArchUnit](./lock/lock-adapter-archunit.md)
 
 ---
 
 ## 5) 주요 패턴
 
-### Cache-Aside (Lettuce)
+### Cache-Aside (Lettuce + CacheKey VO)
 ```java
-// 조회
+// CacheKey 구현 (Domain Layer)
+public record OrderCacheKey(Long orderId) implements CacheKey {
+    private static final String PREFIX = "cache:order:";
+
+    public OrderCacheKey {
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("orderId must be positive");
+        }
+    }
+
+    @Override
+    public String value() {
+        return PREFIX + orderId;
+    }
+}
+
+// 조회 (Application Layer)
 public Order getOrder(Long orderId) {
+    OrderCacheKey cacheKey = new OrderCacheKey(orderId);
+
     // 1. Cache 조회
-    Order cached = cachePort.get(orderId).orElse(null);
-    if (cached != null) return cached;
+    Optional<Order> cached = cachePort.get(cacheKey);
+    if (cached.isPresent()) {
+        return cached.get();
+    }
 
     // 2. DB 조회
     Order order = queryPort.findById(OrderId.of(orderId));
 
     // 3. Cache 저장
-    cachePort.cache(orderId, order);
+    cachePort.set(cacheKey, order, Duration.ofMinutes(10));
     return order;
 }
 
-// 수정
-@Transactional
-public void updateOrder(Order order) {
-    persistPort.persist(order);
-    // Cache 무효화는 @TransactionalEventListener에서 처리
+// 수정 (Cache 무효화는 @TransactionalEventListener에서 처리)
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+public void onOrderUpdated(OrderUpdatedEvent event) {
+    OrderCacheKey cacheKey = new OrderCacheKey(event.orderId());
+    cachePort.evict(cacheKey);
 }
 ```
 
-### 분산락 (Redisson)
+### 분산락 (Redisson + LockKey VO)
 ```java
+// LockKey 구현 (Domain Layer)
+public record OrderLockKey(Long orderId) implements LockKey {
+    private static final String PREFIX = "lock:order:";
+
+    public OrderLockKey {
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("orderId must be positive");
+        }
+    }
+
+    @Override
+    public String value() {
+        return PREFIX + orderId;
+    }
+}
+
+// 사용 (Application Layer)
 public void processWithLock(Long orderId) {
-    RLock lock = lockPort.getLock("order:" + orderId);
+    OrderLockKey lockKey = new OrderLockKey(orderId);
+
+    // 최대 10초 대기, 30초 유지
+    boolean acquired = lockPort.tryLock(lockKey, 10, 30, TimeUnit.SECONDS);
+
+    if (!acquired) {
+        throw new LockAcquisitionException(lockKey.value(), "Lock 획득 실패");
+    }
 
     try {
-        // 최대 10초 대기, 30초 유지
-        boolean acquired = lock.tryLock(10, 30, TimeUnit.SECONDS);
-
-        if (!acquired) {
-            throw new LockAcquisitionException("Lock 획득 실패");
-        }
-
         // 비즈니스 로직
         processOrder(orderId);
-
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new LockAcquisitionException("Lock 획득 중 인터럽트", e);
     } finally {
-        if (lock.isHeldByCurrentThread()) {
-            lock.unlock();
-        }
+        lockPort.unlock(lockKey);
     }
 }
 ```
 
-### Key Naming
+### Key Naming (VO에서 관리)
 ```java
-// 캐싱: {namespace}:{entity}:{id}
-"cache::orders::123"
-"cache::users::456"
+// CacheKey 구현체에서 정의
+"cache:order:123"        // OrderCacheKey
+"cache:user:profile:456" // UserProfileCacheKey
+"cache:product:789"      // ProductCacheKey
 
-// 분산락: lock:{entity}:{id}
-"lock:order:123"
-"lock:stock:item:789"
+// LockKey 구현체에서 정의
+"lock:order:123"         // OrderLockKey
+"lock:stock:789"         // StockLockKey
 ```
 
 ---
@@ -249,5 +281,13 @@ spring:
 ---
 
 **작성자**: Development Team
-**최종 수정일**: 2025-12-04
-**버전**: 2.0.0
+**최종 수정일**: 2025-12-08
+**버전**: 3.0.0
+
+### 변경 이력
+
+| 버전 | 날짜 | 변경 내용 |
+|------|------|----------|
+| 3.0.0 | 2025-12-08 | CacheKey/LockKey VO 적용, 문서 링크 정리 |
+| 2.0.0 | 2025-12-04 | Lettuce + Redisson 이원화 전략 |
+| 1.0.0 | 2025-11-01 | 초기 작성 |

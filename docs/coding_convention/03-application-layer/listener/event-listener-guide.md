@@ -98,9 +98,9 @@ application/{bc}/
 ### 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.order.listener;
+package com.ryuqq.application.order.listener;
 
-import com.ryuqq.authhub.domain.order.event.OrderPlacedEvent;
+import com.ryuqq.domain.order.event.OrderPlacedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;

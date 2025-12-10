@@ -125,7 +125,7 @@ spring:
     redis:
       host: ${REDIS_HOST:redis-dev.internal}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      password: ${REDIS_PASSWORD:}
 
       lettuce:
         pool:
@@ -152,7 +152,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      # ElastiCache 비밀번호 미사용 시 빈 값 허용
+      password: ${REDIS_PASSWORD:}
 
       # SSL 설정 (AWS ElastiCache 등)
       ssl:
@@ -189,7 +190,8 @@ redisson:
 
   single-server-config:
     address: "redis://${REDIS_HOST}:${REDIS_PORT:6379}"
-    password: ${REDIS_PASSWORD}
+    # ElastiCache 비밀번호 미사용 시 null 허용
+    password: ${REDIS_PASSWORD:null}
     connection-pool-size: 32
     connection-minimum-idle-size: 8
     ssl-enable-endpoint-identification: ${REDIS_SSL_ENABLED:false}

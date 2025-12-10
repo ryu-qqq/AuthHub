@@ -27,10 +27,10 @@
 application/
 └─ src/
    ├─ main/java/
-   │  └─ com.ryuqq.authhub/application/order/listener/
+   │  └─ com/ryuqq/application/order/listener/
    │      └─ OrderEventListener.java
    └─ test/java/
-      └─ com.ryuqq.authhub/application/order/listener/
+      └─ com/ryuqq/application/order/listener/
           └─ OrderEventListenerTest.java
 ```
 
@@ -41,11 +41,11 @@ application/
 ### 기본 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.listener;
+package com.ryuqq.application.order.listener;
 
-import com.ryuqq.authhub.domain.order.event.OrderPlacedEvent;
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.event.OrderPlacedEvent;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.vo.OrderId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -202,11 +202,11 @@ class SafeExecuteTest {
 ## 4) 통합 테스트 (이벤트 발행-수신)
 
 ```java
-package com.ryuqq.authhub.application.order.listener;
+package com.ryuqq.application.order.listener;
 
-import com.ryuqq.authhub.application.common.config.TransactionEventRegistry;
-import com.ryuqq.authhub.domain.order.event.OrderPlacedEvent;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.common.config.TransactionEventRegistry;
+import com.ryuqq.domain.order.event.OrderPlacedEvent;
+import com.ryuqq.domain.order.vo.OrderId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -5,8 +5,7 @@ import java.util.Objects;
 /**
  * Action - 권한 행위 Value Object
  *
- * <p>권한이 허용하는 행위를 나타냅니다.
- * 1-30자 길이의 소문자 영문과 언더스코어, 하이픈만 허용합니다.
+ * <p>권한이 허용하는 행위를 나타냅니다. 1-30자 길이의 소문자 영문과 언더스코어, 하이픈만 허용합니다.
  *
  * <p>예시: read, write, create, update, delete, manage, admin
  *

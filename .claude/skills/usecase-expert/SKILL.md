@@ -69,10 +69,10 @@ Application Layer의 **UseCase(Port-In)** 인터페이스와 **Service** 구현�
 ### 1. Command UseCase Interface
 
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.command;
+package com.ryuqq.application.{bc}.port.in.command;
 
-import com.ryuqq.authhub.application.{bc}.dto.command.{Action}{Bc}Command;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}Response;
+import com.ryuqq.application.{bc}.dto.command.{Action}{Bc}Command;
+import com.ryuqq.application.{bc}.dto.response.{Bc}Response;
 
 /**
  * {Action} {Bc} UseCase (Command)
@@ -97,10 +97,10 @@ public interface {Action}{Bc}UseCase {
 ### 2. Query UseCase Interface (단건)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.query;
+package com.ryuqq.application.{bc}.port.in.query;
 
-import com.ryuqq.authhub.application.{bc}.dto.query.Get{Bc}Query;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}DetailResponse;
+import com.ryuqq.application.{bc}.dto.query.Get{Bc}Query;
+import com.ryuqq.application.{bc}.dto.response.{Bc}DetailResponse;
 
 /**
  * Get {Bc} UseCase (Query)
@@ -125,11 +125,11 @@ public interface Get{Bc}UseCase {
 ### 3. Query UseCase Interface (페이지네이션)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.query;
+package com.ryuqq.application.{bc}.port.in.query;
 
-import com.ryuqq.authhub.application.{bc}.dto.query.Search{Bc}Query;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}SummaryResponse;
-import com.ryuqq.authhub.application.common.dto.PageResponse;
+import com.ryuqq.application.{bc}.dto.query.Search{Bc}Query;
+import com.ryuqq.application.{bc}.dto.response.{Bc}SummaryResponse;
+import com.ryuqq.application.common.dto.PageResponse;
 
 /**
  * Search {Bc} UseCase (Pagination)
@@ -154,7 +154,7 @@ public interface Search{Bc}UseCase {
 ### 4. Command DTO (Record)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.dto.command;
+package com.ryuqq.application.{bc}.dto.command;
 
 import java.util.List;
 
@@ -187,7 +187,7 @@ public record {Action}{Bc}Command(
 ### 5. Query DTO (Record)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.dto.query;
+package com.ryuqq.application.{bc}.dto.query;
 
 import java.time.Instant;
 
@@ -212,7 +212,7 @@ public record Search{Bc}Query(
 ### 6. Response DTO (Record)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.dto.response;
+package com.ryuqq.application.{bc}.dto.response;
 
 import java.time.Instant;
 
@@ -233,17 +233,17 @@ public record {Bc}Response(
 ### 7. Command Service (복잡한 경우 - Facade 사용)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.service.command;
+package com.ryuqq.application.{bc}.service.command;
 
-import com.ryuqq.authhub.application.{bc}.assembler.{Bc}Assembler;
-import com.ryuqq.authhub.application.{bc}.dto.bundle.{Bc}PersistBundle;
-import com.ryuqq.authhub.application.{bc}.dto.command.{Action}{Bc}Command;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}Response;
-import com.ryuqq.authhub.application.{bc}.facade.command.{Bc}Facade;
-import com.ryuqq.authhub.application.{bc}.factory.command.{Bc}CommandFactory;
-import com.ryuqq.authhub.application.common.config.TransactionEventRegistry;
-import com.ryuqq.authhub.application.{bc}.port.in.command.{Action}{Bc}UseCase;
-import com.ryuqq.authhub.domain.{bc}.aggregate.{Bc};
+import com.ryuqq.application.{bc}.assembler.{Bc}Assembler;
+import com.ryuqq.application.{bc}.dto.bundle.{Bc}PersistBundle;
+import com.ryuqq.application.{bc}.dto.command.{Action}{Bc}Command;
+import com.ryuqq.application.{bc}.dto.response.{Bc}Response;
+import com.ryuqq.application.{bc}.facade.command.{Bc}Facade;
+import com.ryuqq.application.{bc}.factory.command.{Bc}CommandFactory;
+import com.ryuqq.application.common.config.TransactionEventRegistry;
+import com.ryuqq.application.{bc}.port.in.command.{Action}{Bc}UseCase;
+import com.ryuqq.domain.{bc}.aggregate.{Bc};
 import org.springframework.stereotype.Service;
 
 /**
@@ -293,15 +293,15 @@ public class {Action}{Bc}Service implements {Action}{Bc}UseCase {
 ### 8. Command Service (단순한 경우 - Manager 직접)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.service.command;
+package com.ryuqq.application.{bc}.service.command;
 
-import com.ryuqq.authhub.application.{bc}.assembler.{Bc}Assembler;
-import com.ryuqq.authhub.application.{bc}.dto.command.Update{Bc}Command;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}Response;
-import com.ryuqq.authhub.application.{bc}.factory.command.{Bc}CommandFactory;
-import com.ryuqq.authhub.application.{bc}.manager.command.{Bc}TransactionManager;
-import com.ryuqq.authhub.application.{bc}.port.in.command.Update{Bc}UseCase;
-import com.ryuqq.authhub.domain.{bc}.aggregate.{Bc};
+import com.ryuqq.application.{bc}.assembler.{Bc}Assembler;
+import com.ryuqq.application.{bc}.dto.command.Update{Bc}Command;
+import com.ryuqq.application.{bc}.dto.response.{Bc}Response;
+import com.ryuqq.application.{bc}.factory.command.{Bc}CommandFactory;
+import com.ryuqq.application.{bc}.manager.command.{Bc}TransactionManager;
+import com.ryuqq.application.{bc}.port.in.command.Update{Bc}UseCase;
+import com.ryuqq.domain.{bc}.aggregate.{Bc};
 import org.springframework.stereotype.Service;
 
 /**
@@ -345,13 +345,13 @@ public class Update{Bc}Service implements Update{Bc}UseCase {
 ### 9. Command Service (void 반환)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.service.command;
+package com.ryuqq.application.{bc}.service.command;
 
-import com.ryuqq.authhub.application.{bc}.dto.command.Delete{Bc}Command;
-import com.ryuqq.authhub.application.{bc}.manager.command.{Bc}TransactionManager;
-import com.ryuqq.authhub.application.{bc}.port.in.command.Delete{Bc}UseCase;
-import com.ryuqq.authhub.domain.{bc}.aggregate.{Bc};
-import com.ryuqq.authhub.domain.{bc}.vo.{Bc}Id;
+import com.ryuqq.application.{bc}.dto.command.Delete{Bc}Command;
+import com.ryuqq.application.{bc}.manager.command.{Bc}TransactionManager;
+import com.ryuqq.application.{bc}.port.in.command.Delete{Bc}UseCase;
+import com.ryuqq.domain.{bc}.aggregate.{Bc};
+import com.ryuqq.domain.{bc}.vo.{Bc}Id;
 import org.springframework.stereotype.Service;
 
 /**
@@ -387,16 +387,16 @@ public class Delete{Bc}Service implements Delete{Bc}UseCase {
 ### 10. Query Service (복잡한 경우 - QueryFacade 사용)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.service.query;
+package com.ryuqq.application.{bc}.service.query;
 
-import com.ryuqq.authhub.application.{bc}.assembler.{Bc}Assembler;
-import com.ryuqq.authhub.application.{bc}.dto.bundle.{Bc}DetailQueryBundle;
-import com.ryuqq.authhub.application.{bc}.dto.query.{Bc}DetailQuery;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}DetailResponse;
-import com.ryuqq.authhub.application.{bc}.facade.query.{Bc}QueryFacade;
-import com.ryuqq.authhub.application.{bc}.factory.query.{Bc}QueryFactory;
-import com.ryuqq.authhub.application.{bc}.port.in.query.Get{Bc}DetailUseCase;
-import com.ryuqq.authhub.domain.{bc}.criteria.{Bc}DetailCriteria;
+import com.ryuqq.application.{bc}.assembler.{Bc}Assembler;
+import com.ryuqq.application.{bc}.dto.bundle.{Bc}DetailQueryBundle;
+import com.ryuqq.application.{bc}.dto.query.{Bc}DetailQuery;
+import com.ryuqq.application.{bc}.dto.response.{Bc}DetailResponse;
+import com.ryuqq.application.{bc}.facade.query.{Bc}QueryFacade;
+import com.ryuqq.application.{bc}.factory.query.{Bc}QueryFactory;
+import com.ryuqq.application.{bc}.port.in.query.Get{Bc}DetailUseCase;
+import com.ryuqq.domain.{bc}.criteria.{Bc}DetailCriteria;
 import org.springframework.stereotype.Service;
 
 /**
@@ -440,16 +440,16 @@ public class Get{Bc}DetailService implements Get{Bc}DetailUseCase {
 ### 11. Query Service (단순한 경우 - ReadManager 직접)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.service.query;
+package com.ryuqq.application.{bc}.service.query;
 
-import com.ryuqq.authhub.application.{bc}.assembler.{Bc}Assembler;
-import com.ryuqq.authhub.application.{bc}.dto.query.Search{Bc}Query;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}ListResponse;
-import com.ryuqq.authhub.application.{bc}.factory.query.{Bc}QueryFactory;
-import com.ryuqq.authhub.application.{bc}.manager.query.{Bc}ReadManager;
-import com.ryuqq.authhub.application.{bc}.port.in.query.Search{Bc}UseCase;
-import com.ryuqq.authhub.domain.{bc}.aggregate.{Bc};
-import com.ryuqq.authhub.domain.{bc}.criteria.{Bc}SearchCriteria;
+import com.ryuqq.application.{bc}.assembler.{Bc}Assembler;
+import com.ryuqq.application.{bc}.dto.query.Search{Bc}Query;
+import com.ryuqq.application.{bc}.dto.response.{Bc}ListResponse;
+import com.ryuqq.application.{bc}.factory.query.{Bc}QueryFactory;
+import com.ryuqq.application.{bc}.manager.query.{Bc}ReadManager;
+import com.ryuqq.application.{bc}.port.in.query.Search{Bc}UseCase;
+import com.ryuqq.domain.{bc}.aggregate.{Bc};
+import com.ryuqq.domain.{bc}.criteria.{Bc}SearchCriteria;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

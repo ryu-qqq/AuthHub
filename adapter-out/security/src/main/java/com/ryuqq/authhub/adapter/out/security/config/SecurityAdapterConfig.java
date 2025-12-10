@@ -1,4 +1,4 @@
-package com.ryuqq.setof.adapter.out.security.config;
+package com.ryuqq.authhub.adapter.out.security.config;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -13,5 +13,4 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties(JwtProperties.class)
-public class SecurityAdapterConfig {
-}
+public class SecurityAdapterConfig {}

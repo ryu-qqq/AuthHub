@@ -5,8 +5,7 @@ import java.util.Objects;
 /**
  * PermissionKey - 권한 키 Value Object
  *
- * <p>Resource와 Action을 조합한 유니크 키입니다.
- * "{resource}:{action}" 형식으로 표현됩니다.
+ * <p>Resource와 Action을 조합한 유니크 키입니다. "{resource}:{action}" 형식으로 표현됩니다.
  *
  * <p>예시: user:read, organization:create, tenant:manage
  *

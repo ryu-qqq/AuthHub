@@ -45,7 +45,7 @@
 
 ```
 domain/src/test/java/
-└── com.ryuqq.authhub/domain/architecture/event/
+└── com/ryuqq/domain/architecture/event/
     └── DomainEventArchTest.java    # Domain Event 아키텍처 검증 (11개 규칙)
 ```
 
@@ -186,11 +186,11 @@ OrderCreateEvent       // 과거형 아님
 
 ```java
 // ✅ 올바른 예
-package com.ryuqq.authhub.domain.order.event;
+package com.ryuqq.domain.order.event;
 
 // ❌ 잘못된 예
-package com.ryuqq.authhub.domain.order.aggregate;  // aggregate 패키지에 위치
-package com.ryuqq.authhub.application.order.event; // Application Layer에 위치
+package com.ryuqq.domain.order.aggregate;  // aggregate 패키지에 위치
+package com.ryuqq.application.order.event; // Application Layer에 위치
 ```
 
 **이유**:
@@ -253,7 +253,7 @@ import org.springframework.context.ApplicationEvent;
 public record OrderPlacedEvent(...) extends ApplicationEvent { ... }
 
 // ✅ 올바른 예: Pure Java
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
+import com.ryuqq.domain.common.event.DomainEvent;
 public record OrderPlacedEvent(...) implements DomainEvent { ... }
 ```
 
@@ -263,17 +263,17 @@ public record OrderPlacedEvent(...) implements DomainEvent { ... }
 
 ```java
 // ❌ 금지: Application Layer 의존
-package com.ryuqq.authhub.domain.order.event;
-import com.ryuqq.authhub.application.order.dto.OrderDto;  // 금지!
+package com.ryuqq.domain.order.event;
+import com.ryuqq.application.order.dto.OrderDto;  // 금지!
 
 // ❌ 금지: Adapter Layer 의존
-import com.ryuqq.authhub.adapter.out.persistence.OrderEntity;  // 금지!
+import com.ryuqq.adapter.out.persistence.OrderEntity;  // 금지!
 
 // ✅ 올바른 예: Domain Layer 내부만 참조
-package com.ryuqq.authhub.domain.order.event;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.common.event.DomainEvent;
+package com.ryuqq.domain.order.event;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.common.event.DomainEvent;
 ```
 
 **이유**:
@@ -327,10 +327,10 @@ public record OrderCreatedEvent(...) { }
 ❌ 오류: Domain Event는 Application/Adapter 레이어에 의존하지 않아야 합니다
 
 // 수정 전
-import com.ryuqq.authhub.application.order.dto.OrderSummary;
+import com.ryuqq.application.order.dto.OrderSummary;
 
 // 수정 후: Domain 객체만 사용
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderId;
 ```
 
 ---

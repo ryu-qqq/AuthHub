@@ -10,6 +10,10 @@ import com.ryuqq.authhub.application.tenant.dto.query.GetTenantQuery;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
 import com.ryuqq.authhub.application.tenant.port.in.query.GetTenantUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
+@Tag(name = "Tenant", description = "테넌트 관리 API")
 @RestController
 @RequestMapping("/api/v1/tenants")
 public class TenantQueryController {
@@ -62,8 +67,18 @@ public class TenantQueryController {
      * @param tenantId 테넌트 ID
      * @return 200 OK + 테넌트 정보
      */
+    @Operation(summary = "테넌트 단건 조회", description = "테넌트 ID로 테넌트 정보를 조회합니다")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "테넌트를 찾을 수 없음")
+    })
     @GetMapping("/{tenantId}")
-    public ResponseEntity<ApiResponse<TenantApiResponse>> getTenant(@PathVariable UUID tenantId) {
+    public ResponseEntity<ApiResponse<TenantApiResponse>> getTenant(
+            @Parameter(description = "테넌트 ID", required = true) @PathVariable UUID tenantId) {
         TenantResponse response = getTenantUseCase.execute(GetTenantQuery.of(tenantId));
         return ResponseEntity.ok(ApiResponse.ofSuccess(mapper.toApiResponse(response)));
     }
@@ -76,8 +91,14 @@ public class TenantQueryController {
      * @param request 검색 조건
      * @return 200 OK + 테넌트 목록 (페이징)
      */
+    @Operation(summary = "테넌트 목록 조회", description = "조건에 맞는 테넌트 목록을 페이징하여 조회합니다")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공")
+    })
     @GetMapping
-    public ResponseEntity<PageApiResponse<TenantApiResponse>> searchTenants(
+    public ResponseEntity<PageApiResponse<TenantApiResponse>> getTenants(
             @Valid @ModelAttribute SearchTenantsApiRequest request) {
         PageResponse<TenantResponse> pageResponse =
                 searchTenantsUseCase.execute(mapper.toQuery(request));

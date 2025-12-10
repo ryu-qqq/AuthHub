@@ -79,13 +79,13 @@ CQRS 원칙에 따라 Command/Query를 완전 분리하고, Service에서 트랜
 ### 1. TransactionManager (Command - 단일 Port)
 
 ```java
-package com.ryuqq.authhub.application.order.manager;
+package com.ryuqq.application.order.manager;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ryuqq.authhub.application.common.port.out.OrderPersistencePort;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
+import com.ryuqq.application.common.port.out.OrderPersistencePort;
+import com.ryuqq.domain.order.aggregate.Order;
 
 @Component
 public class OrderTransactionManager {
@@ -112,16 +112,16 @@ public class OrderTransactionManager {
 ### 2. ReadManager (Query - 단일 Port)
 
 ```java
-package com.ryuqq.authhub.application.order.manager;
+package com.ryuqq.application.order.manager;
 
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ryuqq.authhub.application.common.port.out.OrderQueryPort;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.common.port.out.OrderQueryPort;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
 
 @Component
 public class OrderReadManager {
@@ -154,18 +154,18 @@ public class OrderReadManager {
 ### 3. CommandFacade (2+ Manager 조합)
 
 ```java
-package com.ryuqq.authhub.application.order.facade;
+package com.ryuqq.application.order.facade;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ryuqq.authhub.application.order.manager.OrderTransactionManager;
-import com.ryuqq.authhub.application.order.manager.OrderHistoryTransactionManager;
-import com.ryuqq.authhub.application.outbox.manager.OutboxTransactionManager;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderHistory;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.outbox.aggregate.OutboxEvent;
+import com.ryuqq.application.order.manager.OrderTransactionManager;
+import com.ryuqq.application.order.manager.OrderHistoryTransactionManager;
+import com.ryuqq.application.outbox.manager.OutboxTransactionManager;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderHistory;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.outbox.aggregate.OutboxEvent;
 
 @Component
 public class OrderCommandFacade {
@@ -210,17 +210,17 @@ public class OrderCommandFacade {
 ### 4. QueryFacade (2+ ReadManager 조합)
 
 ```java
-package com.ryuqq.authhub.application.order.facade;
+package com.ryuqq.application.order.facade;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ryuqq.authhub.application.order.manager.OrderReadManager;
-import com.ryuqq.authhub.application.product.manager.ProductReadManager;
-import com.ryuqq.authhub.application.order.dto.OrderDetailBundle;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.product.aggregate.Product;
+import com.ryuqq.application.order.manager.OrderReadManager;
+import com.ryuqq.application.product.manager.ProductReadManager;
+import com.ryuqq.application.order.dto.OrderDetailBundle;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.product.aggregate.Product;
 
 @Component
 public class OrderQueryFacade {
@@ -255,10 +255,10 @@ public class OrderQueryFacade {
 ### 5. QueryBundle (조합 결과 DTO)
 
 ```java
-package com.ryuqq.authhub.application.order.dto;
+package com.ryuqq.application.order.dto;
 
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.product.aggregate.Product;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.product.aggregate.Product;
 
 public record OrderDetailBundle(
     Order order,

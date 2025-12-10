@@ -8,15 +8,14 @@ import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * User Aggregate 단위 테스트
@@ -46,7 +45,14 @@ class UserTest {
             String hashedPassword = "hashed_password";
 
             // when
-            User user = User.create(userId, tenantId, organizationId, identifier, hashedPassword, FIXED_CLOCK);
+            User user =
+                    User.create(
+                            userId,
+                            tenantId,
+                            organizationId,
+                            identifier,
+                            hashedPassword,
+                            FIXED_CLOCK);
 
             // then
             assertThat(user).isNotNull();
@@ -69,8 +75,15 @@ class UserTest {
             String hashedPassword = "hashed_password";
 
             // when & then
-            assertThatThrownBy(() ->
-                    User.create(userId, tenantId, null, identifier, hashedPassword, FIXED_CLOCK))
+            assertThatThrownBy(
+                            () ->
+                                    User.create(
+                                            userId,
+                                            tenantId,
+                                            null,
+                                            identifier,
+                                            hashedPassword,
+                                            FIXED_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("OrganizationId");
         }
@@ -93,9 +106,16 @@ class UserTest {
             Instant updatedAt = Instant.parse("2025-01-02T00:00:00Z");
 
             // when
-            User user = User.reconstitute(
-                    userId, tenantId, organizationId, identifier, hashedPassword,
-                    UserStatus.ACTIVE, createdAt, updatedAt);
+            User user =
+                    User.reconstitute(
+                            userId,
+                            tenantId,
+                            organizationId,
+                            identifier,
+                            hashedPassword,
+                            UserStatus.ACTIVE,
+                            createdAt,
+                            updatedAt);
 
             // then
             assertThat(user.getUserId()).isEqualTo(userId);

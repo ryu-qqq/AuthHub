@@ -86,7 +86,7 @@ try {
 ### Port 인터페이스 (Application Layer)
 
 ```java
-package com.ryuqq.authhub.application.common.port.out;
+package com.ryuqq.application.common.port.out;
 
 import java.util.concurrent.TimeUnit;
 
@@ -139,9 +139,9 @@ public interface DistributedLockPort {
 ### LockAdapter 구현 (Persistence Layer)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.common.adapter;
+package com.ryuqq.adapter.out.persistence.redis.common.adapter;
 
-import com.ryuqq.authhub.application.common.port.out.DistributedLockPort;
+import com.ryuqq.application.common.port.out.DistributedLockPort;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
@@ -244,7 +244,7 @@ public class DistributedLockAdapter implements DistributedLockPort {
 ### 커스텀 예외
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.common.exception;
+package com.ryuqq.adapter.out.persistence.redis.common.exception;
 
 /**
  * Lock 획득 실패 예외
@@ -268,7 +268,7 @@ public class LockAcquisitionException extends RuntimeException {
 ### RedissonConfig.java
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.redis.config;
+package com.ryuqq.adapter.out.persistence.redis.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
@@ -351,12 +351,12 @@ public RedissonClient redissonClient() {
 ### 재고 차감 예시
 
 ```java
-package com.ryuqq.authhub.application.stock.usecase;
+package com.ryuqq.application.stock.usecase;
 
-import com.ryuqq.authhub.application.common.port.out.DistributedLockPort;
-import com.ryuqq.authhub.application.stock.port.in.DecreaseStockUseCase;
-import com.ryuqq.authhub.application.stock.port.out.StockPersistPort;
-import com.ryuqq.authhub.application.stock.port.out.StockQueryPort;
+import com.ryuqq.application.common.port.out.DistributedLockPort;
+import com.ryuqq.application.stock.port.in.DecreaseStockUseCase;
+import com.ryuqq.application.stock.port.out.StockPersistPort;
+import com.ryuqq.application.stock.port.out.StockQueryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

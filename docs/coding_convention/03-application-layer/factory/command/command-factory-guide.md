@@ -69,18 +69,18 @@ application/{bc}/
 ### 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.order.factory.command;
+package com.ryuqq.application.order.factory.command;
 
-import com.ryuqq.authhub.application.order.dto.command.PlaceOrderCommand;
-import com.ryuqq.authhub.application.order.dto.command.OrderItemCommand;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderPersistBundle;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderItem;
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.vo.Money;
-import com.ryuqq.authhub.domain.order.vo.ProductId;
-import com.ryuqq.authhub.domain.order.vo.Quantity;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.application.order.dto.command.PlaceOrderCommand;
+import com.ryuqq.application.order.dto.command.OrderItemCommand;
+import com.ryuqq.application.order.dto.bundle.OrderPersistBundle;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderItem;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.vo.Money;
+import com.ryuqq.domain.order.vo.ProductId;
+import com.ryuqq.domain.order.vo.Quantity;
+import com.ryuqq.domain.outbox.OutboxEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -188,11 +188,11 @@ private PaymentInfo createPaymentInfo(PaymentCommand cmd) {
 ## 6) PersistBundle 구조
 
 ```java
-package com.ryuqq.authhub.application.order.dto.bundle;
+package com.ryuqq.application.order.dto.bundle;
 
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.outbox.OutboxEvent;
 
 /**
  * Order 영속화 Bundle

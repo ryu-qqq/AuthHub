@@ -36,11 +36,11 @@
 ### GlobalExceptionHandler 테스트 클래스
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.common.controller;
+package com.ryuqq.adapter.in.rest.common.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.adapter.in.rest.common.error.ErrorMapperRegistry;
+import com.ryuqq.domain.common.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -88,9 +88,9 @@ class GlobalExceptionHandlerTest {
 ### 테스트용 Controller (예외 발생용)
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.common.controller;
+package com.ryuqq.adapter.in.rest.common.controller;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.validation.annotation.Validated;
@@ -456,10 +456,10 @@ class ServerErrorTest {
 ### ErrorMapper 구현체 테스트
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.error;
+package com.ryuqq.adapter.in.rest.order.error;
 
-import com.ryuqq.authhub.domain.order.exception.OrderNotFoundException;
-import com.ryuqq.authhub.domain.order.exception.InvalidOrderStatusException;
+import com.ryuqq.domain.order.exception.OrderNotFoundException;
+import com.ryuqq.domain.order.exception.InvalidOrderStatusException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -530,9 +530,9 @@ class OrderApiErrorMapperTest {
 ### ErrorMapperRegistry 테스트
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.common.error;
+package com.ryuqq.adapter.in.rest.common.error;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -748,7 +748,7 @@ mockMvc.perform(...).andExpect(status().isBadRequest());
 adapter-in/rest-api/
 └── src/
     └── test/java/
-        └── com.ryuqq.authhub/adapter/in/rest/
+        └── com/ryuqq/adapter/in/rest/
             ├── common/
             │   ├── controller/
             │   │   ├── GlobalExceptionHandlerTest.java  # ← 전역 예외 테스트

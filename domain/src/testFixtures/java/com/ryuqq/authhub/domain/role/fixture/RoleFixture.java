@@ -8,7 +8,6 @@ import com.ryuqq.authhub.domain.role.vo.RoleName;
 import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -30,9 +29,7 @@ public final class RoleFixture {
 
     private RoleFixture() {}
 
-    /**
-     * 기본 커스텀 Role 생성 (ID 할당됨, ORGANIZATION 범위)
-     */
+    /** 기본 커스텀 Role 생성 (ID 할당됨, ORGANIZATION 범위) */
     public static Role create() {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_UUID),
@@ -46,9 +43,7 @@ public final class RoleFixture {
                 FIXED_TIME);
     }
 
-    /**
-     * 시스템 GLOBAL 역할 생성
-     */
+    /** 시스템 GLOBAL 역할 생성 */
     public static Role createSystemGlobal() {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_UUID),
@@ -62,9 +57,7 @@ public final class RoleFixture {
                 FIXED_TIME);
     }
 
-    /**
-     * 시스템 TENANT 역할 생성
-     */
+    /** 시스템 TENANT 역할 생성 */
     public static Role createSystemTenant() {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_UUID),
@@ -78,9 +71,7 @@ public final class RoleFixture {
                 FIXED_TIME);
     }
 
-    /**
-     * 커스텀 TENANT 범위 역할 생성
-     */
+    /** 커스텀 TENANT 범위 역할 생성 */
     public static Role createCustomTenant() {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_UUID),
@@ -94,16 +85,12 @@ public final class RoleFixture {
                 FIXED_TIME);
     }
 
-    /**
-     * 커스텀 ORGANIZATION 범위 역할 생성
-     */
+    /** 커스텀 ORGANIZATION 범위 역할 생성 */
     public static Role createCustomOrganization() {
         return create();
     }
 
-    /**
-     * 지정된 이름으로 Role 생성
-     */
+    /** 지정된 이름으로 Role 생성 */
     public static Role createWithName(String name) {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_UUID),
@@ -117,9 +104,7 @@ public final class RoleFixture {
                 FIXED_TIME);
     }
 
-    /**
-     * 지정된 테넌트로 Role 생성
-     */
+    /** 지정된 테넌트로 Role 생성 */
     public static Role createWithTenant(UUID tenantUUID) {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_UUID),
@@ -133,9 +118,7 @@ public final class RoleFixture {
                 FIXED_TIME);
     }
 
-    /**
-     * 새로운 커스텀 ORGANIZATION Role 생성 (ID 미할당)
-     */
+    /** 새로운 커스텀 ORGANIZATION Role 생성 (ID 미할당) */
     public static Role createNew() {
         ClockHolder clockHolder = () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
         return Role.createCustomOrganization(
@@ -145,9 +128,7 @@ public final class RoleFixture {
                 clockHolder.clock());
     }
 
-    /**
-     * 새로운 커스텀 TENANT Role 생성 (ID 미할당)
-     */
+    /** 새로운 커스텀 TENANT Role 생성 (ID 미할당) */
     public static Role createNewTenant() {
         ClockHolder clockHolder = () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
         return Role.createCustomTenant(
@@ -157,9 +138,7 @@ public final class RoleFixture {
                 clockHolder.clock());
     }
 
-    /**
-     * 삭제된 Role 생성
-     */
+    /** 삭제된 Role 생성 */
     public static Role createDeleted() {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_UUID),
@@ -173,44 +152,32 @@ public final class RoleFixture {
                 FIXED_TIME);
     }
 
-    /**
-     * 테스트용 고정 ClockHolder 반환
-     */
+    /** 테스트용 고정 ClockHolder 반환 */
     public static ClockHolder fixedClockHolder() {
         return () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
     }
 
-    /**
-     * 테스트용 고정 Clock 반환
-     */
+    /** 테스트용 고정 Clock 반환 */
     public static Clock fixedClock() {
         return fixedClockHolder().clock();
     }
 
-    /**
-     * 기본 RoleId 반환
-     */
+    /** 기본 RoleId 반환 */
     public static RoleId defaultId() {
         return RoleId.of(DEFAULT_ROLE_UUID);
     }
 
-    /**
-     * 기본 Role UUID 반환
-     */
+    /** 기본 Role UUID 반환 */
     public static UUID defaultUUID() {
         return DEFAULT_ROLE_UUID;
     }
 
-    /**
-     * 기본 TenantId 반환
-     */
+    /** 기본 TenantId 반환 */
     public static TenantId defaultTenantId() {
         return TenantId.of(DEFAULT_TENANT_UUID);
     }
 
-    /**
-     * 기본 Tenant UUID 반환
-     */
+    /** 기본 Tenant UUID 반환 */
     public static UUID defaultTenantUUID() {
         return DEFAULT_TENANT_UUID;
     }

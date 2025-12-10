@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.permission.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-
 import java.util.Map;
 
 /**
@@ -13,6 +12,8 @@ import java.util.Map;
 public class SystemPermissionNotModifiableException extends DomainException {
 
     public SystemPermissionNotModifiableException(String permissionKey) {
-        super(PermissionErrorCode.SYSTEM_PERMISSION_NOT_MODIFIABLE, Map.of("permissionKey", permissionKey));
+        super(
+                PermissionErrorCode.SYSTEM_PERMISSION_NOT_MODIFIABLE,
+                Map.of("permissionKey", permissionKey));
     }
 }

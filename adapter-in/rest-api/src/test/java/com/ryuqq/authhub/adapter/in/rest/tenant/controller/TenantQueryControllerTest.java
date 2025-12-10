@@ -25,14 +25,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
-import org.springframework.http.HttpStatus;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -59,20 +59,15 @@ import org.springframework.test.web.servlet.MockMvc;
 @Tag("adapter-rest")
 class TenantQueryControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private GetTenantUseCase getTenantUseCase;
+    @MockBean private GetTenantUseCase getTenantUseCase;
 
-    @MockBean
-    private SearchTenantsUseCase searchTenantsUseCase;
+    @MockBean private SearchTenantsUseCase searchTenantsUseCase;
 
-    @MockBean
-    private TenantApiMapper mapper;
+    @MockBean private TenantApiMapper mapper;
 
-    @MockBean
-    private ErrorMapperRegistry errorMapperRegistry;
+    @MockBean private ErrorMapperRegistry errorMapperRegistry;
 
     @Nested
     @DisplayName("GET /api/v1/tenants/{tenantId} - 테넌트 단건 조회")
@@ -84,7 +79,8 @@ class TenantQueryControllerTest {
             // Given
             UUID tenantId = UUID.randomUUID();
             TenantResponse useCaseResponse =
-                    new TenantResponse(tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
+                    new TenantResponse(
+                            tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
             TenantApiResponse apiResponse =
                     new TenantApiResponse(
                             tenantId.toString(),
@@ -97,7 +93,9 @@ class TenantQueryControllerTest {
             given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/tenants/{tenantId}", tenantId).accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/api/v1/tenants/{tenantId}", tenantId)
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.tenantId").value(tenantId.toString()))
@@ -126,7 +124,9 @@ class TenantQueryControllerTest {
 
             // When & Then
             // GlobalExceptionHandler가 ProblemDetail (RFC 7807) 형식으로 반환
-            mockMvc.perform(get("/api/v1/tenants/{tenantId}", tenantId).accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/api/v1/tenants/{tenantId}", tenantId)
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status").value(404))
                     .andExpect(jsonPath("$.title").value("Tenant Not Found"));
@@ -140,7 +140,8 @@ class TenantQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants/{tenantId}", invalidUuid).accept(MediaType.APPLICATION_JSON))
+                            get("/api/v1/tenants/{tenantId}", invalidUuid)
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -155,7 +156,8 @@ class TenantQueryControllerTest {
             // Given
             UUID tenantId = UUID.randomUUID();
             TenantResponse response =
-                    new TenantResponse(tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
+                    new TenantResponse(
+                            tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
             PageResponse<TenantResponse> pageResponse =
                     PageResponse.of(List.of(response), 0, 20, 1, 1, true, true);
             TenantApiResponse apiResponse =
@@ -167,7 +169,8 @@ class TenantQueryControllerTest {
                             Instant.now());
 
             given(mapper.toQuery(any())).willReturn(new SearchTenantsQuery(null, null, null, null));
-            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class))).willReturn(pageResponse);
+            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
+                    .willReturn(pageResponse);
             given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
 
             // When & Then
@@ -186,7 +189,8 @@ class TenantQueryControllerTest {
             // Given
             UUID tenantId = UUID.randomUUID();
             TenantResponse response =
-                    new TenantResponse(tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
+                    new TenantResponse(
+                            tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
             PageResponse<TenantResponse> pageResponse =
                     PageResponse.of(List.of(response), 0, 10, 1, 1, true, true);
             TenantApiResponse apiResponse =
@@ -198,7 +202,8 @@ class TenantQueryControllerTest {
                             Instant.now());
 
             given(mapper.toQuery(any())).willReturn(new SearchTenantsQuery("Test", null, 0, 10));
-            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class))).willReturn(pageResponse);
+            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
+                    .willReturn(pageResponse);
             given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
 
             // When & Then
@@ -224,7 +229,8 @@ class TenantQueryControllerTest {
                     PageResponse.of(List.of(), 0, 20, 0, 0, true, true);
 
             given(mapper.toQuery(any())).willReturn(new SearchTenantsQuery(null, "ACTIVE", 0, 20));
-            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class))).willReturn(pageResponse);
+            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
+                    .willReturn(pageResponse);
 
             // When & Then
             mockMvc.perform(
@@ -253,7 +259,9 @@ class TenantQueryControllerTest {
         void searchTenants_withZeroSize_returns400BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants").param("size", "0").accept(MediaType.APPLICATION_JSON))
+                            get("/api/v1/tenants")
+                                    .param("size", "0")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
 
@@ -262,7 +270,9 @@ class TenantQueryControllerTest {
         void searchTenants_withTooLargeSize_returns400BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants").param("size", "101").accept(MediaType.APPLICATION_JSON))
+                            get("/api/v1/tenants")
+                                    .param("size", "101")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
     }

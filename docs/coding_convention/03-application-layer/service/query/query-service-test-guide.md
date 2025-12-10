@@ -29,10 +29,10 @@
 application/
 └─ src/
    ├─ main/java/
-   │  └─ com.ryuqq.authhub/application/{bc}/service/query/
+   │  └─ com/ryuqq/application/{bc}/service/query/
    │      └─ GetOrderDetailService.java
    └─ test/java/
-      └─ com.ryuqq.authhub/application/{bc}/service/query/
+      └─ com/ryuqq/application/{bc}/service/query/
           └─ GetOrderDetailServiceTest.java
 ```
 
@@ -43,15 +43,15 @@ application/
 ### 복잡한 Query Service 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderDetailQueryBundle;
-import com.ryuqq.authhub.application.order.dto.query.OrderDetailQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
-import com.ryuqq.authhub.application.order.facade.query.OrderQueryFacade;
-import com.ryuqq.authhub.application.order.factory.query.OrderQueryFactory;
-import com.ryuqq.authhub.domain.order.criteria.OrderDetailCriteria;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.bundle.OrderDetailQueryBundle;
+import com.ryuqq.application.order.dto.query.OrderDetailQuery;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.application.order.facade.query.OrderQueryFacade;
+import com.ryuqq.application.order.factory.query.OrderQueryFactory;
+import com.ryuqq.domain.order.criteria.OrderDetailCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -154,15 +154,15 @@ class GetOrderDetailServiceTest {
 ### 단순 Query Service 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.query.OrderSearchQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderListResponse;
-import com.ryuqq.authhub.application.order.factory.query.OrderQueryFactory;
-import com.ryuqq.authhub.application.order.manager.query.OrderReadManager;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.criteria.OrderSearchCriteria;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.query.OrderSearchQuery;
+import com.ryuqq.application.order.dto.response.OrderListResponse;
+import com.ryuqq.application.order.factory.query.OrderQueryFactory;
+import com.ryuqq.application.order.manager.query.OrderReadManager;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.criteria.OrderSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -230,13 +230,13 @@ class SearchOrdersServiceTest {
 ### ID로 단순 조회 Service 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.manager.query.OrderReadManager;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.manager.query.OrderReadManager;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -309,15 +309,15 @@ class GetOrderByIdServiceTest {
 ### 페이지네이션 Query Service 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.query.OrderPageQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderPageResponse;
-import com.ryuqq.authhub.application.order.factory.query.OrderQueryFactory;
-import com.ryuqq.authhub.application.order.manager.query.OrderReadManager;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.criteria.OrderPageCriteria;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.query.OrderPageQuery;
+import com.ryuqq.application.order.dto.response.OrderPageResponse;
+import com.ryuqq.application.order.factory.query.OrderQueryFactory;
+import com.ryuqq.application.order.manager.query.OrderReadManager;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.criteria.OrderPageCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -461,9 +461,9 @@ then(order).should().updateStatus(...);  // ❌ Query에서 상태 변경 금지
 ### TestFixtures 사용
 
 ```java
-import com.ryuqq.authhub.fixture.application.OrderDetailQueryFixture;
-import com.ryuqq.authhub.fixture.application.OrderDetailQueryBundleFixture;
-import com.ryuqq.authhub.fixture.domain.OrderDetailCriteriaFixture;
+import com.ryuqq.fixture.application.OrderDetailQueryFixture;
+import com.ryuqq.fixture.application.OrderDetailQueryBundleFixture;
+import com.ryuqq.fixture.domain.OrderDetailCriteriaFixture;
 
 @DisplayName("GetOrderDetailService 단위 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -482,7 +482,7 @@ class GetOrderDetailServiceTest {
 ### Fixture 정의
 
 ```java
-// application/src/testFixtures/java/com.ryuqq.authhub/fixture/application/OrderDetailQueryFixture.java
+// application/src/testFixtures/java/com/ryuqq/fixture/application/OrderDetailQueryFixture.java
 public final class OrderDetailQueryFixture {
 
     private OrderDetailQueryFixture() {}

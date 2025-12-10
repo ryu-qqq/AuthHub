@@ -1,10 +1,10 @@
 package com.ryuqq.authhub.domain.tenant.aggregate;
 
-import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.tenant.exception.InvalidTenantStateException;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -80,7 +80,7 @@ public final class Tenant {
      * @return 새로운 Tenant 인스턴스
      */
     public static Tenant create(TenantName name, Clock clock) {
-        Instant now = clock.now();
+        Instant now = clock.instant();
         return new Tenant(null, name, TenantStatus.ACTIVE, now, now);
     }
 
@@ -120,7 +120,7 @@ public final class Tenant {
         if (status == TenantStatus.DELETED) {
             throw new InvalidTenantStateException(status, "삭제된 테넌트의 이름을 변경할 수 없습니다");
         }
-        return new Tenant(this.tenantId, newName, this.status, this.createdAt, clock.now());
+        return new Tenant(this.tenantId, newName, this.status, this.createdAt, clock.instant());
     }
 
     /**
@@ -135,7 +135,7 @@ public final class Tenant {
             throw new InvalidTenantStateException(status, TenantStatus.ACTIVE);
         }
         return new Tenant(
-                this.tenantId, this.name, TenantStatus.ACTIVE, this.createdAt, clock.now());
+                this.tenantId, this.name, TenantStatus.ACTIVE, this.createdAt, clock.instant());
     }
 
     /**
@@ -150,7 +150,7 @@ public final class Tenant {
             throw new InvalidTenantStateException(status, TenantStatus.INACTIVE);
         }
         return new Tenant(
-                this.tenantId, this.name, TenantStatus.INACTIVE, this.createdAt, clock.now());
+                this.tenantId, this.name, TenantStatus.INACTIVE, this.createdAt, clock.instant());
     }
 
     /**
@@ -165,7 +165,7 @@ public final class Tenant {
             throw new InvalidTenantStateException(status, TenantStatus.DELETED);
         }
         return new Tenant(
-                this.tenantId, this.name, TenantStatus.DELETED, this.createdAt, clock.now());
+                this.tenantId, this.name, TenantStatus.DELETED, this.createdAt, clock.instant());
     }
 
     // ========== Helper Methods ==========

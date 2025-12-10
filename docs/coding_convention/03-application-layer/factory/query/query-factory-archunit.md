@@ -29,14 +29,14 @@
 
 ```
 application/src/test/java/
-└─ com.ryuqq.authhub/application/architecture/factory/
+└─ com/ryuqq/application/architecture/factory/
    └─ QueryFactoryArchTest.java
 ```
 
 ### 전체 코드
 
 ```java
-package com.ryuqq.authhub.application.architecture.factory;
+package com.ryuqq.application.architecture.factory;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -70,7 +70,7 @@ class QueryFactoryArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.application");
+            .importPackages("com.ryuqq.application");
 
         hasQueryFactoryClasses = classes.stream()
             .anyMatch(javaClass -> javaClass.getSimpleName().endsWith("QueryFactory"));
@@ -255,8 +255,8 @@ class QueryFactoryArchTest {
                 .that().haveSimpleNameEndingWith("QueryFactory")
                 .should().onlyAccessClassesThat()
                 .resideInAnyPackage(
-                    "com.ryuqq.authhub.application..",
-                    "com.ryuqq.authhub.domain..",
+                    "com.ryuqq.application..",
+                    "com.ryuqq.domain..",
                     "org.springframework..",
                     "java..",
                     "jakarta.."

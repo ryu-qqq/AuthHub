@@ -8,7 +8,6 @@ import com.ryuqq.authhub.domain.permission.vo.PermissionDescription;
 import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import com.ryuqq.authhub.domain.permission.vo.Resource;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
@@ -17,8 +16,7 @@ import java.util.UUID;
 /**
  * Permission Aggregate Root - 권한 도메인 모델
  *
- * <p>시스템 내 권한을 정의하는 Aggregate입니다.
- * 권한은 "{resource}:{action}" 형식의 유니크 키를 가집니다.
+ * <p>시스템 내 권한을 정의하는 Aggregate입니다. 권한은 "{resource}:{action}" 형식의 유니크 키를 가집니다.
  *
  * <p><strong>권한 키 예시:</strong>
  *
@@ -77,10 +75,7 @@ public final class Permission {
     }
 
     private void validateRequired(
-            PermissionKey key,
-            PermissionType type,
-            Instant createdAt,
-            Instant updatedAt) {
+            PermissionKey key, PermissionType type, Instant createdAt, Instant updatedAt) {
         if (key == null) {
             throw new IllegalArgumentException("PermissionKey는 null일 수 없습니다");
         }

@@ -3,9 +3,9 @@ package com.ryuqq.authhub.application.tenant.factory.command;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
-import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
+import java.time.Clock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

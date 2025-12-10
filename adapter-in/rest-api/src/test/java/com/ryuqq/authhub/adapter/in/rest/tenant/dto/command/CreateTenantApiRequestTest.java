@@ -68,7 +68,8 @@ class CreateTenantApiRequestTest {
             CreateTenantApiRequest request = new CreateTenantApiRequest("TestTenant");
 
             // When
-            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
@@ -81,7 +82,8 @@ class CreateTenantApiRequestTest {
             CreateTenantApiRequest request = new CreateTenantApiRequest(null);
 
             // When
-            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).hasSize(1);
@@ -95,7 +97,8 @@ class CreateTenantApiRequestTest {
             CreateTenantApiRequest request = new CreateTenantApiRequest("");
 
             // When
-            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isNotEmpty();
@@ -108,7 +111,8 @@ class CreateTenantApiRequestTest {
             CreateTenantApiRequest request = new CreateTenantApiRequest("A");
 
             // When
-            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).hasSize(1);
@@ -123,7 +127,8 @@ class CreateTenantApiRequestTest {
             CreateTenantApiRequest request = new CreateTenantApiRequest("AB");
 
             // When
-            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
@@ -137,7 +142,8 @@ class CreateTenantApiRequestTest {
             CreateTenantApiRequest request = new CreateTenantApiRequest(name);
 
             // When
-            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
@@ -151,7 +157,8 @@ class CreateTenantApiRequestTest {
             CreateTenantApiRequest request = new CreateTenantApiRequest(name);
 
             // When
-            Set<ConstraintViolation<CreateTenantApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<CreateTenantApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).hasSize(1);

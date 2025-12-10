@@ -81,7 +81,8 @@ class SearchTenantsApiRequestTest {
             SearchTenantsApiRequest request = new SearchTenantsApiRequest("Test", "ACTIVE", 0, 20);
 
             // When
-            Set<ConstraintViolation<SearchTenantsApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<SearchTenantsApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
@@ -94,7 +95,8 @@ class SearchTenantsApiRequestTest {
             SearchTenantsApiRequest request = new SearchTenantsApiRequest(null, null, null, null);
 
             // When
-            Set<ConstraintViolation<SearchTenantsApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<SearchTenantsApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
@@ -107,7 +109,8 @@ class SearchTenantsApiRequestTest {
             SearchTenantsApiRequest request = new SearchTenantsApiRequest(null, null, -1, 20);
 
             // When
-            Set<ConstraintViolation<SearchTenantsApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<SearchTenantsApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).hasSize(1);
@@ -121,7 +124,8 @@ class SearchTenantsApiRequestTest {
             SearchTenantsApiRequest request = new SearchTenantsApiRequest(null, null, 0, 20);
 
             // When
-            Set<ConstraintViolation<SearchTenantsApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<SearchTenantsApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
@@ -134,7 +138,8 @@ class SearchTenantsApiRequestTest {
             SearchTenantsApiRequest request = new SearchTenantsApiRequest(null, null, 0, 0);
 
             // When
-            Set<ConstraintViolation<SearchTenantsApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<SearchTenantsApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).hasSize(1);
@@ -148,7 +153,8 @@ class SearchTenantsApiRequestTest {
             SearchTenantsApiRequest request = new SearchTenantsApiRequest(null, null, 0, 1);
 
             // When
-            Set<ConstraintViolation<SearchTenantsApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<SearchTenantsApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
@@ -161,7 +167,8 @@ class SearchTenantsApiRequestTest {
             SearchTenantsApiRequest request = new SearchTenantsApiRequest(null, null, 0, 100);
 
             // When
-            Set<ConstraintViolation<SearchTenantsApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<SearchTenantsApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
@@ -174,7 +181,8 @@ class SearchTenantsApiRequestTest {
             SearchTenantsApiRequest request = new SearchTenantsApiRequest(null, null, 0, 101);
 
             // When
-            Set<ConstraintViolation<SearchTenantsApiRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<SearchTenantsApiRequest>> violations =
+                    validator.validate(request);
 
             // Then
             assertThat(violations).hasSize(1);

@@ -63,10 +63,10 @@ application/order/
 
 ### UseCase Interface (Response 반환)
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.command;
+package com.ryuqq.application.{bc}.port.in.command;
 
-import com.ryuqq.authhub.application.{bc}.dto.command.{Action}{Bc}Command;
-import com.ryuqq.authhub.application.{bc}.dto.response.{Bc}Response;
+import com.ryuqq.application.{bc}.dto.command.{Action}{Bc}Command;
+import com.ryuqq.application.{bc}.dto.response.{Bc}Response;
 
 /**
  * {Action} {Bc} UseCase (Command)
@@ -90,9 +90,9 @@ public interface {Action}{Bc}UseCase {
 
 ### UseCase Interface (void 반환 - CQRS 순수 패턴)
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.command;
+package com.ryuqq.application.{bc}.port.in.command;
 
-import com.ryuqq.authhub.application.{bc}.dto.command.Delete{Bc}Command;
+import com.ryuqq.application.{bc}.dto.command.Delete{Bc}Command;
 
 /**
  * Delete {Bc} UseCase (Command)

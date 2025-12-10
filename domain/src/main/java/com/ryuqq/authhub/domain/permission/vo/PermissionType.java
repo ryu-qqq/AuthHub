@@ -15,14 +15,10 @@ package com.ryuqq.authhub.domain.permission.vo;
  */
 public enum PermissionType {
 
-    /**
-     * 시스템 기본 권한 - 수정/삭제 불가
-     */
+    /** 시스템 기본 권한 - 수정/삭제 불가 */
     SYSTEM,
 
-    /**
-     * 사용자 정의 권한 - 수정/삭제 가능
-     */
+    /** 사용자 정의 권한 - 수정/삭제 가능 */
     CUSTOM;
 
     public boolean isSystem() {

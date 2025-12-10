@@ -1,18 +1,16 @@
-package com.ryuqq.setof.adapter.out.security.jwt;
+package com.ryuqq.authhub.adapter.out.security.jwt;
 
-import com.ryuqq.setof.adapter.out.security.config.JwtProperties;
-import com.ryuqq.setof.application.member.dto.response.TokenPairResponse;
-import com.ryuqq.setof.application.member.port.out.TokenProviderPort;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import com.ryuqq.authhub.adapter.out.security.config.JwtProperties;
+import com.ryuqq.authhub.application.auth.dto.response.TokenResponse;
+import com.ryuqq.authhub.application.auth.port.out.client.TokenProviderPort;
+import com.ryuqq.authhub.domain.user.identifier.UserId;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Set;
+import javax.crypto.SecretKey;
+import org.springframework.stereotype.Component;
 
 /**
  * JWT Token Provider Adapter
@@ -20,9 +18,10 @@ import java.util.Date;
  * <p>jjwt 라이브러리를 사용하여 TokenProviderPort를 구현합니다.
  *
  * <p><strong>토큰 구조:</strong>
+ *
  * <ul>
- *   <li>Access Token: 짧은 만료 시간 (기본 30분), 인증용</li>
- *   <li>Refresh Token: 긴 만료 시간 (기본 7일), Access Token 갱신용</li>
+ *   <li>Access Token: 짧은 만료 시간 (기본 1시간), 인증용
+ *   <li>Refresh Token: 긴 만료 시간 (기본 7일), Access Token 갱신용
  * </ul>
  *
  * @author development-team
@@ -32,106 +31,66 @@ import java.util.Date;
 public class JwtTokenProviderAdapter implements TokenProviderPort {
 
     private static final String TOKEN_TYPE_CLAIM = "token_type";
+    private static final String ROLES_CLAIM = "roles";
+    private static final String PERMISSIONS_CLAIM = "permissions";
     private static final String ACCESS_TOKEN_TYPE = "access";
     private static final String REFRESH_TOKEN_TYPE = "refresh";
+    private static final String TOKEN_TYPE = "Bearer";
 
     private final JwtProperties jwtProperties;
     private final SecretKey secretKey;
 
     public JwtTokenProviderAdapter(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
-        this.secretKey = Keys.hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
+        this.secretKey =
+                Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    public TokenPairResponse generateTokenPair(String memberId) {
+    public TokenResponse generateTokenPair(
+            UserId userId, Set<String> roles, Set<String> permissions) {
         long now = System.currentTimeMillis();
+        String userIdValue = userId.value().toString();
 
-        String accessToken = createToken(
-                memberId,
-                ACCESS_TOKEN_TYPE,
-                now,
-                jwtProperties.getAccessTokenExpirationMs()
-        );
+        String accessToken = createAccessToken(userIdValue, roles, permissions, now);
+        String refreshToken = createRefreshToken(userIdValue, now);
 
-        String refreshToken = createToken(
-                memberId,
-                REFRESH_TOKEN_TYPE,
-                now,
-                jwtProperties.getRefreshTokenExpirationMs()
-        );
-
-        return new TokenPairResponse(
+        return new TokenResponse(
                 accessToken,
                 refreshToken,
-                jwtProperties.getAccessTokenExpirationMs() / 1000,
-                jwtProperties.getRefreshTokenExpirationMs() / 1000
-        );
+                jwtProperties.getAccessTokenExpiration(),
+                jwtProperties.getRefreshTokenExpiration(),
+                TOKEN_TYPE);
     }
 
-    @Override
-    public String extractMemberId(String accessToken) {
-        return extractClaims(accessToken).getSubject();
-    }
-
-    @Override
-    public boolean validateAccessToken(String accessToken) {
-        return validateToken(accessToken, ACCESS_TOKEN_TYPE);
-    }
-
-    @Override
-    public boolean validateRefreshToken(String refreshToken) {
-        return validateToken(refreshToken, REFRESH_TOKEN_TYPE);
-    }
-
-    @Override
-    public String extractMemberIdFromRefreshToken(String refreshToken) {
-        return extractClaims(refreshToken).getSubject();
-    }
-
-    @Override
-    public boolean isAccessTokenExpired(String accessToken) {
-        try {
-            extractClaims(accessToken);
-            return false;
-        } catch (ExpiredJwtException e) {
-            return true;
-        } catch (JwtException e) {
-            return false;
-        }
-    }
-
-    private String createToken(String memberId, String tokenType, long now, long expirationMs) {
+    private String createAccessToken(
+            String userId, Set<String> roles, Set<String> permissions, long now) {
         Date issuedAt = new Date(now);
-        Date expiration = new Date(now + expirationMs);
+        Date expiration = new Date(now + jwtProperties.getAccessTokenExpirationMs());
 
         return Jwts.builder()
-                .subject(memberId)
+                .subject(userId)
                 .issuer(jwtProperties.getIssuer())
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .claim(TOKEN_TYPE_CLAIM, tokenType)
+                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
+                .claim(ROLES_CLAIM, roles)
+                .claim(PERMISSIONS_CLAIM, permissions)
                 .signWith(secretKey)
                 .compact();
     }
 
-    private boolean validateToken(String token, String expectedTokenType) {
-        try {
-            Claims claims = extractClaims(token);
-            String tokenType = claims.get(TOKEN_TYPE_CLAIM, String.class);
-            return expectedTokenType.equals(tokenType);
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
-    }
+    private String createRefreshToken(String userId, long now) {
+        Date issuedAt = new Date(now);
+        Date expiration = new Date(now + jwtProperties.getRefreshTokenExpirationMs());
 
-    private Claims extractClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return Jwts.builder()
+                .subject(userId)
+                .issuer(jwtProperties.getIssuer())
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
+                .signWith(secretKey)
+                .compact();
     }
 }

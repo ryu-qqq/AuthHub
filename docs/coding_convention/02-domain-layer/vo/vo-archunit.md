@@ -27,7 +27,7 @@
 
 ```
 domain/
-└── src/test/java/com.ryuqq.authhub/domain/architecture/
+└── src/test/java/com/ryuqq/domain/architecture/
     └── VOArchTest.java
 ```
 
@@ -36,7 +36,7 @@ domain/
 ## 3️⃣ 전체 ArchUnit 테스트 코드
 
 ```java
-package com.ryuqq.authhub.domain.architecture;
+package com.ryuqq.domain.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -81,7 +81,7 @@ class VOArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.domain");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.domain");
     }
 
     /**
@@ -420,7 +420,7 @@ void valueObjectsShouldBeRecords() {
 
 **위반 시**:
 ```
-Class com.ryuqq.authhub.domain.order.vo.Money is not a record. 
+Class com.ryuqq.domain.order.vo.Money is not a record. 
 Use 'public record' instead of 'public class'
 ```
 
@@ -449,7 +449,7 @@ void valueObjectsShouldHaveOfMethod() {
 
 **위반 시**:
 ```
-Class com.ryuqq.authhub.domain.order.vo.Money does not have a public static method named 'of'
+Class com.ryuqq.domain.order.vo.Money does not have a public static method named 'of'
 ```
 
 ---
@@ -478,7 +478,7 @@ void idValueObjectsShouldHaveForNewMethod() {
 
 **위반 시**:
 ```
-Class com.ryuqq.authhub.domain.order.vo.OrderId does not have a public static method named 'forNew'
+Class com.ryuqq.domain.order.vo.OrderId does not have a public static method named 'forNew'
 ```
 
 ---
@@ -514,7 +514,7 @@ void longIdValueObjectsShouldHaveIsNewMethod() {
 
 **위반 시**:
 ```
-Long ID VO com.ryuqq.authhub.domain.order.vo.OrderId must have isNew() method (UUID ID VOs are exempt)
+Long ID VO com.ryuqq.domain.order.vo.OrderId must have isNew() method (UUID ID VOs are exempt)
 ```
 
 ---
@@ -525,7 +525,7 @@ Lombok, JPA, Spring 어노테이션 사용 금지.
 
 **위반 시**:
 ```
-Class com.ryuqq.authhub.domain.order.vo.Money should not be annotated with @lombok.Value
+Class com.ryuqq.domain.order.vo.Money should not be annotated with @lombok.Value
 ```
 
 ---
@@ -549,7 +549,7 @@ void valueObjectsShouldNotHaveCreateMethod() {
 
 **위반 시**:
 ```
-Class com.ryuqq.authhub.domain.order.vo.Money has method createMoney starting with 'create' which is prohibited
+Class com.ryuqq.domain.order.vo.Money has method createMoney starting with 'create' which is prohibited
 ```
 
 ---
@@ -599,7 +599,7 @@ public enum OrderStatus {
 
 **위반 시**:
 ```
-Class com.ryuqq.authhub.domain.order.vo.OrderStatus does not have a method named 'displayName'
+Class com.ryuqq.domain.order.vo.OrderStatus does not have a method named 'displayName'
 ```
 
 ---

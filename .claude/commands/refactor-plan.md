@@ -7,344 +7,310 @@
 ## 명령어
 
 ```
-/refactor-plan [scope]
+/refactor-plan <layer>
 ```
 
-**scope 옵션:**
-- `full` - 전체 프로젝트 분석 (기본값)
-- `domain` - Domain Layer만
-- `application` - Application Layer만
-- `persistence` - Persistence Layer만
-- `rest-api` - REST API Layer만
+**⚠️ layer 필수 지정** (기본값 없음):
+- `domain` - Domain Layer 분석
+- `application` - Application Layer 분석
+- `persistence` - Persistence Layer 분석 (MySQL)
+- `persistence-redis` - Redis Layer 분석
+- `rest-api` - REST API Layer 분석
+
+> **참고**: 전체 프로젝트 분석이 필요한 경우 각 레이어를 순차적으로 실행하세요.
 
 ---
 
-## 실행 프로세스
+## 실행 프로세스 (이중 검증)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              Refactoring Plan Process                        │
+│           Refactoring Plan Process (이중 검증)              │
 ├─────────────────────────────────────────────────────────────┤
-│  1️⃣ 현재 상태 분석 (Current State Analysis)                 │
-│     └─ Serena MCP로 코드베이스 스캔                          │
+│  1️⃣ Serena Memory 규칙 로드                                │
+│     └─ 해당 레이어의 모든 규칙 문서 로드                     │
 │                                                              │
-│  2️⃣ 컨벤션 위반 탐지 (Convention Violation Detection)       │
-│     └─ Zero-Tolerance 규칙 위반 식별                         │
+│  2️⃣ Serena Memory 기반 규칙 검증                           │
+│     └─ 문서에 정의된 모든 규칙 자동 검증                     │
 │                                                              │
-│  3️⃣ 영향도 분석 (Impact Analysis)                           │
-│     └─ 변경 범위 및 의존성 파악                              │
+│  3️⃣ ArchUnit 테스트 실행                                    │
+│     └─ 해당 레이어 ArchUnit 테스트 자동 실행                 │
 │                                                              │
-│  4️⃣ 리팩토링 계획 생성 (Refactoring Plan Generation)        │
-│     └─ 우선순위 기반 단계별 계획                             │
+│  4️⃣ 이중 검증 결과 종합                                     │
+│     └─ Serena 위반 + ArchUnit 실패 = 전체 위반 목록          │
 │                                                              │
-│  5️⃣ Serena Memory 저장                                      │
-│     └─ refactor-plan-{timestamp} 저장                        │
+│  5️⃣ 리팩토링 계획 생성 + Serena Memory 저장                 │
+│     └─ refactor-plan-{layer}-{timestamp} 저장               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 1️⃣ 현재 상태 분석
-
-### 분석 대상
-
-Serena MCP를 사용하여 다음 항목들을 스캔합니다:
-
-```markdown
-## 스캔 항목
-
-### 프로젝트 구조
-- [ ] 모듈 구조 (헥사고날 아키텍처 준수 여부)
-- [ ] 패키지 구조 (레이어별 분리 여부)
-- [ ] 의존성 방향 (안쪽 → 바깥쪽)
+## 1️⃣ 레이어별 Serena Memory 규칙 매핑
 
 ### Domain Layer
-- [ ] Aggregate 패턴 사용 여부
-- [ ] VO(Value Object) 사용 여부
-- [ ] Domain Exception 구조
-- [ ] Domain Event 사용 여부
+```yaml
+serena_memories:
+  - domain-rules-01-aggregate
+  - domain-rules-02-value-object
+  - domain-rules-03-exception
+  - domain-rules-04-event
+  - domain-rules-05-criteria
+  - domain-rules-06-common
+  - domain-rules-07-testing
+  - convention-domain-layer-validation-rules
+
+archunit_tests:
+  - "**/domain/architecture/*ArchTest*"
+```
 
 ### Application Layer
-- [ ] Port-In (UseCase) 인터페이스 분리
-- [ ] Port-Out 인터페이스 정의
-- [ ] CQRS 패턴 (Command/Query 분리)
-- [ ] DTO Record 사용 여부
+```yaml
+serena_memories:
+  - app-rules-01-service
+  - app-rules-02-dto
+  - app-rules-03-port
+  - app-rules-04-manager-facade
+  - app-rules-05-factory-assembler
+  - app-rules-06-event-scheduler
+  - app-rules-07-testing
+  - convention-application-layer-validation-rules
 
-### Persistence Layer
-- [ ] Entity 구조 (Long FK 전략)
-- [ ] Repository 패턴 (JPA + QueryDSL)
-- [ ] Mapper 분리 여부
-- [ ] Adapter 구현 여부
+archunit_tests:
+  - "**/application/architecture/*ArchTest*"
+```
+
+### Persistence Layer (MySQL)
+```yaml
+serena_memories:
+  - persistence-rules-01-entity
+  - persistence-rules-02-jpa-repository
+  - persistence-rules-03-querydsl-repository
+  - persistence-rules-04-admin-querydsl-repository
+  - persistence-rules-05-lock-repository
+  - persistence-rules-06-mapper
+  - persistence-rules-07-command-adapter
+  - persistence-rules-08-query-adapter
+  - persistence-rules-09-admin-query-adapter
+  - persistence-rules-10-lock-query-adapter
+  - persistence-rules-11-testing
+  - convention-persistence-mysql-validation-rules
+
+archunit_tests:
+  - "**/persistence/architecture/*ArchTest*"
+```
+
+### Persistence Layer (Redis)
+```yaml
+serena_memories:
+  - redis-rules-01-cache-adapter
+  - redis-rules-02-lock-adapter
+  - redis-rules-03-config
+  - redis-rules-04-testing
+  - convention-persistence-redis-validation-rules
+
+archunit_tests:
+  - "**/persistence/redis/architecture/*ArchTest*"
+```
 
 ### REST API Layer
-- [ ] Controller 구조
-- [ ] Request/Response DTO 분리
-- [ ] 에러 핸들링 구조
+```yaml
+serena_memories:
+  - rest-api-rules-01-controller
+  - rest-api-rules-02-command-dto
+  - rest-api-rules-03-query-dto
+  - rest-api-rules-04-response-dto
+  - rest-api-rules-05-mapper
+  - rest-api-rules-06-error
+  - rest-api-rules-07-security
+  - rest-api-rules-08-openapi
+  - rest-api-rules-09-testing
+  - convention-rest-api-layer-validation-rules
+
+archunit_tests:
+  - "**/rest/architecture/*ArchTest*"
 ```
 
 ---
 
-## 2️⃣ 컨벤션 위반 탐지
+## 2️⃣ 실행 단계
 
-### Zero-Tolerance 위반 체크리스트
+### Step 1: Serena Memory 규칙 로드
 
 ```markdown
-## 🔴 Critical (즉시 수정 필요)
+## 실행 지침
 
-### Lombok 사용
-- [ ] `@Data`, `@Getter`, `@Setter` 사용 여부
-- [ ] `@Builder`, `@AllArgsConstructor` 사용 여부
-- [ ] `@ToString`, `@EqualsAndHashCode` 사용 여부
-
-검색 패턴:
-- `import lombok.`
-- `@Data`, `@Getter`, `@Setter`
-
-### Law of Demeter 위반
-- [ ] Getter 체이닝 (`a.getB().getC()`)
-- [ ] 내부 객체 직접 노출
-
-검색 패턴:
-- `\.get[A-Z][a-zA-Z]*\(\)\.get`
-- `\.get[A-Z][a-zA-Z]*\(\)\.[a-z]`
-
-### Transaction 경계 위반
-- [ ] `@Transactional` 내 외부 API 호출
-- [ ] `@Transactional` 내 메시지 발행
-
-검색 패턴:
-- `@Transactional` 메서드 내 `RestTemplate`, `WebClient`, `FeignClient` 호출
-
-### JPA 관계 어노테이션 사용
-- [ ] `@OneToMany`, `@ManyToOne` 사용
-- [ ] `@OneToOne`, `@ManyToMany` 사용
-
-검색 패턴:
-- `@OneToMany`, `@ManyToOne`, `@OneToOne`, `@ManyToMany`
+1. Serena MCP `read_memory` 호출하여 해당 레이어의 모든 규칙 로드
+2. 각 규칙 문서에서 Zero-Tolerance 항목 추출
+3. 검증 대상 패턴 목록 생성
 ```
+
+### Step 2: Serena Memory 기반 규칙 검증
 
 ```markdown
-## 🟡 Important (빠른 수정 권장)
+## 검증 방법
 
-### CQRS 미분리
-- [ ] Command/Query가 같은 클래스에 혼재
-- [ ] UseCase 인터페이스 미분리
+각 규칙 문서의 "체크리스트" 또는 "Do/Don't" 섹션을 기준으로:
 
-### DTO 미분리
-- [ ] Request/Response 같은 DTO 사용
-- [ ] Entity 직접 반환
-
-### Assembler/Mapper 미사용
-- [ ] 변환 로직이 Service에 직접 구현
-- [ ] Domain ↔ DTO 변환 산재
-
-### 테스트 구조
-- [ ] MockMvc 사용 (TestRestTemplate 권장)
-- [ ] 단위 테스트 부재
+1. `search_for_pattern` 사용하여 위반 코드 검색
+2. `find_symbol` 사용하여 클래스/메서드 구조 검증
+3. 위반 파일 및 라인 번호 수집
 ```
+
+### Step 3: ArchUnit 테스트 실행
+
+```bash
+# Domain Layer
+./gradlew :domain:test --tests "*ArchTest*" -x jacocoTestCoverageVerification
+
+# Application Layer
+./gradlew :application:test --tests "*ArchTest*" -x jacocoTestCoverageVerification
+
+# Persistence Layer (MySQL)
+./gradlew :adapter-out:persistence-mysql:test --tests "*ArchTest*" -x jacocoTestCoverageVerification
+
+# Persistence Layer (Redis)
+./gradlew :adapter-out:persistence-redis:test --tests "*ArchTest*" -x jacocoTestCoverageVerification
+
+# REST API Layer
+./gradlew :adapter-in:rest-api:test --tests "*ArchTest*" -x jacocoTestCoverageVerification
+```
+
+### Step 4: 이중 검증 결과 종합
 
 ```markdown
-## 🟢 Recommended (점진적 개선)
+## 결과 종합 형식
 
-### 네이밍 컨벤션
-- [ ] 클래스명 Suffix 규칙 미준수
-- [ ] 메서드명 규칙 미준수
+### 🔴 Critical (즉시 수정 필요)
 
-### 패키지 구조
-- [ ] 기능별 패키지 미분리
-- [ ] common 패키지 과다 사용
+#### Serena Memory 규칙 위반
+| 규칙 | 위반 파일 | 라인 | 설명 |
+|------|----------|------|------|
+| domain-rules-01-aggregate | Order.java | 45 | Lombok @Data 사용 |
 
-### 문서화
-- [ ] JavaDoc 부재
-- [ ] README 미작성
+#### ArchUnit 테스트 실패
+| 테스트 클래스 | 테스트 메서드 | 실패 원인 |
+|--------------|--------------|----------|
+| AggregateArchTest | aggregate_MustNotUseLombok | Order.java uses @Data |
+
+### 🟡 Important (빠른 수정 권장)
+[동일 형식]
+
+### 🟢 Recommended (점진적 개선)
+[동일 형식]
 ```
 
 ---
 
-## 3️⃣ 영향도 분석
-
-### 변경 영향도 매트릭스
-
-```markdown
-## 영향도 분석 결과
-
-| 변경 항목 | 영향 파일 수 | 의존 모듈 | 위험도 | 우선순위 |
-|-----------|-------------|-----------|--------|----------|
-| Lombok 제거 | 45개 | 전체 | 🔴 High | 1 |
-| Long FK 전환 | 12개 | Persistence | 🔴 High | 2 |
-| CQRS 분리 | 23개 | Application | 🟡 Medium | 3 |
-| DTO 분리 | 34개 | 전체 | 🟡 Medium | 4 |
-| Assembler 추가 | 15개 | Application | 🟢 Low | 5 |
-```
-
-### 의존성 그래프
-
-```
-변경 A (Lombok 제거)
-    ↓ 영향
-변경 B (DTO 분리) ─────→ 변경 C (Assembler 추가)
-    ↓ 영향
-변경 D (CQRS 분리)
-```
-
----
-
-## 4️⃣ 리팩토링 계획 생성
-
-### Phase 구조
-
-```markdown
-## 📋 리팩토링 계획
-
-### Phase 1: 기반 정비 (Foundation) - 예상 1-2주
-**목표**: Zero-Tolerance 위반 해결
-
-#### Step 1.1: Lombok 제거
-- [ ] Domain Layer Lombok 제거
-- [ ] Application Layer Lombok 제거
-- [ ] Persistence Layer Lombok 제거
-- [ ] REST API Layer Lombok 제거
-
-**변경 파일**: {파일 목록}
-**검증**: `./gradlew build` 성공
-
-#### Step 1.2: Long FK 전략 전환
-- [ ] JPA 관계 어노테이션 제거
-- [ ] Long FK 필드로 변경
-- [ ] 관련 Repository 쿼리 수정
-
-**변경 파일**: {파일 목록}
-**검증**: 통합 테스트 통과
-
----
-
-### Phase 2: 아키텍처 정렬 (Architecture Alignment) - 예상 2-3주
-**목표**: 헥사고날 아키텍처 준수
-
-#### Step 2.1: Port 인터페이스 분리
-- [ ] Port-In (UseCase) 인터페이스 생성
-- [ ] Port-Out 인터페이스 생성
-- [ ] Adapter 구현체 분리
-
-#### Step 2.2: CQRS 분리
-- [ ] Command UseCase 분리
-- [ ] Query UseCase 분리
-- [ ] Service 레이어 정리
-
----
-
-### Phase 3: 코드 품질 개선 (Code Quality) - 예상 1-2주
-**목표**: 컨벤션 완전 준수
-
-#### Step 3.1: DTO 구조 정리
-- [ ] Command DTO 생성 (Record)
-- [ ] Query DTO 생성 (Record)
-- [ ] Response DTO 분리
-
-#### Step 3.2: Assembler/Mapper 추가
-- [ ] Domain → Response Assembler
-- [ ] Command → Domain Factory
-- [ ] Entity ↔ Domain Mapper
-
----
-
-### Phase 4: 테스트 강화 (Test Enhancement) - 예상 1주
-**목표**: ArchUnit 테스트 통과
-
-#### Step 4.1: ArchUnit 테스트 적용
-- [ ] Domain Layer ArchUnit
-- [ ] Application Layer ArchUnit
-- [ ] Persistence Layer ArchUnit
-- [ ] REST API Layer ArchUnit
-
-#### Step 4.2: 통합 테스트 정비
-- [ ] MockMvc → TestRestTemplate 전환
-- [ ] Test Fixtures 정리
-```
-
----
-
-## 5️⃣ 산출물
+## 3️⃣ 산출물
 
 ### Serena Memory 저장 형식
 
 ```markdown
-# Refactoring Plan: {프로젝트명}
+# Refactoring Plan: {layer}
 
 ## 메타 정보
 - 생성일: {timestamp}
-- 분석 범위: {scope}
-- 총 위반 항목: {count}개
+- 대상 레이어: {layer}
+- Serena Memory 규칙 수: {count}개
+- ArchUnit 테스트 수: {count}개
 
-## 현재 상태 요약
-### Critical 위반: {count}개
-- Lombok 사용: {files}개 파일
-- Law of Demeter: {files}개 파일
-- Transaction 경계: {files}개 파일
+## 이중 검증 결과
 
-### Important 위반: {count}개
-- CQRS 미분리: {files}개 파일
-- DTO 미분리: {files}개 파일
+### Serena Memory 규칙 검증
+- 총 규칙 수: {count}
+- 통과: {count}
+- 실패: {count}
 
-## 리팩토링 계획
-### Phase 1: 기반 정비
-{상세 계획}
+### ArchUnit 테스트 검증
+- 총 테스트 수: {count}
+- 통과: {count}
+- 실패: {count}
 
-### Phase 2: 아키텍처 정렬
-{상세 계획}
+## 위반 상세
 
-### Phase 3: 코드 품질 개선
-{상세 계획}
+### 🔴 Critical 위반: {count}개
+{상세 목록}
 
-### Phase 4: 테스트 강화
-{상세 계획}
+### 🟡 Important 위반: {count}개
+{상세 목록}
 
-## 진행 상황
-- [ ] Phase 1 완료
-- [ ] Phase 2 완료
-- [ ] Phase 3 완료
-- [ ] Phase 4 완료
+### 🟢 Recommended 위반: {count}개
+{상세 목록}
+
+## 리팩토링 우선순위
+
+| 순위 | 항목 | 영향 파일 수 | 검증 방식 |
+|------|------|-------------|----------|
+| 1 | {item} | {count} | Serena + ArchUnit |
+| 2 | {item} | {count} | Serena only |
+| 3 | {item} | {count} | ArchUnit only |
+
+## 권장 수정 순서
+1. {step1}
+2. {step2}
+3. {step3}
 ```
 
 ---
 
-## 실행 예시
+## 4️⃣ 실행 예시
 
 ```bash
-# 전체 프로젝트 분석
+# ❌ 레이어 없이 실행 - 오류 발생
 /refactor-plan
+# Error: layer 파라미터가 필수입니다. (domain|application|persistence|persistence-redis|rest-api)
 
-# Domain Layer만 분석
+# ✅ Domain Layer 분석
 /refactor-plan domain
 
-# Application Layer만 분석
-/refactor-plan application
+# ✅ Persistence Layer (MySQL) 분석
+/refactor-plan persistence
+
+# ✅ REST API Layer 분석
+/refactor-plan rest-api
 ```
 
 ---
 
-## 연계 워크플로우
+## 5️⃣ 연계 워크플로우
 
 ```
-/refactor-plan
+/refactor-plan {layer}
     ↓
-리팩토링 계획 승인
+이중 검증 결과 확인
     ↓
-Phase별 실행
+위반 항목 승인
+    ↓
+리팩토링 실행
     ├─ /kb/domain/go (Domain 리팩토링)
     ├─ /kb/application/go (Application 리팩토링)
     ├─ /kb/persistence/go (Persistence 리팩토링)
     └─ /kb/rest-api/go (REST API 리팩토링)
     ↓
-ArchUnit 테스트 실행
+재검증 (다시 /refactor-plan 실행)
     ↓
-완료
+완료 (위반 0개)
 ```
+
+---
+
+## 6️⃣ Zero-Tolerance 규칙 (레이어 공통)
+
+모든 레이어에서 다음 항목은 **무조건 검증**됩니다:
+
+| 규칙 | 검증 방식 | 검색 패턴 |
+|------|----------|----------|
+| Lombok 금지 | Serena + ArchUnit | `import lombok.` |
+| Law of Demeter | Serena | `\.get.*\(\)\.get` |
+| Transaction 경계 | Serena | `@Transactional` 내 외부 호출 |
+| JPA 관계 금지 | Serena + ArchUnit | `@OneToMany`, `@ManyToOne` |
+| Javadoc 필수 | Serena | public 클래스/메서드 |
 
 ---
 
 ## 참조 문서
 
-- **컨벤션 문서**: `docs/coding_convention/`
+- **Serena Memory 규칙**: `list_memories()` 참조
 - **ArchUnit 테스트**: 각 모듈 `src/test/java/.../architecture/`
 - **Zero-Tolerance 규칙**: `.claude/CLAUDE.md`

@@ -22,7 +22,7 @@
 ## 2) 테스트 위치
 
 ```
-application/src/test/java/com.ryuqq.authhub/application/architecture/dto/
+application/src/test/java/com/ryuqq/application/architecture/dto/
 └── DtoRecordArchTest.java  ← 17개 규칙, 통합 테스트
 ```
 
@@ -96,7 +96,7 @@ private static boolean hasDtoClasses;
 @BeforeAll
 static void setUp() {
     classes = new ClassFileImporter()
-        .importPackages("com.ryuqq.authhub.application");
+        .importPackages("com.ryuqq.application");
 
     hasCommandClasses = classes.stream()
         .anyMatch(javaClass -> javaClass.getPackageName().contains(".dto.command")

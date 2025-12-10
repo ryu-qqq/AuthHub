@@ -35,14 +35,14 @@ JPA Entity가 entity-guide.md의 모든 규칙을 준수하는지 자동으로 �
 ```
 adapter-out/persistence-mysql/
   └─ src/test/java/
-      └─ com.ryuqq.authhub/adapter/out/persistence/architecture/entity/
+      └─ com/ryuqq/adapter/out/persistence/architecture/entity/
           └─ JpaEntityArchTest.java
 ```
 
 ### 전체 구조 (4개 @Nested 그룹)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.architecture.entity;
+package com.ryuqq.adapter.out.persistence.architecture.entity;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -84,7 +84,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 @DisplayName("JPA Entity 아키텍처 규칙 검증 (Zero-Tolerance)")
 class JpaEntityArchTest {
 
-    private static final String BASE_PACKAGE = "com.ryuqq.authhub.adapter.out.persistence";
+    private static final String BASE_PACKAGE = "com.ryuqq.adapter.out.persistence";
 
     private static JavaClasses allClasses;
     private static JavaClasses entityClasses;

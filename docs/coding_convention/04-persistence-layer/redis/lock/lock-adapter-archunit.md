@@ -55,7 +55,7 @@
 ### 기본 설정
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.architecture.redis;
+package com.ryuqq.adapter.out.persistence.architecture.redis;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -80,7 +80,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
  * @author Development Team
  * @since 1.0.0
  */
-@AnalyzeClasses(packages = "com.ryuqq.authhub")
+@AnalyzeClasses(packages = "com.ryuqq")
 class LockAdapterArchTest {
 
     private static JavaClasses allClasses;
@@ -89,7 +89,7 @@ class LockAdapterArchTest {
     @BeforeAll
     static void setup() {
         allClasses = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub");
+            .importPackages("com.ryuqq");
 
         lockAdapterClasses = allClasses.that(
             DescribedPredicate.describe(
@@ -463,7 +463,7 @@ Rule 'classes that have simple name containing 'LockAdapter'
 and reside in a package '..redis..'
 should not depend on classes that have simple name containing 'RedisTemplate'' was violated (1 times):
 
-Class <com.ryuqq.authhub.adapter.out.persistence.redis.common.adapter.DistributedLockAdapter>
+Class <com.ryuqq.adapter.out.persistence.redis.common.adapter.DistributedLockAdapter>
     depends on class <org.springframework.data.redis.core.RedisTemplate> in line 15
 
 Reason: 분산락은 Redisson만 사용해야 합니다 (Lettuce 스핀락 금지)

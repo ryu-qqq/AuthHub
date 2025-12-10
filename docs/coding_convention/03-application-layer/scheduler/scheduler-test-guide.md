@@ -21,11 +21,11 @@
 ### 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.{bc}.scheduler;
+package com.ryuqq.application.{bc}.scheduler;
 
-import com.ryuqq.authhub.application.{bc}.port.in.command.Retry{Bc}UseCase;
-import com.ryuqq.authhub.application.{bc}.port.in.command.RetryResult;
-import com.ryuqq.authhub.application.common.port.out.DistributedLockPort;
+import com.ryuqq.application.{bc}.port.in.command.Retry{Bc}UseCase;
+import com.ryuqq.application.{bc}.port.in.command.RetryResult;
+import com.ryuqq.application.common.port.out.DistributedLockPort;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -294,14 +294,14 @@ class {Bc}RetrySchedulerTest {
 ## 4) UseCase 단위 테스트
 
 ```java
-package com.ryuqq.authhub.application.{bc}.service.command;
+package com.ryuqq.application.{bc}.service.command;
 
-import com.ryuqq.authhub.application.{bc}.assembler.{Bc}Assembler;
-import com.ryuqq.authhub.application.{bc}.manager.command.{Bc}OutboxTransactionManager;
-import com.ryuqq.authhub.application.{bc}.manager.query.{Bc}OutboxReadManager;
-import com.ryuqq.authhub.application.{bc}.port.in.command.RetryResult;
-import com.ryuqq.authhub.application.{bc}.port.out.{Bc}PublishPort;
-import com.ryuqq.authhub.domain.{bc}.{Bc}Outbox;
+import com.ryuqq.application.{bc}.assembler.{Bc}Assembler;
+import com.ryuqq.application.{bc}.manager.command.{Bc}OutboxTransactionManager;
+import com.ryuqq.application.{bc}.manager.query.{Bc}OutboxReadManager;
+import com.ryuqq.application.{bc}.port.in.command.RetryResult;
+import com.ryuqq.application.{bc}.port.out.{Bc}PublishPort;
+import com.ryuqq.domain.{bc}.{Bc}Outbox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -513,9 +513,9 @@ class Retry{Bc}ServiceTest {
 ## 5) 통합 테스트 (선택적)
 
 ```java
-package com.ryuqq.authhub.application.{bc}.scheduler;
+package com.ryuqq.application.{bc}.scheduler;
 
-import com.ryuqq.authhub.application.common.port.out.DistributedLockPort;
+import com.ryuqq.application.common.port.out.DistributedLockPort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -565,9 +565,9 @@ class {Bc}RetrySchedulerIntegrationTest {
 ## 6) 테스트 Fixture
 
 ```java
-package com.ryuqq.authhub.fixture.application;
+package com.ryuqq.fixture.application;
 
-import com.ryuqq.authhub.application.{bc}.port.in.command.RetryResult;
+import com.ryuqq.application.{bc}.port.in.command.RetryResult;
 
 /**
  * RetryResult Fixture

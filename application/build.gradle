@@ -23,6 +23,9 @@ dependencies {
     implementation libs.spring.context
     implementation libs.spring.tx
 
+    // Spring Security Crypto (BCrypt)
+    implementation libs.spring.security.crypto
+
     // Validation
     implementation libs.spring.boot.starter.validation
 

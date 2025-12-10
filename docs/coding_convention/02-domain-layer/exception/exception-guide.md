@@ -95,7 +95,7 @@
 **예시: 내부 불변조건 위반 (개발자 오류)**
 
 ```java
-package com.ryuqq.authhub.domain.order.aggregate.order;
+package com.ryuqq.domain.order.aggregate.order;
 
 /**
  * Order Aggregate Root
@@ -158,9 +158,9 @@ public class Order {
 **예시: 클라이언트 입력 검증 (VO)**
 
 ```java
-package com.ryuqq.authhub.domain.order.vo;
+package com.ryuqq.domain.order.vo;
 
-import com.ryuqq.authhub.domain.order.exception.MoneyValidationException;
+import com.ryuqq.domain.order.exception.MoneyValidationException;
 
 /**
  * Money - 금액을 표현하는 Value Object
@@ -198,10 +198,10 @@ public record Money(long amount) {
 **예시: 비즈니스 룰 위반 (Aggregate)**
 
 ```java
-package com.ryuqq.authhub.domain.order.aggregate.order;
+package com.ryuqq.domain.order.aggregate.order;
 
-import com.ryuqq.authhub.domain.order.exception.OrderInvalidStateException;
-import com.ryuqq.authhub.domain.order.exception.OrderCancellationException;
+import com.ryuqq.domain.order.exception.OrderInvalidStateException;
+import com.ryuqq.domain.order.exception.OrderCancellationException;
 
 /**
  * Order Aggregate Root - 비즈니스 메서드
@@ -272,7 +272,7 @@ public class Order {
 **위치**: `domain/common/exception/`
 
 ```java
-package com.ryuqq.authhub.domain.common.exception;
+package com.ryuqq.domain.common.exception;
 
 import java.util.Collections;
 import java.util.Map;
@@ -376,7 +376,7 @@ public class DomainException extends RuntimeException {
 **위치**: `domain/common/exception/`
 
 ```java
-package com.ryuqq.authhub.domain.common.exception;
+package com.ryuqq.domain.common.exception;
 
 /**
  * ErrorCode - 에러 코드 인터페이스
@@ -438,9 +438,9 @@ public interface ErrorCode {
 **템플릿: ErrorCode Enum**
 
 ```java
-package com.ryuqq.authhub.domain.tenant.exception;
+package com.ryuqq.domain.tenant.exception;
 
-import com.ryuqq.authhub.domain.common.exception.ErrorCode;
+import com.ryuqq.domain.common.exception.ErrorCode;
 
 /**
  * TenantErrorCode - Tenant Bounded Context 에러 코드
@@ -550,9 +550,9 @@ public class TenantValidationException extends DomainException {
 **Not Found 예외 템플릿**:
 
 ```java
-package com.ryuqq.authhub.domain.tenant.exception;
+package com.ryuqq.domain.tenant.exception;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -586,9 +586,9 @@ public class TenantNotFoundException extends DomainException {
 **Validation 예외 템플릿**:
 
 ```java
-package com.ryuqq.authhub.domain.order.exception;
+package com.ryuqq.domain.order.exception;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -614,9 +614,9 @@ public class MoneyValidationException extends DomainException {
 **상태 전환 예외 템플릿**:
 
 ```java
-package com.ryuqq.authhub.domain.order.exception;
+package com.ryuqq.domain.order.exception;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -652,9 +652,9 @@ public class OrderInvalidStateException extends DomainException {
 **취소 예외 템플릿**:
 
 ```java
-package com.ryuqq.authhub.domain.order.exception;
+package com.ryuqq.domain.order.exception;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -694,10 +694,10 @@ public class OrderCancellationException extends DomainException {
 **템플릿: UseCase (예외 그냥 전파)**
 
 ```java
-package com.ryuqq.authhub.application.order.usecase;
+package com.ryuqq.application.order.usecase;
 
-import com.ryuqq.authhub.domain.order.aggregate.order.Order;
-import com.ryuqq.authhub.domain.order.exception.OrderNotFoundException;
+import com.ryuqq.domain.order.aggregate.order.Order;
+import com.ryuqq.domain.order.exception.OrderNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -752,9 +752,9 @@ public class CancelOrderService implements CancelOrderUseCase {
 **핵심**: `DomainException.httpStatus()`로 HTTP 상태 코드 직접 획득
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.common;
+package com.ryuqq.adapter.in.rest.common;
 
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -812,7 +812,7 @@ public class GlobalExceptionHandler {
 ### 7-2) ErrorResponse DTO
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.common;
+package com.ryuqq.adapter.in.rest.common;
 
 import java.util.Map;
 

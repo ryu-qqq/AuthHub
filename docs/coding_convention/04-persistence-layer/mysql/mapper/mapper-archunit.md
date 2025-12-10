@@ -60,7 +60,7 @@ dependencies {
 ### MapperArchTest.java
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.architecture.mapper;
+package com.ryuqq.adapter.out.persistence.architecture.mapper;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -100,7 +100,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 @DisplayName("Mapper 아키텍처 규칙 검증 (Zero-Tolerance)")
 class MapperArchTest {
 
-    private static final String BASE_PACKAGE = "com.ryuqq.authhub.adapter.out.persistence";
+    private static final String BASE_PACKAGE = "com.ryuqq.adapter.out.persistence";
 
     private static JavaClasses allClasses;
     private static JavaClasses mapperClasses;
@@ -447,7 +447,7 @@ MapperArchTest$ComponentRules > 규칙 1-1: Mapper는 @Component 어노테이션
     com.tngtech.archunit.lang.ArchRule$AssertionError:
     Architecture Violation [Priority: MEDIUM] - Rule 'classes that have simple name ending with 'Mapper'
     should be annotated with @Component' was violated (1 times):
-    Class <com.ryuqq.authhub.adapter.out.persistence.order.mapper.OrderJpaEntityMapper>
+    Class <com.ryuqq.adapter.out.persistence.order.mapper.OrderJpaEntityMapper>
     is not annotated with @Component
 ```
 

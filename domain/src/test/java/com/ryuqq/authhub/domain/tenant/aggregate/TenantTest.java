@@ -3,13 +3,15 @@ package com.ryuqq.authhub.domain.tenant.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.authhub.domain.common.Clock;
+import com.ryuqq.authhub.domain.common.util.ClockHolder;
 import com.ryuqq.authhub.domain.tenant.exception.InvalidTenantStateException;
 import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +29,9 @@ import org.junit.jupiter.api.Test;
 class TenantTest {
 
     private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
-    private static final Clock FIXED_CLOCK = () -> FIXED_TIME;
+    private static final ClockHolder FIXED_CLOCK_HOLDER =
+            () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
+    private static final Clock FIXED_CLOCK = FIXED_CLOCK_HOLDER.clock();
 
     @Nested
     @DisplayName("create 팩토리 메서드")
@@ -121,7 +125,7 @@ class TenantTest {
         @Test
         @DisplayName("필수 필드가 null이면 예외 발생")
         void shouldThrowExceptionWhenRequiredFieldIsNull() {
-            TenantId id = TenantId.forNew();
+            TenantId id = TenantId.forNew(UUID.randomUUID());
 
             assertThatThrownBy(
                             () ->

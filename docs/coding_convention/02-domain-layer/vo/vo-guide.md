@@ -881,6 +881,7 @@ Domain Layer의 `common/vo/` 패키지에는 **조회 조건용 공통 VO**들�
 ```
 domain/common/vo/
 ├── LockKey.java           # 분산 락 키 인터페이스
+├── CacheKey.java          # 캐시 키 인터페이스
 ├── DateRange.java         # 날짜 범위
 ├── SortDirection.java     # 정렬 방향 (ASC/DESC)
 ├── SortKey.java           # 정렬 키 인터페이스
@@ -899,6 +900,89 @@ domain/common/vo/
 | `CursorPageRequest` | 커서 기반 페이징 | `of()`, `afterId()`, `fetchSize()` |
 
 **⚠️ 중요**: `DateRange`는 내부적으로 `LocalDate`를 사용하지만, Domain Layer 규칙에 따라 시간 변환 메서드(`startInstant()`, `endInstant()`)는 **`Instant`를 반환**합니다. `LocalDateTime` 사용은 금지됩니다.
+
+### LockKey 구현 (분산 락)
+
+분산 락에 사용되는 키를 정의하는 인터페이스입니다.
+
+```java
+// domain/common/vo/LockKey.java (인터페이스)
+public interface LockKey {
+    String value();
+}
+
+// domain/order/vo/OrderLockKey.java (구현체)
+public record OrderLockKey(Long orderId) implements LockKey {
+
+    private static final String PREFIX = "lock:order:";
+
+    public OrderLockKey {
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("orderId must be positive");
+        }
+    }
+
+    @Override
+    public String value() {
+        return PREFIX + orderId;
+    }
+}
+```
+
+**키 형식 규칙**:
+```
+lock:{domain}:{id}
+lock:{domain}:{entity}:{id}
+lock:{domain}:{entity}:{id}:{sub-entity}:{sub-id}
+```
+
+**예시**: `lock:order:123`, `lock:stock:item:456`
+
+### CacheKey 구현 (캐싱)
+
+Redis 캐시에 사용되는 키를 정의하는 인터페이스입니다.
+
+```java
+// domain/common/vo/CacheKey.java (인터페이스)
+public interface CacheKey {
+    String value();
+}
+
+// domain/product/vo/ProductCacheKey.java (구현체)
+public record ProductCacheKey(Long productId) implements CacheKey {
+
+    private static final String PREFIX = "cache:product:";
+
+    public ProductCacheKey {
+        if (productId == null || productId <= 0) {
+            throw new IllegalArgumentException("productId must be positive");
+        }
+    }
+
+    @Override
+    public String value() {
+        return PREFIX + productId;
+    }
+}
+```
+
+**키 형식 규칙**:
+```
+cache:{domain}:{id}
+cache:{domain}:{entity}:{id}
+cache:{domain}:{entity}:{id}:{sub-entity}:{sub-id}
+```
+
+**예시**: `cache:product:123`, `cache:user:profile:456`
+
+### LockKey vs CacheKey 비교
+
+| 구분 | LockKey | CacheKey |
+|------|---------|----------|
+| 목적 | 분산 락 동시성 제어 | 데이터 캐싱 |
+| 키 접두사 | `lock:` | `cache:` |
+| TTL 특성 | 락 획득 시간 (짧음) | 캐시 만료 시간 (길음) |
+| 사용 Port | `DistributedLockPort` | `CachePort` |
 
 ### SortKey 구현 예시
 

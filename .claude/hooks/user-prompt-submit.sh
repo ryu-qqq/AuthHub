@@ -1,16 +1,45 @@
 #!/bin/bash
 
 # =====================================================
-# User Prompt Submit Hook (Minimal)
-# Purpose: 커맨드 없이 작업 시 경고 + 가이드 주입
+# User Prompt Submit Hook (Enhanced)
+# Purpose:
+#   1. 진행 중인 작업 표시
+#   2. 커맨드 없이 작업 시 경고 + 가이드 주입
 # =====================================================
 
 USER_PROMPT="$1"
 
+# ==================== 진행 중 작업 표시 ====================
+
+# 세션 첫 메시지인지 확인 (간단한 인사 또는 짧은 메시지)
+PROMPT_LENGTH=${#USER_PROMPT}
+if [ "$PROMPT_LENGTH" -lt 50 ]; then
+    # 진행 중인 작업 확인
+    if ls .serena/memories/plan-*.md 1>/dev/null 2>&1; then
+        echo ""
+        echo "🔄 진행 중인 작업:"
+
+        for f in .serena/memories/plan-*.md; do
+            FEATURE=$(basename "$f" | sed 's/plan-//' | sed 's/.md$//')
+
+            # design 존재 여부 확인
+            if [ -f ".serena/memories/design-${FEATURE}.md" ]; then
+                echo "  ✅ ${FEATURE} (설계 완료, 구현 대기)"
+            else
+                echo "  📝 ${FEATURE} (분석 완료, 설계 대기)"
+            fi
+        done
+
+        echo ""
+        echo "💡 이어서 작업하려면: \"{feature} 작업 이어서 해줘\""
+        echo ""
+    fi
+fi
+
 # ==================== 커맨드 감지 ====================
 
 # 정식 워크플로우 커맨드 사용 중이면 통과
-if echo "$USER_PROMPT" | grep -qE "^/(plan|impl|jira-task|jira-register|jira-status|kb-)"; then
+if echo "$USER_PROMPT" | grep -qE "^/(plan|impl|design|verify|status|complete|jira-task|jira-register|jira-status|kb-)"; then
     echo "$USER_PROMPT"
     exit 0
 fi

@@ -38,7 +38,7 @@ bootstrap/bootstrap-web-api/src/main/resources/
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="com.ryuqq.authhub" level="DEBUG"/>
+    <logger name="com.ryuqq" level="DEBUG"/>
     <logger name="org.hibernate.SQL" level="DEBUG"/>
     <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
 </springProfile>
@@ -101,7 +101,7 @@ bootstrap/bootstrap-web-api/src/main/resources/
         <appender-ref ref="JSON_CONSOLE"/>
     </root>
 
-    <logger name="com.ryuqq.authhub" level="INFO"/>
+    <logger name="com.ryuqq" level="INFO"/>
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
 </springProfile>
@@ -216,7 +216,7 @@ public class RequestIdFilter extends OncePerRequestFilter {
 
 | 패키지 | Development | Production | 설명 |
 |--------|-------------|------------|------|
-| `com.ryuqq.authhub` | DEBUG | INFO | 애플리케이션 코드 |
+| `com.ryuqq` | DEBUG | INFO | 애플리케이션 코드 |
 | `org.springframework` | INFO | WARN | Spring Framework |
 | `org.springframework.web` | INFO | WARN | Spring Web |
 | `org.springframework.security` | INFO | WARN | Spring Security |
@@ -241,7 +241,7 @@ management:
 
 ```bash
 # 런타임 레벨 변경
-curl -X POST http://localhost:8080/actuator/loggers/com.ryuqq.authhub \
+curl -X POST http://localhost:8080/actuator/loggers/com.ryuqq \
   -H "Content-Type: application/json" \
   -d '{"configuredLevel": "DEBUG"}'
 ```

@@ -1,0 +1,73 @@
+= AuthHub API Documentation
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 3
+:sectlinks:
+:sectnums:
+
+[[overview]]
+== Overview
+
+AuthHub REST API 문서입니다.
+
+=== Base URL
+
+[cols="1,3"]
+|===
+| Environment | URL
+
+| Development
+| `http://localhost:8080`
+
+| Production
+| `https://api.authhub.com`
+|===
+
+=== 공통 응답 형식
+
+모든 API 응답은 다음 형식을 따릅니다.
+
+[source,json]
+----
+{
+    "result": "SUCCESS",
+    "data": { ... },
+    "message": null
+}
+----
+
+=== 에러 응답 형식
+
+[source,json]
+----
+{
+    "result": "FAIL",
+    "data": null,
+    "message": "에러 메시지",
+    "errors": [
+        {
+            "field": "필드명",
+            "message": "필드 에러 메시지"
+        }
+    ]
+}
+----
+
+[[api-v1]]
+== API V1
+
+include::v1/auth/auth.adoc[]
+
+include::v1/tenant/tenant.adoc[]
+
+include::v1/organization/organization.adoc[]
+
+include::v1/user/user.adoc[]
+
+include::v1/role/role.adoc[]
+
+include::v1/permission/permission.adoc[]
+
+include::v1/endpoint-permission/endpoint-permission.adoc[]

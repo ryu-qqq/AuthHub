@@ -64,7 +64,7 @@ dependencies {
     // ========================================
     // Database
     // ========================================
-    runtimeOnly libs.postgresql
+    runtimeOnly libs.mysql.connector
 
     // ========================================
     // AWS SDK (from adapters)

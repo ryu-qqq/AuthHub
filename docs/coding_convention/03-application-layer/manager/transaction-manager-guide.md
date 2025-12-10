@@ -88,10 +88,10 @@ application/{bc}/
 ## 4) 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.{bc}.manager;
+package com.ryuqq.application.{bc}.manager;
 
-import com.ryuqq.authhub.application.{bc}.port.out.{Bc}PersistencePort;
-import com.ryuqq.authhub.domain.{bc}.{Bc};
+import com.ryuqq.application.{bc}.port.out.{Bc}PersistencePort;
+import com.ryuqq.domain.{bc}.{Bc};
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,10 +133,10 @@ public class {Bc}TransactionManager {
 ### OrderTransactionManager
 
 ```java
-package com.ryuqq.authhub.application.order.manager;
+package com.ryuqq.application.order.manager;
 
-import com.ryuqq.authhub.application.order.port.out.OrderPersistencePort;
-import com.ryuqq.authhub.domain.order.Order;
+import com.ryuqq.application.order.port.out.OrderPersistencePort;
+import com.ryuqq.domain.order.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -170,10 +170,10 @@ public class OrderTransactionManager {
 ### OutboxTransactionManager
 
 ```java
-package com.ryuqq.authhub.application.outbox.manager;
+package com.ryuqq.application.outbox.manager;
 
-import com.ryuqq.authhub.application.outbox.port.out.OutboxPersistencePort;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.application.outbox.port.out.OutboxPersistencePort;
+import com.ryuqq.domain.outbox.OutboxEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -210,12 +210,12 @@ public class OutboxTransactionManager {
 ## 6) Facade (여러 Manager 조합)
 
 ```java
-package com.ryuqq.authhub.application.order.facade;
+package com.ryuqq.application.order.facade;
 
-import com.ryuqq.authhub.application.order.manager.OrderTransactionManager;
-import com.ryuqq.authhub.application.outbox.manager.OutboxTransactionManager;
-import com.ryuqq.authhub.domain.order.Order;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.application.order.manager.OrderTransactionManager;
+import com.ryuqq.application.outbox.manager.OutboxTransactionManager;
+import com.ryuqq.domain.order.Order;
+import com.ryuqq.domain.outbox.OutboxEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -265,14 +265,14 @@ public class OrderFacade {
 ### Option 1: Transaction Manager 직접 사용
 
 ```java
-package com.ryuqq.authhub.order.application.service;
+package com.ryuqq.order.application.service;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.command.CreateOrderCommand;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.manager.OrderTransactionManager;
-import com.ryuqq.authhub.application.order.port.in.command.CreateOrderUseCase;
-import com.ryuqq.authhub.domain.order.Order;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.command.CreateOrderCommand;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.manager.OrderTransactionManager;
+import com.ryuqq.application.order.port.in.command.CreateOrderUseCase;
+import com.ryuqq.domain.order.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -317,14 +317,14 @@ public class CreateOrderService implements CreateOrderUseCase {
 ### Option 2: Facade 사용
 
 ```java
-package com.ryuqq.authhub.order.application.service;
+package com.ryuqq.order.application.service;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.command.CreateOrderCommand;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.facade.OrderFacade;
-import com.ryuqq.authhub.application.order.port.in.command.CreateOrderUseCase;
-import com.ryuqq.authhub.domain.order.Order;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.command.CreateOrderCommand;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.facade.OrderFacade;
+import com.ryuqq.application.order.port.in.command.CreateOrderUseCase;
+import com.ryuqq.domain.order.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -369,12 +369,12 @@ public class CreateOrderWithEventService implements CreateOrderUseCase {
 ### Option 3: 상태 변경 UseCase
 
 ```java
-package com.ryuqq.authhub.outbox.application.service;
+package com.ryuqq.outbox.application.service;
 
-import com.ryuqq.authhub.application.outbox.manager.OutboxTransactionManager;
-import com.ryuqq.authhub.application.outbox.port.in.command.MarkOutboxSentUseCase;
-import com.ryuqq.authhub.application.outbox.port.out.OutboxQueryPort;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.application.outbox.manager.OutboxTransactionManager;
+import com.ryuqq.application.outbox.port.in.command.MarkOutboxSentUseCase;
+import com.ryuqq.application.outbox.port.out.OutboxQueryPort;
+import com.ryuqq.domain.outbox.OutboxEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

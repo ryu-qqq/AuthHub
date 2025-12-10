@@ -52,10 +52,10 @@ Domain Layer에 정의된 **조회 조건 객체**입니다.
 
 ```java
 // domain/{bc}/criteria/OrderSearchCriteria.java
-package com.ryuqq.authhub.domain.order.criteria;
+package com.ryuqq.domain.order.criteria;
 
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.vo.OrderStatus;
 
 import java.time.LocalDate;
 
@@ -130,15 +130,15 @@ public record OrderSearchCriteria(
 ### 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.order.factory.query;
+package com.ryuqq.application.order.factory.query;
 
-import com.ryuqq.authhub.application.order.dto.query.OrderDetailQuery;
-import com.ryuqq.authhub.application.order.dto.query.OrderSearchQuery;
-import com.ryuqq.authhub.domain.order.criteria.OrderDetailCriteria;
-import com.ryuqq.authhub.domain.order.criteria.OrderSearchCriteria;
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
+import com.ryuqq.application.order.dto.query.OrderDetailQuery;
+import com.ryuqq.application.order.dto.query.OrderSearchQuery;
+import com.ryuqq.domain.order.criteria.OrderDetailCriteria;
+import com.ryuqq.domain.order.criteria.OrderSearchCriteria;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.order.vo.OrderStatus;
 import org.springframework.stereotype.Component;
 
 /**

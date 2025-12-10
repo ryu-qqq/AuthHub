@@ -58,7 +58,7 @@ testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
 ### 테스트 클래스 기본 구조
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.architecture;
+package com.ryuqq.adapter.in.rest.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -98,7 +98,7 @@ class ErrorHandlingArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.adapter.in.rest");
+            .importPackages("com.ryuqq.adapter.in.rest");
     }
 
     // 테스트 메서드들...
@@ -542,7 +542,7 @@ public class OrderApiErrorMapper implements ErrorMapper {
 ### ❌ Bad: ErrorMapper가 잘못된 패키지에 위치
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.controller;  // ❌ 잘못된 패키지
+package com.ryuqq.adapter.in.rest.order.controller;  // ❌ 잘못된 패키지
 
 @Component
 public class OrderApiErrorMapper implements ErrorMapper {
@@ -553,7 +553,7 @@ public class OrderApiErrorMapper implements ErrorMapper {
 ### ✅ Good: ErrorMapper가 올바른 패키지에 위치
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.error;  // ✅ [bc].error 패키지
+package com.ryuqq.adapter.in.rest.order.error;  // ✅ [bc].error 패키지
 
 @Component
 public class OrderApiErrorMapper implements ErrorMapper {

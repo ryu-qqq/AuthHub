@@ -51,7 +51,7 @@ project/
 │   ├── src/main/java/              (Production 코드)
 │   ├── src/test/java/              (단위 테스트)
 │   └── src/testFixtures/java/      ⭐ Domain Fixture
-│       └── com.ryuqq.authhub/fixture/domain/
+│       └── com/ryuqq/fixture/domain/
 │           ├── OrderFixture.java
 │           ├── ProductFixture.java
 │           └── CustomerFixture.java
@@ -60,7 +60,7 @@ project/
 │   ├── src/main/java/              (Production 코드)
 │   ├── src/test/java/              (단위 테스트)
 │   └── src/testFixtures/java/      ⭐ Application Fixture
-│       └── com.ryuqq.authhub/fixture/application/
+│       └── com/ryuqq/fixture/application/
 │           ├── command/
 │           │   └── PlaceOrderCommandFixture.java
 │           └── response/
@@ -70,14 +70,14 @@ project/
 │   ├── src/main/java/              (Production 코드)
 │   ├── src/test/java/              (단위 테스트)
 │   └── src/testFixtures/java/      ⭐ REST API Fixture (Optional)
-│       └── com.ryuqq.authhub/fixture/adapter/rest/
+│       └── com/ryuqq/fixture/adapter/rest/
 │           └── OrderRequestFixture.java
 │
 └── adapter-out/persistence-mysql/
     ├── src/main/java/              (Production 코드)
     ├── src/test/java/              (단위 테스트)
     └── src/testFixtures/java/      ⭐ Persistence Fixture (Optional)
-        └── com.ryuqq.authhub/fixture/adapter/persistence/
+        └── com/ryuqq/fixture/adapter/persistence/
             └── OrderEntityFixture.java
 ```
 
@@ -238,12 +238,12 @@ dependencies {
 ### domain/src/testFixtures/java/.../OrderFixture.java
 
 ```java
-package com.ryuqq.authhub.fixture.domain;
+package com.ryuqq.fixture.domain;
 
-import com.ryuqq.authhub.domain.order.Order;
-import com.ryuqq.authhub.domain.order.OrderId;
-import com.ryuqq.authhub.domain.order.OrderStatus;
-import com.ryuqq.authhub.domain.order.Money;
+import com.ryuqq.domain.order.Order;
+import com.ryuqq.domain.order.OrderId;
+import com.ryuqq.domain.order.OrderStatus;
+import com.ryuqq.domain.order.Money;
 
 import java.math.BigDecimal;
 
@@ -307,9 +307,9 @@ public final class OrderFixture {
 ### application/src/testFixtures/java/.../PlaceOrderCommandFixture.java
 
 ```java
-package com.ryuqq.authhub.fixture.application.command;
+package com.ryuqq.fixture.application.command;
 
-import com.ryuqq.authhub.application.order.dto.command.PlaceOrderCommand;
+import com.ryuqq.application.order.dto.command.PlaceOrderCommand;
 
 import java.math.BigDecimal;
 
@@ -346,12 +346,12 @@ public final class PlaceOrderCommandFixture {
 ### application/src/test/java/.../PlaceOrderServiceTest.java (사용 예시)
 
 ```java
-package com.ryuqq.authhub.application.order.service;
+package com.ryuqq.application.order.service;
 
-import com.ryuqq.authhub.application.order.port.out.OrderPersistencePort;
-import com.ryuqq.authhub.domain.order.Order;
-import com.ryuqq.authhub.fixture.domain.OrderFixture;  // ⭐ Domain Fixture 사용
-import com.ryuqq.authhub.fixture.application.command.PlaceOrderCommandFixture;  // ⭐ Application Fixture 사용
+import com.ryuqq.application.order.port.out.OrderPersistencePort;
+import com.ryuqq.domain.order.Order;
+import com.ryuqq.fixture.domain.OrderFixture;  // ⭐ Domain Fixture 사용
+import com.ryuqq.fixture.application.command.PlaceOrderCommandFixture;  // ⭐ Application Fixture 사용
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -459,7 +459,7 @@ public final class OrderFixture {
 Test Fixtures 구현 시:
 - [ ] `java-test-fixtures` 플러그인 추가 (`build.gradle`)
 - [ ] `src/testFixtures/java/` 디렉토리 생성
-- [ ] 패키지 구조: `com.ryuqq.authhub.fixture.{layer}/`
+- [ ] 패키지 구조: `com.ryuqq.fixture.{layer}/`
 - [ ] 의존성 설정: `testFixturesApi`, `testFixtures(project(':...'))`
 - [ ] Fixture 클래스: `final` + `private 생성자` + `static 메서드`
 - [ ] 헥사고날 의존성 규칙 준수

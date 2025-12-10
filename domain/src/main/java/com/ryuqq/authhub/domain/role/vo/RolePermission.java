@@ -2,7 +2,6 @@ package com.ryuqq.authhub.domain.role.vo;
 
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
-
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -13,6 +12,7 @@ import java.util.UUID;
  * <p>Long FK 전략을 따라 JPA 관계 어노테이션 없이 ID만 보관합니다.
  *
  * <p><strong>불변 규칙:</strong>
+ *
  * <ul>
  *   <li>모든 필드는 final
  *   <li>Lombok 금지
@@ -55,10 +55,9 @@ public final class RolePermission {
         return new RolePermission(roleId, permissionId, grantedAt);
     }
 
-    /**
-     * RolePermission 재구성 (영속성에서 복원)
-     */
-    public static RolePermission reconstitute(RoleId roleId, PermissionId permissionId, Instant grantedAt) {
+    /** RolePermission 재구성 (영속성에서 복원) */
+    public static RolePermission reconstitute(
+            RoleId roleId, PermissionId permissionId, Instant grantedAt) {
         return new RolePermission(roleId, permissionId, grantedAt);
     }
 
@@ -102,7 +101,12 @@ public final class RolePermission {
 
     @Override
     public String toString() {
-        return "RolePermission{roleId=" + roleId + ", permissionId=" + permissionId
-                + ", grantedAt=" + grantedAt + "}";
+        return "RolePermission{roleId="
+                + roleId
+                + ", permissionId="
+                + permissionId
+                + ", grantedAt="
+                + grantedAt
+                + "}";
     }
 }

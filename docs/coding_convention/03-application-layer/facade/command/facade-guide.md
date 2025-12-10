@@ -86,15 +86,15 @@ application/{bc}/
 ### 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.order.facade.command;
+package com.ryuqq.application.order.facade.command;
 
-import com.ryuqq.authhub.application.order.manager.command.OrderTransactionManager;
-import com.ryuqq.authhub.application.order.manager.command.OrderHistoryTransactionManager;
-import com.ryuqq.authhub.application.outbox.manager.command.OutboxTransactionManager;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderHistory;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
-import com.ryuqq.authhub.domain.outbox.OutboxEvent;
+import com.ryuqq.application.order.manager.command.OrderTransactionManager;
+import com.ryuqq.application.order.manager.command.OrderHistoryTransactionManager;
+import com.ryuqq.application.outbox.manager.command.OutboxTransactionManager;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderHistory;
+import com.ryuqq.domain.order.vo.OrderId;
+import com.ryuqq.domain.outbox.OutboxEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

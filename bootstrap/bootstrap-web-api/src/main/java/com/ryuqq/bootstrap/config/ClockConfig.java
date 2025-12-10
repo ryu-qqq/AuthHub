@@ -60,7 +60,7 @@ public class ClockConfig {
      * @since 2025-11-21
      */
     @Bean
-    public ClockHolder clockHolder() {
-        return new SystemClockHolder();
+    public ClockHolder clockHolder(Clock clock) {
+        return new SystemClockHolder(clock);
     }
 }

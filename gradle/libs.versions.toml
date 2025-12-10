@@ -19,7 +19,6 @@ querydsl = "5.1.0"
 hibernate = "6.4.4.Final"
 flyway = "10.10.0"
 mysql = "8.3.0"
-postgresql = "42.7.3"
 h2 = "2.2.224"
 hikaricp = "5.1.0"
 snakeyaml = "2.2"
@@ -120,12 +119,10 @@ querydsl-apt = { module = "com.querydsl:querydsl-apt", version.ref = "querydsl" 
 # Database
 # ========================================
 mysql-connector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql" }
-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-mysql = { module = "org.flywaydb:flyway-mysql", version.ref = "flyway" }
-flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 
 # ========================================
@@ -153,7 +150,6 @@ assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-junit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers" }
 testcontainers-localstack = { module = "org.testcontainers:localstack", version.ref = "testcontainers" }
 testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "testcontainersRedis" }
@@ -229,7 +225,7 @@ testing-spring = [
 
 testcontainers = [
     "testcontainers-junit",
-    "testcontainers-postgresql"
+    "testcontainers-mysql"
 ]
 
 aws-s3 = [

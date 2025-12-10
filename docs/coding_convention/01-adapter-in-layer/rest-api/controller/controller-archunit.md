@@ -44,7 +44,7 @@
 ### 테스트 클래스 기본 구조
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.architecture;
+package com.ryuqq.adapter.in.rest.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -89,7 +89,7 @@ class ControllerArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.adapter.in.rest");
+            .importPackages("com.ryuqq.adapter.in.rest");
     }
 
     /**

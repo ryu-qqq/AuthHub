@@ -30,10 +30,10 @@
 application/
 └─ src/
    ├─ main/java/
-   │  └─ com.ryuqq.authhub/application/{bc}/factory/query/
+   │  └─ com/ryuqq/application/{bc}/factory/query/
    │      └─ {Bc}QueryFactory.java
    └─ test/java/
-      └─ com.ryuqq.authhub/application/{bc}/factory/query/
+      └─ com/ryuqq/application/{bc}/factory/query/
           └─ {Bc}QueryFactoryTest.java
 ```
 
@@ -44,13 +44,13 @@ application/
 ### 기본 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.factory.query;
+package com.ryuqq.application.order.factory.query;
 
-import com.ryuqq.authhub.application.order.dto.query.OrderDetailQuery;
-import com.ryuqq.authhub.application.order.dto.query.OrderSearchQuery;
-import com.ryuqq.authhub.domain.order.criteria.OrderDetailCriteria;
-import com.ryuqq.authhub.domain.order.criteria.OrderSearchCriteria;
-import com.ryuqq.authhub.domain.order.vo.OrderStatus;
+import com.ryuqq.application.order.dto.query.OrderDetailQuery;
+import com.ryuqq.application.order.dto.query.OrderSearchQuery;
+import com.ryuqq.domain.order.criteria.OrderDetailCriteria;
+import com.ryuqq.domain.order.criteria.OrderSearchCriteria;
+import com.ryuqq.domain.order.vo.OrderStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -357,7 +357,7 @@ assertThat(repository.findBy(criteria)).hasSize(5);  // ❌
 ### TestFixtures 사용
 
 ```java
-import com.ryuqq.authhub.fixture.application.OrderSearchQueryFixture;
+import com.ryuqq.fixture.application.OrderSearchQueryFixture;
 
 @DisplayName("OrderQueryFactory 단위 테스트")
 class OrderQueryFactoryTest {
@@ -404,7 +404,7 @@ class OrderQueryFactoryTest {
 ### Fixture 정의
 
 ```java
-// application/src/testFixtures/java/com.ryuqq.authhub/fixture/application/OrderSearchQueryFixture.java
+// application/src/testFixtures/java/com/ryuqq/fixture/application/OrderSearchQueryFixture.java
 public final class OrderSearchQueryFixture {
 
     private OrderSearchQueryFixture() {}

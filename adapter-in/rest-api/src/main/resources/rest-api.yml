@@ -9,49 +9,37 @@
 # ===============================================
 
 # ===============================================
+# Security Configuration
+# ===============================================
+# Gateway 인증 및 Cookie 보안 설정
+security:
+  gateway:
+    # Gateway 인증 활성화 여부 (환경별로 오버라이드)
+    enabled: false
+    # Gateway에서 전달하는 사용자 ID 헤더
+    user-id-header: X-User-Id
+    # Gateway에서 전달하는 사용자 역할 헤더
+    user-roles-header: X-User-Roles
+    # Gateway에서 전달하는 테넌트 ID 헤더
+    tenant-id-header: X-Tenant-Id
+  cookie:
+    # Cookie secure 속성 (환경별로 오버라이드)
+    secure: false
+    # Cookie httpOnly 속성
+    http-only: true
+    # Cookie same-site 속성
+    same-site: lax
+    # Cookie domain (환경별로 오버라이드)
+    domain: localhost
+    # Cookie 경로
+    path: /
+
+# ===============================================
 # API Endpoint Configuration
 # ===============================================
 # REST API 엔드포인트 경로 중앙 관리
 # @see com.ryuqq.adapter.in.rest.config.properties.ApiEndpointProperties
 api:
-  endpoints:
-    # API v1 베이스 경로
-    base-v1: /api/v1
-
-    # Seller 도메인 엔드포인트
-    seller:
-      base: /sellers
-      by-id: /{id}
-      status: /{id}/status
-
-    # Schedule 도메인 엔드포인트
-    schedule:
-      base: /schedules
-      by-id: /{id}
-
-    # Auth 도메인 엔드포인트
-    auth:
-      base: /auth
-      login: /login
-      refresh: /refresh
-      logout: /logout
-
-    # User 도메인 엔드포인트
-    user:
-      base: /users
-      by-id: /{userId}
-      roles: /{userId}/roles
-      password: /{userId}/password
-      status: /{userId}/status
-
-    # Organization 도메인 엔드포인트
-    organization:
-      base: /organizations
-
-    # Tenant 도메인 엔드포인트
-    tenant:
-      base: /tenants
-
   # 에러 응답 설정 (RFC 7807 Problem Details)
   # @see com.ryuqq.adapter.in.rest.config.properties.ApiErrorProperties
   error:

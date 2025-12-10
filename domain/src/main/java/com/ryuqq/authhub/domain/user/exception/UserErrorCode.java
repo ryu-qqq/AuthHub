@@ -11,10 +11,12 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  * @since 1.0.0
  */
 public enum UserErrorCode implements ErrorCode {
-
     USER_NOT_FOUND("USER-001", 404, "User not found"),
     INVALID_USER_STATE("USER-002", 400, "Invalid user state"),
-    DUPLICATE_USER_IDENTIFIER("USER-003", 409, "User identifier already exists");
+    DUPLICATE_USER_IDENTIFIER("USER-003", 409, "User identifier already exists"),
+    USER_ROLE_NOT_FOUND("USER-004", 404, "User role not found"),
+    DUPLICATE_USER_ROLE("USER-005", 409, "User role already assigned"),
+    INVALID_PASSWORD("USER-006", 400, "Invalid password");
 
     private final String code;
     private final int httpStatus;

@@ -66,7 +66,7 @@ application/{bc}/assembler/
 ## 4) 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.{bc}.assembler;
+package com.ryuqq.application.{bc}.assembler;
 
 import org.springframework.stereotype.Component;
 import java.util.List;
@@ -313,12 +313,12 @@ public OrderResponse toResponse(Order order) {
 ### OrderAssembler (업계 표준 패턴)
 
 ```java
-package com.ryuqq.authhub.application.order.assembler;
+package com.ryuqq.application.order.assembler;
 
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
-import com.ryuqq.authhub.domain.order.aggregate.order.Order;
-import com.ryuqq.authhub.domain.order.aggregate.order.OrderLineItem;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.domain.order.aggregate.order.Order;
+import com.ryuqq.domain.order.aggregate.order.OrderLineItem;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

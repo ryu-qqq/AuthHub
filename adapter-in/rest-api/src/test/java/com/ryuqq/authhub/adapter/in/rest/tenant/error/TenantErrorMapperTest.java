@@ -122,7 +122,8 @@ class TenantErrorMapperTest {
             assertThat(result.status()).isEqualTo(HttpStatus.NOT_FOUND);
             assertThat(result.title()).isEqualTo("Tenant Not Found");
             assertThat(result.detail()).isEqualTo("테넌트를 찾을 수 없습니다");
-            assertThat(result.type()).isEqualTo(URI.create("https://authhub.ryuqq.com/errors/tenant-not-found"));
+            assertThat(result.type())
+                    .isEqualTo(URI.create("https://authhub.ryuqq.com/errors/tenant-not-found"));
         }
 
         @Test
@@ -138,7 +139,8 @@ class TenantErrorMapperTest {
             assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
             assertThat(result.title()).isEqualTo("Tenant Name Duplicate");
             assertThat(result.detail()).isEqualTo("테넌트 이름이 중복됩니다");
-            assertThat(result.type()).isEqualTo(URI.create("https://authhub.ryuqq.com/errors/tenant-duplicate"));
+            assertThat(result.type())
+                    .isEqualTo(URI.create("https://authhub.ryuqq.com/errors/tenant-duplicate"));
         }
 
         @Test
@@ -154,7 +156,8 @@ class TenantErrorMapperTest {
             assertThat(result.status()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(result.title()).isEqualTo("Invalid Tenant Name");
             assertThat(result.detail()).isEqualTo("테넌트 이름이 유효하지 않습니다");
-            assertThat(result.type()).isEqualTo(URI.create("https://authhub.ryuqq.com/errors/tenant-invalid-name"));
+            assertThat(result.type())
+                    .isEqualTo(URI.create("https://authhub.ryuqq.com/errors/tenant-invalid-name"));
         }
 
         @Test
@@ -171,7 +174,8 @@ class TenantErrorMapperTest {
             assertThat(result.title()).isEqualTo("Invalid Tenant Status Transition");
             assertThat(result.detail()).isEqualTo("상태 전환이 불가능합니다");
             assertThat(result.type())
-                    .isEqualTo(URI.create("https://authhub.ryuqq.com/errors/tenant-invalid-status"));
+                    .isEqualTo(
+                            URI.create("https://authhub.ryuqq.com/errors/tenant-invalid-status"));
         }
 
         @Test
@@ -187,7 +191,8 @@ class TenantErrorMapperTest {
             assertThat(result.status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(result.title()).isEqualTo("Internal Server Error");
             assertThat(result.detail()).isEqualTo("알 수 없는 에러");
-            assertThat(result.type()).isEqualTo(URI.create("https://authhub.ryuqq.com/errors/internal-error"));
+            assertThat(result.type())
+                    .isEqualTo(URI.create("https://authhub.ryuqq.com/errors/internal-error"));
         }
     }
 }

@@ -213,7 +213,7 @@ class OrderJpaEntityJpaMappingTest {
 ```
 adapter-out/persistence-mysql/
 ├─ src/main/java/
-│  └─ com.ryuqq.authhub/adapter/out/persistence/
+│  └─ com/ryuqq/adapter/out/persistence/
 │      ├─ order/
 │      │  └─ entity/
 │      │      └─ OrderJpaEntity.java
@@ -222,7 +222,7 @@ adapter-out/persistence-mysql/
 │          └─ SoftDeletableEntity.java
 │
 └─ src/test/java/
-   └─ com.ryuqq.authhub/adapter/out/persistence/
+   └─ com/ryuqq/adapter/out/persistence/
        ├─ architecture/entity/
        │  └─ JpaEntityArchTest.java  ⭐ ArchUnit (별도 문서)
        │

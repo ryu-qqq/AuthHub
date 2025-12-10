@@ -51,7 +51,7 @@
 
 ### 기본 설정
 ```java
-@AnalyzeClasses(packages = "com.ryuqq.authhub.adapter.out.persistence")
+@AnalyzeClasses(packages = "com.ryuqq.adapter.out.persistence")
 class LockQueryAdapterArchTest {
 
     private static JavaClasses classes;
@@ -59,7 +59,7 @@ class LockQueryAdapterArchTest {
     @BeforeAll
     static void setup() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.adapter.out.persistence");
+            .importPackages("com.ryuqq.adapter.out.persistence");
     }
 
     private static JavaClasses lockAdapterClasses;

@@ -1,0 +1,33 @@
+# ===============================================
+# REST API Adapter Configuration - Local Environment
+# ===============================================
+# 로컬 개발 환경 전용 설정
+# 공통 설정은 rest-api.yml 참조
+#
+# @author development-team
+# @since 1.0.0
+# ===============================================
+
+# ===============================================
+# Security Configuration Override
+# ===============================================
+security:
+  gateway:
+    # 로컬에서는 Gateway 인증 비활성화 (직접 인증)
+    enabled: false
+  cookie:
+    # 로컬에서는 HTTP 허용
+    secure: false
+    # 로컬 도메인
+    domain: localhost
+
+# ===============================================
+# SpringDoc OpenAPI Configuration Override
+# ===============================================
+springdoc:
+  swagger-ui:
+    # 로컬에서 Swagger UI 활성화
+    enabled: true
+  api-docs:
+    # 로컬에서 API Docs 활성화
+    enabled: true

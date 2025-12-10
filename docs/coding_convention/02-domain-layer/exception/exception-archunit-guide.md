@@ -501,7 +501,7 @@ void domainException_ShouldExtendRuntimeException() {
 
 **✅ 올바른 예시**:
 ```java
-package com.ryuqq.authhub.domain.common.exception;
+package com.ryuqq.domain.common.exception;
 
 public abstract class DomainException extends RuntimeException {
 
@@ -826,8 +826,8 @@ WrongOrderException             // ❌ 패턴에 맞지 않음
 java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] -
 Rule 'classes that reside in a package '..domain..exception..'
 and have simple name ending with 'ErrorCode' and are enums
-should implement com.ryuqq.authhub.domain.common.exception.ErrorCode' was violated (1 times):
-Class <com.ryuqq.authhub.domain.order.exception.OrderErrorCode> does not implement interface com.ryuqq.authhub.domain.common.exception.ErrorCode in (OrderErrorCode.java:0)
+should implement com.ryuqq.domain.common.exception.ErrorCode' was violated (1 times):
+Class <com.ryuqq.domain.order.exception.OrderErrorCode> does not implement interface com.ryuqq.domain.common.exception.ErrorCode in (OrderErrorCode.java:0)
 ```
 
 **조치 방법**:
@@ -871,8 +871,8 @@ public enum OrderErrorCode implements ErrorCode {  // ✅ ErrorCode 인터페이
 java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] -
 Rule 'classes that reside in a package '..domain..exception..'
 and have simple name ending with 'Exception' and do not have simple name 'DomainException'
-should be assignable to com.ryuqq.authhub.domain.common.exception.DomainException' was violated (1 times):
-Class <com.ryuqq.authhub.domain.order.exception.OrderNotFoundException> is not assignable to com.ryuqq.authhub.domain.common.exception.DomainException in (OrderNotFoundException.java:0)
+should be assignable to com.ryuqq.domain.common.exception.DomainException' was violated (1 times):
+Class <com.ryuqq.domain.order.exception.OrderNotFoundException> is not assignable to com.ryuqq.domain.common.exception.DomainException in (OrderNotFoundException.java:0)
 ```
 
 **조치 방법**:
@@ -909,7 +909,7 @@ public class OrderNotFoundException extends DomainException {  // ✅ DomainExce
 java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] -
 Rule 'no classes that reside in a package '..domain..exception..'
 should be annotated with @lombok.Getter' was violated (1 times):
-Class <com.ryuqq.authhub.domain.order.exception.OrderNotFoundException> is annotated with @Getter in (OrderNotFoundException.java:5)
+Class <com.ryuqq.domain.order.exception.OrderNotFoundException> is annotated with @Getter in (OrderNotFoundException.java:5)
 ```
 
 **조치 방법**:
@@ -945,7 +945,7 @@ public class OrderNotFoundException extends DomainException {
 java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] -
 Rule 'no classes that reside in a package '..domain..exception..'
 should depend on classes that reside in any package ['..application..', '..adapter..']' was violated (1 times):
-Class <com.ryuqq.authhub.domain.order.exception.OrderNotFoundException> depends on class <com.ryuqq.authhub.application.order.port.in.OrderUseCase> in (OrderNotFoundException.java:10)
+Class <com.ryuqq.domain.order.exception.OrderNotFoundException> depends on class <com.ryuqq.application.order.port.in.OrderUseCase> in (OrderNotFoundException.java:10)
 ```
 
 **조치 방법**:

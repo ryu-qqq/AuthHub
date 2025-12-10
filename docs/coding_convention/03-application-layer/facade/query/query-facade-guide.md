@@ -86,18 +86,18 @@ application/{bc}/
 ### 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.order.facade.query;
+package com.ryuqq.application.order.facade.query;
 
-import com.ryuqq.authhub.application.order.dto.bundle.OrderDetailQueryBundle;
-import com.ryuqq.authhub.application.order.manager.query.OrderReadManager;
-import com.ryuqq.authhub.application.order.manager.query.OrderItemReadManager;
-import com.ryuqq.authhub.application.customer.manager.query.CustomerReadManager;
-import com.ryuqq.authhub.application.shipping.manager.query.ShippingReadManager;
-import com.ryuqq.authhub.domain.customer.aggregate.Customer;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderItem;
-import com.ryuqq.authhub.domain.order.criteria.OrderDetailCriteria;
-import com.ryuqq.authhub.domain.shipping.aggregate.ShippingInfo;
+import com.ryuqq.application.order.dto.bundle.OrderDetailQueryBundle;
+import com.ryuqq.application.order.manager.query.OrderReadManager;
+import com.ryuqq.application.order.manager.query.OrderItemReadManager;
+import com.ryuqq.application.customer.manager.query.CustomerReadManager;
+import com.ryuqq.application.shipping.manager.query.ShippingReadManager;
+import com.ryuqq.domain.customer.aggregate.Customer;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderItem;
+import com.ryuqq.domain.order.criteria.OrderDetailCriteria;
+import com.ryuqq.domain.shipping.aggregate.ShippingInfo;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

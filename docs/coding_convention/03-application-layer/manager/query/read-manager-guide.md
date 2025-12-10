@@ -63,13 +63,13 @@ application/{bc}/
 ### 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.order.manager.query;
+package com.ryuqq.application.order.manager.query;
 
-import com.ryuqq.authhub.application.port.out.query.OrderQueryPort;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.criteria.OrderSearchCriteria;
-import com.ryuqq.authhub.domain.order.vo.CustomerId;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.port.out.query.OrderQueryPort;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.criteria.OrderSearchCriteria;
+import com.ryuqq.domain.order.vo.CustomerId;
+import com.ryuqq.domain.order.vo.OrderId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

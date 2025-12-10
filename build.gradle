@@ -117,6 +117,11 @@ subprojects {
         }
     }
 
+    // Disable PMD for test sources (테스트 코드는 도메인 규칙 적용 제외)
+    tasks.matching { it.name == 'pmdTest' || it.name == 'pmdTestFixtures' }.configureEach {
+        enabled = false
+    }
+
     // ========================================
     // Spotless Configuration
     // ========================================

@@ -83,10 +83,10 @@ application/{bc}/
 ## 4) 기본 구조
 
 ```java
-package com.ryuqq.authhub.application.{bc}.scheduler;
+package com.ryuqq.application.{bc}.scheduler;
 
-import com.ryuqq.authhub.application.{bc}.port.in.command.Retry{Bc}UseCase;
-import com.ryuqq.authhub.application.common.port.out.DistributedLockPort;
+import com.ryuqq.application.{bc}.port.in.command.Retry{Bc}UseCase;
+import com.ryuqq.application.common.port.out.DistributedLockPort;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
@@ -226,7 +226,7 @@ public class {Bc}RetryScheduler {
 ### Port-In Interface
 
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.command;
+package com.ryuqq.application.{bc}.port.in.command;
 
 /**
  * {Bc} Retry UseCase
@@ -250,15 +250,15 @@ public interface Retry{Bc}UseCase {
 ### Service 구현체
 
 ```java
-package com.ryuqq.authhub.application.{bc}.service.command;
+package com.ryuqq.application.{bc}.service.command;
 
-import com.ryuqq.authhub.application.{bc}.assembler.{Bc}Assembler;
-import com.ryuqq.authhub.application.{bc}.manager.command.{Bc}OutboxTransactionManager;
-import com.ryuqq.authhub.application.{bc}.manager.query.{Bc}OutboxReadManager;
-import com.ryuqq.authhub.application.{bc}.port.in.command.Retry{Bc}UseCase;
-import com.ryuqq.authhub.application.{bc}.port.in.command.RetryResult;
-import com.ryuqq.authhub.application.{bc}.port.out.{Bc}PublishPort;
-import com.ryuqq.authhub.domain.{bc}.{Bc}Outbox;
+import com.ryuqq.application.{bc}.assembler.{Bc}Assembler;
+import com.ryuqq.application.{bc}.manager.command.{Bc}OutboxTransactionManager;
+import com.ryuqq.application.{bc}.manager.query.{Bc}OutboxReadManager;
+import com.ryuqq.application.{bc}.port.in.command.Retry{Bc}UseCase;
+import com.ryuqq.application.{bc}.port.in.command.RetryResult;
+import com.ryuqq.application.{bc}.port.out.{Bc}PublishPort;
+import com.ryuqq.domain.{bc}.{Bc}Outbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -356,7 +356,7 @@ public class Retry{Bc}Service implements Retry{Bc}UseCase {
 ### RetryResult Record
 
 ```java
-package com.ryuqq.authhub.application.{bc}.port.in.command;
+package com.ryuqq.application.{bc}.port.in.command;
 
 /**
  * Retry 작업 결과
@@ -385,7 +385,7 @@ public record RetryResult(
 ### Port Interface
 
 ```java
-package com.ryuqq.authhub.application.common.port.out;
+package com.ryuqq.application.common.port.out;
 
 /**
  * Distributed Lock Port
@@ -508,7 +508,7 @@ scheduler:
 ### SchedulerConfig
 
 ```java
-package com.ryuqq.authhub.bootstrap.config;
+package com.ryuqq.bootstrap.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -545,7 +545,7 @@ bootstrap/
 ```
 bootstrap-scheduler/
 ├─ src/main/java/
-│  └─ com.ryuqq.authhub/bootstrap/scheduler/
+│  └─ com/ryuqq/bootstrap/scheduler/
 │      └─ SchedulerApplication.java
 ├─ src/main/resources/
 │  └─ application.yml
@@ -556,7 +556,7 @@ bootstrap-scheduler/
 ### SchedulerApplication
 
 ```java
-package com.ryuqq.authhub.bootstrap.scheduler;
+package com.ryuqq.bootstrap.scheduler;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -571,7 +571,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @author development-team
  * @since 1.0.0
  */
-@SpringBootApplication(scanBasePackages = "com.ryuqq.authhub")
+@SpringBootApplication(scanBasePackages = "com.ryuqq")
 @EnableScheduling
 public class SchedulerApplication {
 

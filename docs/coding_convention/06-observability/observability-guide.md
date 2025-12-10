@@ -271,7 +271,7 @@ public class BusinessMetrics {
 | `http.method` | HTTP 메서드 (GET, POST 등) |
 | `http.status_code` | HTTP 응답 코드 |
 | `http.route` | 요청 경로 |
-| `db.system` | DB 시스템 (mysql, postgresql) |
+| `db.system` | DB 시스템 (mysql, mysql) |
 | `db.name` | 데이터베이스명 |
 | `rpc.service` | gRPC 서비스명 |
 

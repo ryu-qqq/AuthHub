@@ -104,16 +104,16 @@ Assembler.toResponse(Domain) → Response
 ### 복잡한 Query Service
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderDetailQueryBundle;
-import com.ryuqq.authhub.application.order.dto.query.OrderDetailQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
-import com.ryuqq.authhub.application.order.facade.query.OrderQueryFacade;
-import com.ryuqq.authhub.application.order.factory.query.OrderQueryFactory;
-import com.ryuqq.authhub.application.port.in.query.GetOrderDetailUseCase;
-import com.ryuqq.authhub.domain.order.criteria.OrderDetailCriteria;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.bundle.OrderDetailQueryBundle;
+import com.ryuqq.application.order.dto.query.OrderDetailQuery;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.application.order.facade.query.OrderQueryFacade;
+import com.ryuqq.application.order.factory.query.OrderQueryFactory;
+import com.ryuqq.application.port.in.query.GetOrderDetailUseCase;
+import com.ryuqq.domain.order.criteria.OrderDetailCriteria;
 import org.springframework.stereotype.Service;
 
 /**
@@ -154,16 +154,16 @@ public class GetOrderDetailService implements GetOrderDetailUseCase {
 ### 단순 Query Service
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.query.OrderSearchQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderListResponse;
-import com.ryuqq.authhub.application.order.factory.query.OrderQueryFactory;
-import com.ryuqq.authhub.application.order.manager.query.OrderReadManager;
-import com.ryuqq.authhub.application.port.in.query.SearchOrdersUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.criteria.OrderSearchCriteria;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.query.OrderSearchQuery;
+import com.ryuqq.application.order.dto.response.OrderListResponse;
+import com.ryuqq.application.order.factory.query.OrderQueryFactory;
+import com.ryuqq.application.order.manager.query.OrderReadManager;
+import com.ryuqq.application.port.in.query.SearchOrdersUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.criteria.OrderSearchCriteria;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -206,14 +206,14 @@ public class SearchOrdersService implements SearchOrdersUseCase {
 ### ID로 단순 조회 Service
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.manager.query.OrderReadManager;
-import com.ryuqq.authhub.application.port.in.query.GetOrderByIdUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.manager.query.OrderReadManager;
+import com.ryuqq.application.port.in.query.GetOrderByIdUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
 import org.springframework.stereotype.Service;
 
 /**
@@ -248,16 +248,16 @@ public class GetOrderByIdService implements GetOrderByIdUseCase {
 ### 페이지네이션 Query Service
 
 ```java
-package com.ryuqq.authhub.application.order.service.query;
+package com.ryuqq.application.order.service.query;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.query.OrderPageQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderPageResponse;
-import com.ryuqq.authhub.application.order.factory.query.OrderQueryFactory;
-import com.ryuqq.authhub.application.order.manager.query.OrderReadManager;
-import com.ryuqq.authhub.application.port.in.query.GetOrderPageUseCase;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.criteria.OrderPageCriteria;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.query.OrderPageQuery;
+import com.ryuqq.application.order.dto.response.OrderPageResponse;
+import com.ryuqq.application.order.factory.query.OrderQueryFactory;
+import com.ryuqq.application.order.manager.query.OrderReadManager;
+import com.ryuqq.application.port.in.query.GetOrderPageUseCase;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.criteria.OrderPageCriteria;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

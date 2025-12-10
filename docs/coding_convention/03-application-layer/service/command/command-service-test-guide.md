@@ -30,10 +30,10 @@
 application/
 └─ src/
    ├─ main/java/
-   │  └─ com.ryuqq.authhub/application/{bc}/service/command/
+   │  └─ com/ryuqq/application/{bc}/service/command/
    │      └─ PlaceOrderService.java
    └─ test/java/
-      └─ com.ryuqq.authhub/application/{bc}/service/command/
+      └─ com/ryuqq/application/{bc}/service/command/
           └─ PlaceOrderServiceTest.java
 ```
 
@@ -44,17 +44,17 @@ application/
 ### 복잡한 Command Service 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.service.command;
+package com.ryuqq.application.order.service.command;
 
-import com.ryuqq.authhub.application.common.config.TransactionEventRegistry;
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderPersistBundle;
-import com.ryuqq.authhub.application.order.dto.command.PlaceOrderCommand;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.facade.command.OrderFacade;
-import com.ryuqq.authhub.application.order.factory.command.OrderCommandFactory;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.event.OrderPlacedEvent;
+import com.ryuqq.application.common.config.TransactionEventRegistry;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.bundle.OrderPersistBundle;
+import com.ryuqq.application.order.dto.command.PlaceOrderCommand;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.facade.command.OrderFacade;
+import com.ryuqq.application.order.factory.command.OrderCommandFactory;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.event.OrderPlacedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -186,14 +186,14 @@ class PlaceOrderServiceTest {
 ### 단순 Command Service 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.service.command;
+package com.ryuqq.application.order.service.command;
 
-import com.ryuqq.authhub.application.order.assembler.OrderAssembler;
-import com.ryuqq.authhub.application.order.dto.command.UpdateOrderStatusCommand;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.factory.command.OrderCommandFactory;
-import com.ryuqq.authhub.application.order.manager.command.OrderTransactionManager;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
+import com.ryuqq.application.order.assembler.OrderAssembler;
+import com.ryuqq.application.order.dto.command.UpdateOrderStatusCommand;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.factory.command.OrderCommandFactory;
+import com.ryuqq.application.order.manager.command.OrderTransactionManager;
+import com.ryuqq.domain.order.aggregate.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -259,12 +259,12 @@ class UpdateOrderStatusServiceTest {
 ### void 반환 Command Service 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.service.command;
+package com.ryuqq.application.order.service.command;
 
-import com.ryuqq.authhub.application.order.dto.command.CancelOrderCommand;
-import com.ryuqq.authhub.application.order.manager.command.OrderTransactionManager;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.vo.OrderId;
+import com.ryuqq.application.order.dto.command.CancelOrderCommand;
+import com.ryuqq.application.order.manager.command.OrderTransactionManager;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.vo.OrderId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -394,9 +394,9 @@ assertThat(orderRepository.findById(id)).isPresent();  // ❌
 ### TestFixtures 사용
 
 ```java
-import com.ryuqq.authhub.fixture.application.PlaceOrderCommandFixture;
-import com.ryuqq.authhub.fixture.application.OrderPersistBundleFixture;
-import com.ryuqq.authhub.fixture.domain.OrderFixture;
+import com.ryuqq.fixture.application.PlaceOrderCommandFixture;
+import com.ryuqq.fixture.application.OrderPersistBundleFixture;
+import com.ryuqq.fixture.domain.OrderFixture;
 
 @DisplayName("PlaceOrderService 단위 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -415,7 +415,7 @@ class PlaceOrderServiceTest {
 ### Fixture 정의
 
 ```java
-// application/src/testFixtures/java/com.ryuqq.authhub/fixture/application/PlaceOrderCommandFixture.java
+// application/src/testFixtures/java/com/ryuqq/fixture/application/PlaceOrderCommandFixture.java
 public final class PlaceOrderCommandFixture {
 
     private PlaceOrderCommandFixture() {}

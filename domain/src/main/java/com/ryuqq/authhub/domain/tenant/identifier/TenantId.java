@@ -1,6 +1,5 @@
 package com.ryuqq.authhub.domain.tenant.identifier;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -18,6 +17,8 @@ import java.util.UUID;
  *   <li>외부 노출 시 보안 강화 (순차 증가하지 않음)
  * </ul>
  *
+ * <p><strong>UUID 생성 책임</strong>: Application Layer (UuidHolder 인터페이스 통해 주입)
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -33,16 +34,17 @@ public final class TenantId {
     }
 
     /**
-     * 새로운 UUIDv7 기반 TenantId 생성
+     * 새로운 TenantId 생성 (Application Layer에서 UUID 생성 후 전달)
      *
+     * @param uuid Application Layer에서 생성된 UUIDv7
      * @return 새로운 TenantId 인스턴스
      */
-    public static TenantId forNew() {
-        return new TenantId(UuidCreator.getTimeOrderedEpoch());
+    public static TenantId forNew(UUID uuid) {
+        return new TenantId(uuid);
     }
 
     /**
-     * 기존 UUID로 TenantId 생성
+     * 기존 UUID로 TenantId 생성 (DB 조회 시 사용)
      *
      * @param value UUID 값
      * @return TenantId 인스턴스

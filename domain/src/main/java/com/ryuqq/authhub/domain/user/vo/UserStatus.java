@@ -7,7 +7,6 @@ package com.ryuqq.authhub.domain.user.vo;
  * @since 1.0.0
  */
 public enum UserStatus {
-
     ACTIVE("활성"),
     INACTIVE("비활성"),
     LOCKED("잠금"),

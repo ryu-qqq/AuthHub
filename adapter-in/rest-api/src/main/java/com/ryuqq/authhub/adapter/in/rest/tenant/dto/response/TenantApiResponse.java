@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.tenant.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
 /**
@@ -19,5 +20,10 @@ import java.time.Instant;
  * @author development-team
  * @since 1.0.0
  */
+@Schema(description = "테넌트 응답")
 public record TenantApiResponse(
-        String tenantId, String name, String status, Instant createdAt, Instant updatedAt) {}
+        @Schema(description = "테넌트 ID") String tenantId,
+        @Schema(description = "테넌트 이름") String name,
+        @Schema(description = "테넌트 상태") String status,
+        @Schema(description = "생성 일시") Instant createdAt,
+        @Schema(description = "수정 일시") Instant updatedAt) {}

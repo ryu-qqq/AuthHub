@@ -6,7 +6,6 @@ import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

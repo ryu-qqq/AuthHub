@@ -212,7 +212,7 @@ spring:
 
 logging:
   level:
-    com.ryuqq.authhub: DEBUG
+    com.ryuqq: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
 ```
@@ -285,7 +285,7 @@ spring:
 
 logging:
   level:
-    com.ryuqq.authhub: INFO
+    com.ryuqq: INFO
     org.hibernate.SQL: WARN
 ```
 

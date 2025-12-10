@@ -91,11 +91,11 @@ CQRS 원칙에 따라 Command/Query를 분리하고, 각 역할에 맞는 Reposi
 ### 1. JpaRepository (Command 전용)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.repository;
+package com.ryuqq.adapter.out.persistence.order.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.OrderJpaEntity;
+import com.ryuqq.adapter.out.persistence.order.entity.OrderJpaEntity;
 
 /**
  * OrderRepository - Order JPA Repository
@@ -119,7 +119,7 @@ public interface OrderRepository extends JpaRepository<OrderJpaEntity, Long> {
 ### 2. QueryDslRepository (Query 전용 - 4개 메서드)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.repository;
+package com.ryuqq.adapter.out.persistence.order.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -130,9 +130,9 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.OrderJpaEntity;
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.QOrderJpaEntity;
-import com.ryuqq.authhub.application.order.dto.query.SearchOrderQuery;
+import com.ryuqq.adapter.out.persistence.order.entity.OrderJpaEntity;
+import com.ryuqq.adapter.out.persistence.order.entity.QOrderJpaEntity;
+import com.ryuqq.application.order.dto.query.SearchOrderQuery;
 
 /**
  * OrderQueryDslRepository - Order QueryDSL Repository
@@ -249,7 +249,7 @@ public class OrderQueryDslRepository {
 ### 3. AdminQueryDslRepository (관리자 전용 - Join 허용)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.repository;
+package com.ryuqq.adapter.out.persistence.order.repository;
 
 import java.util.List;
 
@@ -259,10 +259,10 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.QOrderJpaEntity;
-import com.ryuqq.authhub.adapter.out.persistence.member.entity.QMemberJpaEntity;
-import com.ryuqq.authhub.application.order.dto.query.AdminOrderListQuery;
-import com.ryuqq.authhub.application.order.dto.response.AdminOrderResponse;
+import com.ryuqq.adapter.out.persistence.order.entity.QOrderJpaEntity;
+import com.ryuqq.adapter.out.persistence.member.entity.QMemberJpaEntity;
+import com.ryuqq.application.order.dto.query.AdminOrderListQuery;
+import com.ryuqq.application.order.dto.response.AdminOrderResponse;
 
 /**
  * OrderAdminQueryDslRepository - 관리자 전용 QueryDSL Repository
@@ -340,7 +340,7 @@ public class OrderAdminQueryDslRepository {
 ### 4. LockRepository (동시성 제어 전용)
 
 ```java
-package com.ryuqq.authhub.adapter.out.persistence.order.repository;
+package com.ryuqq.adapter.out.persistence.order.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -350,8 +350,8 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.LockModeType;
 
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.OrderJpaEntity;
-import com.ryuqq.authhub.adapter.out.persistence.order.entity.QOrderJpaEntity;
+import com.ryuqq.adapter.out.persistence.order.entity.OrderJpaEntity;
+import com.ryuqq.adapter.out.persistence.order.entity.QOrderJpaEntity;
 
 /**
  * OrderLockRepository - Order Lock 전용 Repository
@@ -495,7 +495,7 @@ public class OrderQueryUseCase {
 ```
 adapter-out/persistence-mysql/
 └── src/main/java/
-    └── com.ryuqq.authhub/adapter/out/persistence/
+    └── com/ryuqq/adapter/out/persistence/
         └── order/
             ├── entity/
             │   └── OrderJpaEntity.java

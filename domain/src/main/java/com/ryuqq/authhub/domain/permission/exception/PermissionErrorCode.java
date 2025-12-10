@@ -11,7 +11,6 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  * @since 1.0.0
  */
 public enum PermissionErrorCode implements ErrorCode {
-
     PERMISSION_NOT_FOUND("PERMISSION-001", 404, "Permission not found"),
     DUPLICATE_PERMISSION_KEY("PERMISSION-002", 409, "Permission key already exists"),
     SYSTEM_PERMISSION_NOT_MODIFIABLE("PERMISSION-003", 400, "System permission cannot be modified"),

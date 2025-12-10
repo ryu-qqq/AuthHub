@@ -30,10 +30,10 @@
 application/
 └─ src/
    ├─ main/java/
-   │  └─ com.ryuqq.authhub/application/{bc}/factory/command/
+   │  └─ com/ryuqq/application/{bc}/factory/command/
    │      └─ {Bc}CommandFactory.java
    └─ test/java/
-      └─ com.ryuqq.authhub/application/{bc}/factory/command/
+      └─ com/ryuqq/application/{bc}/factory/command/
           └─ {Bc}CommandFactoryTest.java
 ```
 
@@ -44,13 +44,13 @@ application/
 ### 기본 테스트
 
 ```java
-package com.ryuqq.authhub.application.order.factory.command;
+package com.ryuqq.application.order.factory.command;
 
-import com.ryuqq.authhub.application.order.dto.command.PlaceOrderCommand;
-import com.ryuqq.authhub.application.order.dto.command.OrderItemCommand;
-import com.ryuqq.authhub.application.order.dto.bundle.OrderPersistBundle;
-import com.ryuqq.authhub.domain.order.aggregate.Order;
-import com.ryuqq.authhub.domain.order.aggregate.OrderItem;
+import com.ryuqq.application.order.dto.command.PlaceOrderCommand;
+import com.ryuqq.application.order.dto.command.OrderItemCommand;
+import com.ryuqq.application.order.dto.bundle.OrderPersistBundle;
+import com.ryuqq.domain.order.aggregate.Order;
+import com.ryuqq.domain.order.aggregate.OrderItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -324,7 +324,7 @@ class OrderCommandFactoryTest { ... }  // ❌ 단위 테스트로 충분
 ### TestFixtures 사용
 
 ```java
-import com.ryuqq.authhub.fixture.application.PlaceOrderCommandFixture;
+import com.ryuqq.fixture.application.PlaceOrderCommandFixture;
 
 @DisplayName("OrderCommandFactory 단위 테스트")
 class OrderCommandFactoryTest {
@@ -371,7 +371,7 @@ class OrderCommandFactoryTest {
 ### Fixture 정의
 
 ```java
-// application/src/testFixtures/java/com.ryuqq.authhub/fixture/application/PlaceOrderCommandFixture.java
+// application/src/testFixtures/java/com/ryuqq/fixture/application/PlaceOrderCommandFixture.java
 public final class PlaceOrderCommandFixture {
 
     private PlaceOrderCommandFixture() {}

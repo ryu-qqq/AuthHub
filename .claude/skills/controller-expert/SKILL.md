@@ -77,15 +77,15 @@ HTTP Response
 ### 1. CommandController (POST, PATCH)
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.controller;
+package com.ryuqq.adapter.in.rest.order.controller;
 
-import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.command.CancelOrderApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.mapper.OrderApiMapper;
-import com.ryuqq.authhub.application.order.port.in.CreateOrderUseCase;
-import com.ryuqq.authhub.application.order.port.in.CancelOrderUseCase;
+import com.ryuqq.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
+import com.ryuqq.adapter.in.rest.order.dto.command.CancelOrderApiRequest;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderApiResponse;
+import com.ryuqq.adapter.in.rest.order.mapper.OrderApiMapper;
+import com.ryuqq.application.order.port.in.CreateOrderUseCase;
+import com.ryuqq.application.order.port.in.CancelOrderUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -179,16 +179,16 @@ public class OrderCommandController {
 ### 2. QueryController (GET)
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.controller;
+package com.ryuqq.adapter.in.rest.order.controller;
 
-import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.common.dto.SliceApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.query.OrderSearchApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderDetailApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.mapper.OrderApiMapper;
-import com.ryuqq.authhub.application.order.port.in.GetOrderQueryService;
-import com.ryuqq.authhub.application.order.port.in.SearchOrderQueryService;
+import com.ryuqq.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.adapter.in.rest.common.dto.SliceApiResponse;
+import com.ryuqq.adapter.in.rest.order.dto.query.OrderSearchApiRequest;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderApiResponse;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderDetailApiResponse;
+import com.ryuqq.adapter.in.rest.order.mapper.OrderApiMapper;
+import com.ryuqq.application.order.port.in.GetOrderQueryService;
+import com.ryuqq.application.order.port.in.SearchOrderQueryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
@@ -281,7 +281,7 @@ public class OrderQueryController {
 ### 3. Command DTO (Request)
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.dto.command;
+package com.ryuqq.adapter.in.rest.order.dto.command;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -357,7 +357,7 @@ public record CreateOrderApiRequest(
 ### 4. Query DTO (Request)
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.dto.query;
+package com.ryuqq.adapter.in.rest.order.dto.query;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -413,7 +413,7 @@ public record OrderSearchApiRequest(
 ### 5. Response DTO
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.dto.response;
+package com.ryuqq.adapter.in.rest.order.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -488,19 +488,19 @@ public record OrderApiResponse(
 ### 6. ApiMapper (@Component)
 
 ```java
-package com.ryuqq.authhub.adapter.in.rest.order.mapper;
+package com.ryuqq.adapter.in.rest.order.mapper;
 
-import com.ryuqq.authhub.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.command.CancelOrderApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.query.OrderSearchApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.order.dto.response.OrderDetailApiResponse;
-import com.ryuqq.authhub.application.order.dto.command.CreateOrderCommand;
-import com.ryuqq.authhub.application.order.dto.command.CancelOrderCommand;
-import com.ryuqq.authhub.application.order.dto.query.GetOrderQuery;
-import com.ryuqq.authhub.application.order.dto.query.SearchOrdersQuery;
-import com.ryuqq.authhub.application.order.dto.response.OrderResponse;
-import com.ryuqq.authhub.application.order.dto.response.OrderDetailResponse;
+import com.ryuqq.adapter.in.rest.order.dto.command.CreateOrderApiRequest;
+import com.ryuqq.adapter.in.rest.order.dto.command.CancelOrderApiRequest;
+import com.ryuqq.adapter.in.rest.order.dto.query.OrderSearchApiRequest;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderApiResponse;
+import com.ryuqq.adapter.in.rest.order.dto.response.OrderDetailApiResponse;
+import com.ryuqq.application.order.dto.command.CreateOrderCommand;
+import com.ryuqq.application.order.dto.command.CancelOrderCommand;
+import com.ryuqq.application.order.dto.query.GetOrderQuery;
+import com.ryuqq.application.order.dto.query.SearchOrdersQuery;
+import com.ryuqq.application.order.dto.response.OrderResponse;
+import com.ryuqq.application.order.dto.response.OrderDetailResponse;
 import org.springframework.stereotype.Component;
 import java.util.List;
 

@@ -8,7 +8,7 @@
 
 ```
 domain/src/test/java/
-└── com.ryuqq.authhub/domain/architecture/vo/
+└── com/ryuqq/domain/architecture/vo/
     └── LockKeyArchTest.java    # LockKey VO 아키텍처 검증
 ```
 
@@ -163,10 +163,10 @@ public record OrderLockKey(Long orderId) implements LockKey {
 
 ```java
 // ❌ 잘못된 예: aggregate 패키지
-package com.ryuqq.authhub.domain.order.aggregate;
+package com.ryuqq.domain.order.aggregate;
 
 // ✅ 올바른 예: vo 패키지
-package com.ryuqq.authhub.domain.order.vo;
+package com.ryuqq.domain.order.vo;
 ```
 
 ### 5.4 Lombok 사용

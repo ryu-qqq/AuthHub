@@ -11,15 +11,14 @@ import com.ryuqq.authhub.domain.permission.vo.PermissionDescription;
 import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import com.ryuqq.authhub.domain.permission.vo.Resource;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Permission Aggregate 단위 테스트
@@ -47,7 +46,8 @@ class PermissionTest {
             PermissionDescription description = PermissionDescription.of("사용자 조회 권한");
 
             // when
-            Permission permission = Permission.createSystem(resource, action, description, FIXED_CLOCK);
+            Permission permission =
+                    Permission.createSystem(resource, action, description, FIXED_CLOCK);
 
             // then
             assertThat(permission).isNotNull();
@@ -105,7 +105,8 @@ class PermissionTest {
             PermissionDescription description = PermissionDescription.of("리포트 내보내기 권한");
 
             // when
-            Permission permission = Permission.createCustom(resource, action, description, FIXED_CLOCK);
+            Permission permission =
+                    Permission.createCustom(resource, action, description, FIXED_CLOCK);
 
             // then
             assertThat(permission).isNotNull();
@@ -147,8 +148,15 @@ class PermissionTest {
             Instant updatedAt = Instant.parse("2025-01-02T00:00:00Z");
 
             // when
-            Permission permission = Permission.reconstitute(
-                    permissionId, key, description, PermissionType.SYSTEM, false, createdAt, updatedAt);
+            Permission permission =
+                    Permission.reconstitute(
+                            permissionId,
+                            key,
+                            description,
+                            PermissionType.SYSTEM,
+                            false,
+                            createdAt,
+                            updatedAt);
 
             // then
             assertThat(permission.getPermissionId()).isEqualTo(permissionId);
@@ -166,8 +174,16 @@ class PermissionTest {
             Instant now = Instant.now();
 
             // when & then
-            assertThatThrownBy(() ->
-                    Permission.reconstitute(null, key, null, PermissionType.SYSTEM, false, now, now))
+            assertThatThrownBy(
+                            () ->
+                                    Permission.reconstitute(
+                                            null,
+                                            key,
+                                            null,
+                                            PermissionType.SYSTEM,
+                                            false,
+                                            now,
+                                            now))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("non-null permissionId");
         }
@@ -181,9 +197,12 @@ class PermissionTest {
         @DisplayName("커스텀 권한의 설명을 변경한다")
         void shouldChangeDescriptionForCustomPermission() {
             // given
-            Permission permission = Permission.createCustom(
-                    Resource.of("report"), Action.of("export"),
-                    PermissionDescription.of("기존 설명"), FIXED_CLOCK);
+            Permission permission =
+                    Permission.createCustom(
+                            Resource.of("report"),
+                            Action.of("export"),
+                            PermissionDescription.of("기존 설명"),
+                            FIXED_CLOCK);
             PermissionDescription newDescription = PermissionDescription.of("새로운 설명");
             Clock laterClock = Clock.fixed(Instant.parse("2025-01-02T00:00:00Z"), ZoneId.of("UTC"));
 
@@ -199,9 +218,12 @@ class PermissionTest {
         @DisplayName("시스템 권한의 설명 변경 시 예외 발생")
         void shouldThrowExceptionWhenChangingSystemPermissionDescription() {
             // given
-            Permission permission = Permission.createSystem(
-                    Resource.of("user"), Action.of("read"),
-                    PermissionDescription.of("설명"), FIXED_CLOCK);
+            Permission permission =
+                    Permission.createSystem(
+                            Resource.of("user"),
+                            Action.of("read"),
+                            PermissionDescription.of("설명"),
+                            FIXED_CLOCK);
             PermissionDescription newDescription = PermissionDescription.of("새로운 설명");
 
             // when & then
@@ -218,8 +240,9 @@ class PermissionTest {
         @DisplayName("커스텀 권한을 삭제한다")
         void shouldDeleteCustomPermission() {
             // given
-            Permission permission = Permission.createCustom(
-                    Resource.of("report"), Action.of("export"), null, FIXED_CLOCK);
+            Permission permission =
+                    Permission.createCustom(
+                            Resource.of("report"), Action.of("export"), null, FIXED_CLOCK);
             Clock laterClock = Clock.fixed(Instant.parse("2025-01-02T00:00:00Z"), ZoneId.of("UTC"));
 
             // when
@@ -234,8 +257,9 @@ class PermissionTest {
         @DisplayName("시스템 권한 삭제 시 예외 발생")
         void shouldThrowExceptionWhenDeletingSystemPermission() {
             // given
-            Permission permission = Permission.createSystem(
-                    Resource.of("user"), Action.of("read"), null, FIXED_CLOCK);
+            Permission permission =
+                    Permission.createSystem(
+                            Resource.of("user"), Action.of("read"), null, FIXED_CLOCK);
 
             // when & then
             assertThatThrownBy(() -> permission.delete(FIXED_CLOCK))
@@ -251,8 +275,9 @@ class PermissionTest {
         @DisplayName("permissionIdValue - 새 권한은 null 반환")
         void shouldReturnNullForNewPermission() {
             // given
-            Permission permission = Permission.createCustom(
-                    Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
+            Permission permission =
+                    Permission.createCustom(
+                            Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
 
             // then
             assertThat(permission.permissionIdValue()).isNull();
@@ -263,14 +288,15 @@ class PermissionTest {
         void shouldReturnUuidForReconstitutedPermission() {
             // given
             UUID uuid = UUID.randomUUID();
-            Permission permission = Permission.reconstitute(
-                    PermissionId.of(uuid),
-                    PermissionKey.of("test:action"),
-                    null,
-                    PermissionType.CUSTOM,
-                    false,
-                    Instant.now(),
-                    Instant.now());
+            Permission permission =
+                    Permission.reconstitute(
+                            PermissionId.of(uuid),
+                            PermissionKey.of("test:action"),
+                            null,
+                            PermissionType.CUSTOM,
+                            false,
+                            Instant.now(),
+                            Instant.now());
 
             // then
             assertThat(permission.permissionIdValue()).isEqualTo(uuid);
@@ -287,12 +313,24 @@ class PermissionTest {
             // given
             UUID uuid = UUID.randomUUID();
             Instant now = Instant.now();
-            Permission permission1 = Permission.reconstitute(
-                    PermissionId.of(uuid), PermissionKey.of("user:read"),
-                    null, PermissionType.SYSTEM, false, now, now);
-            Permission permission2 = Permission.reconstitute(
-                    PermissionId.of(uuid), PermissionKey.of("user:read"),
-                    null, PermissionType.SYSTEM, false, now, now);
+            Permission permission1 =
+                    Permission.reconstitute(
+                            PermissionId.of(uuid),
+                            PermissionKey.of("user:read"),
+                            null,
+                            PermissionType.SYSTEM,
+                            false,
+                            now,
+                            now);
+            Permission permission2 =
+                    Permission.reconstitute(
+                            PermissionId.of(uuid),
+                            PermissionKey.of("user:read"),
+                            null,
+                            PermissionType.SYSTEM,
+                            false,
+                            now,
+                            now);
 
             // then
             assertThat(permission1).isEqualTo(permission2);
@@ -304,12 +342,24 @@ class PermissionTest {
         void shouldNotBeEqualWhenDifferentId() {
             // given
             Instant now = Instant.now();
-            Permission permission1 = Permission.reconstitute(
-                    PermissionId.of(UUID.randomUUID()), PermissionKey.of("user:read"),
-                    null, PermissionType.SYSTEM, false, now, now);
-            Permission permission2 = Permission.reconstitute(
-                    PermissionId.of(UUID.randomUUID()), PermissionKey.of("user:read"),
-                    null, PermissionType.SYSTEM, false, now, now);
+            Permission permission1 =
+                    Permission.reconstitute(
+                            PermissionId.of(UUID.randomUUID()),
+                            PermissionKey.of("user:read"),
+                            null,
+                            PermissionType.SYSTEM,
+                            false,
+                            now,
+                            now);
+            Permission permission2 =
+                    Permission.reconstitute(
+                            PermissionId.of(UUID.randomUUID()),
+                            PermissionKey.of("user:read"),
+                            null,
+                            PermissionType.SYSTEM,
+                            false,
+                            now,
+                            now);
 
             // then
             assertThat(permission1).isNotEqualTo(permission2);
@@ -319,10 +369,12 @@ class PermissionTest {
         @DisplayName("새 권한(ID null)은 서로 다르다")
         void shouldNotBeEqualWhenBothNew() {
             // given
-            Permission permission1 = Permission.createCustom(
-                    Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
-            Permission permission2 = Permission.createCustom(
-                    Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
+            Permission permission1 =
+                    Permission.createCustom(
+                            Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
+            Permission permission2 =
+                    Permission.createCustom(
+                            Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
 
             // then
             assertThat(permission1).isNotEqualTo(permission2);
