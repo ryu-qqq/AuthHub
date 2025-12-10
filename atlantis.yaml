@@ -50,12 +50,9 @@ projects:
   # ============================================================================
 
   # ECS Service for web-api (ALB + Auto Scaling)
-  # NOTE: 이 모듈은 다른 인프라(ECR, ECS Cluster, ElastiCache, RDS, Secrets Manager)에 의존합니다.
-  # 해당 리소스들이 먼저 생성된 후에만 Plan/Apply가 가능합니다.
-  # 수동으로 `atlantis plan -p authhub-ecs-web-api-prod` 실행 필요
   - name: authhub-ecs-web-api-prod
     dir: terraform/ecs-web-api
     workspace: default
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
-      enabled: false
+      enabled: true
