@@ -293,7 +293,7 @@ module "web_api_task_execution_role" {
   ]
 
   enable_secrets_manager_policy = true
-  secrets_manager_secret_arns   = [data.aws_secretsmanager_secret.rds.arn]
+  secrets_manager_secret_arns   = [data.aws_secretsmanager_secret.rds.arn, data.aws_secretsmanager_secret.jwt.arn]
 
   custom_inline_policies = {
     ssm-access = {
@@ -493,7 +493,8 @@ module "ecs_service" {
 
   # Container Secrets
   container_secrets = [
-    { name = "DB_PASSWORD", valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::" }
+    { name = "DB_PASSWORD", valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::" },
+    { name = "JWT_SECRET", valueFrom = "${data.aws_secretsmanager_secret.jwt.arn}:secret::" }
   ]
 
   # Health Check

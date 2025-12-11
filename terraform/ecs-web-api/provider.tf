@@ -108,6 +108,13 @@ data "aws_ssm_parameter" "route53_zone_id" {
 }
 
 # ========================================
+# JWT Configuration
+# ========================================
+data "aws_secretsmanager_secret" "jwt" {
+  name = "authhub/jwt/secret"
+}
+
+# ========================================
 # RDS Configuration (MySQL)
 # ========================================
 
