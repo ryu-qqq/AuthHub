@@ -1,0 +1,59 @@
+# ============================================================================
+# AuthHub Web API - Local Development Dockerfile
+# ============================================================================
+# Multi-stage build: Gradle build + JRE runtime
+# ============================================================================
+
+# Stage 1: Build
+FROM eclipse-temurin:21-jdk-alpine AS builder
+WORKDIR /app
+
+# Gradle wrapper and build files
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+COPY gradle.properties ./
+
+# Module build files
+COPY domain/build.gradle domain/
+COPY application/build.gradle application/
+COPY adapter-in/rest-api/build.gradle adapter-in/rest-api/
+COPY adapter-out/persistence-mysql/build.gradle adapter-out/persistence-mysql/
+COPY adapter-out/persistence-redis/build.gradle adapter-out/persistence-redis/
+COPY adapter-out/security/build.gradle adapter-out/security/
+COPY bootstrap/bootstrap-web-api/build.gradle bootstrap/bootstrap-web-api/
+
+# Download dependencies (cached layer)
+RUN chmod +x gradlew && ./gradlew dependencies --no-daemon || true
+
+# Source code
+COPY domain/src domain/src
+COPY application/src application/src
+COPY adapter-in/rest-api/src adapter-in/rest-api/src
+COPY adapter-out/persistence-mysql/src adapter-out/persistence-mysql/src
+COPY adapter-out/persistence-redis/src adapter-out/persistence-redis/src
+COPY adapter-out/security/src adapter-out/security/src
+COPY bootstrap/bootstrap-web-api/src bootstrap/bootstrap-web-api/src
+
+# Build JAR
+RUN ./gradlew :bootstrap:bootstrap-web-api:bootJar -x test --no-daemon
+
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Copy JAR from builder
+COPY --from=builder /app/bootstrap/bootstrap-web-api/build/libs/AuthHub-web-api.jar app.jar
+
+# JVM Configuration for local dev
+ENV JAVA_OPTS="-XX:+UseG1GC \
+               -Xms256m \
+               -Xmx512m \
+               -Djava.security.egd=file:/dev/./urandom"
+
+ENV SERVER_PORT=8080
+
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
