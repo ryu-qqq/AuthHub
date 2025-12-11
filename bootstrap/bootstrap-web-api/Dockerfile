@@ -8,7 +8,7 @@
 # Stage 1: Builder (JAR extraction for layered approach)
 FROM eclipse-temurin:21-jre-alpine AS builder
 WORKDIR /app
-COPY build/libs/authhub-web-api.jar app.jar
+COPY bootstrap/bootstrap-web-api/build/libs/AuthHub-web-api.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Stage 2: Runtime
