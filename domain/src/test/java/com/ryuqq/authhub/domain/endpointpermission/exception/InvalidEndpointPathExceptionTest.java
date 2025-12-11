@@ -116,9 +116,7 @@ class InvalidEndpointPathExceptionTest {
             InvalidEndpointPathException exception = new InvalidEndpointPathException("bad-path");
 
             // then
-            assertThat(exception.getMessage())
-                    .contains("Invalid")
-                    .contains("path");
+            assertThat(exception.getMessage()).contains("Invalid").contains("path");
         }
     }
 }

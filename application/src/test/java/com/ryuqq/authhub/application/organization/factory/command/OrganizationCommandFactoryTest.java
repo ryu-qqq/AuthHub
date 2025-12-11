@@ -95,10 +95,8 @@ class OrganizationCommandFactoryTest {
             // given
             UUID tenantId1 = UUID.randomUUID();
             UUID tenantId2 = UUID.randomUUID();
-            CreateOrganizationCommand command1 =
-                    new CreateOrganizationCommand(tenantId1, "Org A");
-            CreateOrganizationCommand command2 =
-                    new CreateOrganizationCommand(tenantId2, "Org B");
+            CreateOrganizationCommand command1 = new CreateOrganizationCommand(tenantId1, "Org A");
+            CreateOrganizationCommand command2 = new CreateOrganizationCommand(tenantId2, "Org B");
 
             // when
             Organization result1 = factory.create(command1);

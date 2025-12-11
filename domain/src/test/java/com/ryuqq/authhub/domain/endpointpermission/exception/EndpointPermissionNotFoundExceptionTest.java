@@ -115,7 +115,8 @@ class EndpointPermissionNotFoundExceptionTest {
             assertThat(exception.code())
                     .isEqualTo(EndpointPermissionErrorCode.ENDPOINT_PERMISSION_NOT_FOUND.getCode());
             assertThat(exception.getMessage())
-                    .isEqualTo(EndpointPermissionErrorCode.ENDPOINT_PERMISSION_NOT_FOUND.getMessage());
+                    .isEqualTo(
+                            EndpointPermissionErrorCode.ENDPOINT_PERMISSION_NOT_FOUND.getMessage());
         }
 
         @Test

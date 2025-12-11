@@ -11,8 +11,6 @@ import com.ryuqq.authhub.domain.role.exception.RoleNotFoundException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.util.List;
 import java.util.Optional;
@@ -158,8 +156,7 @@ class RoleReadManagerTest {
         void shouldSearchRoles() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(
-                            RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    new SearchRolesQuery(RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
             List<Role> expectedRoles = List.of(RoleFixture.create());
             given(queryPort.search(query)).willReturn(expectedRoles);
 
@@ -181,8 +178,7 @@ class RoleReadManagerTest {
         void shouldCountRoles() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(
-                            RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    new SearchRolesQuery(RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
             given(queryPort.count(query)).willReturn(5L);
 
             // when

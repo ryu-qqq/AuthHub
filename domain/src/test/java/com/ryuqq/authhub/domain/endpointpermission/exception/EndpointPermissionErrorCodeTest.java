@@ -111,7 +111,9 @@ class EndpointPermissionErrorCodeTest {
         void shouldReturnCorrectMessage() {
             // then
             assertThat(EndpointPermissionErrorCode.DUPLICATE_ENDPOINT_PERMISSION.getMessage())
-                    .isEqualTo("Endpoint permission already exists for this service, path, and method");
+                    .isEqualTo(
+                            "Endpoint permission already exists for this service, path, and"
+                                    + " method");
         }
     }
 

@@ -40,11 +40,7 @@ class LoginResponseAssemblerTest {
             User user = UserFixture.create();
             TokenResponse tokenResponse =
                     new TokenResponse(
-                            "access-token-value",
-                            "refresh-token-value",
-                            3600L,
-                            604800L,
-                            "Bearer");
+                            "access-token-value", "refresh-token-value", 3600L, 604800L, "Bearer");
 
             // when
             LoginResponse result = assembler.toLoginResponse(user, tokenResponse);
@@ -65,11 +61,7 @@ class LoginResponseAssemblerTest {
             User user = UserFixture.createWithIdentifier("admin@example.com");
             TokenResponse tokenResponse =
                     new TokenResponse(
-                            "admin-access-token",
-                            "admin-refresh-token",
-                            7200L,
-                            1209600L,
-                            "Bearer");
+                            "admin-access-token", "admin-refresh-token", 7200L, 1209600L, "Bearer");
 
             // when
             LoginResponse result = assembler.toLoginResponse(user, tokenResponse);
@@ -88,8 +80,7 @@ class LoginResponseAssemblerTest {
             User user = UserFixture.create();
             String customTokenType = "CustomBearer";
             TokenResponse tokenResponse =
-                    new TokenResponse(
-                            "access", "refresh", 3600L, 604800L, customTokenType);
+                    new TokenResponse("access", "refresh", 3600L, 604800L, customTokenType);
 
             // when
             LoginResponse result = assembler.toLoginResponse(user, tokenResponse);

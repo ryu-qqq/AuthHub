@@ -176,7 +176,8 @@ class EndpointPermissionReadManagerTest {
                     List.of(
                             EndpointPermissionFixture.createReconstituted(),
                             EndpointPermissionFixture.createReconstituted(UUID.randomUUID()));
-            given(queryPort.findAllByServiceNameAndMethod(serviceName, method)).willReturn(expected);
+            given(queryPort.findAllByServiceNameAndMethod(serviceName, method))
+                    .willReturn(expected);
 
             // when
             List<EndpointPermission> result =

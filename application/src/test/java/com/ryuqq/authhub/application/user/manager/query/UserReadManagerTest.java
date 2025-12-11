@@ -107,8 +107,7 @@ class UserReadManagerTest {
                     .willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(
-                            () -> readManager.getByTenantIdAndIdentifier(tenantId, identifier))
+            assertThatThrownBy(() -> readManager.getByTenantIdAndIdentifier(tenantId, identifier))
                     .isInstanceOf(UserNotFoundException.class);
         }
     }
@@ -124,8 +123,9 @@ class UserReadManagerTest {
             TenantId tenantId = UserFixture.defaultTenantId();
             OrganizationId orgId = UserFixture.defaultOrganizationId();
             String identifier = "user@example.com";
-            given(queryPort.existsByTenantIdAndOrganizationIdAndIdentifier(
-                            tenantId, orgId, identifier))
+            given(
+                            queryPort.existsByTenantIdAndOrganizationIdAndIdentifier(
+                                    tenantId, orgId, identifier))
                     .willReturn(true);
 
             // when
@@ -144,8 +144,9 @@ class UserReadManagerTest {
             TenantId tenantId = UserFixture.defaultTenantId();
             OrganizationId orgId = UserFixture.defaultOrganizationId();
             String identifier = "new@example.com";
-            given(queryPort.existsByTenantIdAndOrganizationIdAndIdentifier(
-                            tenantId, orgId, identifier))
+            given(
+                            queryPort.existsByTenantIdAndOrganizationIdAndIdentifier(
+                                    tenantId, orgId, identifier))
                     .willReturn(false);
 
             // when
@@ -190,8 +191,7 @@ class UserReadManagerTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             SearchUsersQuery query =
-                    new SearchUsersQuery(
-                            UserFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    new SearchUsersQuery(UserFixture.defaultTenantUUID(), null, null, null, 0, 10);
             given(queryPort.search(query)).willReturn(List.of());
 
             // when

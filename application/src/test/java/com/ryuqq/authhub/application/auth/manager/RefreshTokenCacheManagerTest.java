@@ -67,7 +67,8 @@ class RefreshTokenCacheManagerTest {
             // given
             UserId userId = UserId.of(UUID.randomUUID());
             String expectedToken = "cached-refresh-token";
-            given(refreshTokenCachePort.findByUserId(userId)).willReturn(Optional.of(expectedToken));
+            given(refreshTokenCachePort.findByUserId(userId))
+                    .willReturn(Optional.of(expectedToken));
 
             // when
             Optional<String> result = cacheManager.findByUserId(userId);

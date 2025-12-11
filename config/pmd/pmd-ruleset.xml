@@ -183,12 +183,14 @@
         <priority>2</priority>
         <properties>
             <property name="maxfields" value="7"/>
-            <!-- 설정 클래스, JPA Entity는 필드가 많을 수 있음 -->
+            <!-- 설정 클래스, JPA Entity, Builder, Context 클래스는 필드가 많을 수 있음 -->
             <property name="violationSuppressXPath"
                       value="//ClassDeclaration[
                              contains(@SimpleName, 'Config')
                              or contains(@SimpleName, 'Properties')
                              or contains(@SimpleName, 'Entity')
+                             or contains(@SimpleName, 'Builder')
+                             or contains(@SimpleName, 'Context')
                              or starts-with(@SimpleName, 'Q')
                              ]"/>
         </properties>

@@ -61,8 +61,7 @@ class UserRoleCommandFactoryTest {
         void shouldSetAssignedAtToCurrentTime() {
             // given
             AssignUserRoleCommand command =
-                    new AssignUserRoleCommand(
-                            UserFixture.defaultUUID(), RoleFixture.defaultUUID());
+                    new AssignUserRoleCommand(UserFixture.defaultUUID(), RoleFixture.defaultUUID());
 
             // when
             UserRole result = factory.create(command);

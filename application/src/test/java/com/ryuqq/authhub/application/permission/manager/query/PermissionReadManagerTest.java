@@ -53,7 +53,8 @@ class PermissionReadManagerTest {
         void shouldGetPermissionById() {
             // given
             PermissionId permissionId = PermissionFixture.createPermissionId();
-            Permission expectedPermission = PermissionFixture.createReconstituted(permissionId.value());
+            Permission expectedPermission =
+                    PermissionFixture.createReconstituted(permissionId.value());
             given(queryPort.findById(permissionId)).willReturn(Optional.of(expectedPermission));
 
             // when
@@ -165,7 +166,8 @@ class PermissionReadManagerTest {
         @DisplayName("결과가 없으면 빈 목록을 반환한다")
         void shouldReturnEmptyListWhenNoResults() {
             // given
-            SearchPermissionsQuery query = new SearchPermissionsQuery("nonexistent", null, null, 0, 10);
+            SearchPermissionsQuery query =
+                    new SearchPermissionsQuery("nonexistent", null, null, 0, 10);
             given(queryPort.search(query)).willReturn(List.of());
 
             // when

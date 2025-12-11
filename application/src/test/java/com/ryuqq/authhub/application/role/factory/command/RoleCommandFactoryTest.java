@@ -156,7 +156,11 @@ class RoleCommandFactoryTest {
             UUID tenantId = RoleFixture.defaultTenantUUID();
             CreateRoleCommand command =
                     new CreateRoleCommand(
-                            tenantId, "INVALID_SCOPE_ROLE", "Invalid scope role", "INVALID_SCOPE", false);
+                            tenantId,
+                            "INVALID_SCOPE_ROLE",
+                            "Invalid scope role",
+                            "INVALID_SCOPE",
+                            false);
 
             // when & then
             assertThatThrownBy(() -> factory.create(command))

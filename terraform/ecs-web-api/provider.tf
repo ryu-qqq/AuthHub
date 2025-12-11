@@ -111,9 +111,9 @@ data "aws_ssm_parameter" "route53_zone_id" {
 # RDS Configuration (MySQL)
 # ========================================
 
-# AuthHub-specific Secrets Manager secret
+# AuthHub-specific Secrets Manager secret (using shared MySQL auth credentials)
 data "aws_secretsmanager_secret" "rds" {
-  name = "authhub/rds/credentials"
+  name = "prod-shared-mysql-auth"
 }
 
 data "aws_secretsmanager_secret_version" "rds" {

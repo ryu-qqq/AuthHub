@@ -1,10 +1,17 @@
 package com.ryuqq.authhub.application.auth.manager;
 
+import com.ryuqq.authhub.application.auth.dto.command.TokenClaimsContext;
 import com.ryuqq.authhub.application.auth.dto.response.TokenResponse;
 import com.ryuqq.authhub.application.auth.port.out.client.TokenProviderPort;
+import com.ryuqq.authhub.application.organization.port.out.query.OrganizationQueryPort;
 import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
 import com.ryuqq.authhub.application.role.port.in.GetUserRolesUseCase;
+import com.ryuqq.authhub.application.tenant.port.out.query.TenantQueryPort;
+import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
 import com.ryuqq.authhub.domain.auth.exception.InvalidRefreshTokenException;
+import com.ryuqq.authhub.domain.organization.aggregate.Organization;
+import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
+import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import org.springframework.stereotype.Component;
 
@@ -26,45 +33,73 @@ public class TokenManager {
     private final RefreshTokenCacheManager refreshTokenCacheManager;
     private final RefreshTokenReader refreshTokenReader;
     private final GetUserRolesUseCase getUserRolesUseCase;
+    private final UserQueryPort userQueryPort;
+    private final TenantQueryPort tenantQueryPort;
+    private final OrganizationQueryPort organizationQueryPort;
 
     public TokenManager(
             TokenProviderPort tokenProviderPort,
             RefreshTokenPersistenceManager refreshTokenPersistenceManager,
             RefreshTokenCacheManager refreshTokenCacheManager,
             RefreshTokenReader refreshTokenReader,
-            GetUserRolesUseCase getUserRolesUseCase) {
+            GetUserRolesUseCase getUserRolesUseCase,
+            UserQueryPort userQueryPort,
+            TenantQueryPort tenantQueryPort,
+            OrganizationQueryPort organizationQueryPort) {
         this.tokenProviderPort = tokenProviderPort;
         this.refreshTokenPersistenceManager = refreshTokenPersistenceManager;
         this.refreshTokenCacheManager = refreshTokenCacheManager;
         this.refreshTokenReader = refreshTokenReader;
         this.getUserRolesUseCase = getUserRolesUseCase;
+        this.userQueryPort = userQueryPort;
+        this.tenantQueryPort = tenantQueryPort;
+        this.organizationQueryPort = organizationQueryPort;
     }
 
     /**
-     * 토큰 쌍 발급 및 Refresh Token 저장
+     * 토큰 쌍 발급 및 Refresh Token 저장 (전체 컨텍스트 포함)
      *
      * <p>순서:
      *
      * <ol>
      *   <li>사용자 Role/Permission 조회
-     *   <li>JWT Access Token + Refresh Token 생성 (Role/Permission 포함)
+     *   <li>JWT Access Token + Refresh Token 생성 (전체 컨텍스트 포함)
      *   <li>Refresh Token → RDB 저장 (트랜잭션)
      *   <li>Refresh Token → Cache(Redis) 저장
      * </ol>
      *
-     * @param userId 사용자 ID (Value Object)
+     * <p><strong>하이브리드 JWT 전략:</strong>
+     *
+     * <ul>
+     *   <li>JWT Payload에 tenant_name, org_name, email 포함
+     *   <li>다른 서비스에서 키 없이 Base64 디코딩으로 정보 확인 가능
+     * </ul>
+     *
+     * @param context 토큰 발급에 필요한 사용자 컨텍스트 (User, Tenant, Organization 정보)
      * @return 발급된 토큰 쌍
      */
-    public TokenResponse issueTokens(UserId userId) {
+    public TokenResponse issueTokens(TokenClaimsContext context) {
         // 1. 사용자 Role/Permission 조회
-        UserRolesResponse userRoles = getUserRolesUseCase.execute(userId.value());
+        UserRolesResponse userRoles = getUserRolesUseCase.execute(context.userId().value());
 
-        // 2. JWT 토큰 생성 (Role/Permission 포함)
-        TokenResponse tokenPair =
-                tokenProviderPort.generateTokenPair(
-                        userId, userRoles.roles(), userRoles.permissions());
+        // 2. Context에 Role/Permission 추가
+        TokenClaimsContext enrichedContext =
+                TokenClaimsContext.builder()
+                        .userId(context.userId())
+                        .tenantId(context.tenantId())
+                        .tenantName(context.tenantName())
+                        .organizationId(context.organizationId())
+                        .organizationName(context.organizationName())
+                        .email(context.email())
+                        .roles(userRoles.roles())
+                        .permissions(userRoles.permissions())
+                        .build();
 
-        saveRefreshToken(userId, tokenPair.refreshToken(), tokenPair.refreshTokenExpiresIn());
+        // 3. JWT 토큰 생성 (전체 컨텍스트 포함)
+        TokenResponse tokenPair = tokenProviderPort.generateTokenPair(enrichedContext);
+
+        saveRefreshToken(
+                context.userId(), tokenPair.refreshToken(), tokenPair.refreshTokenExpiresIn());
 
         return tokenPair;
     }
@@ -98,6 +133,7 @@ public class TokenManager {
      * <ol>
      *   <li>Refresh Token으로 사용자 ID 조회 (Cache → RDB fallback)
      *   <li>기존 Refresh Token 무효화
+     *   <li>사용자/테넌트/조직 정보 조회
      *   <li>새 토큰 쌍 발급 및 저장
      * </ol>
      *
@@ -113,7 +149,42 @@ public class TokenManager {
 
         revokeToken(refreshToken);
 
-        return issueTokens(userId);
+        // 사용자 정보 조회 및 TokenClaimsContext 생성
+        TokenClaimsContext context = buildTokenClaimsContext(userId);
+
+        return issueTokens(context);
+    }
+
+    /**
+     * UserId로 TokenClaimsContext 구성
+     *
+     * <p>Refresh Token 갱신 시 사용. User, Tenant, Organization 정보를 조회하여 컨텍스트 생성
+     *
+     * @param userId 사용자 ID
+     * @return TokenClaimsContext
+     * @throws InvalidRefreshTokenException 사용자 정보 조회 실패 시
+     */
+    private TokenClaimsContext buildTokenClaimsContext(UserId userId) {
+        User user = userQueryPort.findById(userId).orElseThrow(InvalidRefreshTokenException::new);
+
+        Tenant tenant =
+                tenantQueryPort
+                        .findById(user.getTenantId())
+                        .orElseThrow(InvalidRefreshTokenException::new);
+
+        Organization organization =
+                organizationQueryPort
+                        .findById(user.getOrganizationId())
+                        .orElseThrow(InvalidRefreshTokenException::new);
+
+        return TokenClaimsContext.builder()
+                .userId(userId)
+                .tenantId(tenant.tenantIdValue())
+                .tenantName(tenant.nameValue())
+                .organizationId(organization.organizationIdValue())
+                .organizationName(organization.nameValue())
+                .email(user.getIdentifier())
+                .build();
     }
 
     private void saveRefreshToken(UserId userId, String refreshToken, long expiresInSeconds) {

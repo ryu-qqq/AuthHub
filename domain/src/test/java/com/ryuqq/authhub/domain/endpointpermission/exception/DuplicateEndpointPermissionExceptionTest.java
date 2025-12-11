@@ -87,7 +87,8 @@ class DuplicateEndpointPermissionExceptionTest {
             assertThat(exception.code())
                     .isEqualTo(EndpointPermissionErrorCode.DUPLICATE_ENDPOINT_PERMISSION.getCode());
             assertThat(exception.getMessage())
-                    .isEqualTo(EndpointPermissionErrorCode.DUPLICATE_ENDPOINT_PERMISSION.getMessage());
+                    .isEqualTo(
+                            EndpointPermissionErrorCode.DUPLICATE_ENDPOINT_PERMISSION.getMessage());
         }
 
         @Test
@@ -114,8 +115,7 @@ class DuplicateEndpointPermissionExceptionTest {
                     new DuplicateEndpointPermissionException("auth-service", "/api/users", "POST");
 
             // then
-            assertThat(exception.getMessage())
-                    .contains("already exists");
+            assertThat(exception.getMessage()).contains("already exists");
         }
     }
 }
