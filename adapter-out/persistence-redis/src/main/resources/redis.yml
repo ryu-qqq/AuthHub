@@ -20,7 +20,7 @@ spring:
       # ===============================================
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      # password는 프로필별로 필요시 설정
       database: ${REDIS_DATABASE:0}
 
       # Command Timeout
@@ -66,7 +66,7 @@ redisson:
   # Single Server Mode (Default)
   single-server-config:
     address: "redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}"
-    password: ${REDIS_PASSWORD:}
+    # password는 프로필별로 필요시 설정
     database: ${REDIS_DATABASE:0}
 
     # Connection Pool
