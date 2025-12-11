@@ -104,34 +104,34 @@ public class FlywayConfig {
     /**
      * 스테이징/프로덕션 환경 전용 Flyway 마이그레이션 전략
      *
-     * <p>운영 환경에서는 안전한 마이그레이션을 위해 검증 후 실행합니다.
+     * <p>운영 환경에서는 마이그레이션 실행 후 검증합니다.
      *
      * <p><strong>동작 방식:</strong>
      *
      * <ol>
-     *   <li>마이그레이션 검증 (validate)
-     *   <li>마이그레이션 실행 (migrate)
+     *   <li>마이그레이션 실행 (migrate) - pending 마이그레이션 적용
+     *   <li>마이그레이션 검증 (validate) - 적용 결과 검증
      * </ol>
      *
-     * <p><strong>검증 실패 시:</strong>
+     * <p><strong>주의:</strong>
      *
      * <ul>
-     *   <li>마이그레이션이 중단됩니다
-     *   <li>로그를 확인하여 문제 해결 필요
-     *   <li>체크섬 불일치, 누락된 마이그레이션 등
+     *   <li>validate()를 먼저 실행하면 pending 마이그레이션이 있을 때 에러 발생
+     *   <li>migrate() 먼저 실행하여 pending 마이그레이션 적용 후 검증
+     *   <li>체크섬 불일치 등 문제는 migrate()에서 감지됨
      * </ul>
      *
      * @return FlywayMigrationStrategy
      */
     @Bean
     @Profile({"dev", "stage", "prod"})
-    public FlywayMigrationStrategy validateMigrateStrategy() {
+    public FlywayMigrationStrategy migrateValidateStrategy() {
         return flyway -> {
-            // 1. 마이그레이션 검증
-            flyway.validate();
-
-            // 2. 마이그레이션 실행
+            // 1. 마이그레이션 실행 (pending 마이그레이션 적용)
             flyway.migrate();
+
+            // 2. 마이그레이션 검증 (적용 결과 확인)
+            flyway.validate();
         };
     }
 
