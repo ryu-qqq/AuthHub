@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+build/
+!build/libs/*.jar
+
+# Source files (not needed in runtime image)
+src/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Test files
+bin/
+
+# Misc
+*.md
+*.txt
