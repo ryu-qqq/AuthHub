@@ -9,6 +9,7 @@ import com.ryuqq.authhub.application.auth.dto.command.TokenClaimsContext;
 import com.ryuqq.authhub.application.auth.dto.response.TokenResponse;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
@@ -307,5 +308,166 @@ class JwtTokenProviderAdapterTest {
         String payloadJson =
                 new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
         return objectMapper.readTree(payloadJson);
+    }
+
+    private JsonNode decodeJwtHeader(String token) throws Exception {
+        String[] parts = token.split("\\.");
+        String headerJson =
+                new String(Base64.getUrlDecoder().decode(parts[0]), StandardCharsets.UTF_8);
+        return objectMapper.readTree(headerJson);
+    }
+
+    @Nested
+    @DisplayName("RS256 (RSA 비대칭키) 테스트")
+    class Rs256Test {
+
+        private JwtTokenProviderAdapter rsaAdapter;
+        private static final String RSA_KEY_ID = "test-rsa-key-1";
+
+        @BeforeEach
+        void setUp() {
+            Path resourcePath =
+                    Path.of("src/test/resources/keys").toAbsolutePath();
+
+            JwtProperties.RsaKeyProperties rsaProperties =
+                    new JwtProperties.RsaKeyProperties(
+                            true,
+                            RSA_KEY_ID,
+                            resourcePath.resolve("public_key.pem").toString(),
+                            resourcePath.resolve("private_key_pkcs8.pem").toString());
+
+            JwtProperties properties =
+                    new JwtProperties(
+                            TEST_SECRET,
+                            ACCESS_TOKEN_EXPIRATION,
+                            REFRESH_TOKEN_EXPIRATION,
+                            ISSUER,
+                            rsaProperties);
+
+            rsaAdapter = new JwtTokenProviderAdapter(properties);
+        }
+
+        @Test
+        @DisplayName("RS256으로 토큰을 성공적으로 생성한다")
+        void shouldGenerateRs256TokenSuccessfully() {
+            // given
+            TokenClaimsContext context = createTestContext();
+
+            // when
+            TokenResponse response = rsaAdapter.generateTokenPair(context);
+
+            // then
+            assertThat(response).isNotNull();
+            assertThat(response.accessToken()).isNotBlank();
+            assertThat(response.refreshToken()).isNotBlank();
+        }
+
+        @Test
+        @DisplayName("RS256 토큰 헤더에 alg=RS256이 포함된다")
+        void shouldHaveRs256AlgorithmInHeader() throws Exception {
+            // given
+            TokenClaimsContext context = createTestContext();
+
+            // when
+            TokenResponse response = rsaAdapter.generateTokenPair(context);
+            JsonNode header = decodeJwtHeader(response.accessToken());
+
+            // then
+            assertThat(header.get("alg").asText()).isEqualTo("RS256");
+        }
+
+        @Test
+        @DisplayName("RS256 토큰 헤더에 kid가 포함된다")
+        void shouldHaveKeyIdInHeader() throws Exception {
+            // given
+            TokenClaimsContext context = createTestContext();
+
+            // when
+            TokenResponse response = rsaAdapter.generateTokenPair(context);
+            JsonNode header = decodeJwtHeader(response.accessToken());
+
+            // then
+            assertThat(header.get("kid").asText()).isEqualTo(RSA_KEY_ID);
+        }
+
+        @Test
+        @DisplayName("RS256 토큰 Payload에도 모든 Hybrid Claims가 포함된다")
+        void shouldIncludeAllHybridClaimsInRs256Token() throws Exception {
+            // given
+            UUID userId = UUID.randomUUID();
+            String tenantName = "RSA 테스트 테넌트";
+            String email = "rsa-test@example.com";
+
+            TokenClaimsContext context =
+                    TokenClaimsContext.builder()
+                            .userId(UserId.of(userId))
+                            .tenantId(UUID.randomUUID())
+                            .tenantName(tenantName)
+                            .organizationId(UUID.randomUUID())
+                            .organizationName("RSA 테스트 조직")
+                            .email(email)
+                            .roles(Set.of("ROLE_USER"))
+                            .permissions(Set.of("READ_USER"))
+                            .build();
+
+            // when
+            TokenResponse response = rsaAdapter.generateTokenPair(context);
+            JsonNode payload = decodeJwtPayload(response.accessToken());
+
+            // then
+            assertThat(payload.get("sub").asText()).isEqualTo(userId.toString());
+            assertThat(payload.get("tenant_name").asText()).isEqualTo(tenantName);
+            assertThat(payload.get("email").asText()).isEqualTo(email);
+            assertThat(payload.get("token_type").asText()).isEqualTo("access");
+        }
+
+        @Test
+        @DisplayName("Refresh Token도 RS256으로 생성되고 kid가 포함된다")
+        void shouldGenerateRs256RefreshTokenWithKeyId() throws Exception {
+            // given
+            TokenClaimsContext context = createTestContext();
+
+            // when
+            TokenResponse response = rsaAdapter.generateTokenPair(context);
+            JsonNode header = decodeJwtHeader(response.refreshToken());
+
+            // then
+            assertThat(header.get("alg").asText()).isEqualTo("RS256");
+            assertThat(header.get("kid").asText()).isEqualTo(RSA_KEY_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("HS256 (HMAC 대칭키) 테스트 - RSA 비활성화 시")
+    class Hs256Test {
+
+        @Test
+        @DisplayName("RSA 비활성화 시 HMAC 알고리즘으로 토큰을 생성한다")
+        void shouldGenerateHmacTokenWhenRsaDisabled() throws Exception {
+            // given
+            TokenClaimsContext context = createTestContext();
+
+            // when
+            TokenResponse response = adapter.generateTokenPair(context);
+            JsonNode header = decodeJwtHeader(response.accessToken());
+
+            // then - JJWT는 키 길이에 따라 HS256/HS384/HS512 자동 선택
+            String alg = header.get("alg").asText();
+            assertThat(alg).startsWith("HS");
+        }
+
+        @Test
+        @DisplayName("HS256 토큰 헤더에는 kid가 포함되지 않는다")
+        void shouldNotHaveKeyIdInHs256Header() throws Exception {
+            // given
+            TokenClaimsContext context = createTestContext();
+
+            // when
+            TokenResponse response = adapter.generateTokenPair(context);
+            JsonNode header = decodeJwtHeader(response.accessToken());
+
+            // then
+            assertThat(header.has("kid")).isFalse();
+        }
     }
 }

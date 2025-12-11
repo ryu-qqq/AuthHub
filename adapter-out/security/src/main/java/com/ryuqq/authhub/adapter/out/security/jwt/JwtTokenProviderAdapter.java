@@ -6,9 +6,18 @@ import com.ryuqq.authhub.application.auth.dto.response.TokenResponse;
 import com.ryuqq.authhub.application.auth.port.out.client.TokenProviderPort;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 import java.util.Date;
-import javax.crypto.SecretKey;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,6 +30,13 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>Access Token: 짧은 만료 시간 (기본 1시간), 인증용
  *   <li>Refresh Token: 긴 만료 시간 (기본 7일), Access Token 갱신용
+ * </ul>
+ *
+ * <p><strong>서명 알고리즘:</strong>
+ *
+ * <ul>
+ *   <li>RS256 (RSA 비대칭키): security.jwt.rsa.enabled=true 시 사용 (Gateway 연동 권장)
+ *   <li>HS256 (HMAC 대칭키): security.jwt.rsa.enabled=false 시 사용 (개발/테스트용)
  * </ul>
  *
  * <p><strong>Access Token Payload (하이브리드 JWT):</strong>
@@ -57,12 +73,41 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
     private static final String TOKEN_TYPE = "Bearer";
 
     private final JwtProperties jwtProperties;
-    private final SecretKey secretKey;
+    private final Key signingKey;
+    private final boolean rsaEnabled;
 
     public JwtTokenProviderAdapter(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
-        this.secretKey =
-                Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
+        this.rsaEnabled = jwtProperties.getRsa().isEnabled();
+        this.signingKey = initializeSigningKey(jwtProperties);
+    }
+
+    private Key initializeSigningKey(JwtProperties properties) {
+        if (properties.getRsa().isEnabled()) {
+            return loadRsaPrivateKey(properties.getRsa().getPrivateKeyPath());
+        }
+        return Keys.hmacShaKeyFor(properties.getSecret().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private RSAPrivateKey loadRsaPrivateKey(String path) {
+        try {
+            String keyContent = Files.readString(Path.of(path));
+            String privateKeyPem =
+                    keyContent
+                            .replace("-----BEGIN RSA PRIVATE KEY-----", "")
+                            .replace("-----END RSA PRIVATE KEY-----", "")
+                            .replace("-----BEGIN PRIVATE KEY-----", "")
+                            .replace("-----END PRIVATE KEY-----", "")
+                            .replaceAll("\\s", "");
+
+            byte[] encoded = Base64.getDecoder().decode(privateKeyPem);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new IllegalStateException(
+                    "Failed to load RSA private key from path: " + path, e);
+        }
     }
 
     @Override
@@ -85,35 +130,45 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
         Date issuedAt = new Date(now);
         Date expiration = new Date(now + jwtProperties.getAccessTokenExpirationMs());
 
-        return Jwts.builder()
-                .subject(userId)
-                .issuer(jwtProperties.getIssuer())
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
-                .claim(TENANT_ID_CLAIM, uuidToString(context.tenantId()))
-                .claim(TENANT_NAME_CLAIM, context.tenantName())
-                .claim(ORGANIZATION_ID_CLAIM, uuidToString(context.organizationId()))
-                .claim(ORGANIZATION_NAME_CLAIM, context.organizationName())
-                .claim(EMAIL_CLAIM, context.email())
-                .claim(ROLES_CLAIM, context.roles())
-                .claim(PERMISSIONS_CLAIM, context.permissions())
-                .signWith(secretKey)
-                .compact();
+        var builder =
+                Jwts.builder()
+                        .subject(userId)
+                        .issuer(jwtProperties.getIssuer())
+                        .issuedAt(issuedAt)
+                        .expiration(expiration)
+                        .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
+                        .claim(TENANT_ID_CLAIM, uuidToString(context.tenantId()))
+                        .claim(TENANT_NAME_CLAIM, context.tenantName())
+                        .claim(ORGANIZATION_ID_CLAIM, uuidToString(context.organizationId()))
+                        .claim(ORGANIZATION_NAME_CLAIM, context.organizationName())
+                        .claim(EMAIL_CLAIM, context.email())
+                        .claim(ROLES_CLAIM, context.roles())
+                        .claim(PERMISSIONS_CLAIM, context.permissions());
+
+        if (rsaEnabled) {
+            builder.header().add("kid", jwtProperties.getRsa().getKeyId());
+        }
+
+        return builder.signWith(signingKey).compact();
     }
 
     private String createRefreshToken(String userId, long now) {
         Date issuedAt = new Date(now);
         Date expiration = new Date(now + jwtProperties.getRefreshTokenExpirationMs());
 
-        return Jwts.builder()
-                .subject(userId)
-                .issuer(jwtProperties.getIssuer())
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
-                .signWith(secretKey)
-                .compact();
+        var builder =
+                Jwts.builder()
+                        .subject(userId)
+                        .issuer(jwtProperties.getIssuer())
+                        .issuedAt(issuedAt)
+                        .expiration(expiration)
+                        .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE);
+
+        if (rsaEnabled) {
+            builder.header().add("kid", jwtProperties.getRsa().getKeyId());
+        }
+
+        return builder.signWith(signingKey).compact();
     }
 
     private String uuidToString(java.util.UUID uuid) {
