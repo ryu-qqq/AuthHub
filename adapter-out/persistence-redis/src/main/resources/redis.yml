@@ -152,8 +152,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
-      # ElastiCache 비밀번호 미사용 시 빈 값 허용
-      password: ${REDIS_PASSWORD:}
+      # ElastiCache 비밀번호 미사용 - password 필드 제거
+      # password: ${REDIS_PASSWORD:}
 
       # SSL 설정 (AWS ElastiCache 등)
       ssl:
