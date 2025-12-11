@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
+
 /**
  * Auth Command Controller - 인증 관련 상태 변경 API
  *
@@ -45,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Tag(name = "Auth", description = "인증 관리 API")
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.auth.base}")
+@RequestMapping(ApiPaths.Auth.BASE)
 @Validated
 public class AuthCommandController {
 
@@ -83,7 +85,7 @@ public class AuthCommandController {
                 responseCode = "401",
                 description = "인증 실패")
     })
-    @PostMapping("${api.endpoints.auth.login}")
+    @PostMapping(ApiPaths.Auth.LOGIN)
     public ResponseEntity<ApiResponse<LoginApiResponse>> login(
             @Valid @RequestBody LoginApiRequest request) {
         LoginCommand command = authApiMapper.toLoginCommand(request);
@@ -107,7 +109,7 @@ public class AuthCommandController {
                 responseCode = "401",
                 description = "유효하지 않은 토큰")
     })
-    @PostMapping("${api.endpoints.auth.refresh}")
+    @PostMapping(ApiPaths.Auth.REFRESH)
     public ResponseEntity<ApiResponse<TokenApiResponse>> refresh(
             @Valid @RequestBody RefreshTokenApiRequest request) {
         RefreshTokenCommand command = authApiMapper.toRefreshTokenCommand(request);
@@ -131,7 +133,7 @@ public class AuthCommandController {
                 responseCode = "401",
                 description = "인증 필요")
     })
-    @PostMapping("${api.endpoints.auth.logout}")
+    @PostMapping(ApiPaths.Auth.LOGOUT)
     public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutApiRequest request) {
         LogoutCommand command = authApiMapper.toLogoutCommand(request);
         logoutUseCase.execute(command);

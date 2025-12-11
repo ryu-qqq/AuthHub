@@ -50,7 +50,7 @@ security:
 # API Endpoint Configuration
 # ===============================================
 # REST API 엔드포인트 경로 중앙 관리
-# @see com.ryuqq.adapter.in.rest.config.properties.ApiEndpointProperties
+# @see com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths (상수 클래스 사용)
 api:
   # 에러 응답 설정 (RFC 7807 Problem Details)
   # @see com.ryuqq.adapter.in.rest.config.properties.ApiErrorProperties
