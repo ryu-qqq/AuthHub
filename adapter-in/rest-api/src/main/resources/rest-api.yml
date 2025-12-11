@@ -17,7 +17,7 @@ security:
   # JWT Configuration
   # ===============================================
   jwt:
-    # JWT 서명 키 (최소 256bit = 32바이트 필요)
+    # JWT 서명 키 (HS256 사용 시 필요, 최소 256bit = 32바이트)
     secret: ${JWT_SECRET:local-dev-secret-key-minimum-32-bytes-long}
     # Access Token 만료 시간 (초) - 기본 1시간
     access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600}
@@ -25,6 +25,16 @@ security:
     refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800}
     # 발급자
     issuer: ${JWT_ISSUER:authhub}
+    # RSA 키 설정 (RS256 사용 시)
+    rsa:
+      # RS256 활성화 여부 (true: RS256, false: HS256)
+      enabled: ${JWT_RSA_ENABLED:false}
+      # JWKS에서 키 식별용 Key ID
+      key-id: ${JWT_RSA_KEY_ID:authhub-key-1}
+      # RSA 공개키 경로 (JWKS 제공용)
+      public-key-path: ${JWT_RSA_PUBLIC_KEY_PATH:}
+      # RSA 개인키 경로 (JWT 서명용)
+      private-key-path: ${JWT_RSA_PRIVATE_KEY_PATH:}
   gateway:
     # Gateway 인증 활성화 여부 (환경별로 오버라이드)
     enabled: false

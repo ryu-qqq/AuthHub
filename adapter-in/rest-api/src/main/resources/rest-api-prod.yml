@@ -12,6 +12,13 @@
 # Security Configuration Override (REQUIRED)
 # ===============================================
 security:
+  jwt:
+    # RSA 키 설정 (운영 환경은 RS256 필수)
+    rsa:
+      enabled: true
+      key-id: ${JWT_RSA_KEY_ID:authhub-prod-key-1}
+      public-key-path: ${JWT_RSA_PUBLIC_KEY_PATH}
+      private-key-path: ${JWT_RSA_PRIVATE_KEY_PATH}
   gateway:
     # 운영에서 Gateway 인증 필수
     enabled: true

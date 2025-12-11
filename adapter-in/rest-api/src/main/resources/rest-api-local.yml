@@ -12,6 +12,10 @@
 # Security Configuration Override
 # ===============================================
 security:
+  jwt:
+    # 로컬에서는 HS256 사용 (간편한 테스트)
+    rsa:
+      enabled: false
   gateway:
     # 로컬에서는 Gateway 인증 비활성화 (직접 인증)
     enabled: false

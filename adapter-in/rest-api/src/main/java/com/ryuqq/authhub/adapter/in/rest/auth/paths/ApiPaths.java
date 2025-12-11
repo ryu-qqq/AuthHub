@@ -76,6 +76,15 @@ public final class ApiPaths {
         private Actuator() {}
     }
 
+    /** 엔드포인트 권한 관련 API 경로 */
+    public static final class EndpointPermissions {
+        public static final String BASE = API_VERSION + "/endpoint-permissions";
+        public static final String BY_ID = "/{endpointPermissionId}";
+        public static final String SPEC = "/spec";
+
+        private EndpointPermissions() {}
+    }
+
     /** OpenAPI (Swagger) 문서 경로 */
     public static final class OpenApi {
         public static final String DOCS = "/v3/api-docs/**";

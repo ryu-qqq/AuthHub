@@ -6,6 +6,7 @@ import com.ryuqq.authhub.adapter.in.rest.auth.dto.command.RefreshTokenApiRequest
 import com.ryuqq.authhub.adapter.in.rest.auth.dto.response.LoginApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.auth.dto.response.TokenApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.auth.mapper.AuthApiMapper;
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.application.auth.dto.command.LoginCommand;
 import com.ryuqq.authhub.application.auth.dto.command.LogoutCommand;
@@ -26,8 +27,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 
 /**
  * Auth Command Controller - 인증 관련 상태 변경 API
