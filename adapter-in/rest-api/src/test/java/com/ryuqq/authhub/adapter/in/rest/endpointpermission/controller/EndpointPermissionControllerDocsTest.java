@@ -28,8 +28,11 @@ import com.ryuqq.authhub.application.endpointpermission.dto.command.CreateEndpoi
 import com.ryuqq.authhub.application.endpointpermission.dto.command.DeleteEndpointPermissionCommand;
 import com.ryuqq.authhub.application.endpointpermission.dto.command.UpdateEndpointPermissionCommand;
 import com.ryuqq.authhub.application.endpointpermission.dto.query.GetEndpointPermissionQuery;
+import com.ryuqq.authhub.application.endpointpermission.dto.query.GetServiceEndpointPermissionSpecQuery;
 import com.ryuqq.authhub.application.endpointpermission.dto.query.SearchEndpointPermissionsQuery;
 import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionResponse;
+import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionSpecItemResponse;
+import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionSpecListResponse;
 import com.ryuqq.authhub.application.endpointpermission.port.in.command.CreateEndpointPermissionUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.command.DeleteEndpointPermissionUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.command.UpdateEndpointPermissionUseCase;
@@ -283,6 +286,83 @@ class EndpointPermissionControllerDocsTest extends RestDocsTestSupport {
                                     pathParameters(
                                             parameterWithName("endpointPermissionId")
                                                     .description("엔드포인트 권한 ID"))));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/v1/endpoint-permissions/spec - 서비스별 엔드포인트 권한 스펙 조회")
+    class GetEndpointPermissionSpecDocs {
+
+        @Test
+        @DisplayName("서비스별 엔드포인트 권한 스펙 조회 API 문서")
+        void getEndpointPermissionSpec() throws Exception {
+            // given
+            String serviceName = "auth-hub";
+
+            EndpointPermissionSpecItemResponse specItem1 =
+                    new EndpointPermissionSpecItemResponse(
+                            "POST",
+                            "/api/v1/auth/login",
+                            serviceName,
+                            Set.of(),
+                            Set.of(),
+                            true,
+                            false);
+
+            EndpointPermissionSpecItemResponse specItem2 =
+                    new EndpointPermissionSpecItemResponse(
+                            "GET",
+                            "/api/v1/users/{userId}",
+                            serviceName,
+                            Set.of("ADMIN", "USER_MANAGER"),
+                            Set.of("user:read"),
+                            false,
+                            false);
+
+            EndpointPermissionSpecListResponse useCaseResponse =
+                    EndpointPermissionSpecListResponse.of(List.of(specItem1, specItem2));
+
+            given(
+                            getAllEndpointPermissionSpecUseCase.execute(
+                                    any(GetServiceEndpointPermissionSpecQuery.class)))
+                    .willReturn(useCaseResponse);
+
+            // when & then
+            mockMvc.perform(
+                            get("/api/v1/endpoint-permissions/spec")
+                                    .param("serviceName", serviceName)
+                                    .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andDo(
+                            document(
+                                    "endpoint-permission-spec",
+                                    queryParameters(
+                                            parameterWithName("serviceName")
+                                                    .description("서비스 이름 (필수)")),
+                                    responseFields(
+                                            fieldWithPath("success").description("성공 여부"),
+                                            fieldWithPath("data").description("응답 데이터"),
+                                            fieldWithPath("data.endpoints")
+                                                    .description("엔드포인트 권한 스펙 목록"),
+                                            fieldWithPath("data.endpoints[].method")
+                                                    .description("HTTP 메서드"),
+                                            fieldWithPath("data.endpoints[].pattern")
+                                                    .description("경로 패턴"),
+                                            fieldWithPath("data.endpoints[].service")
+                                                    .description("서비스 이름"),
+                                            fieldWithPath("data.endpoints[].requiredRoles")
+                                                    .description("필요 역할 목록 (OR 조건)"),
+                                            fieldWithPath("data.endpoints[].requiredPermissions")
+                                                    .description("필요 권한 목록 (OR 조건)"),
+                                            fieldWithPath("data.endpoints[].isPublic")
+                                                    .description("공개 여부 (true: 인증 불필요)"),
+                                            fieldWithPath("data.endpoints[].requireMfa")
+                                                    .description("MFA 필수 여부"),
+                                            fieldWithPath("data.version")
+                                                    .description("스펙 버전 (마지막 업데이트 시간, ISO-8601)"),
+                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
+                                            fieldWithPath("timestamp").description("응답 시간"),
+                                            fieldWithPath("requestId").description("요청 ID"))));
         }
     }
 

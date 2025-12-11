@@ -114,3 +114,13 @@ asciidoctor {
         'sectnums': true
     )
 }
+
+// ========================================
+// AsciiDoctor 결과물을 static/docs로 복사
+// ========================================
+// 문서 생성 후 수동으로 실행: ./gradlew :adapter-in:rest-api:copyDocs
+tasks.register('copyDocs', Copy) {
+    dependsOn asciidoctor
+    from asciidoctor.outputDir
+    into file('src/main/resources/static/docs')
+}
