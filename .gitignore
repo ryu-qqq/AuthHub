@@ -72,3 +72,5 @@ hs_err_pid*
 local-dev/.env.local
 local-dev/.env.aws
 local-dev/test-files/
+# Terraform
+**/.terraform/
