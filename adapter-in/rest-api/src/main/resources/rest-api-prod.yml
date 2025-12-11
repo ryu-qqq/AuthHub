@@ -13,12 +13,13 @@
 # ===============================================
 security:
   jwt:
-    # RSA 키 설정 (운영 환경은 RS256 필수)
+    # RSA 키 설정 (RSA 키가 Secrets Manager에 등록되면 활성화)
+    # TODO: RSA 키 등록 후 enabled: true로 변경
     rsa:
-      enabled: true
+      enabled: ${JWT_RSA_ENABLED:false}
       key-id: ${JWT_RSA_KEY_ID:authhub-prod-key-1}
-      public-key-path: ${JWT_RSA_PUBLIC_KEY_PATH}
-      private-key-path: ${JWT_RSA_PRIVATE_KEY_PATH}
+      public-key-path: ${JWT_RSA_PUBLIC_KEY_PATH:}
+      private-key-path: ${JWT_RSA_PRIVATE_KEY_PATH:}
   gateway:
     # 운영에서 Gateway 인증 필수
     enabled: true
