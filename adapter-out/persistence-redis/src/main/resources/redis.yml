@@ -190,8 +190,8 @@ redisson:
 
   single-server-config:
     address: "redis://${REDIS_HOST}:${REDIS_PORT:6379}"
-    # ElastiCache 비밀번호 미사용 시 빈 값
-    password: ${REDIS_PASSWORD:}
+    # ElastiCache 비밀번호 미사용 - password 필드 제거
+    # password: ${REDIS_PASSWORD:}
     connection-pool-size: 32
     connection-minimum-idle-size: 8
     ssl-enable-endpoint-identification: ${REDIS_SSL_ENABLED:false}
