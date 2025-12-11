@@ -84,10 +84,9 @@ class AuthControllerDocsTest extends RestDocsTestSupport {
         @DisplayName("로그인 API 문서화")
         void loginDocs() throws Exception {
             // given
-            UUID tenantId = UUID.randomUUID();
             String identifier = "user@example.com";
             String password = "password123!";
-            LoginApiRequest request = new LoginApiRequest(tenantId, identifier, password);
+            LoginApiRequest request = new LoginApiRequest(identifier, password);
 
             UUID userId = UUID.randomUUID();
             String accessToken =
@@ -96,7 +95,7 @@ class AuthControllerDocsTest extends RestDocsTestSupport {
             Long expiresIn = 3600L;
             String tokenType = "Bearer";
 
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
             LoginResponse useCaseResponse =
                     new LoginResponse(userId, accessToken, refreshToken, expiresIn, tokenType);
 
@@ -113,8 +112,6 @@ class AuthControllerDocsTest extends RestDocsTestSupport {
                             document(
                                     "auth-login",
                                     requestFields(
-                                            fieldWithPath("tenantId")
-                                                    .description("테넌트 ID (UUID 형식)"),
                                             fieldWithPath("identifier")
                                                     .description("사용자 식별자 (이메일)"),
                                             fieldWithPath("password").description("비밀번호")),

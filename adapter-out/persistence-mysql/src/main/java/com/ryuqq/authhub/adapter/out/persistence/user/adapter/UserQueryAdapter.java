@@ -84,6 +84,17 @@ public class UserQueryAdapter implements UserQueryPort {
     }
 
     /**
+     * 식별자로 사용자 단건 조회 (로그인용)
+     *
+     * @param identifier 사용자 식별자 (이메일 또는 사용자명)
+     * @return Optional<User>
+     */
+    @Override
+    public Optional<User> findByIdentifier(String identifier) {
+        return repository.findByIdentifier(identifier).map(mapper::toDomain);
+    }
+
+    /**
      * 테넌트/조직 내 식별자 존재 여부 확인
      *
      * @param tenantId 테넌트 ID

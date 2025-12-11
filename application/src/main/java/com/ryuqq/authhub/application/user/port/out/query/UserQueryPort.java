@@ -36,6 +36,16 @@ public interface UserQueryPort {
     Optional<User> findByTenantIdAndIdentifier(TenantId tenantId, String identifier);
 
     /**
+     * 식별자(이메일/사용자명)로 사용자 조회
+     *
+     * <p>테넌트와 무관하게 식별자로 사용자를 조회합니다. 로그인 시 사용됩니다.
+     *
+     * @param identifier 사용자 식별자 (이메일 또는 사용자명)
+     * @return 사용자 Optional
+     */
+    Optional<User> findByIdentifier(String identifier);
+
+    /**
      * 사용자 ID로 조회
      *
      * @param userId 사용자 ID

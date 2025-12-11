@@ -82,10 +82,9 @@ class AuthCommandControllerTest {
         @DisplayName("로그인 성공 (201 Created)")
         void givenValidLoginRequest_whenLogin_thenReturns201() throws Exception {
             // given
-            UUID tenantId = UUID.randomUUID();
             String identifier = "user@example.com";
             String password = "password123";
-            LoginApiRequest request = new LoginApiRequest(tenantId, identifier, password);
+            LoginApiRequest request = new LoginApiRequest(identifier, password);
 
             UUID userId = UUID.randomUUID();
             String accessToken = "accessToken123";
@@ -93,7 +92,7 @@ class AuthCommandControllerTest {
             Long expiresIn = 3600L;
             String tokenType = "Bearer";
 
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
             LoginResponse useCaseResponse =
                     new LoginResponse(userId, accessToken, refreshToken, expiresIn, tokenType);
 
@@ -118,36 +117,12 @@ class AuthCommandControllerTest {
         }
 
         @Test
-        @DisplayName("tenantId 누락 시 Validation 실패 (400 Bad Request)")
-        void givenNullTenantId_whenLogin_thenReturns400() throws Exception {
-            // given
-            String invalidRequest =
-                    """
-                    {
-                        "tenantId": null,
-                        "identifier": "user@example.com",
-                        "password": "password123"
-                    }
-                    """;
-
-            // when & then
-            mockMvc.perform(
-                            post("/api/v1/auth/login")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(invalidRequest))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.title").value("Bad Request"))
-                    .andExpect(jsonPath("$.status").value(400));
-        }
-
-        @Test
         @DisplayName("identifier 누락 시 Validation 실패 (400 Bad Request)")
         void givenBlankIdentifier_whenLogin_thenReturns400() throws Exception {
             // given
             String invalidRequest =
                     """
                     {
-                        "tenantId": 1,
                         "identifier": "",
                         "password": "password123"
                     }
@@ -170,7 +145,6 @@ class AuthCommandControllerTest {
             String invalidRequest =
                     """
                     {
-                        "tenantId": 1,
                         "identifier": "user@example.com",
                         "password": ""
                     }

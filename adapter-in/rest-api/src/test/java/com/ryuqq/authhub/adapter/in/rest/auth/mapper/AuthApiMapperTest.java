@@ -42,16 +42,14 @@ class AuthApiMapperTest {
         @DisplayName("LoginApiRequest를 LoginCommand로 변환 성공")
         void givenLoginApiRequest_whenToLoginCommand_thenSuccess() {
             // given
-            UUID tenantId = UUID.randomUUID();
             String identifier = "user@example.com";
             String password = "password123";
-            LoginApiRequest request = new LoginApiRequest(tenantId, identifier, password);
+            LoginApiRequest request = new LoginApiRequest(identifier, password);
 
             // when
             LoginCommand command = mapper.toLoginCommand(request);
 
             // then
-            assertThat(command.tenantId()).isEqualTo(tenantId);
             assertThat(command.identifier()).isEqualTo(identifier);
             assertThat(command.password()).isEqualTo(password);
         }

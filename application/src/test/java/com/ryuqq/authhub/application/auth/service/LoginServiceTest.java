@@ -23,7 +23,6 @@ import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import java.util.Optional;
@@ -92,14 +91,13 @@ class LoginServiceTest {
             String identifier = "testuser";
             String password = "password123";
 
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
             TokenResponse tokenResponse =
                     new TokenResponse("access-token", "refresh-token", 3600L, 86400L, "Bearer");
             LoginResponse expectedResponse =
                     new LoginResponse(userId, "access-token", "refresh-token", 3600L, "Bearer");
 
-            given(userQueryPort.findByTenantIdAndIdentifier(TenantId.of(tenantId), identifier))
-                    .willReturn(Optional.of(user));
+            given(userQueryPort.findByIdentifier(identifier)).willReturn(Optional.of(user));
             given(tenantQueryPort.findById(user.getTenantId())).willReturn(Optional.of(tenant));
             given(organizationQueryPort.findById(user.getOrganizationId()))
                     .willReturn(Optional.of(organization));
@@ -123,13 +121,11 @@ class LoginServiceTest {
         @DisplayName("사용자를 찾을 수 없으면 예외를 발생시킨다")
         void shouldThrowExceptionWhenUserNotFound() {
             // given
-            UUID tenantId = UUID.randomUUID();
             String identifier = "nonexistent";
             String password = "password123";
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
 
-            given(userQueryPort.findByTenantIdAndIdentifier(TenantId.of(tenantId), identifier))
-                    .willReturn(Optional.empty());
+            given(userQueryPort.findByIdentifier(identifier)).willReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
@@ -144,13 +140,11 @@ class LoginServiceTest {
         void shouldThrowExceptionWhenTenantNotFound() {
             // given
             User user = UserFixture.create();
-            UUID tenantId = user.tenantIdValue();
             String identifier = "testuser";
             String password = "password123";
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
 
-            given(userQueryPort.findByTenantIdAndIdentifier(TenantId.of(tenantId), identifier))
-                    .willReturn(Optional.of(user));
+            given(userQueryPort.findByIdentifier(identifier)).willReturn(Optional.of(user));
             given(tenantQueryPort.findById(user.getTenantId())).willReturn(Optional.empty());
 
             // when & then
@@ -166,13 +160,11 @@ class LoginServiceTest {
             // given
             User user = UserFixture.create();
             Tenant tenant = TenantFixture.create();
-            UUID tenantId = user.tenantIdValue();
             String identifier = "testuser";
             String password = "password123";
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
 
-            given(userQueryPort.findByTenantIdAndIdentifier(TenantId.of(tenantId), identifier))
-                    .willReturn(Optional.of(user));
+            given(userQueryPort.findByIdentifier(identifier)).willReturn(Optional.of(user));
             given(tenantQueryPort.findById(user.getTenantId())).willReturn(Optional.of(tenant));
             given(organizationQueryPort.findById(user.getOrganizationId()))
                     .willReturn(Optional.empty());
@@ -197,19 +189,17 @@ class LoginServiceTest {
             Tenant tenant = TenantFixture.create();
             Organization organization = OrganizationFixture.create();
 
-            UUID tenantId = user.tenantIdValue();
             String identifier = "testuser";
             String password = "password123";
 
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
             TokenResponse tokenResponse =
                     new TokenResponse("access-token", "refresh-token", 3600L, 86400L, "Bearer");
             LoginResponse expectedResponse =
                     new LoginResponse(
                             user.userIdValue(), "access-token", "refresh-token", 3600L, "Bearer");
 
-            given(userQueryPort.findByTenantIdAndIdentifier(TenantId.of(tenantId), identifier))
-                    .willReturn(Optional.of(user));
+            given(userQueryPort.findByIdentifier(identifier)).willReturn(Optional.of(user));
             given(tenantQueryPort.findById(user.getTenantId())).willReturn(Optional.of(tenant));
             given(organizationQueryPort.findById(user.getOrganizationId()))
                     .willReturn(Optional.of(organization));
@@ -238,19 +228,17 @@ class LoginServiceTest {
             Tenant tenant = TenantFixture.create();
             Organization organization = OrganizationFixture.create();
 
-            UUID tenantId = user.tenantIdValue();
             String identifier = "testuser";
             String password = "password123";
 
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
             TokenResponse tokenResponse =
                     new TokenResponse("access-token", "refresh-token", 3600L, 86400L, "Bearer");
             LoginResponse expectedResponse =
                     new LoginResponse(
                             user.userIdValue(), "access-token", "refresh-token", 3600L, "Bearer");
 
-            given(userQueryPort.findByTenantIdAndIdentifier(TenantId.of(tenantId), identifier))
-                    .willReturn(Optional.of(user));
+            given(userQueryPort.findByIdentifier(identifier)).willReturn(Optional.of(user));
             given(tenantQueryPort.findById(user.getTenantId())).willReturn(Optional.of(tenant));
             given(organizationQueryPort.findById(user.getOrganizationId()))
                     .willReturn(Optional.of(organization));
@@ -279,19 +267,17 @@ class LoginServiceTest {
             Tenant tenant = TenantFixture.create();
             Organization organization = OrganizationFixture.create();
 
-            UUID tenantId = user.tenantIdValue();
             String identifier = "testuser";
             String password = "password123";
 
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
             TokenResponse tokenResponse =
                     new TokenResponse("access-token", "refresh-token", 3600L, 86400L, "Bearer");
             LoginResponse expectedResponse =
                     new LoginResponse(
                             user.userIdValue(), "access-token", "refresh-token", 3600L, "Bearer");
 
-            given(userQueryPort.findByTenantIdAndIdentifier(TenantId.of(tenantId), identifier))
-                    .willReturn(Optional.of(user));
+            given(userQueryPort.findByIdentifier(identifier)).willReturn(Optional.of(user));
             given(tenantQueryPort.findById(user.getTenantId())).willReturn(Optional.of(tenant));
             given(organizationQueryPort.findById(user.getOrganizationId()))
                     .willReturn(Optional.of(organization));
@@ -320,19 +306,17 @@ class LoginServiceTest {
             Tenant tenant = TenantFixture.create();
             Organization organization = OrganizationFixture.create();
 
-            UUID tenantId = user.tenantIdValue();
             String identifier = "testuser";
             String password = "password123";
 
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
             TokenResponse tokenResponse =
                     new TokenResponse("access-token", "refresh-token", 3600L, 86400L, "Bearer");
             LoginResponse expectedResponse =
                     new LoginResponse(
                             user.userIdValue(), "access-token", "refresh-token", 3600L, "Bearer");
 
-            given(userQueryPort.findByTenantIdAndIdentifier(TenantId.of(tenantId), identifier))
-                    .willReturn(Optional.of(user));
+            given(userQueryPort.findByIdentifier(identifier)).willReturn(Optional.of(user));
             given(tenantQueryPort.findById(user.getTenantId())).willReturn(Optional.of(tenant));
             given(organizationQueryPort.findById(user.getOrganizationId()))
                     .willReturn(Optional.of(organization));

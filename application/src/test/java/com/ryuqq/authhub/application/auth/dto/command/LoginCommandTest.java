@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -47,17 +46,6 @@ class LoginCommandTest {
     class FieldsTest {
 
         @Test
-        @DisplayName("[필수] tenantId 필드가 존재해야 한다")
-        void shouldHaveTenantIdField() {
-            RecordComponent[] components = LoginCommand.class.getRecordComponents();
-
-            assertThat(components).extracting(RecordComponent::getName).contains("tenantId");
-
-            RecordComponent component = findComponent(components, "tenantId");
-            assertThat(component.getType()).as("tenantId는 UUID 타입이어야 합니다").isEqualTo(UUID.class);
-        }
-
-        @Test
         @DisplayName("[필수] identifier 필드가 존재해야 한다 (이메일 또는 전화번호)")
         void shouldHaveIdentifierField() {
             RecordComponent[] components = LoginCommand.class.getRecordComponents();
@@ -92,15 +80,13 @@ class LoginCommandTest {
         @DisplayName("[필수] Record 인스턴스 생성 후 필드 값이 유지되어야 한다")
         void shouldMaintainFieldValues() {
             // Given
-            UUID tenantId = UUID.randomUUID();
             String identifier = "user@example.com";
             String password = "SecurePassword123!";
 
             // When
-            LoginCommand command = new LoginCommand(tenantId, identifier, password);
+            LoginCommand command = new LoginCommand(identifier, password);
 
             // Then
-            assertThat(command.tenantId()).isEqualTo(tenantId);
             assertThat(command.identifier()).isEqualTo(identifier);
             assertThat(command.password()).isEqualTo(password);
         }

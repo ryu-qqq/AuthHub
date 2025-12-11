@@ -14,7 +14,6 @@ import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
 import com.ryuqq.authhub.domain.auth.exception.InvalidCredentialsException;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import org.springframework.stereotype.Service;
 
@@ -74,10 +73,9 @@ public class LoginService implements LoginUseCase {
 
     @Override
     public LoginResponse execute(LoginCommand command) {
-        TenantId tenantId = TenantId.of(command.tenantId());
-
-        User user = findUser(tenantId, command);
-        loginValidator.validate(command.password(), user, command.tenantId(), command.identifier());
+        User user = findUser(command.identifier());
+        loginValidator.validate(
+                command.password(), user, user.tenantIdValue(), command.identifier());
 
         // Tenant, Organization 조회 및 TokenClaimsContext 구성
         TokenClaimsContext context = buildTokenClaimsContext(user);
@@ -86,13 +84,10 @@ public class LoginService implements LoginUseCase {
         return loginResponseAssembler.toLoginResponse(user, tokenResponse);
     }
 
-    private User findUser(TenantId tenantId, LoginCommand command) {
+    private User findUser(String identifier) {
         return userQueryPort
-                .findByTenantIdAndIdentifier(tenantId, command.identifier())
-                .orElseThrow(
-                        () ->
-                                new InvalidCredentialsException(
-                                        command.tenantId(), command.identifier()));
+                .findByIdentifier(identifier)
+                .orElseThrow(InvalidCredentialsException::new);
     }
 
     /**

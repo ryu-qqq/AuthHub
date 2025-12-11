@@ -105,8 +105,7 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new IllegalStateException(
-                    "Failed to load RSA private key from path: " + path, e);
+            throw new IllegalStateException("Failed to load RSA private key from path: " + path, e);
         }
     }
 

@@ -326,8 +326,7 @@ class JwtTokenProviderAdapterTest {
 
         @BeforeEach
         void setUp() {
-            Path resourcePath =
-                    Path.of("src/test/resources/keys").toAbsolutePath();
+            Path resourcePath = Path.of("src/test/resources/keys").toAbsolutePath();
 
             JwtProperties.RsaKeyProperties rsaProperties =
                     new JwtProperties.RsaKeyProperties(

@@ -38,7 +38,7 @@ public class AuthApiMapper {
      * @return Application Layer 로그인 명령
      */
     public LoginCommand toLoginCommand(LoginApiRequest request) {
-        return new LoginCommand(request.tenantId(), request.identifier(), request.password());
+        return new LoginCommand(request.identifier(), request.password());
     }
 
     /**

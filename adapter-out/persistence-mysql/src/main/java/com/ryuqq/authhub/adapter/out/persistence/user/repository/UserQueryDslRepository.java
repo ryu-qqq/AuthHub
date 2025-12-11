@@ -88,6 +88,23 @@ public class UserQueryDslRepository {
     }
 
     /**
+     * 식별자로 사용자 단건 조회
+     *
+     * <p>테넌트와 무관하게 식별자로 사용자를 조회합니다. 로그인 시 사용됩니다.
+     *
+     * @param identifier 사용자 식별자 (이메일 또는 사용자명)
+     * @return Optional<UserJpaEntity>
+     */
+    public Optional<UserJpaEntity> findByIdentifier(String identifier) {
+        UserJpaEntity result =
+                queryFactory
+                        .selectFrom(userJpaEntity)
+                        .where(userJpaEntity.identifier.eq(identifier))
+                        .fetchOne();
+        return Optional.ofNullable(result);
+    }
+
+    /**
      * 테넌트/조직 내 식별자로 사용자 단건 조회
      *
      * @param tenantId 테넌트 UUID
