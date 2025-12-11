@@ -33,6 +33,7 @@ import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPer
 import com.ryuqq.authhub.application.endpointpermission.port.in.command.CreateEndpointPermissionUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.command.DeleteEndpointPermissionUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.command.UpdateEndpointPermissionUseCase;
+import com.ryuqq.authhub.application.endpointpermission.port.in.query.GetAllEndpointPermissionSpecUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.query.GetEndpointPermissionUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.query.SearchEndpointPermissionsUseCase;
 import java.time.Instant;
@@ -78,6 +79,8 @@ class EndpointPermissionControllerDocsTest extends RestDocsTestSupport {
     @MockBean private DeleteEndpointPermissionUseCase deleteEndpointPermissionUseCase;
 
     @MockBean private GetEndpointPermissionUseCase getEndpointPermissionUseCase;
+
+    @MockBean private GetAllEndpointPermissionSpecUseCase getAllEndpointPermissionSpecUseCase;
 
     @MockBean private SearchEndpointPermissionsUseCase searchEndpointPermissionsUseCase;
 

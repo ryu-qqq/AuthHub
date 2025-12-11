@@ -13,8 +13,12 @@ import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper;
 import com.ryuqq.authhub.adapter.in.rest.endpointpermission.dto.response.EndpointPermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.endpointpermission.mapper.EndpointPermissionApiMapper;
 import com.ryuqq.authhub.application.endpointpermission.dto.query.GetEndpointPermissionQuery;
+import com.ryuqq.authhub.application.endpointpermission.dto.query.GetServiceEndpointPermissionSpecQuery;
 import com.ryuqq.authhub.application.endpointpermission.dto.query.SearchEndpointPermissionsQuery;
 import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionResponse;
+import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionSpecItemResponse;
+import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionSpecListResponse;
+import com.ryuqq.authhub.application.endpointpermission.port.in.query.GetAllEndpointPermissionSpecUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.query.GetEndpointPermissionUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.query.SearchEndpointPermissionsUseCase;
 import com.ryuqq.authhub.domain.endpointpermission.exception.EndpointPermissionNotFoundException;
@@ -67,11 +71,136 @@ class EndpointPermissionQueryControllerTest {
 
     @MockBean private GetEndpointPermissionUseCase getEndpointPermissionUseCase;
 
+    @MockBean private GetAllEndpointPermissionSpecUseCase getAllEndpointPermissionSpecUseCase;
+
     @MockBean private SearchEndpointPermissionsUseCase searchEndpointPermissionsUseCase;
 
     @MockBean private EndpointPermissionApiMapper mapper;
 
     @MockBean private ErrorMapperRegistry errorMapperRegistry;
+
+    @Nested
+    @DisplayName("GET /api/v1/endpoint-permissions/spec - 서비스별 엔드포인트 권한 스펙 조회")
+    class GetEndpointPermissionSpecTest {
+
+        @Test
+        @DisplayName("[성공] 서비스별 엔드포인트 권한 스펙 조회 시 200 OK 반환")
+        void getEndpointPermissionSpec_returns200Ok() throws Exception {
+            // Given
+            EndpointPermissionSpecItemResponse item1 =
+                    EndpointPermissionSpecItemResponse.of(
+                            "GET",
+                            "/api/v1/users/{userId}",
+                            "auth-hub",
+                            Set.of("ADMIN"),
+                            Set.of("user:read"),
+                            false);
+            EndpointPermissionSpecItemResponse item2 =
+                    EndpointPermissionSpecItemResponse.of(
+                            "GET", "/api/v1/health", "auth-hub", Set.of(), Set.of(), true);
+            EndpointPermissionSpecListResponse response =
+                    EndpointPermissionSpecListResponse.of(
+                            List.of(item1, item2), "2025-12-11T05:30:00Z");
+
+            given(
+                            getAllEndpointPermissionSpecUseCase.execute(
+                                    any(GetServiceEndpointPermissionSpecQuery.class)))
+                    .willReturn(response);
+
+            // When & Then
+            mockMvc.perform(
+                            get("/api/v1/endpoint-permissions/spec")
+                                    .param("serviceName", "auth-hub")
+                                    .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.endpoints").isArray())
+                    .andExpect(jsonPath("$.data.endpoints.length()").value(2))
+                    .andExpect(jsonPath("$.data.endpoints[0].method").value("GET"))
+                    .andExpect(
+                            jsonPath("$.data.endpoints[0].pattern").value("/api/v1/users/{userId}"))
+                    .andExpect(jsonPath("$.data.endpoints[0].service").value("auth-hub"))
+                    .andExpect(jsonPath("$.data.endpoints[0].isPublic").value(false))
+                    .andExpect(jsonPath("$.data.endpoints[1].isPublic").value(true))
+                    .andExpect(jsonPath("$.data.version").value("2025-12-11T05:30:00Z"));
+
+            verify(getAllEndpointPermissionSpecUseCase)
+                    .execute(any(GetServiceEndpointPermissionSpecQuery.class));
+        }
+
+        @Test
+        @DisplayName("[성공] 엔드포인트 권한이 없을 때 빈 목록 반환")
+        void getEndpointPermissionSpec_withNoEndpoints_returnsEmptyList() throws Exception {
+            // Given
+            EndpointPermissionSpecListResponse response =
+                    EndpointPermissionSpecListResponse.of(List.of(), Instant.now().toString());
+
+            given(
+                            getAllEndpointPermissionSpecUseCase.execute(
+                                    any(GetServiceEndpointPermissionSpecQuery.class)))
+                    .willReturn(response);
+
+            // When & Then
+            mockMvc.perform(
+                            get("/api/v1/endpoint-permissions/spec")
+                                    .param("serviceName", "auth-hub")
+                                    .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.endpoints").isArray())
+                    .andExpect(jsonPath("$.data.endpoints").isEmpty())
+                    .andExpect(jsonPath("$.data.version").exists());
+
+            verify(getAllEndpointPermissionSpecUseCase)
+                    .execute(any(GetServiceEndpointPermissionSpecQuery.class));
+        }
+
+        @Test
+        @DisplayName("[성공] 필수 권한과 역할이 포함된 엔드포인트 스펙 반환")
+        void getEndpointPermissionSpec_withRolesAndPermissions_returnsCorrectData()
+                throws Exception {
+            // Given
+            EndpointPermissionSpecItemResponse item =
+                    EndpointPermissionSpecItemResponse.of(
+                            "DELETE",
+                            "/api/v1/users/{userId}",
+                            "auth-hub",
+                            Set.of("SUPER_ADMIN", "ADMIN"),
+                            Set.of("user:delete", "user:write"),
+                            false);
+            EndpointPermissionSpecListResponse response =
+                    EndpointPermissionSpecListResponse.of(List.of(item), "2025-12-11T06:00:00Z");
+
+            given(
+                            getAllEndpointPermissionSpecUseCase.execute(
+                                    any(GetServiceEndpointPermissionSpecQuery.class)))
+                    .willReturn(response);
+
+            // When & Then
+            mockMvc.perform(
+                            get("/api/v1/endpoint-permissions/spec")
+                                    .param("serviceName", "auth-hub")
+                                    .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.endpoints[0].method").value("DELETE"))
+                    .andExpect(jsonPath("$.data.endpoints[0].requiredRoles").isArray())
+                    .andExpect(jsonPath("$.data.endpoints[0].requiredPermissions").isArray());
+
+            verify(getAllEndpointPermissionSpecUseCase)
+                    .execute(any(GetServiceEndpointPermissionSpecQuery.class));
+        }
+
+        @Test
+        @DisplayName("[실패] 서비스 이름 누락 시 400 Bad Request 반환")
+        void getEndpointPermissionSpec_withoutServiceName_returns400BadRequest() throws Exception {
+            // When & Then
+            mockMvc.perform(
+                            get("/api/v1/endpoint-permissions/spec")
+                                    .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest());
+        }
+    }
 
     @Nested
     @DisplayName("GET /api/v1/endpoint-permissions/{endpointPermissionId} - 엔드포인트 권한 단건 조회")

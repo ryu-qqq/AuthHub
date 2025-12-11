@@ -1,10 +1,14 @@
 package com.ryuqq.authhub.adapter.in.rest.endpointpermission.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.endpointpermission.dto.query.SearchEndpointPermissionsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.endpointpermission.dto.response.EndpointPermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.endpointpermission.mapper.EndpointPermissionApiMapper;
+import com.ryuqq.authhub.application.endpointpermission.dto.query.GetServiceEndpointPermissionSpecQuery;
 import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionResponse;
+import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionSpecListResponse;
+import com.ryuqq.authhub.application.endpointpermission.port.in.query.GetAllEndpointPermissionSpecUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.query.GetEndpointPermissionUseCase;
 import com.ryuqq.authhub.application.endpointpermission.port.in.query.SearchEndpointPermissionsUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,20 +43,56 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Tag(name = "EndpointPermission", description = "엔드포인트 권한 관리 API")
 @RestController
-@RequestMapping("/api/v1/endpoint-permissions")
+@RequestMapping(ApiPaths.EndpointPermissions.BASE)
 public class EndpointPermissionQueryController {
 
     private final GetEndpointPermissionUseCase getEndpointPermissionUseCase;
+    private final GetAllEndpointPermissionSpecUseCase getAllEndpointPermissionSpecUseCase;
     private final SearchEndpointPermissionsUseCase searchEndpointPermissionsUseCase;
     private final EndpointPermissionApiMapper mapper;
 
     public EndpointPermissionQueryController(
             GetEndpointPermissionUseCase getEndpointPermissionUseCase,
+            GetAllEndpointPermissionSpecUseCase getAllEndpointPermissionSpecUseCase,
             SearchEndpointPermissionsUseCase searchEndpointPermissionsUseCase,
             EndpointPermissionApiMapper mapper) {
         this.getEndpointPermissionUseCase = getEndpointPermissionUseCase;
+        this.getAllEndpointPermissionSpecUseCase = getAllEndpointPermissionSpecUseCase;
         this.searchEndpointPermissionsUseCase = searchEndpointPermissionsUseCase;
         this.mapper = mapper;
+    }
+
+    /**
+     * 서비스별 엔드포인트 권한 스펙 조회 (Gateway용)
+     *
+     * <p>GET /api/v1/endpoint-permissions/spec?serviceName=auth-hub
+     *
+     * <p>Gateway에서 권한 검증을 위해 캐싱할 서비스별 엔드포인트 권한 스펙을 조회합니다.
+     *
+     * @param serviceName 서비스 이름 (필수)
+     * @return 200 OK + 서비스별 엔드포인트 권한 스펙 목록
+     */
+    @Operation(
+            summary = "서비스별 엔드포인트 권한 스펙 조회",
+            description = "Gateway에서 캐싱할 서비스별 엔드포인트 권한 스펙을 조회합니다")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "서비스 이름 누락")
+    })
+    @GetMapping(ApiPaths.EndpointPermissions.SPEC)
+    public ResponseEntity<ApiResponse<EndpointPermissionSpecListResponse>>
+            getEndpointPermissionSpec(
+                    @Parameter(description = "서비스 이름", required = true) @RequestParam
+                            String serviceName) {
+        GetServiceEndpointPermissionSpecQuery query =
+                new GetServiceEndpointPermissionSpecQuery(serviceName);
+        EndpointPermissionSpecListResponse response =
+                getAllEndpointPermissionSpecUseCase.execute(query);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(response));
     }
 
     /**
@@ -72,7 +112,7 @@ public class EndpointPermissionQueryController {
                 responseCode = "404",
                 description = "엔드포인트 권한을 찾을 수 없음")
     })
-    @GetMapping("/{endpointPermissionId}")
+    @GetMapping(ApiPaths.EndpointPermissions.BY_ID)
     public ResponseEntity<ApiResponse<EndpointPermissionApiResponse>> getEndpointPermission(
             @Parameter(description = "엔드포인트 권한 ID", required = true) @PathVariable
                     String endpointPermissionId) {

@@ -1,8 +1,12 @@
 package com.ryuqq.authhub.application.endpointpermission.assembler;
 
 import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionResponse;
+import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionSpecItemResponse;
+import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionSpecListResponse;
 import com.ryuqq.authhub.application.endpointpermission.dto.response.EndpointPermissionSpecResponse;
 import com.ryuqq.authhub.domain.endpointpermission.aggregate.EndpointPermission;
+import java.time.Instant;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,5 +63,37 @@ public class EndpointPermissionAssembler {
                 endpointPermission.isPublic(),
                 endpointPermission.requiredPermissionValues(),
                 endpointPermission.requiredRoleValues());
+    }
+
+    /**
+     * EndpointPermission → EndpointPermissionSpecItemResponse 변환 (Gateway용)
+     *
+     * @param endpointPermission EndpointPermission Aggregate
+     * @return EndpointPermissionSpecItemResponse DTO
+     */
+    public EndpointPermissionSpecItemResponse toSpecItemResponse(
+            EndpointPermission endpointPermission) {
+        return EndpointPermissionSpecItemResponse.of(
+                endpointPermission.methodValue(),
+                endpointPermission.pathValue(),
+                endpointPermission.serviceNameValue(),
+                endpointPermission.requiredRoleValues(),
+                endpointPermission.requiredPermissionValues(),
+                endpointPermission.isPublic());
+    }
+
+    /**
+     * EndpointPermission 목록 → EndpointPermissionSpecListResponse 변환 (Gateway용)
+     *
+     * @param endpointPermissions EndpointPermission 목록
+     * @return EndpointPermissionSpecListResponse DTO
+     */
+    public EndpointPermissionSpecListResponse toSpecListResponse(
+            List<EndpointPermission> endpointPermissions) {
+        List<EndpointPermissionSpecItemResponse> items =
+                endpointPermissions.stream().map(this::toSpecItemResponse).toList();
+
+        String version = Instant.now().toString();
+        return EndpointPermissionSpecListResponse.of(items, version);
     }
 }

@@ -82,4 +82,12 @@ public interface EndpointPermissionQueryPort {
      * @return 총 개수
      */
     long count(SearchEndpointPermissionsQuery query);
+
+    /**
+     * 서비스별 엔드포인트 권한 조회 (Gateway 스펙 동기화용)
+     *
+     * @param serviceName 서비스 이름
+     * @return 해당 서비스의 EndpointPermission 목록
+     */
+    List<EndpointPermission> findAllByServiceName(ServiceName serviceName);
 }
