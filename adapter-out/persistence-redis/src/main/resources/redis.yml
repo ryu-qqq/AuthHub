@@ -66,7 +66,7 @@ redisson:
   # Single Server Mode (Default)
   single-server-config:
     address: "redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}"
-    password: ${REDIS_PASSWORD:null}
+    password: ${REDIS_PASSWORD:}
     database: ${REDIS_DATABASE:0}
 
     # Connection Pool
@@ -136,7 +136,7 @@ spring:
 redisson:
   single-server-config:
     address: "redis://${REDIS_HOST:redis-dev.internal}:${REDIS_PORT:6379}"
-    password: ${REDIS_PASSWORD:null}
+    password: ${REDIS_PASSWORD:}
     connection-pool-size: 12
 
 ---
@@ -190,8 +190,8 @@ redisson:
 
   single-server-config:
     address: "redis://${REDIS_HOST}:${REDIS_PORT:6379}"
-    # ElastiCache 비밀번호 미사용 시 null 허용
-    password: ${REDIS_PASSWORD:null}
+    # ElastiCache 비밀번호 미사용 시 빈 값
+    password: ${REDIS_PASSWORD:}
     connection-pool-size: 32
     connection-minimum-idle-size: 8
     ssl-enable-endpoint-identification: ${REDIS_SSL_ENABLED:false}
