@@ -57,7 +57,7 @@ services:
       LOG_LEVEL: ${LOG_LEVEL}
       
     ports:
-      - "8080:8080"
+      - "9090:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

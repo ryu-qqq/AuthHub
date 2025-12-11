@@ -51,6 +51,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
             "com.ryuqq.authhub.application",
             "com.ryuqq.authhub.adapter.in.rest",
             "com.ryuqq.authhub.adapter.out.persistence",
+            "com.ryuqq.authhub.adapter.out.security",
             "com.ryuqq.bootstrap"
         })
 @ConfigurationPropertiesScan(basePackages = {"com.ryuqq.authhub.adapter.in.rest.config.properties"})
