@@ -5,33 +5,25 @@ import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
 import java.util.Map;
 
 /**
- * InvalidOrganizationStateException - 유효하지 않은 Organization 상태 예외
- *
- * <p>Organization 상태 전이가 유효하지 않을 때 발생하는 예외입니다.
+ * InvalidOrganizationStateException - 유효하지 않은 조직 상태 전이 시 발생하는 예외
  *
  * @author development-team
  * @since 1.0.0
  */
 public class InvalidOrganizationStateException extends DomainException {
 
+    public InvalidOrganizationStateException(OrganizationStatus currentStatus, String reason) {
+        super(
+                OrganizationErrorCode.INVALID_ORGANIZATION_STATE,
+                Map.of("currentStatus", currentStatus.name(), "reason", reason));
+    }
+
     public InvalidOrganizationStateException(
             OrganizationStatus currentStatus, OrganizationStatus targetStatus) {
         super(
-                OrganizationErrorCode.INVALID_ORGANIZATION_STATUS,
+                OrganizationErrorCode.INVALID_ORGANIZATION_STATE,
                 Map.of(
-                        "currentStatus", currentStatus != null ? currentStatus.name() : "null",
-                        "targetStatus", targetStatus != null ? targetStatus.name() : "null"));
-    }
-
-    public InvalidOrganizationStateException(Long organizationId, String reason) {
-        super(
-                OrganizationErrorCode.INVALID_ORGANIZATION_STATUS,
-                Map.of(
-                        "organizationId", organizationId,
-                        "reason", reason));
-    }
-
-    public InvalidOrganizationStateException(String message) {
-        super(OrganizationErrorCode.INVALID_ORGANIZATION_STATUS.getCode(), message);
+                        "currentStatus", currentStatus.name(),
+                        "targetStatus", targetStatus.name()));
     }
 }

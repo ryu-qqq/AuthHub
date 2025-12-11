@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.persistence.tenant.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -8,95 +9,115 @@ import com.ryuqq.authhub.adapter.out.persistence.tenant.entity.TenantJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.tenant.mapper.TenantJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantJpaRepository;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import com.ryuqq.authhub.domain.tenant.vo.TenantName;
+import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * TenantCommandAdapter 테스트
+ * TenantCommandAdapter 단위 테스트
  *
- * <p>TenantPersistencePort 구현체 테스트
- *
- * @author AuthHub Team
+ * @author development-team
  * @since 1.0.0
  */
+@Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("TenantCommandAdapter 테스트")
+@DisplayName("TenantCommandAdapter 단위 테스트")
 class TenantCommandAdapterTest {
 
-    @Mock private TenantJpaRepository tenantJpaRepository;
+    @Mock private TenantJpaRepository repository;
 
-    @Mock private TenantJpaEntityMapper tenantJpaEntityMapper;
+    @Mock private TenantJpaEntityMapper mapper;
 
-    private TenantCommandAdapter tenantCommandAdapter;
+    private TenantCommandAdapter adapter;
 
-    private static final Long ID = 1L;
-    private static final String NAME = "Test Tenant";
-    private static final TenantStatus STATUS = TenantStatus.ACTIVE;
-    private static final Instant CREATED_AT = Instant.parse("2025-01-01T10:00:00Z");
-    private static final Instant UPDATED_AT = Instant.parse("2025-01-02T15:30:00Z");
-    private static final LocalDateTime CREATED_AT_LOCAL = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
-    private static final LocalDateTime UPDATED_AT_LOCAL = LocalDateTime.of(2025, 1, 2, 15, 30, 0);
+    private static final UUID TENANT_UUID = TenantFixture.defaultUUID();
+    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
 
     @BeforeEach
     void setUp() {
-        tenantCommandAdapter = new TenantCommandAdapter(tenantJpaRepository, tenantJpaEntityMapper);
+        adapter = new TenantCommandAdapter(repository, mapper);
     }
 
     @Nested
-    @DisplayName("persist() 메서드는")
-    class PersistMethod {
+    @DisplayName("persist 메서드")
+    class PersistTest {
 
         @Test
-        @DisplayName("신규 Tenant를 저장하고 생성된 ID를 반환한다")
-        void shouldSaveNewTenantAndReturnId() {
-            // Given
-            Tenant tenant = Tenant.of(null, TenantName.of(NAME), STATUS, CREATED_AT, UPDATED_AT);
+        @DisplayName("테넌트를 성공적으로 저장한다")
+        void shouldPersistTenantSuccessfully() {
+            // given
+            Tenant domainToSave = TenantFixture.createNew();
+            Tenant savedDomain = TenantFixture.create();
+
             TenantJpaEntity entityToSave =
-                    TenantJpaEntity.of(null, NAME, STATUS, CREATED_AT_LOCAL, UPDATED_AT_LOCAL);
+                    TenantJpaEntity.of(
+                            null, null, "New Tenant", TenantStatus.ACTIVE, FIXED_TIME, FIXED_TIME);
             TenantJpaEntity savedEntity =
-                    TenantJpaEntity.of(ID, NAME, STATUS, CREATED_AT_LOCAL, UPDATED_AT_LOCAL);
+                    TenantJpaEntity.of(
+                            1L,
+                            TENANT_UUID,
+                            "Test Tenant",
+                            TenantStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
 
-            given(tenantJpaEntityMapper.toEntity(tenant)).willReturn(entityToSave);
-            given(tenantJpaRepository.save(entityToSave)).willReturn(savedEntity);
+            given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
+            given(repository.save(entityToSave)).willReturn(savedEntity);
+            given(mapper.toDomain(savedEntity)).willReturn(savedDomain);
 
-            // When
-            TenantId result = tenantCommandAdapter.persist(tenant);
+            // when
+            Tenant result = adapter.persist(domainToSave);
 
-            // Then
-            assertThat(result.value()).isEqualTo(ID);
-            verify(tenantJpaEntityMapper).toEntity(tenant);
-            verify(tenantJpaRepository).save(entityToSave);
+            // then
+            assertThat(result).isEqualTo(savedDomain);
+            verify(mapper).toEntity(domainToSave);
+            verify(repository).save(entityToSave);
+            verify(mapper).toDomain(savedEntity);
         }
 
         @Test
-        @DisplayName("기존 Tenant를 수정하고 ID를 반환한다")
-        void shouldUpdateExistingTenantAndReturnId() {
-            // Given
-            Tenant tenant =
-                    Tenant.reconstitute(
-                            TenantId.of(ID), TenantName.of(NAME), STATUS, CREATED_AT, UPDATED_AT);
-            TenantJpaEntity entityToSave =
-                    TenantJpaEntity.of(ID, NAME, STATUS, CREATED_AT_LOCAL, UPDATED_AT_LOCAL);
+        @DisplayName("기존 테넌트를 수정한다")
+        void shouldUpdateExistingTenant() {
+            // given
+            Tenant existingDomain = TenantFixture.create();
+            Tenant updatedDomain = TenantFixture.createWithName("Updated Tenant");
 
-            given(tenantJpaEntityMapper.toEntity(tenant)).willReturn(entityToSave);
-            given(tenantJpaRepository.save(entityToSave)).willReturn(entityToSave);
+            TenantJpaEntity entityToUpdate =
+                    TenantJpaEntity.of(
+                            1L,
+                            TENANT_UUID,
+                            "Test Tenant",
+                            TenantStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            TenantJpaEntity updatedEntity =
+                    TenantJpaEntity.of(
+                            1L,
+                            TENANT_UUID,
+                            "Updated Tenant",
+                            TenantStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
 
-            // When
-            TenantId result = tenantCommandAdapter.persist(tenant);
+            given(mapper.toEntity(existingDomain)).willReturn(entityToUpdate);
+            given(repository.save(entityToUpdate)).willReturn(updatedEntity);
+            given(mapper.toDomain(updatedEntity)).willReturn(updatedDomain);
 
-            // Then
-            assertThat(result.value()).isEqualTo(ID);
-            verify(tenantJpaRepository).save(entityToSave);
+            // when
+            Tenant result = adapter.persist(existingDomain);
+
+            // then
+            assertThat(result.nameValue()).isEqualTo("Updated Tenant");
+            verify(repository).save(any(TenantJpaEntity.class));
         }
     }
 }

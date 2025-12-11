@@ -1,20 +1,18 @@
 package com.ryuqq.authhub.application.organization.port.out.command;
 
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 
 /**
  * OrganizationPersistencePort - Organization Aggregate 영속화 포트 (Command)
  *
- * <p>Domain Aggregate를 영속화하는 Command 전용 Port입니다.
+ * <p>Domain Aggregate를 저장하는 명령 전용 Port입니다.
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>단일 persist() 메서드 (INSERT/UPDATE 자동 판단 - JPA merge 패턴)
- *   <li>save/update/delete 개별 메서드 금지
- *   <li>Domain 파라미터 (DTO/Entity 금지)
- *   <li>Value Object 반환 (OrganizationId)
+ *   <li>persist() 메서드만 제공 (save/update/delete 분리 금지)
+ *   <li>Domain Aggregate 파라미터 (Entity/DTO 금지)
+ *   <li>Value Object 반환 (원시 타입 금지)
  *   <li>조회 메서드 금지 (QueryPort로 분리)
  * </ul>
  *
@@ -24,12 +22,18 @@ import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 public interface OrganizationPersistencePort {
 
     /**
-     * Organization 영속화 (INSERT 또는 UPDATE)
+     * Organization Aggregate 영속화 (생성/수정/삭제 통합)
      *
-     * <p>Domain의 isNew() 상태에 따라 INSERT/UPDATE 자동 판단
+     * <p>Domain의 상태에 따라 적절한 영속화 작업을 수행합니다.
      *
-     * @param organization Organization Domain Aggregate
-     * @return 영속화된 Organization의 ID (Value Object)
+     * <ul>
+     *   <li>isNew() == true → INSERT
+     *   <li>isNew() == false → UPDATE
+     *   <li>isDeleted() == true → Soft DELETE (상태 변경)
+     * </ul>
+     *
+     * @param organization Organization Aggregate
+     * @return 영속화된 Organization (ID 할당됨)
      */
-    OrganizationId persist(Organization organization);
+    Organization persist(Organization organization);
 }

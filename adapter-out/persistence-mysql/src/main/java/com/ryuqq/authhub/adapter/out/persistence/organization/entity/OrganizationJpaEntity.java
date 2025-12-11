@@ -9,85 +9,169 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
- * OrganizationJpaEntity - Organization JPA Entity
+ * OrganizationJpaEntity - 조직 JPA Entity
  *
- * <p>테넌트 내의 조직 정보를 저장합니다.
+ * <p>Persistence Layer의 JPA Entity로서 데이터베이스 테이블과 매핑됩니다.
  *
- * <p><strong>Domain 매핑:</strong>
+ * <p><strong>Long FK 전략:</strong>
  *
  * <ul>
- *   <li>Long id ← OrganizationId
- *   <li>String name ← OrganizationName
- *   <li>Long tenantId ← TenantId (Long FK 전략)
- *   <li>OrganizationStatus status ← OrganizationStatus
- *   <li>LocalDateTime createdAt ← Instant (Mapper에서 변환)
- *   <li>LocalDateTime updatedAt ← Instant (Mapper에서 변환)
+ *   <li>tenantId는 UUID 타입으로 관리 (JPA 관계 어노테이션 금지)
+ *   <li>테넌트와의 관계는 UUID를 통해 애플리케이션에서 관리
  * </ul>
  *
- * <p><strong>Long FK 전략:</strong> JPA 관계 어노테이션 대신 Long 타입으로 외래 키를 직접 관리합니다.
+ * <p><strong>BaseAuditEntity 상속:</strong>
  *
- * @author AuthHub Team
+ * <ul>
+ *   <li>공통 감사 필드 상속: createdAt, updatedAt
+ * </ul>
+ *
+ * <p><strong>UUIDv7 식별자:</strong>
+ *
+ * <ul>
+ *   <li>organizationId는 UUID 타입으로 관리
+ *   <li>애플리케이션에서 UUIDv7 생성
+ * </ul>
+ *
+ * <p><strong>Lombok 금지:</strong>
+ *
+ * <ul>
+ *   <li>Plain Java getter 사용
+ *   <li>Setter 제공 금지
+ *   <li>명시적 생성자 제공
+ * </ul>
+ *
+ * @author development-team
  * @since 1.0.0
  */
 @Entity
-@Table(name = "organizations")
+@Table(
+        name = "organizations",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uk_organizations_tenant_name",
+                    columnNames = {"tenant_id", "name"})
+        },
+        indexes = {
+            @Index(name = "idx_organizations_tenant_id", columnList = "tenant_id"),
+            @Index(name = "idx_organizations_status", columnList = "status")
+        })
 public class OrganizationJpaEntity extends BaseAuditEntity {
 
+    /** 기본 키 - AUTO_INCREMENT (내부 Long ID) */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
+    /** 조직 UUID - UUIDv7 (외부 식별자) */
+    @Column(
+            name = "organization_id",
+            nullable = false,
+            unique = true,
+            columnDefinition = "BINARY(16)")
+    private UUID organizationId;
+
+    /** 테넌트 UUID - FK (Long FK 전략: JPA 관계 어노테이션 금지) */
+    @Column(name = "tenant_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID tenantId;
+
+    /** 조직 이름 */
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "tenant_id", nullable = false)
-    private Long tenantId;
-
+    /** 조직 상태 */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private OrganizationStatus status;
 
+    /**
+     * JPA 기본 생성자 (protected)
+     *
+     * <p>JPA 스펙 요구사항으로 반드시 필요합니다.
+     */
     protected OrganizationJpaEntity() {}
 
+    /**
+     * 전체 필드 생성자 (private)
+     *
+     * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
+     *
+     * @param id 내부 기본 키
+     * @param organizationId 조직 UUID
+     * @param tenantId 테넌트 UUID
+     * @param name 조직 이름
+     * @param status 조직 상태
+     * @param createdAt 생성 일시
+     * @param updatedAt 수정 일시
+     */
     private OrganizationJpaEntity(
             Long id,
+            UUID organizationId,
+            UUID tenantId,
             String name,
-            Long tenantId,
             OrganizationStatus status,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
         this.id = id;
-        this.name = name;
+        this.organizationId = organizationId;
         this.tenantId = tenantId;
+        this.name = name;
         this.status = status;
     }
 
+    /**
+     * of() 스태틱 팩토리 메서드 (Mapper 전용)
+     *
+     * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
+     *
+     * <p>Mapper에서 Domain → Entity 변환 시 사용합니다.
+     *
+     * @param id 내부 기본 키 (신규 생성 시 null)
+     * @param organizationId 조직 UUID
+     * @param tenantId 테넌트 UUID
+     * @param name 조직 이름
+     * @param status 조직 상태
+     * @param createdAt 생성 일시
+     * @param updatedAt 수정 일시
+     * @return OrganizationJpaEntity 인스턴스
+     */
     public static OrganizationJpaEntity of(
             Long id,
+            UUID organizationId,
+            UUID tenantId,
             String name,
-            Long tenantId,
             OrganizationStatus status,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
-        return new OrganizationJpaEntity(id, name, tenantId, status, createdAt, updatedAt);
+        return new OrganizationJpaEntity(
+                id, organizationId, tenantId, name, status, createdAt, updatedAt);
     }
+
+    // ===== Getters (Setter 제공 금지) =====
 
     public Long getId() {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public UUID getOrganizationId() {
+        return organizationId;
     }
 
-    public Long getTenantId() {
+    public UUID getTenantId() {
         return tenantId;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public OrganizationStatus getStatus() {

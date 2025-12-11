@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.persistence.organization.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -8,114 +9,162 @@ import com.ryuqq.authhub.adapter.out.persistence.organization.entity.Organizatio
 import com.ryuqq.authhub.adapter.out.persistence.organization.mapper.OrganizationJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationJpaRepository;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * OrganizationCommandAdapter 테스트
+ * OrganizationCommandAdapter 단위 테스트
  *
- * <p>OrganizationPersistencePort 구현체 테스트
- *
- * @author AuthHub Team
+ * @author development-team
  * @since 1.0.0
  */
+@Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("OrganizationCommandAdapter 테스트")
+@DisplayName("OrganizationCommandAdapter 단위 테스트")
 class OrganizationCommandAdapterTest {
 
-    @Mock private OrganizationJpaRepository organizationJpaRepository;
+    @Mock private OrganizationJpaRepository repository;
 
-    @Mock private OrganizationJpaEntityMapper organizationJpaEntityMapper;
+    @Mock private OrganizationJpaEntityMapper mapper;
 
-    private OrganizationCommandAdapter organizationCommandAdapter;
+    private OrganizationCommandAdapter adapter;
 
-    private static final Long ID = 1L;
-    private static final String NAME = "Test Organization";
-    private static final Long TENANT_ID = 100L;
-    private static final OrganizationStatus STATUS = OrganizationStatus.ACTIVE;
-    private static final Instant CREATED_AT = Instant.parse("2025-01-01T10:00:00Z");
-    private static final Instant UPDATED_AT = Instant.parse("2025-01-02T15:30:00Z");
-    private static final LocalDateTime CREATED_AT_LOCAL = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
-    private static final LocalDateTime UPDATED_AT_LOCAL = LocalDateTime.of(2025, 1, 2, 15, 30, 0);
+    private static final UUID ORG_UUID = OrganizationFixture.defaultUUID();
+    private static final UUID TENANT_UUID = OrganizationFixture.defaultTenantUUID();
+    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
 
     @BeforeEach
     void setUp() {
-        organizationCommandAdapter =
-                new OrganizationCommandAdapter(
-                        organizationJpaRepository, organizationJpaEntityMapper);
+        adapter = new OrganizationCommandAdapter(repository, mapper);
     }
 
     @Nested
-    @DisplayName("persist() 메서드는")
-    class PersistMethod {
+    @DisplayName("persist 메서드")
+    class PersistTest {
 
         @Test
-        @DisplayName("신규 Organization을 저장하고 생성된 ID를 반환한다")
-        void shouldSaveNewOrganizationAndReturnId() {
-            // Given
-            Organization organization =
-                    Organization.of(
-                            null,
-                            OrganizationName.of(NAME),
-                            TenantId.of(TENANT_ID),
-                            STATUS,
-                            CREATED_AT,
-                            UPDATED_AT);
+        @DisplayName("조직을 성공적으로 저장한다")
+        void shouldPersistOrganizationSuccessfully() {
+            // given
+            Organization domainToSave = OrganizationFixture.createNew();
+            Organization savedDomain = OrganizationFixture.create();
+
             OrganizationJpaEntity entityToSave =
                     OrganizationJpaEntity.of(
-                            null, NAME, TENANT_ID, STATUS, CREATED_AT_LOCAL, UPDATED_AT_LOCAL);
+                            null,
+                            ORG_UUID,
+                            TENANT_UUID,
+                            "New Organization",
+                            OrganizationStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
             OrganizationJpaEntity savedEntity =
                     OrganizationJpaEntity.of(
-                            ID, NAME, TENANT_ID, STATUS, CREATED_AT_LOCAL, UPDATED_AT_LOCAL);
+                            1L,
+                            ORG_UUID,
+                            TENANT_UUID,
+                            "Test Organization",
+                            OrganizationStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
 
-            given(organizationJpaEntityMapper.toEntity(organization)).willReturn(entityToSave);
-            given(organizationJpaRepository.save(entityToSave)).willReturn(savedEntity);
+            given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
+            given(repository.save(entityToSave)).willReturn(savedEntity);
+            given(mapper.toDomain(savedEntity)).willReturn(savedDomain);
 
-            // When
-            OrganizationId result = organizationCommandAdapter.persist(organization);
+            // when
+            Organization result = adapter.persist(domainToSave);
 
-            // Then
-            assertThat(result.value()).isEqualTo(ID);
-            verify(organizationJpaEntityMapper).toEntity(organization);
-            verify(organizationJpaRepository).save(entityToSave);
+            // then
+            assertThat(result).isEqualTo(savedDomain);
+            verify(mapper).toEntity(domainToSave);
+            verify(repository).save(entityToSave);
+            verify(mapper).toDomain(savedEntity);
         }
 
         @Test
-        @DisplayName("기존 Organization을 수정하고 ID를 반환한다")
-        void shouldUpdateExistingOrganizationAndReturnId() {
-            // Given
-            Organization organization =
-                    Organization.reconstitute(
-                            OrganizationId.of(ID),
-                            OrganizationName.of(NAME),
-                            TenantId.of(TENANT_ID),
-                            STATUS,
-                            CREATED_AT,
-                            UPDATED_AT);
+        @DisplayName("기존 조직을 수정한다")
+        void shouldUpdateExistingOrganization() {
+            // given
+            Organization existingDomain = OrganizationFixture.create();
+            Organization updatedDomain = OrganizationFixture.createWithName("Updated Organization");
+
+            OrganizationJpaEntity entityToUpdate =
+                    OrganizationJpaEntity.of(
+                            1L,
+                            ORG_UUID,
+                            TENANT_UUID,
+                            "Test Organization",
+                            OrganizationStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            OrganizationJpaEntity updatedEntity =
+                    OrganizationJpaEntity.of(
+                            1L,
+                            ORG_UUID,
+                            TENANT_UUID,
+                            "Updated Organization",
+                            OrganizationStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+
+            given(mapper.toEntity(existingDomain)).willReturn(entityToUpdate);
+            given(repository.save(entityToUpdate)).willReturn(updatedEntity);
+            given(mapper.toDomain(updatedEntity)).willReturn(updatedDomain);
+
+            // when
+            Organization result = adapter.persist(existingDomain);
+
+            // then
+            assertThat(result.nameValue()).isEqualTo("Updated Organization");
+            verify(repository).save(any(OrganizationJpaEntity.class));
+        }
+
+        @Test
+        @DisplayName("비활성화된 조직을 저장한다")
+        void shouldPersistInactiveOrganization() {
+            // given
+            Organization inactiveOrg = OrganizationFixture.createInactive();
+            Organization savedInactiveOrg = OrganizationFixture.createInactive();
+
             OrganizationJpaEntity entityToSave =
                     OrganizationJpaEntity.of(
-                            ID, NAME, TENANT_ID, STATUS, CREATED_AT_LOCAL, UPDATED_AT_LOCAL);
+                            null,
+                            ORG_UUID,
+                            TENANT_UUID,
+                            "Test Organization",
+                            OrganizationStatus.INACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            OrganizationJpaEntity savedEntity =
+                    OrganizationJpaEntity.of(
+                            1L,
+                            ORG_UUID,
+                            TENANT_UUID,
+                            "Test Organization",
+                            OrganizationStatus.INACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
 
-            given(organizationJpaEntityMapper.toEntity(organization)).willReturn(entityToSave);
-            given(organizationJpaRepository.save(entityToSave)).willReturn(entityToSave);
+            given(mapper.toEntity(inactiveOrg)).willReturn(entityToSave);
+            given(repository.save(entityToSave)).willReturn(savedEntity);
+            given(mapper.toDomain(savedEntity)).willReturn(savedInactiveOrg);
 
-            // When
-            OrganizationId result = organizationCommandAdapter.persist(organization);
+            // when
+            Organization result = adapter.persist(inactiveOrg);
 
-            // Then
-            assertThat(result.value()).isEqualTo(ID);
-            verify(organizationJpaRepository).save(entityToSave);
+            // then
+            assertThat(result.getStatus()).isEqualTo(OrganizationStatus.INACTIVE);
         }
     }
 }

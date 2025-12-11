@@ -1,18 +1,34 @@
 package com.ryuqq.authhub.domain.organization.aggregate;
 
-import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.organization.exception.InvalidOrganizationStateException;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
- * Organization - Organization Aggregate Root
+ * Organization Aggregate Root - 조직 도메인 모델
  *
- * <p>테넌트 내의 조직 정보를 관리합니다. 불변 객체로 상태 변경 시 새로운 객체를 반환합니다.
+ * <p>테넌트 하위의 조직 단위입니다. 하나의 Tenant는 여러 Organization을 가질 수 있습니다.
+ *
+ * <p><strong>상태 전이:</strong>
+ *
+ * <pre>
+ * ACTIVE ↔ INACTIVE → DELETED
+ * </pre>
+ *
+ * <p><strong>Zero-Tolerance 규칙:</strong>
+ *
+ * <ul>
+ *   <li>Lombok 금지 - Plain Java 사용
+ *   <li>Law of Demeter 준수 - Getter 체이닝 금지
+ *   <li>Tell, Don't Ask 패턴 - 상태 질의 대신 행위 위임
+ *   <li>Long FK 전략 - JPA 관계 어노테이션 금지
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -20,187 +36,189 @@ import java.util.Objects;
 public final class Organization {
 
     private final OrganizationId organizationId;
-    private final OrganizationName organizationName;
     private final TenantId tenantId;
-    private final OrganizationStatus organizationStatus;
+    private final OrganizationName name;
+    private final OrganizationStatus status;
     private final Instant createdAt;
     private final Instant updatedAt;
 
     private Organization(
             OrganizationId organizationId,
-            OrganizationName organizationName,
             TenantId tenantId,
-            OrganizationStatus organizationStatus,
+            OrganizationName name,
+            OrganizationStatus status,
             Instant createdAt,
             Instant updatedAt) {
+        validateRequired(tenantId, name, status, createdAt, updatedAt);
         this.organizationId = organizationId;
-        this.organizationName = organizationName;
         this.tenantId = tenantId;
-        this.organizationStatus = organizationStatus;
+        this.name = name;
+        this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    // ========== Factory Methods ==========
-
-    public static Organization forNew(
-            OrganizationName organizationName, TenantId tenantId, Clock clock) {
-        validateOrganizationName(organizationName);
-        validateTenantId(tenantId);
-        Instant now = clock.now();
-        return new Organization(
-                null, organizationName, tenantId, OrganizationStatus.ACTIVE, now, now);
-    }
-
-    public static Organization of(
-            OrganizationId organizationId,
-            OrganizationName organizationName,
+    private void validateRequired(
             TenantId tenantId,
-            OrganizationStatus organizationStatus,
+            OrganizationName name,
+            OrganizationStatus status,
             Instant createdAt,
             Instant updatedAt) {
-        validateOrganizationName(organizationName);
-        validateTenantId(tenantId);
-        validateOrganizationStatus(organizationStatus);
-        validateCreatedAt(createdAt);
-        validateUpdatedAt(updatedAt);
-        return new Organization(
-                organizationId,
-                organizationName,
-                tenantId,
-                organizationStatus,
-                createdAt,
-                updatedAt);
-    }
-
-    public static Organization reconstitute(
-            OrganizationId organizationId,
-            OrganizationName organizationName,
-            TenantId tenantId,
-            OrganizationStatus organizationStatus,
-            Instant createdAt,
-            Instant updatedAt) {
-        if (organizationId == null) {
-            throw new IllegalArgumentException("reconstitute requires non-null organizationId");
-        }
-        validateOrganizationName(organizationName);
-        validateTenantId(tenantId);
-        validateOrganizationStatus(organizationStatus);
-        validateCreatedAt(createdAt);
-        validateUpdatedAt(updatedAt);
-        return new Organization(
-                organizationId,
-                organizationName,
-                tenantId,
-                organizationStatus,
-                createdAt,
-                updatedAt);
-    }
-
-    // ========== Validation Methods ==========
-
-    private static void validateOrganizationName(OrganizationName organizationName) {
-        if (organizationName == null) {
-            throw new IllegalArgumentException("OrganizationName은 null일 수 없습니다");
-        }
-    }
-
-    private static void validateTenantId(TenantId tenantId) {
         if (tenantId == null) {
             throw new IllegalArgumentException("TenantId는 null일 수 없습니다");
         }
-        if (tenantId.isNew()) {
-            throw new IllegalArgumentException("Organization은 기존 Tenant를 참조해야 합니다");
+        if (name == null) {
+            throw new IllegalArgumentException("OrganizationName은 null일 수 없습니다");
         }
-    }
-
-    private static void validateOrganizationStatus(OrganizationStatus organizationStatus) {
-        if (organizationStatus == null) {
+        if (status == null) {
             throw new IllegalArgumentException("OrganizationStatus는 null일 수 없습니다");
         }
-    }
-
-    private static void validateCreatedAt(Instant createdAt) {
         if (createdAt == null) {
             throw new IllegalArgumentException("createdAt는 null일 수 없습니다");
         }
-    }
-
-    private static void validateUpdatedAt(Instant updatedAt) {
         if (updatedAt == null) {
             throw new IllegalArgumentException("updatedAt는 null일 수 없습니다");
         }
     }
 
+    // ========== Factory Methods ==========
+
+    /**
+     * 새로운 Organization 생성 (ID 미할당)
+     *
+     * @param tenantId 소속 테넌트 ID
+     * @param name 조직 이름
+     * @param clock 시간 제공자
+     * @return 새로운 Organization 인스턴스
+     */
+    public static Organization create(TenantId tenantId, OrganizationName name, Clock clock) {
+        Instant now = clock.instant();
+        return new Organization(null, tenantId, name, OrganizationStatus.ACTIVE, now, now);
+    }
+
+    /**
+     * DB에서 Organization 재구성 (reconstitute)
+     *
+     * @param organizationId 조직 ID
+     * @param tenantId 테넌트 ID
+     * @param name 조직 이름
+     * @param status 조직 상태
+     * @param createdAt 생성 시간
+     * @param updatedAt 수정 시간
+     * @return 재구성된 Organization 인스턴스
+     */
+    public static Organization reconstitute(
+            OrganizationId organizationId,
+            TenantId tenantId,
+            OrganizationName name,
+            OrganizationStatus status,
+            Instant createdAt,
+            Instant updatedAt) {
+        if (organizationId == null) {
+            throw new IllegalArgumentException("reconstitute requires non-null organizationId");
+        }
+        return new Organization(organizationId, tenantId, name, status, createdAt, updatedAt);
+    }
+
     // ========== Business Methods ==========
 
+    /**
+     * 조직 이름 변경
+     *
+     * @param newName 새로운 이름
+     * @param clock 시간 제공자
+     * @return 이름이 변경된 새로운 Organization 인스턴스
+     * @throws InvalidOrganizationStateException 삭제된 조직인 경우
+     */
+    public Organization changeName(OrganizationName newName, Clock clock) {
+        if (status == OrganizationStatus.DELETED) {
+            throw new InvalidOrganizationStateException(status, "삭제된 조직의 이름을 변경할 수 없습니다");
+        }
+        return new Organization(
+                this.organizationId,
+                this.tenantId,
+                newName,
+                this.status,
+                this.createdAt,
+                clock.instant());
+    }
+
+    /**
+     * 조직 활성화
+     *
+     * @param clock 시간 제공자
+     * @return 활성화된 새로운 Organization 인스턴스
+     * @throws InvalidOrganizationStateException 상태 전이가 불가능한 경우
+     */
     public Organization activate(Clock clock) {
-        if (!organizationStatus.canActivate()) {
-            throw new InvalidOrganizationStateException(
-                    organizationStatus, OrganizationStatus.ACTIVE);
+        if (!status.canTransitionTo(OrganizationStatus.ACTIVE)) {
+            throw new InvalidOrganizationStateException(status, OrganizationStatus.ACTIVE);
         }
         return new Organization(
-                organizationId,
-                organizationName,
-                tenantId,
+                this.organizationId,
+                this.tenantId,
+                this.name,
                 OrganizationStatus.ACTIVE,
-                createdAt,
-                clock.now());
+                this.createdAt,
+                clock.instant());
     }
 
+    /**
+     * 조직 비활성화
+     *
+     * @param clock 시간 제공자
+     * @return 비활성화된 새로운 Organization 인스턴스
+     * @throws InvalidOrganizationStateException 상태 전이가 불가능한 경우
+     */
     public Organization deactivate(Clock clock) {
-        if (!organizationStatus.canDeactivate()) {
-            throw new InvalidOrganizationStateException(
-                    organizationStatus, OrganizationStatus.INACTIVE);
+        if (!status.canTransitionTo(OrganizationStatus.INACTIVE)) {
+            throw new InvalidOrganizationStateException(status, OrganizationStatus.INACTIVE);
         }
         return new Organization(
-                organizationId,
-                organizationName,
-                tenantId,
+                this.organizationId,
+                this.tenantId,
+                this.name,
                 OrganizationStatus.INACTIVE,
-                createdAt,
-                clock.now());
+                this.createdAt,
+                clock.instant());
     }
 
+    /**
+     * 조직 삭제 (소프트 삭제)
+     *
+     * @param clock 시간 제공자
+     * @return 삭제된 새로운 Organization 인스턴스
+     * @throws InvalidOrganizationStateException 상태 전이가 불가능한 경우
+     */
     public Organization delete(Clock clock) {
-        if (!organizationStatus.canDelete()) {
-            throw new InvalidOrganizationStateException(
-                    organizationStatus, OrganizationStatus.DELETED);
+        if (!status.canTransitionTo(OrganizationStatus.DELETED)) {
+            throw new InvalidOrganizationStateException(status, OrganizationStatus.DELETED);
         }
         return new Organization(
-                organizationId,
-                organizationName,
-                tenantId,
+                this.organizationId,
+                this.tenantId,
+                this.name,
                 OrganizationStatus.DELETED,
-                createdAt,
-                clock.now());
-    }
-
-    public Organization updateName(OrganizationName newName, Clock clock) {
-        if (!isActive()) {
-            throw new InvalidOrganizationStateException("조직명 변경은 활성 상태의 조직만 가능합니다");
-        }
-        validateOrganizationName(newName);
-        return new Organization(
-                organizationId, newName, tenantId, organizationStatus, createdAt, clock.now());
+                this.createdAt,
+                clock.instant());
     }
 
     // ========== Helper Methods ==========
 
-    public Long organizationIdValue() {
-        return organizationId == null ? null : organizationId.value();
+    public UUID organizationIdValue() {
+        return organizationId != null ? organizationId.value() : null;
     }
 
-    public String organizationNameValue() {
-        return organizationName.value();
-    }
-
-    public Long tenantIdValue() {
+    public UUID tenantIdValue() {
         return tenantId.value();
     }
 
+    public String nameValue() {
+        return name.value();
+    }
+
     public String statusValue() {
-        return organizationStatus.name();
+        return status.name();
     }
 
     public boolean isNew() {
@@ -208,11 +226,29 @@ public final class Organization {
     }
 
     public boolean isActive() {
-        return organizationStatus == OrganizationStatus.ACTIVE;
+        return status == OrganizationStatus.ACTIVE;
     }
 
     public boolean isDeleted() {
-        return organizationStatus == OrganizationStatus.DELETED;
+        return status == OrganizationStatus.DELETED;
+    }
+
+    // ========== Getter Methods ==========
+
+    public OrganizationId getOrganizationId() {
+        return organizationId;
+    }
+
+    public TenantId getTenantId() {
+        return tenantId;
+    }
+
+    public OrganizationName getName() {
+        return name;
+    }
+
+    public OrganizationStatus getStatus() {
+        return status;
     }
 
     public Instant createdAt() {
@@ -221,24 +257,6 @@ public final class Organization {
 
     public Instant updatedAt() {
         return updatedAt;
-    }
-
-    // ========== Legacy Getters (for compatibility) ==========
-
-    public OrganizationId getOrganizationId() {
-        return organizationId;
-    }
-
-    public OrganizationName getOrganizationName() {
-        return organizationName;
-    }
-
-    public TenantId getTenantId() {
-        return tenantId;
-    }
-
-    public OrganizationStatus getOrganizationStatus() {
-        return organizationStatus;
     }
 
     // ========== Object Methods ==========
@@ -252,23 +270,17 @@ public final class Organization {
             return false;
         }
         Organization that = (Organization) o;
-        return Objects.equals(organizationId, that.organizationId)
-                && Objects.equals(organizationName, that.organizationName)
-                && Objects.equals(tenantId, that.tenantId)
-                && organizationStatus == that.organizationStatus
-                && Objects.equals(createdAt, that.createdAt)
-                && Objects.equals(updatedAt, that.updatedAt);
+        if (organizationId == null || that.organizationId == null) {
+            return false;
+        }
+        return Objects.equals(organizationId, that.organizationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                organizationId,
-                organizationName,
-                tenantId,
-                organizationStatus,
-                createdAt,
-                updatedAt);
+        return organizationId != null
+                ? Objects.hash(organizationId)
+                : System.identityHashCode(this);
     }
 
     @Override
@@ -276,16 +288,12 @@ public final class Organization {
         return "Organization{"
                 + "organizationId="
                 + organizationId
-                + ", organizationName="
-                + organizationName
                 + ", tenantId="
                 + tenantId
-                + ", organizationStatus="
-                + organizationStatus
-                + ", createdAt="
-                + createdAt
-                + ", updatedAt="
-                + updatedAt
-                + '}';
+                + ", name="
+                + name
+                + ", status="
+                + status
+                + "}";
     }
 }

@@ -1,30 +1,58 @@
 package com.ryuqq.authhub.adapter.out.persistence.role.repository;
 
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RolePermissionJpaEntity;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * RolePermissionJpaRepository - Role-Permission 매핑 JPA Repository (Command)
- *
- * <p>Command 작업 전용 Repository입니다. JpaRepository의 기본 메서드만 사용합니다.
- *
- * <p><strong>사용 가능한 메서드:</strong>
- *
- * <ul>
- *   <li>save(entity) - 신규 저장 및 수정
- *   <li>saveAll(entities) - 다중 저장
- *   <li>deleteById(id) - ID로 삭제
- * </ul>
+ * RolePermissionJpaRepository - 역할 권한 JPA Repository
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>커스텀 쿼리 메서드 정의 금지
- *   <li>@Query 어노테이션 사용 금지
- *   <li>Query 작업은 QueryDslRepository로 분리
+ *   <li>JpaRepository 상속 필수
+ *   <li>Long 타입 ID 사용
+ *   <li>Lombok 금지
  * </ul>
  *
- * @author AuthHub Team
+ * @author development-team
  * @since 1.0.0
  */
-public interface RolePermissionJpaRepository extends JpaRepository<RolePermissionJpaEntity, Long> {}
+public interface RolePermissionJpaRepository extends JpaRepository<RolePermissionJpaEntity, Long> {
+
+    /**
+     * 역할 ID와 권한 ID로 역할 권한을 조회합니다.
+     *
+     * @param roleId 역할 UUID
+     * @param permissionId 권한 UUID
+     * @return 역할 권한 (없으면 Optional.empty())
+     */
+    Optional<RolePermissionJpaEntity> findByRoleIdAndPermissionId(UUID roleId, UUID permissionId);
+
+    /**
+     * 역할 ID로 모든 권한을 조회합니다.
+     *
+     * @param roleId 역할 UUID
+     * @return 역할 권한 목록
+     */
+    List<RolePermissionJpaEntity> findAllByRoleId(UUID roleId);
+
+    /**
+     * 역할에 특정 권한이 부여되어 있는지 확인합니다.
+     *
+     * @param roleId 역할 UUID
+     * @param permissionId 권한 UUID
+     * @return 부여 여부
+     */
+    boolean existsByRoleIdAndPermissionId(UUID roleId, UUID permissionId);
+
+    /**
+     * 역할 권한을 삭제합니다.
+     *
+     * @param roleId 역할 UUID
+     * @param permissionId 권한 UUID
+     */
+    void deleteByRoleIdAndPermissionId(UUID roleId, UUID permissionId);
+}

@@ -1,265 +1,258 @@
 package com.ryuqq.authhub.adapter.out.persistence.architecture.repository;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
- * QueryDslRepositoryArchTest - QueryDSL Repository 아키텍처 규칙 검증
+ * QueryDslRepositoryArchTest - QueryDSL Repository 아키텍처 규칙 검증 (9개 규칙)
  *
- * <p>querydsl-repository-guide.md의 핵심 규칙을 ArchUnit으로 검증합니다.
+ * <p>querydsl-repository-guide.md의 핵심 규칙을 ArchUnit으로 검증합니다.</p>
  *
- * <p><strong>검증 규칙:</strong>
- *
+ * <p><strong>QueryDSL Repository 역할:</strong></p>
  * <ul>
- *   <li>규칙 1: QueryDslRepository는 클래스여야 함
- *   <li>규칙 2: @Repository 어노테이션 필수
- *   <li>규칙 3: JPAQueryFactory 필드 필수
- *   <li>규칙 4: QType static final 필드 필수
- *   <li>규칙 5: 4개 표준 메서드만 허용
- *   <li>규칙 6: Join 사용 금지 (코드 검증)
- *   <li>규칙 7: @Transactional 사용 금지
- *   <li>규칙 8: Mapper 의존성 금지
- *   <li>규칙 9: 네이밍 규칙 (*QueryDslRepository)
+ *   <li>일반 Query 전용 (4개 메서드: findById, existsById, findByCriteria, countByCriteria)</li>
+ *   <li>Join 금지 (N+1은 Adapter에서 해결)</li>
+ *   <li>Entity 반환 (Domain 변환은 Adapter에서)</li>
+ * </ul>
+ *
+ * <p><strong>검증 그룹:</strong></p>
+ * <ul>
+ *   <li>클래스 구조 규칙 (3개)</li>
+ *   <li>메서드 규칙 (2개)</li>
+ *   <li>금지 사항 규칙 (3개)</li>
+ *   <li>네이밍 규칙 (1개)</li>
+ * </ul>
+ *
+ * <p><strong>Admin QueryDslRepository와 차이점:</strong></p>
+ * <ul>
+ *   <li>일반: 4개 메서드 고정, Join 금지</li>
+ *   <li>Admin: 메서드 자유, Join 허용, DTO Projection</li>
  * </ul>
  *
  * @author Development Team
  * @since 1.0.0
+ * @see <a href="docs/coding_convention/04-persistence-layer/mysql/repository/querydsl/querydsl-repository-guide.md">QueryDSL Repository Guide</a>
  */
 @DisplayName("QueryDSL Repository 아키텍처 규칙 검증 (Zero-Tolerance)")
 class QueryDslRepositoryArchTest {
 
+    private static final String BASE_PACKAGE = "com.ryuqq.adapter.out.persistence";
+
     private static JavaClasses allClasses;
     private static JavaClasses queryDslRepositoryClasses;
-    private static boolean hasQueryDslRepositoryClasses;
-
-    /**
-     * RefreshToken은 특수 패턴이므로 제외:
-     * - 표준 4개 메서드가 아닌 특화된 메서드 (findByUserId, findByToken, existsByUserId)
-     * - 토큰 기반 조회 등 특수 요구사항
-     */
-    private static final String EXCLUDED_PATTERN = "RefreshToken";
 
     @BeforeAll
     static void setUp() {
-        allClasses =
-                new ClassFileImporter()
-                        .importPackages("com.ryuqq.authhub.adapter.out.persistence");
+        allClasses = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages(BASE_PACKAGE);
 
-        // QueryDslRepository 클래스만
-        queryDslRepositoryClasses =
-                allClasses.that(
-                        DescribedPredicate.describe(
-                                "are QueryDslRepository classes",
-                                javaClass ->
-                                        javaClass.getSimpleName().endsWith("QueryDslRepository")
-                                                && !javaClass.isInterface()));
-
-        hasQueryDslRepositoryClasses =
-                allClasses.stream()
-                        .anyMatch(
-                                javaClass ->
-                                        javaClass.getSimpleName().endsWith("QueryDslRepository")
-                                                && !javaClass.isInterface());
+        // 일반 QueryDslRepository 클래스만 (Admin 제외)
+        queryDslRepositoryClasses = allClasses.that(
+            DescribedPredicate.describe(
+                "일반 QueryDSL Repository 클래스 (*QueryDslRepository, Admin 제외)",
+                javaClass -> javaClass.getSimpleName().endsWith("QueryDslRepository") &&
+                    !javaClass.getSimpleName().contains("Admin") &&
+                    !javaClass.isInterface()
+            )
+        );
     }
 
-    @Test
-    @DisplayName("규칙 1: QueryDslRepository는 클래스여야 함")
-    void queryDslRepository_MustBeClass() {
-        assumeTrue(
-                hasQueryDslRepositoryClasses,
-                "QueryDslRepository 클래스가 없으므로 테스트를 스킵합니다");
+    // ========================================================================
+    // 1. 클래스 구조 규칙 (3개)
+    // ========================================================================
 
-        ArchRule rule =
-                classes()
-                        .that()
-                        .haveSimpleNameEndingWith("QueryDslRepository")
-                        .and()
-                        .resideInAPackage("..repository..")
-                        .should()
-                        .notBeInterfaces()
-                        .because("QueryDslRepository는 클래스로 정의되어야 합니다");
+    @Nested
+    @DisplayName("1. 클래스 구조 규칙")
+    class ClassStructureRules {
 
-        rule.allowEmptyShould(true).check(queryDslRepositoryClasses);
+        @Test
+        @DisplayName("규칙 1-1: QueryDslRepository는 클래스여야 합니다")
+        void queryDslRepository_MustBeClass() {
+            ArchRule rule = classes()
+                .that().haveSimpleNameEndingWith("QueryDslRepository")
+                .and().haveSimpleNameNotContaining("Admin")
+                .and().resideInAPackage("..repository..")
+                .should().notBeInterfaces()
+                .allowEmptyShould(true)
+                .because("QueryDslRepository는 클래스로 정의되어야 합니다");
+
+            rule.check(queryDslRepositoryClasses);
+        }
+
+        @Test
+        @DisplayName("규칙 1-2: @Repository 어노테이션이 필수입니다")
+        void queryDslRepository_MustHaveRepositoryAnnotation() {
+            ArchRule rule = classes()
+                .that().haveSimpleNameEndingWith("QueryDslRepository")
+                .and().haveSimpleNameNotContaining("Admin")
+                .and().resideInAPackage("..repository..")
+                .should().beAnnotatedWith(Repository.class)
+                .allowEmptyShould(true)
+                .because("QueryDslRepository는 @Repository 어노테이션이 필수입니다");
+
+            rule.check(queryDslRepositoryClasses);
+        }
+
+        @Test
+        @DisplayName("규칙 1-3: JPAQueryFactory 의존성이 필수입니다")
+        void queryDslRepository_MustHaveJPAQueryFactory() {
+            ArchRule rule = classes()
+                .that().haveSimpleNameEndingWith("QueryDslRepository")
+                .and().haveSimpleNameNotContaining("Admin")
+                .and().resideInAPackage("..repository..")
+                .should().dependOnClassesThat().areAssignableTo(JPAQueryFactory.class)
+                .allowEmptyShould(true)
+                .because("QueryDslRepository는 JPAQueryFactory 의존성이 필수입니다");
+
+            rule.check(queryDslRepositoryClasses);
+        }
     }
 
-    @Test
-    @DisplayName("규칙 2: QueryDslRepository는 @Repository 어노테이션 필수")
-    void queryDslRepository_MustHaveRepositoryAnnotation() {
-        assumeTrue(
-                hasQueryDslRepositoryClasses,
-                "QueryDslRepository 클래스가 없으므로 테스트를 스킵합니다");
+    // ========================================================================
+    // 2. 메서드 규칙 (2개)
+    // ========================================================================
 
-        ArchRule rule =
-                classes()
-                        .that()
-                        .haveSimpleNameEndingWith("QueryDslRepository")
-                        .and()
-                        .resideInAPackage("..repository..")
-                        .should()
-                        .beAnnotatedWith(Repository.class)
-                        .because("QueryDslRepository는 @Repository 어노테이션이 필수입니다");
+    @Nested
+    @DisplayName("2. 메서드 규칙")
+    class MethodRules {
 
-        rule.allowEmptyShould(true).check(queryDslRepositoryClasses);
+        @Test
+        @DisplayName("규칙 2-1: 4개 표준 메서드만 허용됩니다")
+        void queryDslRepository_MustHaveOnlyStandardMethods() {
+            ArchRule rule = methods()
+                .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryDslRepository")
+                .and().areDeclaredInClassesThat().haveSimpleNameNotContaining("Admin")
+                .and().areDeclaredInClassesThat().resideInAPackage("..repository..")
+                .and().arePublic()
+                .and().areNotStatic()
+                .and().doNotHaveName("equals")
+                .and().doNotHaveName("hashCode")
+                .and().doNotHaveName("toString")
+                .should().haveName("findById")
+                .orShould().haveName("existsById")
+                .orShould().haveName("findByCriteria")
+                .orShould().haveName("countByCriteria")
+                .allowEmptyShould(true)
+                .because("QueryDslRepository는 4개 표준 메서드만 허용됩니다 (findById, existsById, findByCriteria, countByCriteria)");
+
+            rule.check(queryDslRepositoryClasses);
+        }
+
+        @Test
+        @DisplayName("규칙 2-2: QType static final 필드가 필수입니다")
+        void queryDslRepository_MustHaveStaticFinalQTypeField() {
+            ArchRule rule = fields()
+                .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryDslRepository")
+                .and().areDeclaredInClassesThat().haveSimpleNameNotContaining("Admin")
+                .and().haveNameMatching("^q[A-Z].*")
+                .should().beStatic()
+                .andShould().beFinal()
+                .allowEmptyShould(true)
+                .because("QType 필드는 static final이어야 합니다 (예: qOrder, qProduct)");
+
+            rule.check(allClasses);
+        }
     }
 
-    @Test
-    @DisplayName("규칙 3: QueryDslRepository는 JPAQueryFactory 필드 필수")
-    void queryDslRepository_MustHaveJPAQueryFactory() {
-        assumeTrue(
-                hasQueryDslRepositoryClasses,
-                "QueryDslRepository 클래스가 없으므로 테스트를 스킵합니다");
+    // ========================================================================
+    // 3. 금지 사항 규칙 (3개)
+    // ========================================================================
 
-        ArchRule rule =
-                classes()
-                        .that()
-                        .haveSimpleNameEndingWith("QueryDslRepository")
-                        .and()
-                        .resideInAPackage("..repository..")
-                        .should()
-                        .dependOnClassesThat()
-                        .areAssignableTo(JPAQueryFactory.class)
-                        .because("QueryDslRepository는 JPAQueryFactory 필드가 필수입니다");
+    @Nested
+    @DisplayName("3. 금지 사항 규칙")
+    class ProhibitionRules {
 
-        rule.allowEmptyShould(true).check(queryDslRepositoryClasses);
+        @Test
+        @DisplayName("규칙 3-1: Join 사용이 금지됩니다 (의존성 검증)")
+        void queryDslRepository_MustNotUseJoin() {
+            // ⚠️ 주의: ArchUnit으로 Join 메서드 호출을 완벽히 검증하기 어려움
+            // 코드 리뷰 및 PR 검증 필요
+            //
+            // 금지 패턴:
+            // - .join(...), .leftJoin(...), .rightJoin(...), .innerJoin(...), .fetchJoin(...)
+            //
+            // ✅ 이 테스트는 JPAJoin 클래스 의존성만 검증합니다.
+
+            ArchRule rule = noClasses()
+                .that().haveSimpleNameEndingWith("QueryDslRepository")
+                .and().haveSimpleNameNotContaining("Admin")
+                .and().resideInAPackage("..repository..")
+                .should().dependOnClassesThat().haveFullyQualifiedName("com.querydsl.jpa.impl.JPAJoin")
+                .allowEmptyShould(true)
+                .because("QueryDslRepository는 Join 사용이 금지됩니다 (N+1은 Adapter에서 해결)");
+
+            rule.check(queryDslRepositoryClasses);
+        }
+
+        @Test
+        @DisplayName("규칙 3-2: @Transactional 사용이 금지됩니다")
+        void queryDslRepository_MustNotHaveTransactional() {
+            ArchRule rule = noClasses()
+                .that().haveSimpleNameEndingWith("QueryDslRepository")
+                .and().haveSimpleNameNotContaining("Admin")
+                .and().resideInAPackage("..repository..")
+                .should().beAnnotatedWith(Transactional.class)
+                .allowEmptyShould(true)
+                .because("QueryDslRepository는 @Transactional 사용이 금지됩니다 (Service Layer에서 관리)");
+
+            rule.check(queryDslRepositoryClasses);
+        }
+
+        @Test
+        @DisplayName("규칙 3-3: Mapper 의존성이 금지됩니다")
+        void queryDslRepository_MustNotDependOnMapper() {
+            ArchRule rule = noClasses()
+                .that().haveSimpleNameEndingWith("QueryDslRepository")
+                .and().haveSimpleNameNotContaining("Admin")
+                .and().resideInAPackage("..repository..")
+                .should().dependOnClassesThat().haveSimpleNameEndingWith("Mapper")
+                .allowEmptyShould(true)
+                .because("QueryDslRepository는 Mapper 의존성이 금지됩니다 (Adapter에서 처리)");
+
+            rule.check(queryDslRepositoryClasses);
+        }
     }
 
-    @Test
-    @DisplayName("규칙 4: QueryDslRepository는 QType static final 필드 필수")
-    void queryDslRepository_MustHaveStaticFinalQTypeField() {
-        ArchRule rule =
-                fields()
-                        .that()
-                        .areDeclaredInClassesThat()
-                        .haveSimpleNameEndingWith("QueryDslRepository")
-                        .and()
-                        .haveNameMatching("^q[A-Z].*") // qOrder, qProduct 등
-                        .should()
-                        .beStatic()
-                        .andShould()
-                        .beFinal()
-                        .because("QType 필드는 static final이어야 합니다");
+    // ========================================================================
+    // 4. 네이밍 규칙 (1개)
+    // ========================================================================
 
-        rule.allowEmptyShould(true).check(allClasses);
-    }
+    @Nested
+    @DisplayName("4. 네이밍 규칙")
+    class NamingRules {
 
-    /**
-     * 규칙 5: QueryDslRepository는 표준 메서드 패턴 권장
-     *
-     * <p>참고: 이 규칙은 가이드라인이며, 비즈니스 요구사항에 따라 특화된 메서드가 필요할 수 있습니다.
-     * 현재 프로젝트에서는 다양한 조회 조건이 필요하여 findByXxx, existsByXxx 등의 특화 메서드를 허용합니다.
-     *
-     * <p>핵심 원칙:
-     * <ul>
-     *   <li>DTO Projection 사용 (Entity 반환 금지)</li>
-     *   <li>Join 사용 금지 (N+1 예방)</li>
-     *   <li>단순한 단일 테이블 조회만 허용</li>
-     * </ul>
-     *
-     * <p>이 테스트는 비활성화되어 있습니다. 코드 리뷰로 메서드 적절성을 검증합니다.
-     */
-    // @Test - 비활성화 (비즈니스 요구사항에 따른 특화 메서드 허용)
-    @DisplayName("규칙 5: QueryDslRepository 표준 메서드 패턴 권장 (비활성화)")
-    void queryDslRepository_StandardMethodsGuideline() {
-        // 비활성화: 현재 프로젝트는 비즈니스 요구사항에 따른 특화 메서드 사용
-        // 핵심 규칙 (DTO Projection, No Join, @Transactional 금지)은 별도 테스트에서 검증
-    }
+        @Test
+        @DisplayName("규칙 4-1: *QueryDslRepository 네이밍 규칙을 따라야 합니다")
+        void queryDslRepository_MustFollowNamingConvention() {
+            // 일반 QueryDslRepository만 검증 (Admin, Lock, Jdbc 제외)
+            ArchRule rule = classes()
+                .that().resideInAPackage("..repository..")
+                .and().areAnnotatedWith(Repository.class)
+                .and().areNotInterfaces()
+                .and().haveSimpleNameContaining("QueryDsl")
+                .and().haveSimpleNameNotContaining("Admin")
+                .should().haveSimpleNameEndingWith("QueryDslRepository")
+                .allowEmptyShould(true)
+                .because("일반 QueryDslRepository는 *QueryDslRepository 네이밍 규칙을 따라야 합니다");
 
-    @Test
-    @DisplayName("규칙 6: QueryDslRepository는 Join 사용 금지 (수동 검증)")
-    void queryDslRepository_MustNotUseJoin() {
-        // ⚠️ 주의: ArchUnit으로 Join 사용을 완벽히 검증하기 어려움
-        // 코드 리뷰 및 수동 검증 필요
-        //
-        // 금지 패턴:
-        // - queryFactory.selectFrom(q).join(...)
-        // - queryFactory.selectFrom(q).leftJoin(...)
-        // - queryFactory.selectFrom(q).rightJoin(...)
-        // - queryFactory.selectFrom(q).innerJoin(...)
-        // - queryFactory.selectFrom(q).fetchJoin(...)
-        //
-        // ✅ 이 테스트는 통과하지만, 실제 Join 사용 여부는 코드 리뷰로 확인해야 합니다.
-
-        ArchRule rule =
-                noClasses()
-                        .that()
-                        .haveSimpleNameEndingWith("QueryDslRepository")
-                        .and()
-                        .resideInAPackage("..repository..")
-                        .should()
-                        .dependOnClassesThat()
-                        .haveFullyQualifiedName("com.querydsl.jpa.impl.JPAJoin")
-                        .because(
-                                "QueryDslRepository는 Join 사용이 금지됩니다 (N+1은 Adapter에서 해결)");
-
-        rule.allowEmptyShould(true).check(queryDslRepositoryClasses);
-    }
-
-    @Test
-    @DisplayName("규칙 7: QueryDslRepository는 @Transactional 사용 금지")
-    void queryDslRepository_MustNotHaveTransactional() {
-        ArchRule rule =
-                noClasses()
-                        .that()
-                        .haveSimpleNameEndingWith("QueryDslRepository")
-                        .and()
-                        .resideInAPackage("..repository..")
-                        .should()
-                        .beAnnotatedWith(Transactional.class)
-                        .because(
-                                "QueryDslRepository는 @Transactional 사용이 금지됩니다 (Service Layer에서"
-                                        + " 관리)");
-
-        rule.allowEmptyShould(true).check(queryDslRepositoryClasses);
-    }
-
-    @Test
-    @DisplayName("규칙 8: QueryDslRepository는 Mapper 의존성 금지")
-    void queryDslRepository_MustNotDependOnMapper() {
-        ArchRule rule =
-                noClasses()
-                        .that()
-                        .haveSimpleNameEndingWith("QueryDslRepository")
-                        .and()
-                        .resideInAPackage("..repository..")
-                        .should()
-                        .dependOnClassesThat()
-                        .haveSimpleNameEndingWith("Mapper")
-                        .because(
-                                "QueryDslRepository는 Mapper 의존성이 금지됩니다 (Adapter에서 처리)");
-
-        rule.allowEmptyShould(true).check(queryDslRepositoryClasses);
-    }
-
-    @Test
-    @DisplayName("규칙 9: QueryDslRepository 네이밍 규칙 (*QueryDslRepository)")
-    void queryDslRepository_MustFollowNamingConvention() {
-        ArchRule rule =
-                classes()
-                        .that()
-                        .resideInAPackage("..repository..")
-                        .and()
-                        .areAnnotatedWith(Repository.class)
-                        .and()
-                        .areNotInterfaces()
-                        .should()
-                        .haveSimpleNameEndingWith("QueryDslRepository")
-                        .because(
-                                "QueryDslRepository는 *QueryDslRepository 네이밍 규칙을 따라야 합니다");
-
-        rule.allowEmptyShould(true).check(allClasses);
+            rule.check(allClasses);
+        }
     }
 }

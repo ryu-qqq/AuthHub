@@ -15,6 +15,7 @@ include 'adapter-in:rest-api'
 // Outbound Adapters (Driven) - {purpose}-{technology}
 include 'adapter-out:persistence-mysql'
 include 'adapter-out:persistence-redis'
+include 'adapter-out:security'
 
 // ========================================
 // Bootstrap Modules (Runnable Applications)
@@ -30,5 +31,6 @@ project(':application').projectDir = file('application')
 project(':adapter-in:rest-api').projectDir = file('adapter-in/rest-api')
 project(':adapter-out:persistence-mysql').projectDir = file('adapter-out/persistence-mysql')
 project(':adapter-out:persistence-redis').projectDir = file('adapter-out/persistence-redis')
+project(':adapter-out:security').projectDir = file('adapter-out/security')
 
 project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')

@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.common.dto;
 
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.function.Function;
 
@@ -42,14 +43,15 @@ import java.util.function.Function;
  * @author windsurf
  * @since 1.0.0
  */
+@Schema(description = "페이지 응답 (Offset 기반)")
 public record PageApiResponse<T>(
-        List<T> content,
-        int page,
-        int size,
-        long totalElements,
-        int totalPages,
-        boolean first,
-        boolean last) {
+        @Schema(description = "현재 페이지 데이터 목록") List<T> content,
+        @Schema(description = "현재 페이지 번호 (0부터 시작)") int page,
+        @Schema(description = "페이지 크기") int size,
+        @Schema(description = "전체 데이터 개수") long totalElements,
+        @Schema(description = "전체 페이지 수") int totalPages,
+        @Schema(description = "첫 페이지 여부") boolean first,
+        @Schema(description = "마지막 페이지 여부") boolean last) {
 
     /** Compact Constructor - Defensive Copy */
     public PageApiResponse {

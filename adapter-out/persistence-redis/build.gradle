@@ -21,7 +21,18 @@ dependencies {
     // Spring Data Redis
     implementation libs.spring.boot.starter.data.redis
 
-    // Jackson for Serialization
+    // Connection Pool for Lettuce
+    implementation libs.commons.pool2
+
+
+    // ========================================
+    // Redis - Redisson (Distributed Lock)
+    // ========================================
+    // Used for: Distributed Locks, Distributed Data Structures
+    // Pub/Sub based (no spinlock), Watchdog auto-renewal
+    implementation libs.redisson.spring.boot.starter
+
+    // JSON Serialization
     implementation libs.jackson.databind
     implementation libs.jackson.datatype.jsr310
 
@@ -30,8 +41,15 @@ dependencies {
     // ========================================
     testImplementation libs.spring.boot.starter.test
 
+    // Testcontainers for Redis
+    testImplementation libs.testcontainers.junit
+    testImplementation libs.testcontainers.redis
+
     // ArchUnit for architecture validation
     testImplementation libs.archunit.junit5
+
+    // YAML parsing for config validation tests
+    testImplementation libs.snakeyaml
 }
 
 // ========================================

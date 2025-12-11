@@ -1,22 +1,24 @@
 package com.ryuqq.authhub.application.role.port.out.query;
 
+import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
-import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * RoleQueryPort - Role 조회 포트 (Query)
+ * RoleQueryPort - 역할 조회 Port (Port-Out)
  *
- * <p>Role 정보를 조회하는 읽기 전용 Port입니다.
+ * <p>역할 조회 기능을 정의합니다.
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>조회 메서드만 제공
- *   <li>저장/수정/삭제 메서드 금지 (PersistencePort로 분리)
- *   <li>Value Object 파라미터 (UserId, RoleId)
+ *   <li>{@code {Bc}QueryPort} 네이밍
+ *   <li>Domain Aggregate/VO 파라미터/반환
+ *   <li>구현은 Adapter 책임
  * </ul>
  *
  * @author development-team
@@ -25,28 +27,52 @@ import java.util.Optional;
 public interface RoleQueryPort {
 
     /**
-     * RoleId로 Role 조회
+     * ID로 Role 조회
      *
      * @param roleId 역할 ID
-     * @return Role (Optional)
+     * @return Optional Role
      */
     Optional<Role> findById(RoleId roleId);
 
     /**
-     * UserId로 해당 사용자의 모든 Role 조회
+     * 테넌트 내 역할 이름으로 Role 조회
      *
-     * <p>Role이 없으면 빈 List 반환 (null 반환 금지)
-     *
-     * @param userId 사용자 ID
-     * @return 사용자에게 할당된 Role 목록
+     * @param tenantId 테넌트 ID (null일 경우 GLOBAL 범위)
+     * @param name 역할 이름
+     * @return Optional Role
      */
-    List<Role> findByUserId(UserId userId);
+    Optional<Role> findByTenantIdAndName(TenantId tenantId, RoleName name);
 
     /**
-     * Role 이름으로 조회
+     * 테넌트 내 역할 이름 존재 여부 확인
      *
-     * @param roleName 역할 이름 (예: ROLE_USER)
-     * @return Role (Optional)
+     * @param tenantId 테넌트 ID (null일 경우 GLOBAL 범위)
+     * @param name 역할 이름
+     * @return 존재 여부
      */
-    Optional<Role> findByName(String roleName);
+    boolean existsByTenantIdAndName(TenantId tenantId, RoleName name);
+
+    /**
+     * 역할 검색
+     *
+     * @param query 검색 조건
+     * @return Role 목록
+     */
+    List<Role> search(SearchRolesQuery query);
+
+    /**
+     * 역할 검색 총 개수
+     *
+     * @param query 검색 조건
+     * @return 총 개수
+     */
+    long count(SearchRolesQuery query);
+
+    /**
+     * 여러 ID로 역할 목록 조회
+     *
+     * @param roleIds 역할 ID Set
+     * @return Role 목록
+     */
+    List<Role> findAllByIds(java.util.Set<RoleId> roleIds);
 }

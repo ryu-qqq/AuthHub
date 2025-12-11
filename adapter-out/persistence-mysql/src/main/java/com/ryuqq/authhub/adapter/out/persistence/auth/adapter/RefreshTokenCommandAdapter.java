@@ -4,9 +4,9 @@ import com.ryuqq.authhub.adapter.out.persistence.auth.entity.RefreshTokenJpaEnti
 import com.ryuqq.authhub.adapter.out.persistence.auth.repository.RefreshTokenJpaRepository;
 import com.ryuqq.authhub.adapter.out.persistence.auth.repository.RefreshTokenQueryDslRepository;
 import com.ryuqq.authhub.application.auth.port.out.command.RefreshTokenPersistencePort;
-import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.common.util.ClockHolder;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import org.springframework.stereotype.Component;
@@ -65,7 +65,7 @@ public class RefreshTokenCommandAdapter implements RefreshTokenPersistencePort {
     @Transactional
     public void persist(UserId userId, String refreshToken) {
         Clock clock = clockHolder.clock();
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), UTC);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), UTC);
 
         refreshTokenQueryDslRepository
                 .findByUserId(userId.value())

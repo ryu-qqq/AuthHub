@@ -91,9 +91,7 @@ public class RefreshTokenReader {
         return dbToken;
     }
 
-    /**
-     * Cache Warming (RDB 조회 결과를 Cache에 저장)
-     */
+    /** Cache Warming (RDB 조회 결과를 Cache에 저장) */
     private void warmCache(UserId userId, String refreshToken) {
         refreshTokenCachePort.save(userId, refreshToken, DEFAULT_CACHE_TTL_SECONDS);
     }

@@ -1,17 +1,19 @@
 package com.ryuqq.authhub.adapter.in.rest.architecture.dto;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.lang.ArchRule;
+
+import static com.ryuqq.authhub.adapter.in.rest.architecture.ArchUnitPackageConstants.ADAPTER_IN_REST;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
 /**
  * Query DTO ArchUnit 검증 테스트 (완전 강제)
@@ -42,16 +44,13 @@ import org.junit.jupiter.api.Test;
 class QueryDtoArchTest {
 
     private static JavaClasses classes;
-    private static boolean hasQueryDtoClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.authhub.adapter.in.rest");
-
-        hasQueryDtoClasses = classes.stream()
-            .anyMatch(javaClass -> javaClass.getPackageName().contains(".dto.query")
-                && javaClass.getSimpleName().endsWith("ApiRequest"));
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(ADAPTER_IN_REST);
     }
 
     /**
@@ -60,8 +59,6 @@ class QueryDtoArchTest {
     @Test
     @DisplayName("[필수] Query DTO는 Record 타입이어야 한다")
     void queryDto_MustBeRecords() {
-        assumeTrue(hasQueryDtoClasses, "Query DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule = classes()
             .that().resideInAPackage("..dto.query..")
             .and().haveSimpleNameEndingWith("ApiRequest")
@@ -69,7 +66,7 @@ class QueryDtoArchTest {
             .should().beRecords()
             .because("Query DTO는 불변 객체이므로 Record를 사용해야 합니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -78,15 +75,13 @@ class QueryDtoArchTest {
     @Test
     @DisplayName("[필수] Query DTO는 *ApiRequest 접미사를 가져야 한다")
     void queryDto_MustHaveApiRequestSuffix() {
-        assumeTrue(hasQueryDtoClasses, "Query DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule = classes()
             .that().resideInAPackage("..dto.query..")
             .and().areNotNestedClasses()
             .should().haveSimpleNameEndingWith("ApiRequest")
             .because("Query DTO는 *ApiRequest 네이밍 규칙을 따라야 합니다 (예: SearchApiRequest, ListApiRequest)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -165,8 +160,6 @@ class QueryDtoArchTest {
     @Test
     @DisplayName("[권장] Query DTO는 페이징 필드에 Bean Validation을 사용해야 한다")
     void queryDto_ShouldUseValidationForPaging() {
-        assumeTrue(hasQueryDtoClasses, "Query DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule = classes()
             .that().resideInAPackage("..dto.query..")
             .and().haveSimpleNameEndingWith("ApiRequest")
@@ -176,7 +169,7 @@ class QueryDtoArchTest {
 
         // Note: 이 규칙은 권장사항이므로 실패 시 경고만 표시
         try {
-            rule.check(classes);
+            rule.allowEmptyShould(true).check(classes);
         } catch (AssertionError e) {
             System.out.println("⚠️  Warning: " + e.getMessage());
         }
@@ -188,8 +181,6 @@ class QueryDtoArchTest {
     @Test
     @DisplayName("[필수] Query DTO는 올바른 패키지에 위치해야 한다")
     void queryDto_MustBeInCorrectPackage() {
-        assumeTrue(hasQueryDtoClasses, "Query DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule = classes()
             .that().haveSimpleNameEndingWith("ApiRequest")
             .and().areNotNestedClasses()
@@ -200,7 +191,7 @@ class QueryDtoArchTest {
             .orShould().resideInAPackage("..dto.command..")  // Command도 *ApiRequest이므로 허용
             .because("Query DTO는 dto.query 패키지에 위치해야 합니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**

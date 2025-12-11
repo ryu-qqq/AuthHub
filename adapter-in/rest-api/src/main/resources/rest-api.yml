@@ -9,26 +9,37 @@
 # ===============================================
 
 # ===============================================
+# Security Configuration
+# ===============================================
+# Gateway 인증 및 Cookie 보안 설정
+security:
+  gateway:
+    # Gateway 인증 활성화 여부 (환경별로 오버라이드)
+    enabled: false
+    # Gateway에서 전달하는 사용자 ID 헤더
+    user-id-header: X-User-Id
+    # Gateway에서 전달하는 사용자 역할 헤더
+    user-roles-header: X-User-Roles
+    # Gateway에서 전달하는 테넌트 ID 헤더
+    tenant-id-header: X-Tenant-Id
+  cookie:
+    # Cookie secure 속성 (환경별로 오버라이드)
+    secure: false
+    # Cookie httpOnly 속성
+    http-only: true
+    # Cookie same-site 속성
+    same-site: lax
+    # Cookie domain (환경별로 오버라이드)
+    domain: localhost
+    # Cookie 경로
+    path: /
+
+# ===============================================
 # API Endpoint Configuration
 # ===============================================
 # REST API 엔드포인트 경로 중앙 관리
 # @see com.ryuqq.adapter.in.rest.config.properties.ApiEndpointProperties
 api:
-  endpoints:
-    # API v1 베이스 경로
-    base-v1: /api/v1
-
-    # Seller 도메인 엔드포인트
-    seller:
-      base: /sellers
-      by-id: /{id}
-      status: /{id}/status
-
-    # Schedule 도메인 엔드포인트
-    schedule:
-      base: /schedules
-      by-id: /{id}
-
   # 에러 응답 설정 (RFC 7807 Problem Details)
   # @see com.ryuqq.adapter.in.rest.config.properties.ApiErrorProperties
   error:
@@ -39,3 +50,99 @@ api:
 
     # about:blank 사용 여부 (true: 문서 URL 무시, false: base-url 사용)
     use-about-blank: true
+
+
+  # ===============================================
+  # Public Endpoints (인증 불필요)
+  # ===============================================
+  public-endpoints:
+    # 인증 관련
+    - method: POST
+      pattern: /api/v1/auth/login
+    - method: POST
+      pattern: /api/v1/auth/refresh
+    # OAuth2 관련 (모든 메서드)
+    - pattern: /oauth2/**
+    - pattern: /login/oauth2/**
+    # Swagger/OpenAPI
+    - pattern: /swagger-ui/**
+    - pattern: /v3/api-docs/**
+    # Actuator (헬스체크)
+    - pattern: /actuator/**
+    # Health Check
+    - pattern: /api/v1/health
+
+  # ===============================================
+  # Admin Endpoints (ROLE_TENANT_ADMIN 이상 필요)
+  # ===============================================
+  admin-endpoints:
+    # 사용자 관리
+    - method: POST
+      pattern: /api/v1/users
+      role: TENANT_ADMIN
+    - method: PATCH
+      pattern: /api/v1/users/*/status
+      role: TENANT_ADMIN
+    - method: GET
+      pattern: /api/v1/users/*/roles
+      role: TENANT_ADMIN
+    # 조직 관리
+    - method: POST
+      pattern: /api/v1/organizations
+      role: TENANT_ADMIN
+    # 테넌트 관리
+    - method: POST
+      pattern: /api/v1/tenants
+      role: TENANT_ADMIN
+
+  # CORS 설정
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:8080
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    exposed-headers:
+      - Authorization
+      - Set-Cookie
+      - X-Request-Id
+    allow-credentials: true
+
+# ===============================================
+# SpringDoc OpenAPI Configuration
+# ===============================================
+# Swagger UI: http://localhost:8080/swagger-ui.html
+# API Docs: http://localhost:8080/v3/api-docs
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    # 태그/오퍼레이션 정렬
+    tags-sorter: alpha
+    operations-sorter: alpha
+    # 기본 펼침 상태
+    doc-expansion: list
+    # 요청 시간 표시
+    display-request-duration: true
+    # 모델 펼침 깊이
+    default-models-expand-depth: 2
+    default-model-expand-depth: 2
+    # 검색 필터 활성화
+    filter: true
+  # 기본 Content-Type
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  # 패키지 스캔 설정
+  packages-to-scan: com.ryuqq.authhub.adapter.in.rest
+  # 경로 매칭
+  paths-to-match: /api/**

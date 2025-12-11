@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.common.dto;
 
 import com.ryuqq.authhub.application.common.dto.response.SliceResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.function.Function;
 
@@ -37,7 +38,12 @@ import java.util.function.Function;
  * @author windsurf
  * @since 1.0.0
  */
-public record SliceApiResponse<T>(List<T> content, int size, boolean hasNext, String nextCursor) {
+@Schema(description = "슬라이스 응답 (Cursor 기반)")
+public record SliceApiResponse<T>(
+        @Schema(description = "현재 슬라이스 데이터 목록") List<T> content,
+        @Schema(description = "슬라이스 크기") int size,
+        @Schema(description = "다음 슬라이스 존재 여부") boolean hasNext,
+        @Schema(description = "다음 슬라이스 조회용 커서") String nextCursor) {
 
     /** Compact Constructor - Defensive Copy */
     public SliceApiResponse {

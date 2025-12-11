@@ -2,105 +2,126 @@ package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserQueryDslRepository;
+import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
-import com.ryuqq.authhub.domain.user.vo.PhoneNumber;
+import com.ryuqq.authhub.domain.user.vo.UserStatus;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
- * UserQueryAdapter - User Query Adapter
+ * UserQueryAdapter - 사용자 Query Adapter (조회 전용)
  *
- * <p>UserQueryPort 구현체입니다. 조회 작업을 담당합니다.
+ * <p>UserQueryPort 구현체로서 사용자 조회 작업을 담당합니다.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p><strong>1:1 매핑 원칙:</strong>
  *
  * <ul>
- *   <li>@Transactional 사용 금지
- *   <li>QueryDslRepository에 조회 로직 위임
- *   <li>Entity → Domain 변환은 Mapper 사용
+ *   <li>UserQueryDslRepository (1개) + UserJpaEntityMapper (1개)
+ *   <li>필드 2개만 허용
+ *   <li>다른 Repository 주입 금지
  * </ul>
  *
- * @author AuthHub Team
+ * <p><strong>책임:</strong>
+ *
+ * <ul>
+ *   <li>findById() - ID로 단건 조회
+ *   <li>findByTenantIdAndIdentifier() - 테넌트 내 식별자로 조회
+ *   <li>existsByTenantIdAndOrganizationIdAndIdentifier() - 식별자 존재 여부 확인
+ *   <li>search() - 조건 검색
+ * </ul>
+ *
+ * <p><strong>규칙:</strong>
+ *
+ * <ul>
+ *   <li>@Transactional 금지 (Manager/Facade에서 관리)
+ *   <li>비즈니스 로직 금지 (단순 위임 + 변환만)
+ *   <li>Domain 반환 (Mapper로 변환)
+ * </ul>
+ *
+ * @author development-team
  * @since 1.0.0
  */
 @Component
 public class UserQueryAdapter implements UserQueryPort {
 
-    private final UserQueryDslRepository userQueryDslRepository;
-    private final UserJpaEntityMapper userJpaEntityMapper;
+    private final UserQueryDslRepository repository;
+    private final UserJpaEntityMapper mapper;
 
-    public UserQueryAdapter(
-            UserQueryDslRepository userQueryDslRepository,
-            UserJpaEntityMapper userJpaEntityMapper) {
-        this.userQueryDslRepository = userQueryDslRepository;
-        this.userJpaEntityMapper = userJpaEntityMapper;
+    public UserQueryAdapter(UserQueryDslRepository repository, UserJpaEntityMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
     /**
-     * ID로 User 조회
+     * ID로 사용자 단건 조회
      *
-     * @param id 조회할 User ID
-     * @return User Domain 객체 (Optional)
+     * @param userId 사용자 ID
+     * @return Optional<User>
      */
     @Override
-    public Optional<User> findById(UserId id) {
-        return userQueryDslRepository.findById(id.value()).map(userJpaEntityMapper::toDomain);
+    public Optional<User> findById(UserId userId) {
+        return repository.findByUserId(userId.value()).map(mapper::toDomain);
     }
 
     /**
-     * ID 존재 여부 확인
+     * 테넌트 내 식별자로 사용자 단건 조회
      *
-     * @param id 확인할 User ID
-     * @return 존재 여부
-     */
-    @Override
-    public boolean existsById(UserId id) {
-        return userQueryDslRepository.existsById(id.value());
-    }
-
-    /**
-     * Tenant 내 전화번호 중복 확인 (본인 제외)
-     *
-     * @param tenantId Tenant ID
-     * @param phoneNumber 전화번호
-     * @param excludeUserId 제외할 User ID (본인, null 가능)
-     * @return 중복 존재 여부
-     */
-    @Override
-    public boolean existsByTenantIdAndPhoneNumberExcludingUser(
-            TenantId tenantId, PhoneNumber phoneNumber, UserId excludeUserId) {
-        return userQueryDslRepository.existsByTenantIdAndPhoneNumberExcludingUser(
-                tenantId.value(),
-                phoneNumber.value(),
-                excludeUserId != null ? excludeUserId.value() : null);
-    }
-
-    /**
-     * Organization 내 활성 User 존재 여부 확인
-     *
-     * @param organizationId Organization ID
-     * @return 활성 User 존재 여부
-     */
-    @Override
-    public boolean existsActiveByOrganizationId(OrganizationId organizationId) {
-        return userQueryDslRepository.existsActiveByOrganizationId(organizationId.value());
-    }
-
-    /**
-     * Tenant/Identifier로 User 조회 (로그인용)
-     *
-     * @param tenantId Tenant ID
-     * @param identifier 사용자 식별자 (email)
-     * @return User Domain 객체 (Optional)
+     * @param tenantId 테넌트 ID
+     * @param identifier 사용자 식별자
+     * @return Optional<User>
      */
     @Override
     public Optional<User> findByTenantIdAndIdentifier(TenantId tenantId, String identifier) {
-        return userQueryDslRepository
+        return repository
                 .findByTenantIdAndIdentifier(tenantId.value(), identifier)
-                .map(userJpaEntityMapper::toDomain);
+                .map(mapper::toDomain);
+    }
+
+    /**
+     * 테넌트/조직 내 식별자 존재 여부 확인
+     *
+     * @param tenantId 테넌트 ID
+     * @param organizationId 조직 ID
+     * @param identifier 사용자 식별자
+     * @return 존재 여부
+     */
+    @Override
+    public boolean existsByTenantIdAndOrganizationIdAndIdentifier(
+            TenantId tenantId, OrganizationId organizationId, String identifier) {
+        return repository.existsByTenantIdAndOrganizationIdAndIdentifier(
+                tenantId.value(), organizationId.value(), identifier);
+    }
+
+    /**
+     * 사용자 검색 (페이징)
+     *
+     * @param query 검색 조건
+     * @return User 목록
+     */
+    @Override
+    public List<User> search(SearchUsersQuery query) {
+        int offset = query.page() * query.size();
+        UserStatus status =
+                query.status() != null
+                        ? UserStatus.valueOf(query.status().toUpperCase(Locale.ENGLISH))
+                        : null;
+
+        return repository
+                .search(
+                        query.tenantId(),
+                        query.organizationId(),
+                        query.identifier(),
+                        status,
+                        offset,
+                        query.size())
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

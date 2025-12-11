@@ -4,27 +4,31 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * User Response DTO
+ * UserResponse - 사용자 응답 DTO
  *
- * <p>사용자 정보를 클라이언트에게 반환하는 응답 객체입니다.
- *
- * <p><strong>보안 규칙:</strong>
+ * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>비밀번호, credential 등 민감 정보 절대 포함 금지
- *   <li>Domain Entity 직접 노출 금지
+ *   <li>순수 Java Record (jakarta.validation 금지)
+ *   <li>Lombok 금지
+ *   <li>비즈니스 로직 금지 (Domain 책임)
  * </ul>
  *
+ * @param userId 사용자 ID
+ * @param tenantId 테넌트 ID
+ * @param organizationId 조직 ID
+ * @param identifier 사용자 식별자 (이메일)
+ * @param status 사용자 상태
+ * @param createdAt 생성일시
+ * @param updatedAt 수정일시
  * @author development-team
  * @since 1.0.0
  */
 public record UserResponse(
         UUID userId,
-        Long tenantId,
-        Long organizationId,
-        String userType,
+        UUID tenantId,
+        UUID organizationId,
+        String identifier,
         String status,
-        String name,
-        String phoneNumber,
         Instant createdAt,
         Instant updatedAt) {}

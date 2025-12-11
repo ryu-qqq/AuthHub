@@ -1,13 +1,14 @@
 package com.ryuqq.authhub.adapter.in.rest.architecture.dto;
 
+import static com.ryuqq.authhub.adapter.in.rest.architecture.ArchUnitPackageConstants.ADAPTER_IN_REST;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -43,28 +44,19 @@ import org.junit.jupiter.api.Test;
 class ResponseDtoArchTest {
 
     private static JavaClasses classes;
-    private static boolean hasResponseDtoClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
-
-        hasResponseDtoClasses =
-                classes.stream()
-                        .anyMatch(
-                                javaClass ->
-                                        javaClass.getPackageName().contains(".dto.response")
-                                                && javaClass
-                                                        .getSimpleName()
-                                                        .endsWith("ApiResponse"));
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(ADAPTER_IN_REST);
     }
 
     /** 규칙 1: Record 타입 필수 */
     @Test
     @DisplayName("[필수] Response DTO는 Record 타입이어야 한다")
     void responseDto_MustBeRecords() {
-        assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule =
                 classes()
                         .that()
@@ -77,15 +69,13 @@ class ResponseDtoArchTest {
                         .beRecords()
                         .because("Response DTO는 불변 객체이므로 Record를 사용해야 합니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 2: 네이밍 규칙 (*ApiResponse) */
     @Test
     @DisplayName("[필수] Response DTO는 *ApiResponse 접미사를 가져야 한다")
     void responseDto_MustHaveApiResponseSuffix() {
-        assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule =
                 classes()
                         .that()
@@ -98,7 +88,7 @@ class ResponseDtoArchTest {
                                 "Response DTO는 *ApiResponse 네이밍 규칙을 따라야 합니다 (예: OrderApiResponse,"
                                         + " OrderSummaryApiResponse)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 3: Lombok 어노테이션 절대 금지 */
@@ -198,8 +188,6 @@ class ResponseDtoArchTest {
     @Test
     @DisplayName("[권장] Response DTO는 from() 메서드를 가져야 한다")
     void responseDto_ShouldHaveFromMethod() {
-        assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule =
                 methods()
                         .that()
@@ -221,7 +209,7 @@ class ResponseDtoArchTest {
 
         // Note: 이 규칙은 권장사항이므로 실패 시 경고만 표시
         try {
-            rule.check(classes);
+            rule.allowEmptyShould(true).check(classes);
         } catch (AssertionError e) {
             System.out.println("⚠️  Warning: " + e.getMessage());
         }
@@ -231,8 +219,6 @@ class ResponseDtoArchTest {
     @Test
     @DisplayName("[필수] Response DTO는 올바른 패키지에 위치해야 한다")
     void responseDto_MustBeInCorrectPackage() {
-        assumeTrue(hasResponseDtoClasses, "Response DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule =
                 classes()
                         .that()
@@ -244,12 +230,16 @@ class ResponseDtoArchTest {
                         .and()
                         .resideInAPackage("..dto..")
                         .and()
+                        .resideOutsideOfPackage("..common..") // common/dto의 유틸리티 클래스 제외
+                        .and()
                         .areNotInterfaces()
                         .should()
                         .resideInAPackage("..dto.response..")
-                        .because("Response DTO는 dto.response 패키지에 위치해야 합니다");
+                        .because(
+                                "Response DTO는 dto.response 패키지에 위치해야 합니다 (예외: common/dto의"
+                                        + " ApiResponse 유틸리티)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 9: Setter 메서드 절대 금지 (Record이므로 자동 검증) */

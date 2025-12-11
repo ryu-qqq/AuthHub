@@ -65,3 +65,10 @@ hs_err_pid*
 
 # Claude Code Hooks
 .claude/hooks/logs/
+
+
+.env
+.env.aws
+local-dev/.env.local
+local-dev/.env.aws
+local-dev/test-files/

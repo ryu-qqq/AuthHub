@@ -7,7 +7,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
+/**
+ * ErrorMapper 레지스트리
+ *
+ * <p>등록된 ErrorMapper들을 관리하고 Domain Exception을 적절한 HTTP 응답으로 매핑합니다.
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
+@Component
 public class ErrorMapperRegistry {
     private final List<ErrorMapper> mappers;
 

@@ -12,10 +12,11 @@ plugins {
 
 dependencies {
     // ========================================
-    // STRICTLY NO EXTERNAL DEPENDENCIES
+    // ALLOWED EXTERNAL DEPENDENCIES (Pure Utilities Only)
     // ========================================
-    // Domain must remain PURE JAVA - NO external libraries
-    // Business logic ONLY - use Java Standard Library
+    // uuid-creator: RFC 9562 compliant UUIDv7 generation
+    // Pure Java utility, no framework dependency
+    implementation libs.uuid.creator
 
     // ========================================
     // Test Dependencies
@@ -66,6 +67,11 @@ tasks.register('verifyDomainPurity') {
     description = 'Verify domain module has no framework dependencies'
 
     doLast {
+        // Allowed: Pure Java utilities (no framework dependencies)
+        def allowedDependencies = [
+            'com.github.f4b6a3'  // uuid-creator: RFC 9562 UUIDv7
+        ]
+
         def forbiddenDependencies = [
             // Framework Dependencies
             'org.springframework',
@@ -94,6 +100,15 @@ tasks.register('verifyDomainPurity') {
 
         configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             def moduleId = artifact.moduleVersion.id
+
+            // Skip allowed dependencies
+            def isAllowed = allowedDependencies.any { allowed ->
+                moduleId.group.startsWith(allowed)
+            }
+            if (isAllowed) {
+                return // Skip this artifact
+            }
+
             forbiddenDependencies.each { forbidden ->
                 if (moduleId.group.startsWith(forbidden)) {
                     throw new GradleException("""

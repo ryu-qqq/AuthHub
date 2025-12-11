@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.common.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
 /**
@@ -34,8 +35,13 @@ import java.time.LocalDateTime;
  * @author ryu-qqq
  * @since 2025-10-23
  */
+@Schema(description = "표준 API 응답 래퍼")
 public record ApiResponse<T>(
-        boolean success, T data, ErrorInfo error, LocalDateTime timestamp, String requestId) {
+        @Schema(description = "요청 성공 여부") boolean success,
+        @Schema(description = "응답 데이터") T data,
+        @Schema(description = "에러 정보") ErrorInfo error,
+        @Schema(description = "응답 시간") LocalDateTime timestamp,
+        @Schema(description = "요청 ID") String requestId) {
 
     /**
      * 성공 응답 생성

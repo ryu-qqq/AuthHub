@@ -3,28 +3,34 @@ package com.ryuqq.authhub.domain.organization.vo;
 import java.util.Objects;
 
 /**
- * OrganizationName - Organization 이름 Value Object
+ * OrganizationName - 조직 이름 Value Object
  *
- * <p>Organization의 이름을 나타내는 불변 객체입니다. 2자 이상 100자 이하의 문자열만 허용합니다.
+ * <p>1-100자 길이의 문자열입니다.
  *
  * @author development-team
  * @since 1.0.0
  */
 public final class OrganizationName {
 
-    private static final int MIN_LENGTH = 2;
+    private static final int MIN_LENGTH = 1;
     private static final int MAX_LENGTH = 100;
 
     private final String value;
 
-    private OrganizationName(String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("OrganizationName은 null일 수 없습니다");
+    OrganizationName(String value) {
+        validate(value);
+        this.value = value.trim();
+    }
+
+    private void validate(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("OrganizationName은 null이거나 빈 문자열일 수 없습니다");
         }
-        if (value.length() < MIN_LENGTH || value.length() > MAX_LENGTH) {
-            throw new IllegalArgumentException("OrganizationName은 2자 이상 100자 이하여야 합니다");
+        String trimmed = value.trim();
+        if (trimmed.isEmpty() || trimmed.length() > MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    String.format("OrganizationName은 %d자 이상 %d자 이하여야 합니다", MIN_LENGTH, MAX_LENGTH));
         }
-        this.value = value;
     }
 
     public static OrganizationName of(String value) {

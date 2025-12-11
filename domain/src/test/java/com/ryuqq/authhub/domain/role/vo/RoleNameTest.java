@@ -5,96 +5,187 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
 
-@DisplayName("RoleName Value Object 테스트")
+/**
+ * RoleName 단위 테스트
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
+@Tag("unit")
+@DisplayName("RoleName 테스트")
 class RoleNameTest {
 
     @Nested
-    @DisplayName("of() 메서드는")
-    class OfMethod {
+    @DisplayName("of 팩토리 메서드")
+    class OfTest {
 
         @Test
-        @DisplayName("올바른 형식의 전체 이름으로 생성할 수 있다")
-        void shouldCreateWithValidFullName() {
-            RoleName roleName = RoleName.of("ROLE_ADMIN");
+        @DisplayName("유효한 역할 이름을 생성한다")
+        void shouldCreateValidRoleName() {
+            // when
+            RoleName roleName = RoleName.of("ADMIN");
 
-            assertThat(roleName.value()).isEqualTo("ROLE_ADMIN");
-            assertThat(roleName.nameWithoutPrefix()).isEqualTo("ADMIN");
-        }
-
-        @ParameterizedTest
-        @NullAndEmptySource
-        @DisplayName("null 또는 빈 문자열은 예외를 던진다")
-        void shouldThrowExceptionForNullOrEmptyValue(String value) {
-            assertThatThrownBy(() -> RoleName.of(value))
-                    .isInstanceOf(IllegalArgumentException.class);
-        }
-
-        @ParameterizedTest
-        @ValueSource(strings = {"ADMIN", "admin", "Role_Admin", "ROLE_admin", "ROLE_", "USER"})
-        @DisplayName("올바르지 않은 형식은 예외를 던진다")
-        void shouldThrowExceptionForInvalidFormat(String value) {
-            assertThatThrownBy(() -> RoleName.of(value))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("ROLE_로 시작");
-        }
-    }
-
-    @Nested
-    @DisplayName("withPrefix() 메서드는")
-    class WithPrefixMethod {
-
-        @Test
-        @DisplayName("ROLE_ prefix 없이 이름만으로 생성할 수 있다")
-        void shouldCreateWithNameOnly() {
-            RoleName roleName = RoleName.withPrefix("ADMIN");
-
-            assertThat(roleName.value()).isEqualTo("ROLE_ADMIN");
-            assertThat(roleName.nameWithoutPrefix()).isEqualTo("ADMIN");
+            // then
+            assertThat(roleName).isNotNull();
+            assertThat(roleName.value()).isEqualTo("ADMIN");
         }
 
         @Test
-        @DisplayName("소문자 이름을 대문자로 변환한다")
+        @DisplayName("소문자를 대문자로 변환한다")
         void shouldConvertToUpperCase() {
-            RoleName roleName = RoleName.withPrefix("admin");
+            // when
+            RoleName roleName = RoleName.of("admin");
 
-            assertThat(roleName.value()).isEqualTo("ROLE_ADMIN");
+            // then
+            assertThat(roleName.value()).isEqualTo("ADMIN");
         }
 
-        @ParameterizedTest
-        @NullAndEmptySource
-        @DisplayName("null 또는 빈 문자열은 예외를 던진다")
-        void shouldThrowExceptionForNullOrEmptyValue(String value) {
-            assertThatThrownBy(() -> RoleName.withPrefix(value))
-                    .isInstanceOf(IllegalArgumentException.class);
+        @Test
+        @DisplayName("언더스코어가 포함된 이름을 허용한다")
+        void shouldAllowUnderscore() {
+            // when
+            RoleName roleName = RoleName.of("SUPER_ADMIN");
+
+            // then
+            assertThat(roleName.value()).isEqualTo("SUPER_ADMIN");
+        }
+
+        @Test
+        @DisplayName("숫자가 포함된 이름을 허용한다")
+        void shouldAllowNumbers() {
+            // when
+            RoleName roleName = RoleName.of("ADMIN2");
+
+            // then
+            assertThat(roleName.value()).isEqualTo("ADMIN2");
+        }
+
+        @Test
+        @DisplayName("공백을 트림한다")
+        void shouldTrimWhitespace() {
+            // when
+            RoleName roleName = RoleName.of("  ADMIN  ");
+
+            // then
+            assertThat(roleName.value()).isEqualTo("ADMIN");
+        }
+
+        @Test
+        @DisplayName("null이면 예외 발생")
+        void shouldThrowExceptionWhenNull() {
+            assertThatThrownBy(() -> RoleName.of(null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("RoleName은 null이거나 빈 문자열일 수 없습니다");
+        }
+
+        @Test
+        @DisplayName("빈 문자열이면 예외 발생")
+        void shouldThrowExceptionWhenEmpty() {
+            assertThatThrownBy(() -> RoleName.of(""))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("RoleName은 null이거나 빈 문자열일 수 없습니다");
+        }
+
+        @Test
+        @DisplayName("공백만 있으면 예외 발생")
+        void shouldThrowExceptionWhenOnlyWhitespace() {
+            assertThatThrownBy(() -> RoleName.of("   "))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("RoleName은 null이거나 빈 문자열일 수 없습니다");
+        }
+
+        @Test
+        @DisplayName("50자 초과하면 예외 발생")
+        void shouldThrowExceptionWhenTooLong() {
+            String longName = "A".repeat(51);
+            assertThatThrownBy(() -> RoleName.of(longName))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("50자 이하여야 합니다");
+        }
+
+        @Test
+        @DisplayName("숫자로 시작하면 예외 발생")
+        void shouldThrowExceptionWhenStartsWithNumber() {
+            assertThatThrownBy(() -> RoleName.of("1ADMIN"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("영문 대문자로 시작");
+        }
+
+        @Test
+        @DisplayName("특수문자가 포함되면 예외 발생")
+        void shouldThrowExceptionWhenContainsSpecialCharacters() {
+            assertThatThrownBy(() -> RoleName.of("ADMIN-ROLE"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("영문 대문자, 숫자, 언더스코어만 사용");
+        }
+
+        @Test
+        @DisplayName("공백이 포함되면 예외 발생")
+        void shouldThrowExceptionWhenContainsSpace() {
+            assertThatThrownBy(() -> RoleName.of("ADMIN ROLE"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("영문 대문자, 숫자, 언더스코어만 사용");
         }
     }
 
     @Nested
-    @DisplayName("equals() 메서드는")
-    class EqualsMethod {
+    @DisplayName("equals 및 hashCode")
+    class EqualsHashCodeTest {
 
         @Test
-        @DisplayName("같은 값을 가진 RoleName은 동등하다")
-        void shouldBeEqualForSameValue() {
-            RoleName roleName1 = RoleName.of("ROLE_ADMIN");
-            RoleName roleName2 = RoleName.of("ROLE_ADMIN");
+        @DisplayName("같은 값을 가진 RoleName은 동일하다")
+        void shouldBeEqualWhenSameValue() {
+            // given
+            RoleName name1 = RoleName.of("ADMIN");
+            RoleName name2 = RoleName.of("ADMIN");
 
-            assertThat(roleName1).isEqualTo(roleName2);
-            assertThat(roleName1.hashCode()).isEqualTo(roleName2.hashCode());
+            // then
+            assertThat(name1).isEqualTo(name2);
+            assertThat(name1.hashCode()).isEqualTo(name2.hashCode());
         }
 
         @Test
-        @DisplayName("다른 값을 가진 RoleName은 동등하지 않다")
-        void shouldNotBeEqualForDifferentValue() {
-            RoleName roleName1 = RoleName.of("ROLE_ADMIN");
-            RoleName roleName2 = RoleName.of("ROLE_USER");
+        @DisplayName("다른 값을 가진 RoleName은 다르다")
+        void shouldNotBeEqualWhenDifferentValue() {
+            // given
+            RoleName name1 = RoleName.of("ADMIN");
+            RoleName name2 = RoleName.of("USER");
 
-            assertThat(roleName1).isNotEqualTo(roleName2);
+            // then
+            assertThat(name1).isNotEqualTo(name2);
+        }
+
+        @Test
+        @DisplayName("대소문자 구분 없이 같으면 동일하다")
+        void shouldBeEqualWhenSameValueIgnoreCase() {
+            // given
+            RoleName name1 = RoleName.of("admin");
+            RoleName name2 = RoleName.of("ADMIN");
+
+            // then
+            assertThat(name1).isEqualTo(name2);
+        }
+    }
+
+    @Nested
+    @DisplayName("toString")
+    class ToStringTest {
+
+        @Test
+        @DisplayName("RoleName의 문자열 표현을 반환한다")
+        void shouldReturnStringRepresentation() {
+            // given
+            RoleName roleName = RoleName.of("ADMIN");
+
+            // when
+            String toString = roleName.toString();
+
+            // then
+            assertThat(toString).contains("RoleName");
+            assertThat(toString).contains("ADMIN");
         }
     }
 }

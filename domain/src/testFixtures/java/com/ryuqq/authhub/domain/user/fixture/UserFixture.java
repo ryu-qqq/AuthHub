@@ -1,196 +1,164 @@
 package com.ryuqq.authhub.domain.user.fixture;
 
-import com.ryuqq.authhub.domain.common.Clock;
+import com.ryuqq.authhub.domain.common.util.ClockHolder;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
-import com.ryuqq.authhub.domain.user.vo.Credential;
-import com.ryuqq.authhub.domain.user.vo.UserProfile;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-import com.ryuqq.authhub.domain.user.vo.UserType;
-import com.ryuqq.authhub.domain.user.vo.fixture.CredentialFixture;
-import com.ryuqq.authhub.domain.user.vo.fixture.UserProfileFixture;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
- * UserFixture - User Aggregate 테스트 픽스처
- *
- * <p>테스트에서 User 객체를 쉽게 생성할 수 있도록 도와주는 빌더 패턴 기반 픽스처입니다.
+ * User 테스트 픽스처
  *
  * @author development-team
  * @since 1.0.0
  */
 public final class UserFixture {
 
-    private static final Long DEFAULT_TENANT_ID = 1L;
-    private static final Long DEFAULT_ORGANIZATION_ID = 100L;
-    private static final Clock DEFAULT_CLOCK = () -> Instant.parse("2025-11-24T00:00:00Z");
+    private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
+    private static final UUID DEFAULT_USER_UUID =
+            UUID.fromString("01941234-5678-7000-8000-000000000001");
+    private static final UUID DEFAULT_TENANT_UUID =
+            UUID.fromString("01941234-5678-7000-8000-123456789abc");
+    private static final UUID DEFAULT_ORG_UUID =
+            UUID.fromString("01941234-5678-7000-8000-123456789def");
+    private static final String DEFAULT_IDENTIFIER = "user@example.com";
+    private static final String DEFAULT_HASHED_PASSWORD = "hashed_password_123";
 
     private UserFixture() {}
 
-    // ========== Simple Factory Methods ==========
-
-    public static User aUser() {
-        return builder().asExisting().build();
+    /** 기본 User 생성 (ID 할당됨, ACTIVE) */
+    public static User create() {
+        return User.reconstitute(
+                UserId.of(DEFAULT_USER_UUID),
+                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(DEFAULT_ORG_UUID),
+                DEFAULT_IDENTIFIER,
+                DEFAULT_HASHED_PASSWORD,
+                UserStatus.ACTIVE,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    public static User aUser(UserId userId) {
-        return builder().asExisting().userId(userId).build();
+    /** 지정된 식별자로 User 생성 */
+    public static User createWithIdentifier(String identifier) {
+        return User.reconstitute(
+                UserId.of(DEFAULT_USER_UUID),
+                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(DEFAULT_ORG_UUID),
+                identifier,
+                DEFAULT_HASHED_PASSWORD,
+                UserStatus.ACTIVE,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    public static User aNewUser() {
-        return builder().asNew().build();
+    /** 지정된 Organization으로 User 생성 */
+    public static User createWithOrganization(UUID organizationUUID) {
+        return User.reconstitute(
+                UserId.of(DEFAULT_USER_UUID),
+                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(organizationUUID),
+                DEFAULT_IDENTIFIER,
+                DEFAULT_HASHED_PASSWORD,
+                UserStatus.ACTIVE,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    public static User aUserWithStatus(UserStatus status) {
-        return builder().asExisting().status(status).build();
+    /** 지정된 Tenant로 User 생성 */
+    public static User createWithTenant(UUID tenantUUID) {
+        return User.reconstitute(
+                UserId.of(DEFAULT_USER_UUID),
+                TenantId.of(tenantUUID),
+                OrganizationId.of(DEFAULT_ORG_UUID),
+                DEFAULT_IDENTIFIER,
+                DEFAULT_HASHED_PASSWORD,
+                UserStatus.ACTIVE,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    public static User aUserWithTenantId(TenantId tenantId) {
-        return builder().asExisting().tenantId(tenantId).build();
+    /** 새로운 User 생성 (create 팩토리 사용) */
+    public static User createNew() {
+        return User.create(
+                UserId.forNew(DEFAULT_USER_UUID),
+                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(DEFAULT_ORG_UUID),
+                DEFAULT_IDENTIFIER,
+                DEFAULT_HASHED_PASSWORD,
+                fixedClock());
     }
 
-    public static User anInternalUser() {
-        return builder().asExisting().asInternal().build();
+    /** 지정된 상태로 User 생성 */
+    public static User createWithStatus(UserStatus status) {
+        return User.reconstitute(
+                UserId.of(DEFAULT_USER_UUID),
+                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(DEFAULT_ORG_UUID),
+                DEFAULT_IDENTIFIER,
+                DEFAULT_HASHED_PASSWORD,
+                status,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    public static User aPublicUserWithoutOrganization() {
-        return builder().asExisting().withoutOrganization().build();
+    /** 비활성화된 User 생성 */
+    public static User createInactive() {
+        return createWithStatus(UserStatus.INACTIVE);
     }
 
-    // ========== Builder ==========
-
-    public static UserBuilder builder() {
-        return new UserBuilder();
+    /** 테스트용 고정 ClockHolder 반환 */
+    public static ClockHolder fixedClockHolder() {
+        return () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
     }
 
-    public static final class UserBuilder {
+    /** 테스트용 고정 Clock 반환 */
+    public static Clock fixedClock() {
+        return fixedClockHolder().clock();
+    }
 
-        private UserId userId;
-        private TenantId tenantId = TenantId.of(DEFAULT_TENANT_ID);
-        private OrganizationId organizationId = OrganizationId.of(DEFAULT_ORGANIZATION_ID);
-        private UserType userType = UserType.PUBLIC;
-        private UserStatus userStatus = UserStatus.ACTIVE;
-        private Credential credential = CredentialFixture.aCredential();
-        private UserProfile profile = UserProfileFixture.aUserProfile();
-        private Instant createdAt = DEFAULT_CLOCK.now();
-        private Instant updatedAt = DEFAULT_CLOCK.now();
-        private boolean isNew = false;
+    /** 기본 UserId 반환 */
+    public static UserId defaultId() {
+        return UserId.of(DEFAULT_USER_UUID);
+    }
 
-        private UserBuilder() {}
+    /** 기본 User UUID 반환 */
+    public static UUID defaultUUID() {
+        return DEFAULT_USER_UUID;
+    }
 
-        public UserBuilder asNew() {
-            this.isNew = true;
-            this.userId = null;
-            return this;
-        }
+    /** 기본 TenantId 반환 */
+    public static TenantId defaultTenantId() {
+        return TenantId.of(DEFAULT_TENANT_UUID);
+    }
 
-        public UserBuilder asExisting() {
-            this.isNew = false;
-            this.userId = UserId.of(UUID.randomUUID());
-            return this;
-        }
+    /** 기본 Tenant UUID 반환 */
+    public static UUID defaultTenantUUID() {
+        return DEFAULT_TENANT_UUID;
+    }
 
-        public UserBuilder userId(UserId userId) {
-            this.userId = userId;
-            this.isNew = (userId == null);
-            return this;
-        }
+    /** 기본 OrganizationId 반환 */
+    public static OrganizationId defaultOrganizationId() {
+        return OrganizationId.of(DEFAULT_ORG_UUID);
+    }
 
-        public UserBuilder tenantId(TenantId tenantId) {
-            this.tenantId = tenantId;
-            return this;
-        }
+    /** 기본 Organization UUID 반환 */
+    public static UUID defaultOrganizationUUID() {
+        return DEFAULT_ORG_UUID;
+    }
 
-        public UserBuilder organizationId(OrganizationId organizationId) {
-            this.organizationId = organizationId;
-            return this;
-        }
+    /** 기본 식별자 반환 */
+    public static String defaultIdentifier() {
+        return DEFAULT_IDENTIFIER;
+    }
 
-        public UserBuilder withoutOrganization() {
-            this.organizationId = null;
-            return this;
-        }
-
-        public UserBuilder userType(UserType userType) {
-            this.userType = userType;
-            return this;
-        }
-
-        public UserBuilder asInternal() {
-            this.userType = UserType.INTERNAL;
-            return this;
-        }
-
-        public UserBuilder asPublic() {
-            this.userType = UserType.PUBLIC;
-            return this;
-        }
-
-        public UserBuilder status(UserStatus status) {
-            this.userStatus = status;
-            return this;
-        }
-
-        public UserBuilder asActive() {
-            this.userStatus = UserStatus.ACTIVE;
-            return this;
-        }
-
-        public UserBuilder asInactive() {
-            this.userStatus = UserStatus.INACTIVE;
-            return this;
-        }
-
-        public UserBuilder asSuspended() {
-            this.userStatus = UserStatus.SUSPENDED;
-            return this;
-        }
-
-        public UserBuilder asDeleted() {
-            this.userStatus = UserStatus.DELETED;
-            return this;
-        }
-
-        public UserBuilder credential(Credential credential) {
-            this.credential = credential;
-            return this;
-        }
-
-        public UserBuilder profile(UserProfile profile) {
-            this.profile = profile;
-            return this;
-        }
-
-        public UserBuilder createdAt(Instant createdAt) {
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public UserBuilder updatedAt(Instant updatedAt) {
-            this.updatedAt = updatedAt;
-            return this;
-        }
-
-        public UserBuilder clock(Clock clock) {
-            this.createdAt = clock.now();
-            this.updatedAt = clock.now();
-            return this;
-        }
-
-        public User build() {
-            return User.of(
-                    userId,
-                    tenantId,
-                    organizationId,
-                    userType,
-                    userStatus,
-                    credential,
-                    profile,
-                    createdAt,
-                    updatedAt);
-        }
+    /** 기본 해시된 비밀번호 반환 */
+    public static String defaultHashedPassword() {
+        return DEFAULT_HASHED_PASSWORD;
     }
 }

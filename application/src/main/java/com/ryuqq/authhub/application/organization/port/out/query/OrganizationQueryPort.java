@@ -2,7 +2,9 @@ package com.ryuqq.authhub.application.organization.port.out.query;
 
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,7 +15,7 @@ import java.util.Optional;
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>조회 메서드만 제공 (findById, existsById, existsByTenantId)
+ *   <li>조회 메서드만 제공 (findById, existsById)
  *   <li>저장/수정/삭제 메서드 금지 (PersistencePort로 분리)
  *   <li>Value Object 파라미터 (원시 타입 금지)
  *   <li>Domain 반환 (DTO/Entity 반환 금지)
@@ -42,22 +44,34 @@ public interface OrganizationQueryPort {
     boolean existsById(OrganizationId id);
 
     /**
-     * TenantId로 Organization 존재 여부 확인
-     *
-     * <p>Tenant 삭제 전 참조 무결성 검증에 사용
+     * 테넌트 내 이름 중복 확인
      *
      * @param tenantId Tenant ID (Value Object)
-     * @return 해당 Tenant에 속한 Organization 존재 여부
+     * @param name Organization 이름 (Value Object)
+     * @return 존재 여부
      */
-    boolean existsByTenantId(TenantId tenantId);
+    boolean existsByTenantIdAndName(TenantId tenantId, OrganizationName name);
 
     /**
-     * Tenant 내 활성 Organization 존재 여부 확인
-     *
-     * <p>Tenant 비활성화 전 활성 상태의 Organization이 존재하는지 확인합니다.
+     * 테넌트 범위 내 조직 목록 조회 (페이징)
      *
      * @param tenantId Tenant ID (Value Object)
-     * @return 활성 Organization 존재 여부
+     * @param name Organization 이름 필터 (null 허용, 부분 검색)
+     * @param status Organization 상태 필터 (null 허용)
+     * @param offset 시작 위치
+     * @param limit 조회 개수
+     * @return Organization Domain 목록
      */
-    boolean existsActiveByTenantId(TenantId tenantId);
+    List<Organization> findAllByTenantIdAndCriteria(
+            TenantId tenantId, String name, String status, int offset, int limit);
+
+    /**
+     * 테넌트 범위 내 조직 개수 조회
+     *
+     * @param tenantId Tenant ID (Value Object)
+     * @param name Organization 이름 필터 (null 허용, 부분 검색)
+     * @param status Organization 상태 필터 (null 허용)
+     * @return 조건에 맞는 Organization 총 개수
+     */
+    long countByTenantIdAndCriteria(TenantId tenantId, String name, String status);
 }

@@ -1,25 +1,31 @@
 package com.ryuqq.authhub.domain.organization.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * OrganizationNotFoundException - Organization을 찾을 수 없는 예외
- *
- * <p>요청한 Organization이 존재하지 않을 때 발생합니다.
+ * OrganizationNotFoundException - 조직을 찾을 수 없을 때 발생하는 예외
  *
  * @author development-team
  * @since 1.0.0
  */
 public class OrganizationNotFoundException extends DomainException {
 
-    public OrganizationNotFoundException(Long organizationId) {
+    public OrganizationNotFoundException(UUID organizationId) {
         super(
                 OrganizationErrorCode.ORGANIZATION_NOT_FOUND,
                 Map.of("organizationId", organizationId));
     }
 
-    public OrganizationNotFoundException(String identifier) {
-        super(OrganizationErrorCode.ORGANIZATION_NOT_FOUND, Map.of("identifier", identifier));
+    public OrganizationNotFoundException(OrganizationId organizationId) {
+        this(organizationId.value());
+    }
+
+    public OrganizationNotFoundException(UUID tenantId, String organizationName) {
+        super(
+                OrganizationErrorCode.ORGANIZATION_NOT_FOUND,
+                Map.of("tenantId", tenantId, "organizationName", organizationName));
     }
 }

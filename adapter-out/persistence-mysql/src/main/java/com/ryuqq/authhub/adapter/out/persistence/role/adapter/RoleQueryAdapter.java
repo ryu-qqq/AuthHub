@@ -1,170 +1,164 @@
 package com.ryuqq.authhub.adapter.out.persistence.role.adapter;
 
-import com.ryuqq.authhub.adapter.out.persistence.role.entity.PermissionJpaEntity;
-import com.ryuqq.authhub.adapter.out.persistence.role.entity.RoleJpaEntity;
-import com.ryuqq.authhub.adapter.out.persistence.role.mapper.PermissionJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.role.mapper.RoleJpaEntityMapper;
-import com.ryuqq.authhub.adapter.out.persistence.role.repository.PermissionQueryDslRepository;
-import com.ryuqq.authhub.adapter.out.persistence.role.repository.RolePermissionQueryDslRepository;
 import com.ryuqq.authhub.adapter.out.persistence.role.repository.RoleQueryDslRepository;
-import com.ryuqq.authhub.adapter.out.persistence.role.repository.UserRoleQueryDslRepository;
+import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.port.out.query.RoleQueryPort;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
-import com.ryuqq.authhub.domain.role.vo.PermissionCode;
-import com.ryuqq.authhub.domain.user.identifier.UserId;
-import java.util.ArrayList;
+import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
- * RoleQueryAdapter - Role Query Adapter
+ * RoleQueryAdapter - 역할 Query Adapter (조회 전용)
  *
- * <p>RoleQueryPort 구현체입니다. 조회 작업을 담당합니다.
+ * <p>RoleQueryPort 구현체로서 역할 조회 작업을 담당합니다.
  *
- * <p><strong>Long FK 전략:</strong>
- *
- * <ul>
- *   <li>Role → Permission 관계는 JOIN 없이 별도 쿼리로 분리
- *   <li>User → Role 관계도 별도 쿼리로 분리
- *   <li>N+1 방지를 위해 ID 목록 기반 조회 사용
- * </ul>
- *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p><strong>1:1 매핑 원칙:</strong>
  *
  * <ul>
- *   <li>@Transactional 사용 금지
- *   <li>QueryDslRepository에 조회 로직 위임
- *   <li>Entity → Domain 변환은 Mapper 사용
+ *   <li>RoleQueryDslRepository (1개) + RoleJpaEntityMapper (1개)
+ *   <li>필드 2개만 허용
+ *   <li>다른 Repository 주입 금지
  * </ul>
  *
- * @author AuthHub Team
+ * <p><strong>책임:</strong>
+ *
+ * <ul>
+ *   <li>findById() - ID로 단건 조회
+ *   <li>findByTenantIdAndName() - 테넌트 내 역할 이름으로 조회
+ *   <li>existsByTenantIdAndName() - 테넌트 내 역할 이름 존재 여부 확인
+ *   <li>search() - 조건 검색
+ *   <li>count() - 조건 개수 조회
+ * </ul>
+ *
+ * <p><strong>규칙:</strong>
+ *
+ * <ul>
+ *   <li>@Transactional 금지 (Manager/Facade에서 관리)
+ *   <li>비즈니스 로직 금지 (단순 위임 + 변환만)
+ *   <li>Domain 반환 (Mapper로 변환)
+ * </ul>
+ *
+ * @author development-team
  * @since 1.0.0
  */
 @Component
 public class RoleQueryAdapter implements RoleQueryPort {
 
-    private final RoleQueryDslRepository roleQueryDslRepository;
-    private final UserRoleQueryDslRepository userRoleQueryDslRepository;
-    private final RolePermissionQueryDslRepository rolePermissionQueryDslRepository;
-    private final PermissionQueryDslRepository permissionQueryDslRepository;
-    private final RoleJpaEntityMapper roleJpaEntityMapper;
-    private final PermissionJpaEntityMapper permissionJpaEntityMapper;
+    private final RoleQueryDslRepository repository;
+    private final RoleJpaEntityMapper mapper;
 
-    public RoleQueryAdapter(
-            RoleQueryDslRepository roleQueryDslRepository,
-            UserRoleQueryDslRepository userRoleQueryDslRepository,
-            RolePermissionQueryDslRepository rolePermissionQueryDslRepository,
-            PermissionQueryDslRepository permissionQueryDslRepository,
-            RoleJpaEntityMapper roleJpaEntityMapper,
-            PermissionJpaEntityMapper permissionJpaEntityMapper) {
-        this.roleQueryDslRepository = roleQueryDslRepository;
-        this.userRoleQueryDslRepository = userRoleQueryDslRepository;
-        this.rolePermissionQueryDslRepository = rolePermissionQueryDslRepository;
-        this.permissionQueryDslRepository = permissionQueryDslRepository;
-        this.roleJpaEntityMapper = roleJpaEntityMapper;
-        this.permissionJpaEntityMapper = permissionJpaEntityMapper;
+    public RoleQueryAdapter(RoleQueryDslRepository repository, RoleJpaEntityMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
     /**
-     * RoleId로 Role 조회
+     * ID로 역할 단건 조회
      *
-     * <p>Long FK 전략에 따라 Permission은 별도 쿼리로 조회:
+     * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>Role 조회
-     *   <li>role_permissions 테이블에서 permission_id 목록 조회
-     *   <li>permissions 테이블에서 Permission 정보 조회
-     *   <li>PermissionCode Set 구성 후 Role Domain 변환
+     *   <li>RoleId에서 UUID 추출
+     *   <li>QueryDSL Repository로 조회
+     *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
      * @param roleId 역할 ID
-     * @return Role (Optional)
+     * @return Optional<Role>
      */
     @Override
     public Optional<Role> findById(RoleId roleId) {
-        return roleQueryDslRepository.findById(roleId.value())
-            .map(this::toRoleWithPermissions);
+        return repository.findByRoleId(roleId.value()).map(mapper::toDomain);
     }
 
     /**
-     * UserId로 해당 사용자의 모든 Role 조회
+     * 테넌트 내 역할 이름으로 역할 단건 조회
      *
-     * <p>Long FK 전략에 따라 별도 쿼리로 분리:
+     * @param tenantId 테넌트 ID (null일 경우 GLOBAL 범위)
+     * @param name 역할 이름
+     * @return Optional<Role>
+     */
+    @Override
+    public Optional<Role> findByTenantIdAndName(TenantId tenantId, RoleName name) {
+        UUID tenantUuid = tenantId != null ? tenantId.value() : null;
+        return repository.findByTenantIdAndName(tenantUuid, name.value()).map(mapper::toDomain);
+    }
+
+    /**
+     * 테넌트 내 역할 이름 존재 여부 확인
+     *
+     * @param tenantId 테넌트 ID (null일 경우 GLOBAL 범위)
+     * @param name 역할 이름
+     * @return 존재 여부
+     */
+    @Override
+    public boolean existsByTenantIdAndName(TenantId tenantId, RoleName name) {
+        UUID tenantUuid = tenantId != null ? tenantId.value() : null;
+        return repository.existsByTenantIdAndName(tenantUuid, name.value());
+    }
+
+    /**
+     * 역할 검색 (페이징)
+     *
+     * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>user_roles 테이블에서 role_id 목록 조회
-     *   <li>roles 테이블에서 Role 정보 조회
-     *   <li>role_permissions 테이블에서 permission_id 목록 조회
-     *   <li>permissions 테이블에서 Permission 정보 조회
-     *   <li>각 Role에 해당 PermissionCode Set 매핑
+     *   <li>Query에서 검색 조건 추출
+     *   <li>QueryDSL Repository로 조회
+     *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
-     * @param userId 사용자 ID
-     * @return 사용자에게 할당된 Role 목록
-     */
-    @Override
-    public List<Role> findByUserId(UserId userId) {
-        List<Long> roleIds = userRoleQueryDslRepository.findRoleIdsByUserId(userId.value());
-        if (roleIds.isEmpty()) {
-            return List.of();
-        }
-
-        return findRolesByIds(roleIds);
-    }
-
-    /**
-     * Role 이름으로 조회
-     *
-     * @param roleName 역할 이름 (예: ROLE_USER)
-     * @return Role (Optional)
-     */
-    @Override
-    public Optional<Role> findByName(String roleName) {
-        return roleQueryDslRepository.findByName(roleName).map(this::toRoleWithPermissions);
-    }
-
-    /**
-     * RoleJpaEntity를 Permission과 함께 Role Domain으로 변환
-     *
-     * @param roleEntity Role Entity
-     * @return Role Domain
-     */
-    private Role toRoleWithPermissions(RoleJpaEntity roleEntity) {
-        Set<PermissionCode> permissions = findPermissionsByRoleId(roleEntity.getId());
-        return roleJpaEntityMapper.toDomain(roleEntity, permissions);
-    }
-
-    /**
-     * Role ID로 해당 Role의 PermissionCode Set 조회
-     *
-     * @param roleId Role ID
-     * @return PermissionCode Set
-     */
-    private Set<PermissionCode> findPermissionsByRoleId(Long roleId) {
-        List<Long> permissionIds =
-                rolePermissionQueryDslRepository.findPermissionIdsByRoleId(roleId);
-        if (permissionIds.isEmpty()) {
-            return Set.of();
-        }
-
-        return permissionQueryDslRepository.findByIds(permissionIds).stream()
-            .map(permissionJpaEntityMapper::toPermissionCode)
-            .collect(Collectors.toSet());
-    }
-
-    /**
-     * Role ID 목록으로 Role 목록 조회 (N+1 방지)
-     *
-     * @param roleIds Role ID 목록
+     * @param query 검색 조건
      * @return Role 목록
      */
-    private List<Role> findRolesByIds(List<Long> roleIds) {
-        return roleQueryDslRepository.findByIds(roleIds).stream()
-            .map(this::toRoleWithPermissions)
-            .toList();
+    @Override
+    public List<Role> search(SearchRolesQuery query) {
+        int offset = query.page() * query.size();
+
+        return repository
+                .search(
+                        query.tenantId(),
+                        query.name(),
+                        query.scope(),
+                        query.type(),
+                        offset,
+                        query.size())
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    /**
+     * 역할 검색 개수 조회
+     *
+     * @param query 검색 조건
+     * @return 조건에 맞는 역할 총 개수
+     */
+    @Override
+    public long count(SearchRolesQuery query) {
+        return repository.count(query.tenantId(), query.name(), query.scope(), query.type());
+    }
+
+    /**
+     * 여러 ID로 역할 목록 조회
+     *
+     * @param roleIds 역할 ID Set
+     * @return Role 목록
+     */
+    @Override
+    public List<Role> findAllByIds(Set<RoleId> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+        Set<UUID> uuids = roleIds.stream().map(RoleId::value).collect(Collectors.toSet());
+        return repository.findAllByIds(uuids).stream().map(mapper::toDomain).toList();
     }
 }

@@ -1,12 +1,13 @@
 package com.ryuqq.authhub.adapter.in.rest.architecture.dto;
 
+import static com.ryuqq.authhub.adapter.in.rest.architecture.ArchUnitPackageConstants.ADAPTER_IN_REST;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -42,28 +43,19 @@ import org.junit.jupiter.api.Test;
 class CommandDtoArchTest {
 
     private static JavaClasses classes;
-    private static boolean hasCommandDtoClasses;
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.adapter.in.rest");
-
-        hasCommandDtoClasses =
-                classes.stream()
-                        .anyMatch(
-                                javaClass ->
-                                        javaClass.getPackageName().contains(".dto.command")
-                                                && javaClass
-                                                        .getSimpleName()
-                                                        .endsWith("ApiRequest"));
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(ADAPTER_IN_REST);
     }
 
     /** 규칙 1: Record 타입 필수 */
     @Test
     @DisplayName("[필수] Command DTO는 Record 타입이어야 한다")
     void commandDto_MustBeRecords() {
-        assumeTrue(hasCommandDtoClasses, "Command DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule =
                 classes()
                         .that()
@@ -76,15 +68,13 @@ class CommandDtoArchTest {
                         .beRecords()
                         .because("Command DTO는 불변 객체이므로 Record를 사용해야 합니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 2: 네이밍 규칙 (*ApiRequest) */
     @Test
     @DisplayName("[필수] Command DTO는 *ApiRequest 접미사를 가져야 한다")
     void commandDto_MustHaveApiRequestSuffix() {
-        assumeTrue(hasCommandDtoClasses, "Command DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule =
                 classes()
                         .that()
@@ -95,7 +85,7 @@ class CommandDtoArchTest {
                         .haveSimpleNameEndingWith("ApiRequest")
                         .because("Command DTO는 *ApiRequest 네이밍 규칙을 따라야 합니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 3: Lombok 어노테이션 절대 금지 */
@@ -195,8 +185,6 @@ class CommandDtoArchTest {
     @Test
     @DisplayName("[권장] Command DTO는 Bean Validation 어노테이션을 사용해야 한다")
     void commandDto_ShouldUseValidationAnnotations() {
-        assumeTrue(hasCommandDtoClasses, "Command DTO 클래스가 없으므로 테스트를 스킵합니다");
-
         ArchRule rule =
                 classes()
                         .that()
@@ -212,31 +200,38 @@ class CommandDtoArchTest {
 
         // Note: 이 규칙은 권장사항이므로 실패 시 경고만 표시
         try {
-            rule.check(classes);
+            rule.allowEmptyShould(true).check(classes);
         } catch (AssertionError e) {
             System.out.println("⚠️  Warning: " + e.getMessage());
         }
     }
 
     /** 규칙 8: 패키지 위치 검증 */
+    /**
+     * 규칙 8: Command DTO는 dto.command 패키지에 위치
+     *
+     * <p>Note: Query용 ApiRequest(예: SearchXxxApiRequest)는 dto.query 패키지에 있어야 하므로 Command DTO 규칙에서
+     * 제외합니다.
+     */
     @Test
     @DisplayName("[필수] Command DTO는 올바른 패키지에 위치해야 한다")
     void commandDto_MustBeInCorrectPackage() {
-        assumeTrue(hasCommandDtoClasses, "Command DTO 클래스가 없으므로 테스트를 스킵합니다");
-
+        // Query용 ApiRequest는 dto.query에 있어야 하므로 제외
         ArchRule rule =
                 classes()
                         .that()
                         .haveSimpleNameEndingWith("ApiRequest")
+                        .and()
+                        .haveSimpleNameNotStartingWith("Search") // Query용 Search Request 제외
                         .and()
                         .areNotNestedClasses()
                         .and()
                         .resideInAPackage("..adapter.in.rest..")
                         .should()
                         .resideInAPackage("..dto.command..")
-                        .because("Command DTO는 dto.command 패키지에 위치해야 합니다");
+                        .because("Command DTO는 dto.command 패키지에 위치해야 합니다 (Search* Query 제외)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 9: Setter 메서드 절대 금지 (Record이므로 자동 검증) */

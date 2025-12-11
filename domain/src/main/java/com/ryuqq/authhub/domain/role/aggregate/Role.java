@@ -1,32 +1,44 @@
 package com.ryuqq.authhub.domain.role.aggregate;
 
+import com.ryuqq.authhub.domain.role.exception.SystemRoleNotDeletableException;
+import com.ryuqq.authhub.domain.role.exception.SystemRoleNotModifiableException;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
-import com.ryuqq.authhub.domain.role.vo.PermissionCode;
+import com.ryuqq.authhub.domain.role.vo.RoleDescription;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
+import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.util.Collections;
-import java.util.HashSet;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Objects;
-import java.util.Set;
+import java.util.UUID;
 
 /**
  * Role Aggregate Root - 역할 도메인 모델
  *
- * <p>역할은 Permission의 집합이며, 사용자에게 할당됩니다.
+ * <p>시스템 내 역할을 정의하는 Aggregate입니다.
  *
- * <p><strong>구조:</strong>
+ * <p><strong>역할 범위 (RoleScope):</strong>
  *
  * <ul>
- *   <li>Role은 여러 Permission을 가짐
- *   <li>Role은 Tenant 범위로 제한됨 (null이면 시스템 전역 역할)
- *   <li>isSystem=true면 수정/삭제 불가
+ *   <li>GLOBAL: 전체 시스템 범위 (예: SUPER_ADMIN)
+ *   <li>TENANT: 테넌트 범위 (예: TENANT_ADMIN)
+ *   <li>ORGANIZATION: 조직 범위 (예: ORG_ADMIN, USER)
+ * </ul>
+ *
+ * <p><strong>역할 유형 (RoleType):</strong>
+ *
+ * <ul>
+ *   <li>SYSTEM: 시스템 기본 역할 (수정/삭제 불가)
+ *   <li>CUSTOM: 사용자 정의 역할 (수정/삭제 가능)
  * </ul>
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
  *   <li>Lombok 금지 - Plain Java 사용
- *   <li>불변 객체 (Immutable)
+ *   <li>Law of Demeter 준수 - Getter 체이닝 금지
+ *   <li>Tell, Don't Ask 패턴 - 상태 질의 대신 행위 위임
  *   <li>Long FK 전략 - JPA 관계 어노테이션 금지
  * </ul>
  *
@@ -38,113 +50,237 @@ public final class Role {
     private final RoleId roleId;
     private final TenantId tenantId;
     private final RoleName name;
-    private final String description;
-    private final boolean isSystem;
-    private final Set<PermissionCode> permissions;
+    private final RoleDescription description;
+    private final RoleScope scope;
+    private final RoleType type;
+    private final boolean deleted;
+    private final Instant createdAt;
+    private final Instant updatedAt;
 
     private Role(
             RoleId roleId,
             TenantId tenantId,
             RoleName name,
-            String description,
-            boolean isSystem,
-            Set<PermissionCode> permissions) {
-        if (name == null) {
-            throw new IllegalArgumentException("RoleName은 null일 수 없습니다");
-        }
+            RoleDescription description,
+            RoleScope scope,
+            RoleType type,
+            boolean deleted,
+            Instant createdAt,
+            Instant updatedAt) {
+        validateRequired(name, scope, type, createdAt, updatedAt);
         this.roleId = roleId;
         this.tenantId = tenantId;
         this.name = name;
-        this.description = description != null ? description : "";
-        this.isSystem = isSystem;
-        this.permissions =
-                permissions != null
-                        ? Collections.unmodifiableSet(new HashSet<>(permissions))
-                        : Collections.emptySet();
+        this.description = description != null ? description : RoleDescription.empty();
+        this.scope = scope;
+        this.type = type;
+        this.deleted = deleted;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    private void validateRequired(
+            RoleName name, RoleScope scope, RoleType type, Instant createdAt, Instant updatedAt) {
+        if (name == null) {
+            throw new IllegalArgumentException("RoleName은 null일 수 없습니다");
+        }
+        if (scope == null) {
+            throw new IllegalArgumentException("RoleScope는 null일 수 없습니다");
+        }
+        if (type == null) {
+            throw new IllegalArgumentException("RoleType은 null일 수 없습니다");
+        }
+        if (createdAt == null) {
+            throw new IllegalArgumentException("createdAt는 null일 수 없습니다");
+        }
+        if (updatedAt == null) {
+            throw new IllegalArgumentException("updatedAt는 null일 수 없습니다");
+        }
+    }
+
+    // ========== Factory Methods ==========
+
+    /**
+     * 새로운 시스템 역할 생성 (GLOBAL 범위)
+     *
+     * @param name 역할 이름
+     * @param description 역할 설명
+     * @param clock 시간 제공자
+     * @return 새로운 시스템 역할 인스턴스
+     */
+    public static Role createSystemGlobal(RoleName name, RoleDescription description, Clock clock) {
+        Instant now = clock.instant();
+        return new Role(
+                null, null, name, description, RoleScope.GLOBAL, RoleType.SYSTEM, false, now, now);
     }
 
     /**
-     * 새로운 Role 생성 (ID 미할당)
+     * 새로운 커스텀 역할 생성 (TENANT 범위)
      *
-     * @param tenantId 테넌트 ID (null이면 시스템 전역 역할)
+     * @param tenantId 테넌트 ID (TENANT 범위인 경우 필수)
      * @param name 역할 이름
-     * @param description 설명
-     * @param isSystem 시스템 역할 여부
+     * @param description 역할 설명
+     * @param clock 시간 제공자
+     * @return 새로운 커스텀 역할 인스턴스
      */
-    public static Role forNew(
-            TenantId tenantId, RoleName name, String description, boolean isSystem) {
-        return new Role(null, tenantId, name, description, isSystem, Collections.emptySet());
+    public static Role createCustomTenant(
+            TenantId tenantId, RoleName name, RoleDescription description, Clock clock) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("TENANT 범위 역할은 tenantId가 필수입니다");
+        }
+        Instant now = clock.instant();
+        return new Role(
+                null,
+                tenantId,
+                name,
+                description,
+                RoleScope.TENANT,
+                RoleType.CUSTOM,
+                false,
+                now,
+                now);
     }
 
-    /** DB에서 Role 재구성 (reconstitute) */
+    /**
+     * 새로운 커스텀 역할 생성 (ORGANIZATION 범위)
+     *
+     * @param tenantId 테넌트 ID
+     * @param name 역할 이름
+     * @param description 역할 설명
+     * @param clock 시간 제공자
+     * @return 새로운 커스텀 역할 인스턴스
+     */
+    public static Role createCustomOrganization(
+            TenantId tenantId, RoleName name, RoleDescription description, Clock clock) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("ORGANIZATION 범위 역할은 tenantId가 필수입니다");
+        }
+        Instant now = clock.instant();
+        return new Role(
+                null,
+                tenantId,
+                name,
+                description,
+                RoleScope.ORGANIZATION,
+                RoleType.CUSTOM,
+                false,
+                now,
+                now);
+    }
+
+    /**
+     * DB에서 Role 재구성 (reconstitute)
+     *
+     * @param roleId 역할 ID
+     * @param tenantId 테넌트 ID (GLOBAL 범위일 경우 null 가능)
+     * @param name 역할 이름
+     * @param description 역할 설명
+     * @param scope 역할 범위
+     * @param type 역할 유형
+     * @param deleted 삭제 여부
+     * @param createdAt 생성 시간
+     * @param updatedAt 수정 시간
+     * @return 재구성된 Role 인스턴스
+     */
     public static Role reconstitute(
             RoleId roleId,
             TenantId tenantId,
             RoleName name,
-            String description,
-            boolean isSystem,
-            Set<PermissionCode> permissions) {
+            RoleDescription description,
+            RoleScope scope,
+            RoleType type,
+            boolean deleted,
+            Instant createdAt,
+            Instant updatedAt) {
         if (roleId == null) {
             throw new IllegalArgumentException("reconstitute requires non-null roleId");
         }
-        return new Role(roleId, tenantId, name, description, isSystem, permissions);
-    }
-
-    /** 모든 필드 지정하여 Role 생성 */
-    public static Role of(
-            RoleId roleId,
-            TenantId tenantId,
-            RoleName name,
-            String description,
-            boolean isSystem,
-            Set<PermissionCode> permissions) {
-        return new Role(roleId, tenantId, name, description, isSystem, permissions);
+        return new Role(
+                roleId, tenantId, name, description, scope, type, deleted, createdAt, updatedAt);
     }
 
     // ========== Business Methods ==========
 
     /**
-     * Permission 추가
+     * 역할 이름 변경
      *
-     * @return Permission이 추가된 새로운 Role 인스턴스
-     * @throws IllegalStateException 시스템 역할인 경우
+     * @param newName 새로운 이름
+     * @param clock 시간 제공자
+     * @return 이름이 변경된 새로운 Role 인스턴스
+     * @throws SystemRoleNotModifiableException 시스템 역할인 경우
      */
-    public Role addPermission(PermissionCode permissionCode) {
-        if (isSystem) {
-            throw new IllegalStateException("시스템 역할은 수정할 수 없습니다");
-        }
-        Set<PermissionCode> newPermissions = new HashSet<>(this.permissions);
-        newPermissions.add(permissionCode);
-        return new Role(roleId, tenantId, name, description, isSystem, newPermissions);
+    public Role changeName(RoleName newName, Clock clock) {
+        validateModifiable();
+        return new Role(
+                this.roleId,
+                this.tenantId,
+                newName,
+                this.description,
+                this.scope,
+                this.type,
+                this.deleted,
+                this.createdAt,
+                clock.instant());
     }
 
     /**
-     * Permission 제거
+     * 역할 설명 변경
      *
-     * @return Permission이 제거된 새로운 Role 인스턴스
-     * @throws IllegalStateException 시스템 역할인 경우
+     * @param newDescription 새로운 설명
+     * @param clock 시간 제공자
+     * @return 설명이 변경된 새로운 Role 인스턴스
+     * @throws SystemRoleNotModifiableException 시스템 역할인 경우
      */
-    public Role removePermission(PermissionCode permissionCode) {
-        if (isSystem) {
-            throw new IllegalStateException("시스템 역할은 수정할 수 없습니다");
-        }
-        Set<PermissionCode> newPermissions = new HashSet<>(this.permissions);
-        newPermissions.remove(permissionCode);
-        return new Role(roleId, tenantId, name, description, isSystem, newPermissions);
+    public Role changeDescription(RoleDescription newDescription, Clock clock) {
+        validateModifiable();
+        return new Role(
+                this.roleId,
+                this.tenantId,
+                this.name,
+                newDescription,
+                this.scope,
+                this.type,
+                this.deleted,
+                this.createdAt,
+                clock.instant());
     }
 
-    /** 특정 Permission을 가지고 있는지 확인 (와일드카드 포함) */
-    public boolean hasPermission(PermissionCode permissionCode) {
-        return permissions.stream().anyMatch(p -> p.implies(permissionCode));
+    /**
+     * 역할 삭제 (소프트 삭제)
+     *
+     * @param clock 시간 제공자
+     * @return 삭제된 새로운 Role 인스턴스
+     * @throws SystemRoleNotDeletableException 시스템 역할인 경우
+     */
+    public Role delete(Clock clock) {
+        if (type.isSystem()) {
+            throw new SystemRoleNotDeletableException(name.value());
+        }
+        return new Role(
+                this.roleId,
+                this.tenantId,
+                this.name,
+                this.description,
+                this.scope,
+                this.type,
+                true,
+                this.createdAt,
+                clock.instant());
+    }
+
+    private void validateModifiable() {
+        if (type.isSystem()) {
+            throw new SystemRoleNotModifiableException(name.value());
+        }
     }
 
     // ========== Helper Methods ==========
 
-    public Long roleIdValue() {
+    public UUID roleIdValue() {
         return roleId != null ? roleId.value() : null;
     }
 
-    public Long tenantIdValue() {
+    public UUID tenantIdValue() {
         return tenantId != null ? tenantId.value() : null;
     }
 
@@ -152,21 +288,44 @@ public final class Role {
         return name.value();
     }
 
+    public String descriptionValue() {
+        return description.value();
+    }
+
+    public String scopeValue() {
+        return scope.name();
+    }
+
+    public String typeValue() {
+        return type.name();
+    }
+
     public boolean isNew() {
         return roleId == null;
     }
 
-    public boolean isGlobalRole() {
-        return tenantId == null;
+    public boolean isSystem() {
+        return type.isSystem();
     }
 
-    /** Permission 코드 문자열 Set 반환 (JWT Claim용) */
-    public Set<String> permissionValues() {
-        Set<String> values = new HashSet<>();
-        for (PermissionCode permission : permissions) {
-            values.add(permission.value());
-        }
-        return Collections.unmodifiableSet(values);
+    public boolean isCustom() {
+        return type.isCustom();
+    }
+
+    public boolean isGlobal() {
+        return scope == RoleScope.GLOBAL;
+    }
+
+    public boolean isTenantScoped() {
+        return scope == RoleScope.TENANT;
+    }
+
+    public boolean isOrganizationScoped() {
+        return scope == RoleScope.ORGANIZATION;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
     }
 
     // ========== Getter Methods ==========
@@ -183,16 +342,24 @@ public final class Role {
         return name;
     }
 
-    public String getDescription() {
+    public RoleDescription getDescription() {
         return description;
     }
 
-    public boolean isSystem() {
-        return isSystem;
+    public RoleScope getScope() {
+        return scope;
     }
 
-    public Set<PermissionCode> getPermissions() {
-        return permissions;
+    public RoleType getType() {
+        return type;
+    }
+
+    public Instant createdAt() {
+        return createdAt;
+    }
+
+    public Instant updatedAt() {
+        return updatedAt;
     }
 
     // ========== Object Methods ==========
@@ -205,16 +372,16 @@ public final class Role {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Role role = (Role) o;
-        if (roleId == null || role.roleId == null) {
-            return Objects.equals(name, role.name) && Objects.equals(tenantId, role.tenantId);
+        Role that = (Role) o;
+        if (roleId == null || that.roleId == null) {
+            return false;
         }
-        return Objects.equals(roleId, role.roleId);
+        return Objects.equals(roleId, that.roleId);
     }
 
     @Override
     public int hashCode() {
-        return roleId != null ? Objects.hash(roleId) : Objects.hash(name, tenantId);
+        return roleId != null ? Objects.hash(roleId) : System.identityHashCode(this);
     }
 
     @Override
@@ -226,8 +393,12 @@ public final class Role {
                 + tenantId
                 + ", name="
                 + name
-                + ", isSystem="
-                + isSystem
+                + ", scope="
+                + scope
+                + ", type="
+                + type
+                + ", deleted="
+                + deleted
                 + "}";
     }
 }

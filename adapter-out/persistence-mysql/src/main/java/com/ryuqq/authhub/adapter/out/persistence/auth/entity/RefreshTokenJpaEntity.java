@@ -45,7 +45,7 @@ public class RefreshTokenJpaEntity {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "user_id", nullable = false, unique = true)
+    @Column(name = "user_id", nullable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID userId;
 
     @Column(name = "token", nullable = false, length = 500)

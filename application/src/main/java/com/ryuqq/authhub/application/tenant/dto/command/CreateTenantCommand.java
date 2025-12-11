@@ -1,12 +1,17 @@
 package com.ryuqq.authhub.application.tenant.dto.command;
 
 /**
- * Create Tenant Command DTO
+ * CreateTenantCommand - 테넌트 생성 Command DTO
  *
- * <p>테넌트 생성 요청 데이터를 전달하는 명령 객체입니다.
+ * <p><strong>Zero-Tolerance 규칙:</strong>
  *
- * <p><strong>최소 필드 원칙:</strong> name만 포함
+ * <ul>
+ *   <li>순수 Java Record (jakarta.validation 금지)
+ *   <li>Lombok 금지
+ *   <li>비즈니스 로직 금지 (Domain 책임)
+ * </ul>
  *
+ * @param name 테넌트 이름 (필수)
  * @author development-team
  * @since 1.0.0
  */

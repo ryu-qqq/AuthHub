@@ -1,166 +1,174 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserJpaRepository;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
-import com.ryuqq.authhub.domain.user.identifier.UserId;
-import com.ryuqq.authhub.domain.user.vo.Credential;
-import com.ryuqq.authhub.domain.user.vo.Password;
-import com.ryuqq.authhub.domain.user.vo.PhoneNumber;
-import com.ryuqq.authhub.domain.user.vo.UserProfile;
+import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-import com.ryuqq.authhub.domain.user.vo.UserType;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * UserCommandAdapter 테스트
+ * UserCommandAdapter 단위 테스트
  *
- * <p>UserPersistencePort 구현체 테스트
- *
- * @author AuthHub Team
+ * @author development-team
  * @since 1.0.0
  */
+@Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("UserCommandAdapter 테스트")
+@DisplayName("UserCommandAdapter 단위 테스트")
 class UserCommandAdapterTest {
 
-    @Mock private UserJpaRepository userJpaRepository;
+    @Mock private UserJpaRepository repository;
 
-    @Mock private UserJpaEntityMapper userJpaEntityMapper;
+    @Mock private UserJpaEntityMapper mapper;
 
-    private UserCommandAdapter userCommandAdapter;
+    private UserCommandAdapter adapter;
 
-    private static final UUID ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-    private static final Long TENANT_ID = 100L;
-    private static final Long ORGANIZATION_ID = 200L;
-    private static final UserType USER_TYPE = UserType.PUBLIC;
-    private static final UserStatus STATUS = UserStatus.ACTIVE;
-    private static final String IDENTIFIER = "test@example.com";
-    private static final String HASHED_PASSWORD = "$2a$10$hashedpassword";
-    private static final String NAME = "Test User";
-    private static final String PHONE_NUMBER = "+821012345678";
-    private static final Instant CREATED_AT = Instant.parse("2025-01-01T10:00:00Z");
-    private static final Instant UPDATED_AT = Instant.parse("2025-01-02T15:30:00Z");
-    private static final LocalDateTime CREATED_AT_LOCAL = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
-    private static final LocalDateTime UPDATED_AT_LOCAL = LocalDateTime.of(2025, 1, 2, 15, 30, 0);
+    private static final UUID USER_UUID = UserFixture.defaultUUID();
+    private static final UUID TENANT_UUID = UserFixture.defaultTenantUUID();
+    private static final UUID ORG_UUID = UserFixture.defaultOrganizationUUID();
+    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
 
     @BeforeEach
     void setUp() {
-        userCommandAdapter = new UserCommandAdapter(userJpaRepository, userJpaEntityMapper);
+        adapter = new UserCommandAdapter(repository, mapper);
     }
 
     @Nested
-    @DisplayName("persist() 메서드는")
-    class PersistMethod {
+    @DisplayName("persist 메서드")
+    class PersistTest {
 
         @Test
-        @DisplayName("신규 User를 저장하고 생성된 ID를 반환한다")
-        void shouldSaveNewUserAndReturnId() {
-            // Given
-            User user =
-                    User.reconstitute(
-                            UserId.of(ID),
-                            TenantId.of(TENANT_ID),
-                            OrganizationId.of(ORGANIZATION_ID),
-                            USER_TYPE,
-                            STATUS,
-                            Credential.of(IDENTIFIER, Password.ofHashed(HASHED_PASSWORD)),
-                            UserProfile.of(NAME, PhoneNumber.of(PHONE_NUMBER)),
-                            CREATED_AT,
-                            UPDATED_AT);
+        @DisplayName("사용자를 성공적으로 저장한다")
+        void shouldPersistUserSuccessfully() {
+            // given
+            User domainToSave = UserFixture.createNew();
+            User savedDomain = UserFixture.create();
+
             UserJpaEntity entityToSave =
                     UserJpaEntity.of(
-                            ID,
-                            TENANT_ID,
-                            ORGANIZATION_ID,
-                            USER_TYPE,
-                            STATUS,
-                            IDENTIFIER,
-                            HASHED_PASSWORD,
-                            NAME,
-                            PHONE_NUMBER,
-                            CREATED_AT_LOCAL,
-                            UPDATED_AT_LOCAL);
+                            null,
+                            USER_UUID,
+                            TENANT_UUID,
+                            ORG_UUID,
+                            "user@example.com",
+                            "hashed_password",
+                            UserStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
             UserJpaEntity savedEntity =
                     UserJpaEntity.of(
-                            ID,
-                            TENANT_ID,
-                            ORGANIZATION_ID,
-                            USER_TYPE,
-                            STATUS,
-                            IDENTIFIER,
-                            HASHED_PASSWORD,
-                            NAME,
-                            PHONE_NUMBER,
-                            CREATED_AT_LOCAL,
-                            UPDATED_AT_LOCAL);
+                            1L,
+                            USER_UUID,
+                            TENANT_UUID,
+                            ORG_UUID,
+                            "user@example.com",
+                            "hashed_password",
+                            UserStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
 
-            given(userJpaEntityMapper.toEntity(user)).willReturn(entityToSave);
-            given(userJpaRepository.save(entityToSave)).willReturn(savedEntity);
+            given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
+            given(repository.save(entityToSave)).willReturn(savedEntity);
+            given(mapper.toDomain(savedEntity)).willReturn(savedDomain);
 
-            // When
-            UserId result = userCommandAdapter.persist(user);
+            // when
+            User result = adapter.persist(domainToSave);
 
-            // Then
-            assertThat(result.value()).isEqualTo(ID);
-            verify(userJpaEntityMapper).toEntity(user);
-            verify(userJpaRepository).save(entityToSave);
+            // then
+            assertThat(result).isEqualTo(savedDomain);
+            verify(mapper).toEntity(domainToSave);
+            verify(repository).save(entityToSave);
+            verify(mapper).toDomain(savedEntity);
         }
 
         @Test
-        @DisplayName("기존 User를 수정하고 ID를 반환한다")
-        void shouldUpdateExistingUserAndReturnId() {
-            // Given
-            User user =
-                    User.reconstitute(
-                            UserId.of(ID),
-                            TenantId.of(TENANT_ID),
-                            OrganizationId.of(ORGANIZATION_ID),
-                            USER_TYPE,
-                            STATUS,
-                            Credential.of(IDENTIFIER, Password.ofHashed(HASHED_PASSWORD)),
-                            UserProfile.of(NAME, PhoneNumber.of(PHONE_NUMBER)),
-                            CREATED_AT,
-                            UPDATED_AT);
-            UserJpaEntity entityToSave =
+        @DisplayName("기존 사용자를 수정한다")
+        void shouldUpdateExistingUser() {
+            // given
+            User existingDomain = UserFixture.create();
+            User updatedDomain = UserFixture.createWithIdentifier("updated@example.com");
+
+            UserJpaEntity entityToUpdate =
                     UserJpaEntity.of(
-                            ID,
-                            TENANT_ID,
-                            ORGANIZATION_ID,
-                            USER_TYPE,
-                            STATUS,
-                            IDENTIFIER,
-                            HASHED_PASSWORD,
-                            NAME,
-                            PHONE_NUMBER,
-                            CREATED_AT_LOCAL,
-                            UPDATED_AT_LOCAL);
+                            1L,
+                            USER_UUID,
+                            TENANT_UUID,
+                            ORG_UUID,
+                            "user@example.com",
+                            "hashed_password",
+                            UserStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+            UserJpaEntity updatedEntity =
+                    UserJpaEntity.of(
+                            1L,
+                            USER_UUID,
+                            TENANT_UUID,
+                            ORG_UUID,
+                            "updated@example.com",
+                            "hashed_password",
+                            UserStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
 
-            given(userJpaEntityMapper.toEntity(user)).willReturn(entityToSave);
-            given(userJpaRepository.save(entityToSave)).willReturn(entityToSave);
+            given(mapper.toEntity(existingDomain)).willReturn(entityToUpdate);
+            given(repository.save(entityToUpdate)).willReturn(updatedEntity);
+            given(mapper.toDomain(updatedEntity)).willReturn(updatedDomain);
 
-            // When
-            UserId result = userCommandAdapter.persist(user);
+            // when
+            User result = adapter.persist(existingDomain);
 
-            // Then
-            assertThat(result.value()).isEqualTo(ID);
-            verify(userJpaRepository).save(entityToSave);
+            // then
+            assertThat(result.getIdentifier()).isEqualTo("updated@example.com");
+            verify(repository).save(any(UserJpaEntity.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("delete 메서드")
+    class DeleteTest {
+
+        @Test
+        @DisplayName("사용자를 성공적으로 삭제한다")
+        void shouldDeleteUserSuccessfully() {
+            // given
+            User domainToDelete = UserFixture.create();
+            UserJpaEntity entityToDelete =
+                    UserJpaEntity.of(
+                            1L,
+                            USER_UUID,
+                            TENANT_UUID,
+                            ORG_UUID,
+                            "user@example.com",
+                            "hashed_password",
+                            UserStatus.ACTIVE,
+                            FIXED_TIME,
+                            FIXED_TIME);
+
+            given(mapper.toEntity(domainToDelete)).willReturn(entityToDelete);
+
+            // when
+            adapter.delete(domainToDelete);
+
+            // then
+            verify(mapper).toEntity(domainToDelete);
+            verify(repository).delete(entityToDelete);
         }
     }
 }

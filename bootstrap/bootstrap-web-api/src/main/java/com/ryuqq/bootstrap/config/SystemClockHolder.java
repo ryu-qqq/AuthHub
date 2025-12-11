@@ -1,8 +1,7 @@
 package com.ryuqq.bootstrap.config;
 
-import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.common.util.ClockHolder;
-import java.time.Instant;
+import java.time.Clock;
 
 /**
  * SystemClockHolder - ClockHolder 구현체
@@ -22,10 +21,14 @@ import java.time.Instant;
  */
 public final class SystemClockHolder implements ClockHolder {
 
-    private static final Clock SYSTEM_CLOCK = Instant::now;
+    private final Clock clock;
+
+    public SystemClockHolder(Clock clock) {
+        this.clock = clock;
+    }
 
     @Override
     public Clock clock() {
-        return SYSTEM_CLOCK;
+        return clock;
     }
 }

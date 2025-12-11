@@ -1,18 +1,143 @@
 # ===============================================
-# Persistence Redis Adapter Configuration
+# Redis Configuration (Lettuce + Redisson)
+# ===============================================
+# Spring Boot 3.5.x + Java 21 기준
+# Lettuce: 캐싱, 세션, 단순 K-V 조회
+# Redisson: 분산락, 분산 자료구조
+#
+# @author Development Team
+# @since 1.0.0
 # ===============================================
 
+# ===============================================
 # Common Redis Settings
+# ===============================================
 spring:
   data:
     redis:
+      # ===============================================
+      # Connection Settings
+      # ===============================================
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+
+      # Command Timeout
       timeout: 3000ms
+
+      # Client Name (모니터링용)
+      client-name: ${spring.application.name:spring-standards}-${HOSTNAME:unknown}
+
+      # ===============================================
+      # Lettuce Connection Pool (Caching)
+      # ===============================================
       lettuce:
         pool:
+          # Pool Size 권장값: CPU cores * 2
           max-active: 16
           max-idle: 8
           min-idle: 4
-          max-wait: 3000ms
+          max-wait: 2000ms
+          time-between-eviction-runs: 30000ms
+
+        # Shutdown Timeout
+        shutdown-timeout: 200ms
+
+  # ===============================================
+  # Redis Cache Settings
+  # ===============================================
+  cache:
+    type: redis
+    redis:
+      # Default TTL (30분)
+      time-to-live: 1800000
+      # Key Prefix
+      key-prefix: "cache::"
+      # Null 값 캐싱 허용 (캐시 펜싱 방지)
+      cache-null-values: true
+      # Prefix 사용
+      use-key-prefix: true
+
+# ===============================================
+# Redisson Configuration (Distributed Lock)
+# ===============================================
+redisson:
+  # Single Server Mode (Default)
+  single-server-config:
+    address: "redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}"
+    password: ${REDIS_PASSWORD:null}
+    database: ${REDIS_DATABASE:0}
+
+    # Connection Pool
+    connection-pool-size: 16
+    connection-minimum-idle-size: 4
+    idle-connection-timeout: 10000
+    connect-timeout: 3000
+    timeout: 3000
+
+    # Retry Settings
+    retry-attempts: 3
+    retry-interval: 1500
+
+  # Thread Settings
+  threads: 4
+  netty-threads: 4
+
+---
+# ===============================================
+# Local Profile
+# ===============================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # password: (로컬은 비밀번호 없음)
+
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: 1000ms
+
+redisson:
+  single-server-config:
+    address: "redis://localhost:6379"
+    connection-pool-size: 8
+    connection-minimum-idle-size: 2
+
+---
+# ===============================================
+# Development Profile
+# ===============================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-dev.internal}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+      lettuce:
+        pool:
+          max-active: 12
+          max-idle: 8
+          min-idle: 4
+
+redisson:
+  single-server-config:
+    address: "redis://${REDIS_HOST:redis-dev.internal}:${REDIS_PORT:6379}"
+    password: ${REDIS_PASSWORD:null}
+    connection-pool-size: 12
 
 ---
 # ===============================================
@@ -25,21 +150,48 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
+      # ElastiCache 비밀번호 미사용 시 빈 값 허용
       password: ${REDIS_PASSWORD:}
 
----
-# ===============================================
-# Test Profile
-# ===============================================
-spring:
-  config:
-    activate:
-      on-profile: test
+      # SSL 설정 (AWS ElastiCache 등)
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
 
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password:
+      lettuce:
+        pool:
+          max-active: 32
+          max-idle: 16
+          min-idle: 8
+          max-wait: 3000ms
+
+      # Cluster 모드 (선택)
+      # cluster:
+      #   nodes: ${REDIS_CLUSTER_NODES}
+      #   max-redirects: 3
+
+      # Sentinel 모드 (선택)
+      # sentinel:
+      #   master: ${REDIS_SENTINEL_MASTER:mymaster}
+      #   nodes: ${REDIS_SENTINEL_NODES}
+
+redisson:
+  # Production: Cluster 모드 사용 시
+  # cluster-servers-config:
+  #   node-addresses:
+  #     - "redis://${REDIS_NODE_1}:6379"
+  #     - "redis://${REDIS_NODE_2}:6379"
+  #     - "redis://${REDIS_NODE_3}:6379"
+  #   password: ${REDIS_PASSWORD}
+  #   scan-interval: 2000
+  #   master-connection-pool-size: 16
+  #   slave-connection-pool-size: 16
+
+  single-server-config:
+    address: "redis://${REDIS_HOST}:${REDIS_PORT:6379}"
+    # ElastiCache 비밀번호 미사용 시 null 허용
+    password: ${REDIS_PASSWORD:null}
+    connection-pool-size: 32
+    connection-minimum-idle-size: 8
+    ssl-enable-endpoint-identification: ${REDIS_SSL_ENABLED:false}

@@ -5,19 +5,19 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
 /**
  * RoleErrorCode - Role 도메인 에러 코드
  *
- * <p>Role/Permission Aggregate 관련 비즈니스 예외 에러 코드입니다.
+ * <p>Role Aggregate 관련 비즈니스 예외 에러 코드입니다.
  *
  * @author development-team
  * @since 1.0.0
  */
 public enum RoleErrorCode implements ErrorCode {
     ROLE_NOT_FOUND("ROLE-001", 404, "Role not found"),
-    PERMISSION_NOT_FOUND("ROLE-002", 404, "Permission not found"),
-    DUPLICATE_ROLE_NAME("ROLE-003", 409, "Role name already exists"),
-    DUPLICATE_PERMISSION_CODE("ROLE-004", 409, "Permission code already exists"),
-    SYSTEM_ROLE_MODIFICATION_NOT_ALLOWED("ROLE-005", 403, "System role cannot be modified"),
-    ROLE_ALREADY_ASSIGNED("ROLE-006", 409, "Role already assigned to user"),
-    ROLE_NOT_ASSIGNED("ROLE-007", 404, "Role not assigned to user");
+    DUPLICATE_ROLE_NAME("ROLE-002", 409, "Role name already exists"),
+    SYSTEM_ROLE_NOT_MODIFIABLE("ROLE-003", 400, "System role cannot be modified"),
+    SYSTEM_ROLE_NOT_DELETABLE("ROLE-004", 400, "System role cannot be deleted"),
+    INVALID_ROLE_SCOPE("ROLE-005", 400, "Invalid role scope for this operation"),
+    ROLE_PERMISSION_NOT_FOUND("ROLE-006", 404, "Role permission not found"),
+    DUPLICATE_ROLE_PERMISSION("ROLE-007", 409, "Role permission already granted");
 
     private final String code;
     private final int httpStatus;

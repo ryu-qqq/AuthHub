@@ -1,332 +1,288 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserQueryDslRepository;
+import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
+import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
-import com.ryuqq.authhub.domain.user.vo.Credential;
-import com.ryuqq.authhub.domain.user.vo.Password;
-import com.ryuqq.authhub.domain.user.vo.PhoneNumber;
-import com.ryuqq.authhub.domain.user.vo.UserProfile;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-import com.ryuqq.authhub.domain.user.vo.UserType;
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * UserQueryAdapter 테스트
+ * UserQueryAdapter 단위 테스트
  *
- * <p>UserQueryPort 구현체 테스트
- *
- * @author AuthHub Team
+ * @author development-team
  * @since 1.0.0
  */
+@Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("UserQueryAdapter 테스트")
+@DisplayName("UserQueryAdapter 단위 테스트")
 class UserQueryAdapterTest {
 
-    @Mock private UserQueryDslRepository userQueryDslRepository;
+    @Mock private UserQueryDslRepository repository;
 
-    @Mock private UserJpaEntityMapper userJpaEntityMapper;
+    @Mock private UserJpaEntityMapper mapper;
 
-    private UserQueryAdapter userQueryAdapter;
+    private UserQueryAdapter adapter;
 
-    private static final UUID ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-    private static final Long TENANT_ID = 100L;
-    private static final Long ORGANIZATION_ID = 200L;
-    private static final UserType USER_TYPE = UserType.PUBLIC;
-    private static final UserStatus STATUS = UserStatus.ACTIVE;
-    private static final String IDENTIFIER = "test@example.com";
-    private static final String HASHED_PASSWORD = "$2a$10$hashedpassword";
-    private static final String NAME = "Test User";
-    private static final String PHONE_NUMBER = "+821012345678";
-    private static final Instant CREATED_AT = Instant.parse("2025-01-01T10:00:00Z");
-    private static final Instant UPDATED_AT = Instant.parse("2025-01-02T15:30:00Z");
-    private static final LocalDateTime CREATED_AT_LOCAL = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
-    private static final LocalDateTime UPDATED_AT_LOCAL = LocalDateTime.of(2025, 1, 2, 15, 30, 0);
+    private static final UUID USER_UUID = UserFixture.defaultUUID();
+    private static final UUID TENANT_UUID = UserFixture.defaultTenantUUID();
+    private static final UUID ORG_UUID = UserFixture.defaultOrganizationUUID();
+    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
 
     @BeforeEach
     void setUp() {
-        userQueryAdapter = new UserQueryAdapter(userQueryDslRepository, userJpaEntityMapper);
-    }
-
-    private UserJpaEntity createEntity() {
-        return UserJpaEntity.of(
-                ID,
-                TENANT_ID,
-                ORGANIZATION_ID,
-                USER_TYPE,
-                STATUS,
-                IDENTIFIER,
-                HASHED_PASSWORD,
-                NAME,
-                PHONE_NUMBER,
-                CREATED_AT_LOCAL,
-                UPDATED_AT_LOCAL);
-    }
-
-    private User createDomain() {
-        return User.reconstitute(
-                UserId.of(ID),
-                TenantId.of(TENANT_ID),
-                OrganizationId.of(ORGANIZATION_ID),
-                USER_TYPE,
-                STATUS,
-                Credential.of(IDENTIFIER, Password.ofHashed(HASHED_PASSWORD)),
-                UserProfile.of(NAME, PhoneNumber.of(PHONE_NUMBER)),
-                CREATED_AT,
-                UPDATED_AT);
+        adapter = new UserQueryAdapter(repository, mapper);
     }
 
     @Nested
-    @DisplayName("findById() 메서드는")
-    class FindByIdMethod {
+    @DisplayName("findById 메서드")
+    class FindByIdTest {
 
         @Test
-        @DisplayName("존재하는 User를 조회한다")
-        void shouldFindUserById() {
-            // Given
-            UserId userId = UserId.of(ID);
-            UserJpaEntity entity = createEntity();
-            User user = createDomain();
+        @DisplayName("ID로 사용자를 성공적으로 조회한다")
+        void shouldFindUserByIdSuccessfully() {
+            // given
+            UserId userId = UserId.of(USER_UUID);
+            User expectedUser = UserFixture.create();
+            UserJpaEntity entity = createUserEntity();
 
-            given(userQueryDslRepository.findById(ID)).willReturn(Optional.of(entity));
-            given(userJpaEntityMapper.toDomain(entity)).willReturn(user);
+            given(repository.findByUserId(USER_UUID)).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedUser);
 
-            // When
-            Optional<User> result = userQueryAdapter.findById(userId);
+            // when
+            Optional<User> result = adapter.findById(userId);
 
-            // Then
+            // then
             assertThat(result).isPresent();
-            assertThat(result.get().userIdValue()).isEqualTo(ID);
-            verify(userQueryDslRepository).findById(ID);
-            verify(userJpaEntityMapper).toDomain(entity);
+            assertThat(result.get()).isEqualTo(expectedUser);
+            verify(repository).findByUserId(USER_UUID);
         }
 
         @Test
-        @DisplayName("존재하지 않는 User는 빈 Optional을 반환한다")
-        void shouldReturnEmptyForNonExistentUser() {
-            // Given
-            UUID nonExistentId = UUID.randomUUID();
-            UserId userId = UserId.of(nonExistentId);
-            given(userQueryDslRepository.findById(nonExistentId)).willReturn(Optional.empty());
+        @DisplayName("존재하지 않는 ID로 조회하면 빈 Optional을 반환한다")
+        void shouldReturnEmptyWhenUserNotFound() {
+            // given
+            UserId userId = UserId.of(UUID.randomUUID());
 
-            // When
-            Optional<User> result = userQueryAdapter.findById(userId);
+            given(repository.findByUserId(userId.value())).willReturn(Optional.empty());
 
-            // Then
+            // when
+            Optional<User> result = adapter.findById(userId);
+
+            // then
             assertThat(result).isEmpty();
-            verify(userQueryDslRepository).findById(nonExistentId);
         }
     }
 
     @Nested
-    @DisplayName("existsById() 메서드는")
-    class ExistsByIdMethod {
+    @DisplayName("findByTenantIdAndIdentifier 메서드")
+    class FindByTenantIdAndIdentifierTest {
 
         @Test
-        @DisplayName("존재하는 ID는 true를 반환한다")
-        void shouldReturnTrueForExistingId() {
-            // Given
-            UserId userId = UserId.of(ID);
-            given(userQueryDslRepository.existsById(ID)).willReturn(true);
-
-            // When
-            boolean result = userQueryAdapter.existsById(userId);
-
-            // Then
-            assertThat(result).isTrue();
-            verify(userQueryDslRepository).existsById(ID);
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 ID는 false를 반환한다")
-        void shouldReturnFalseForNonExistentId() {
-            // Given
-            UUID nonExistentId = UUID.randomUUID();
-            UserId userId = UserId.of(nonExistentId);
-            given(userQueryDslRepository.existsById(nonExistentId)).willReturn(false);
-
-            // When
-            boolean result = userQueryAdapter.existsById(userId);
-
-            // Then
-            assertThat(result).isFalse();
-            verify(userQueryDslRepository).existsById(nonExistentId);
-        }
-    }
-
-    @Nested
-    @DisplayName("existsByTenantIdAndPhoneNumberExcludingUser() 메서드는")
-    class ExistsByTenantIdAndPhoneNumberExcludingUserMethod {
-
-        @Test
-        @DisplayName("동일 Tenant 내 같은 전화번호가 존재하면 true를 반환한다")
-        void shouldReturnTrueWhenPhoneNumberExists() {
-            // Given
-            TenantId tenantId = TenantId.of(TENANT_ID);
-            PhoneNumber phoneNumber = PhoneNumber.of(PHONE_NUMBER);
-            given(
-                            userQueryDslRepository.existsByTenantIdAndPhoneNumberExcludingUser(
-                                    TENANT_ID, PHONE_NUMBER, null))
-                    .willReturn(true);
-
-            // When
-            boolean result =
-                    userQueryAdapter.existsByTenantIdAndPhoneNumberExcludingUser(
-                            tenantId, phoneNumber, null);
-
-            // Then
-            assertThat(result).isTrue();
-            verify(userQueryDslRepository)
-                    .existsByTenantIdAndPhoneNumberExcludingUser(TENANT_ID, PHONE_NUMBER, null);
-        }
-
-        @Test
-        @DisplayName("본인을 제외하고 중복 확인한다")
-        void shouldExcludeOwnUser() {
-            // Given
-            TenantId tenantId = TenantId.of(TENANT_ID);
-            PhoneNumber phoneNumber = PhoneNumber.of(PHONE_NUMBER);
-            UserId excludeUserId = UserId.of(ID);
-            given(
-                            userQueryDslRepository.existsByTenantIdAndPhoneNumberExcludingUser(
-                                    TENANT_ID, PHONE_NUMBER, ID))
-                    .willReturn(false);
-
-            // When
-            boolean result =
-                    userQueryAdapter.existsByTenantIdAndPhoneNumberExcludingUser(
-                            tenantId, phoneNumber, excludeUserId);
-
-            // Then
-            assertThat(result).isFalse();
-            verify(userQueryDslRepository)
-                    .existsByTenantIdAndPhoneNumberExcludingUser(TENANT_ID, PHONE_NUMBER, ID);
-        }
-
-        @Test
-        @DisplayName("동일 Tenant 내 같은 전화번호가 없으면 false를 반환한다")
-        void shouldReturnFalseWhenPhoneNumberNotExists() {
-            // Given
-            TenantId tenantId = TenantId.of(TENANT_ID);
-            String otherPhoneNumber = "+821099999999";
-            PhoneNumber phoneNumber = PhoneNumber.of(otherPhoneNumber);
-            given(
-                            userQueryDslRepository.existsByTenantIdAndPhoneNumberExcludingUser(
-                                    TENANT_ID, otherPhoneNumber, null))
-                    .willReturn(false);
-
-            // When
-            boolean result =
-                    userQueryAdapter.existsByTenantIdAndPhoneNumberExcludingUser(
-                            tenantId, phoneNumber, null);
-
-            // Then
-            assertThat(result).isFalse();
-            verify(userQueryDslRepository)
-                    .existsByTenantIdAndPhoneNumberExcludingUser(TENANT_ID, otherPhoneNumber, null);
-        }
-    }
-
-    @Nested
-    @DisplayName("existsActiveByOrganizationId() 메서드는")
-    class ExistsActiveByOrganizationIdMethod {
-
-        @Test
-        @DisplayName("Organization 내 활성 User가 존재하면 true를 반환한다")
-        void shouldReturnTrueWhenActiveUserExists() {
-            // Given
-            OrganizationId organizationId = OrganizationId.of(ORGANIZATION_ID);
-            given(userQueryDslRepository.existsActiveByOrganizationId(ORGANIZATION_ID))
-                    .willReturn(true);
-
-            // When
-            boolean result = userQueryAdapter.existsActiveByOrganizationId(organizationId);
-
-            // Then
-            assertThat(result).isTrue();
-            verify(userQueryDslRepository).existsActiveByOrganizationId(ORGANIZATION_ID);
-        }
-
-        @Test
-        @DisplayName("Organization 내 활성 User가 없으면 false를 반환한다")
-        void shouldReturnFalseWhenNoActiveUserExists() {
-            // Given
-            OrganizationId organizationId = OrganizationId.of(999L);
-            given(userQueryDslRepository.existsActiveByOrganizationId(999L)).willReturn(false);
-
-            // When
-            boolean result = userQueryAdapter.existsActiveByOrganizationId(organizationId);
-
-            // Then
-            assertThat(result).isFalse();
-            verify(userQueryDslRepository).existsActiveByOrganizationId(999L);
-        }
-    }
-
-    @Nested
-    @DisplayName("findByTenantIdAndIdentifier() 메서드는")
-    class FindByTenantIdAndIdentifierMethod {
-
-        @Test
-        @DisplayName("Tenant/Identifier로 User를 조회한다")
+        @DisplayName("테넌트 ID와 식별자로 사용자를 조회한다")
         void shouldFindUserByTenantIdAndIdentifier() {
-            // Given
-            TenantId tenantId = TenantId.of(TENANT_ID);
-            UserJpaEntity entity = createEntity();
-            User user = createDomain();
+            // given
+            TenantId tenantId = TenantId.of(TENANT_UUID);
+            String identifier = "user@example.com";
+            User expectedUser = UserFixture.create();
+            UserJpaEntity entity = createUserEntity();
 
-            given(userQueryDslRepository.findByTenantIdAndIdentifier(TENANT_ID, IDENTIFIER))
+            given(repository.findByTenantIdAndIdentifier(TENANT_UUID, identifier))
                     .willReturn(Optional.of(entity));
-            given(userJpaEntityMapper.toDomain(entity)).willReturn(user);
+            given(mapper.toDomain(entity)).willReturn(expectedUser);
 
-            // When
-            Optional<User> result =
-                    userQueryAdapter.findByTenantIdAndIdentifier(tenantId, IDENTIFIER);
+            // when
+            Optional<User> result = adapter.findByTenantIdAndIdentifier(tenantId, identifier);
 
-            // Then
+            // then
             assertThat(result).isPresent();
-            assertThat(result.get().getCredential().identifier()).isEqualTo(IDENTIFIER);
-            verify(userQueryDslRepository).findByTenantIdAndIdentifier(TENANT_ID, IDENTIFIER);
-            verify(userJpaEntityMapper).toDomain(entity);
+            assertThat(result.get()).isEqualTo(expectedUser);
         }
 
         @Test
-        @DisplayName("존재하지 않는 Identifier는 빈 Optional을 반환한다")
-        void shouldReturnEmptyForNonExistentIdentifier() {
-            // Given
-            TenantId tenantId = TenantId.of(TENANT_ID);
-            String nonExistentIdentifier = "nonexistent@example.com";
-            given(
-                            userQueryDslRepository.findByTenantIdAndIdentifier(
-                                    TENANT_ID, nonExistentIdentifier))
+        @DisplayName("존재하지 않는 식별자로 조회하면 빈 Optional을 반환한다")
+        void shouldReturnEmptyWhenIdentifierNotFound() {
+            // given
+            TenantId tenantId = TenantId.of(TENANT_UUID);
+            String identifier = "nonexistent@example.com";
+
+            given(repository.findByTenantIdAndIdentifier(TENANT_UUID, identifier))
                     .willReturn(Optional.empty());
 
-            // When
-            Optional<User> result =
-                    userQueryAdapter.findByTenantIdAndIdentifier(tenantId, nonExistentIdentifier);
+            // when
+            Optional<User> result = adapter.findByTenantIdAndIdentifier(tenantId, identifier);
 
-            // Then
+            // then
             assertThat(result).isEmpty();
-            verify(userQueryDslRepository)
-                    .findByTenantIdAndIdentifier(TENANT_ID, nonExistentIdentifier);
         }
+    }
+
+    @Nested
+    @DisplayName("existsByTenantIdAndOrganizationIdAndIdentifier 메서드")
+    class ExistsByTenantIdAndOrganizationIdAndIdentifierTest {
+
+        @Test
+        @DisplayName("식별자가 존재하면 true를 반환한다")
+        void shouldReturnTrueWhenIdentifierExists() {
+            // given
+            TenantId tenantId = TenantId.of(TENANT_UUID);
+            OrganizationId organizationId = OrganizationId.of(ORG_UUID);
+            String identifier = "user@example.com";
+
+            given(
+                            repository.existsByTenantIdAndOrganizationIdAndIdentifier(
+                                    TENANT_UUID, ORG_UUID, identifier))
+                    .willReturn(true);
+
+            // when
+            boolean result =
+                    adapter.existsByTenantIdAndOrganizationIdAndIdentifier(
+                            tenantId, organizationId, identifier);
+
+            // then
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        @DisplayName("식별자가 존재하지 않으면 false를 반환한다")
+        void shouldReturnFalseWhenIdentifierNotExists() {
+            // given
+            TenantId tenantId = TenantId.of(TENANT_UUID);
+            OrganizationId organizationId = OrganizationId.of(ORG_UUID);
+            String identifier = "nonexistent@example.com";
+
+            given(
+                            repository.existsByTenantIdAndOrganizationIdAndIdentifier(
+                                    TENANT_UUID, ORG_UUID, identifier))
+                    .willReturn(false);
+
+            // when
+            boolean result =
+                    adapter.existsByTenantIdAndOrganizationIdAndIdentifier(
+                            tenantId, organizationId, identifier);
+
+            // then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("search 메서드")
+    class SearchTest {
+
+        @Test
+        @DisplayName("검색 조건으로 사용자 목록을 조회한다")
+        void shouldSearchUsersSuccessfully() {
+            // given
+            SearchUsersQuery query = new SearchUsersQuery(TENANT_UUID, ORG_UUID, null, null, 0, 20);
+            User user1 = UserFixture.create();
+            User user2 = UserFixture.createWithIdentifier("user2@example.com");
+            UserJpaEntity entity1 = createUserEntity();
+            UserJpaEntity entity2 = createUserEntity();
+
+            given(
+                            repository.search(
+                                    eq(TENANT_UUID),
+                                    eq(ORG_UUID),
+                                    any(),
+                                    any(),
+                                    anyInt(),
+                                    anyInt()))
+                    .willReturn(List.of(entity1, entity2));
+            given(mapper.toDomain(any(UserJpaEntity.class))).willReturn(user1, user2);
+
+            // when
+            List<User> results = adapter.search(query);
+
+            // then
+            assertThat(results).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
+        void shouldReturnEmptyListWhenNoResults() {
+            // given
+            SearchUsersQuery query =
+                    new SearchUsersQuery(TENANT_UUID, ORG_UUID, "nonexistent", null, 0, 20);
+
+            given(
+                            repository.search(
+                                    eq(TENANT_UUID),
+                                    eq(ORG_UUID),
+                                    any(),
+                                    any(),
+                                    anyInt(),
+                                    anyInt()))
+                    .willReturn(List.of());
+
+            // when
+            List<User> results = adapter.search(query);
+
+            // then
+            assertThat(results).isEmpty();
+        }
+
+        @Test
+        @DisplayName("상태 필터로 사용자를 검색한다")
+        void shouldSearchUsersWithStatusFilter() {
+            // given
+            SearchUsersQuery query =
+                    new SearchUsersQuery(TENANT_UUID, ORG_UUID, null, "ACTIVE", 0, 20);
+            User user = UserFixture.create();
+            UserJpaEntity entity = createUserEntity();
+
+            given(
+                            repository.search(
+                                    eq(TENANT_UUID),
+                                    eq(ORG_UUID),
+                                    any(),
+                                    eq(UserStatus.ACTIVE),
+                                    anyInt(),
+                                    anyInt()))
+                    .willReturn(List.of(entity));
+            given(mapper.toDomain(any(UserJpaEntity.class))).willReturn(user);
+
+            // when
+            List<User> results = adapter.search(query);
+
+            // then
+            assertThat(results).hasSize(1);
+        }
+    }
+
+    private UserJpaEntity createUserEntity() {
+        return UserJpaEntity.of(
+                1L,
+                USER_UUID,
+                TENANT_UUID,
+                ORG_UUID,
+                "user@example.com",
+                "hashed_password",
+                UserStatus.ACTIVE,
+                FIXED_TIME,
+                FIXED_TIME);
     }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -53,7 +54,7 @@ class LoginCommandTest {
             assertThat(components).extracting(RecordComponent::getName).contains("tenantId");
 
             RecordComponent component = findComponent(components, "tenantId");
-            assertThat(component.getType()).as("tenantId는 Long 타입이어야 합니다").isEqualTo(Long.class);
+            assertThat(component.getType()).as("tenantId는 UUID 타입이어야 합니다").isEqualTo(UUID.class);
         }
 
         @Test
@@ -91,7 +92,7 @@ class LoginCommandTest {
         @DisplayName("[필수] Record 인스턴스 생성 후 필드 값이 유지되어야 한다")
         void shouldMaintainFieldValues() {
             // Given
-            Long tenantId = 1L;
+            UUID tenantId = UUID.randomUUID();
             String identifier = "user@example.com";
             String password = "SecurePassword123!";
 

@@ -1,82 +1,54 @@
 package com.ryuqq.authhub.domain.role.vo;
 
-import java.util.Locale;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
- * RoleName - Role 이름 Value Object
+ * RoleName - 역할 이름 Value Object
  *
- * <p>Spring Security 호환 형식 (ROLE_ prefix)을 강제합니다.
+ * <p>1-50자 길이의 문자열입니다. 역할 이름은 영문 대문자와 언더스코어만 허용합니다.
  *
- * <p><strong>형식:</strong>
- *
- * <ul>
- *   <li>ROLE_로 시작해야 함
- *   <li>영문 대문자와 언더스코어만 허용
- *   <li>예: ROLE_USER, ROLE_ADMIN, ROLE_SUPER_ADMIN
- * </ul>
+ * <p>예시: SUPER_ADMIN, TENANT_ADMIN, ORG_ADMIN, USER
  *
  * @author development-team
  * @since 1.0.0
  */
 public final class RoleName {
 
-    private static final String ROLE_PREFIX = "ROLE_";
-    private static final Pattern ROLE_PATTERN = Pattern.compile("^ROLE_[A-Z][A-Z_]*$");
+    private static final int MIN_LENGTH = 1;
+    private static final int MAX_LENGTH = 50;
+    private static final String PATTERN = "^[A-Z][A-Z0-9_]*$";
 
     private final String value;
 
-    private RoleName(String value) {
+    RoleName(String value) {
+        String normalizedValue = normalizeAndValidate(value);
+        this.value = normalizedValue;
+    }
+
+    private String normalizeAndValidate(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("RoleName은 null이거나 빈 문자열일 수 없습니다");
         }
-        if (!ROLE_PATTERN.matcher(value).matches()) {
+        String trimmed = value.trim();
+        String uppercased = trimmed.toUpperCase();
+        int length = uppercased.length();
+        if (length < MIN_LENGTH || length > MAX_LENGTH) {
             throw new IllegalArgumentException(
-                    "RoleName은 ROLE_로 시작하고 영문 대문자와 언더스코어만 포함해야 합니다: " + value);
+                    String.format("RoleName은 %d자 이상 %d자 이하여야 합니다", MIN_LENGTH, MAX_LENGTH));
         }
-        this.value = value;
-    }
-
-    /**
-     * ROLE_ prefix가 포함된 전체 이름으로 생성
-     *
-     * @param fullName ROLE_로 시작하는 전체 이름 (예: ROLE_ADMIN)
-     * @return RoleName 인스턴스
-     */
-    public static RoleName of(String fullName) {
-        return new RoleName(fullName);
-    }
-
-    /**
-     * ROLE_ prefix 없이 이름만으로 생성
-     *
-     * @param name prefix 없는 이름 (예: ADMIN)
-     * @return RoleName 인스턴스
-     */
-    public static RoleName withPrefix(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Role name은 null이거나 빈 문자열일 수 없습니다");
+        if (!uppercased.matches(PATTERN)) {
+            throw new IllegalArgumentException(
+                    "RoleName은 영문 대문자로 시작하고, 영문 대문자, 숫자, 언더스코어만 사용할 수 있습니다");
         }
-        return new RoleName(ROLE_PREFIX + name.toUpperCase(Locale.ROOT));
+        return uppercased;
     }
 
-    /**
-     * 전체 Role 이름 반환 (ROLE_ prefix 포함)
-     *
-     * @return ROLE_로 시작하는 전체 이름
-     */
+    public static RoleName of(String value) {
+        return new RoleName(value);
+    }
+
     public String value() {
         return value;
-    }
-
-    /**
-     * ROLE_ prefix 제외한 이름만 반환
-     *
-     * @return prefix 없는 이름
-     */
-    public String nameWithoutPrefix() {
-        return value.substring(ROLE_PREFIX.length());
     }
 
     @Override
@@ -87,8 +59,8 @@ public final class RoleName {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RoleName roleName = (RoleName) o;
-        return Objects.equals(value, roleName.value);
+        RoleName that = (RoleName) o;
+        return Objects.equals(value, that.value);
     }
 
     @Override
@@ -98,6 +70,6 @@ public final class RoleName {
 
     @Override
     public String toString() {
-        return value;
+        return "RoleName{value='" + value + "'}";
     }
 }

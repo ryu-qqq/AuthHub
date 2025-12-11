@@ -1,0 +1,45 @@
+# ===============================================
+# REST API Adapter Configuration - Production Environment
+# ===============================================
+# 운영 환경 전용 설정
+# 공통 설정은 rest-api.yml 참조
+#
+# @author development-team
+# @since 1.0.0
+# ===============================================
+
+# ===============================================
+# Security Configuration Override (REQUIRED)
+# ===============================================
+security:
+  gateway:
+    # 운영에서 Gateway 인증 필수
+    enabled: true
+  cookie:
+    # 운영에서 HTTPS 필수
+    secure: true
+    # CSRF 보호를 위한 strict 권장
+    same-site: strict
+    # 환경변수로 도메인 설정 (하드코딩 금지)
+    domain: ${COOKIE_DOMAIN}
+
+# ===============================================
+# SpringDoc OpenAPI Configuration Override
+# ===============================================
+# 보안: 운영 환경에서 API 문서 노출 제어
+springdoc:
+  swagger-ui:
+    # 환경변수로 제어 (기본값: false)
+    enabled: ${SWAGGER_ENABLED:false}
+  api-docs:
+    # 환경변수로 제어 (기본값: false)
+    enabled: ${API_DOCS_ENABLED:false}
+
+# ===============================================
+# API Error Configuration Override
+# ===============================================
+api:
+  error:
+    # 운영에서는 RFC 7807 에러 문서 URL 사용 권장
+    use-about-blank: false
+    base-url: ${ERROR_DOCS_BASE_URL:https://api.authhub.com/problems}

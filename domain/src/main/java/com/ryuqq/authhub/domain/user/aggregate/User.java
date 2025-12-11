@@ -1,31 +1,24 @@
 package com.ryuqq.authhub.domain.user.aggregate;
 
-import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import com.ryuqq.authhub.domain.user.exception.InvalidUserStateException;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
-import com.ryuqq.authhub.domain.user.vo.Credential;
-import com.ryuqq.authhub.domain.user.vo.Password;
-import com.ryuqq.authhub.domain.user.vo.UserProfile;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-import com.ryuqq.authhub.domain.user.vo.UserType;
+import java.time.Clock;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
- * User Aggregate Root - 사용자 도메인 모델
+ * User Aggregate Root
  *
- * <p>사용자 정보와 인증/인가 관련 비즈니스 로직을 캡슐화합니다.
+ * <p>사용자 도메인의 핵심 엔티티입니다.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p><strong>불변 규칙:</strong>
  *
  * <ul>
- *   <li>Lombok 금지 - Plain Java 사용
- *   <li>Law of Demeter 준수 - Getter 체이닝 금지
- *   <li>Tell, Don't Ask 패턴 - 상태 질의 대신 행위 위임
- *   <li>Long FK 전략 - JPA 관계 어노테이션 금지
+ *   <li>모든 필드는 final
+ *   <li>상태 변경은 새 인스턴스 반환
+ *   <li>Lombok 금지
  * </ul>
  *
  * @author development-team
@@ -36,10 +29,9 @@ public final class User {
     private final UserId userId;
     private final TenantId tenantId;
     private final OrganizationId organizationId;
-    private final UserType userType;
+    private final String identifier;
+    private final String hashedPassword;
     private final UserStatus userStatus;
-    private final Credential credential;
-    private final UserProfile profile;
     private final Instant createdAt;
     private final Instant updatedAt;
 
@@ -47,365 +39,187 @@ public final class User {
             UserId userId,
             TenantId tenantId,
             OrganizationId organizationId,
-            UserType userType,
+            String identifier,
+            String hashedPassword,
             UserStatus userStatus,
-            Credential credential,
-            UserProfile profile,
             Instant createdAt,
             Instant updatedAt) {
-        validateRequired(tenantId, userStatus, createdAt, updatedAt);
         this.userId = userId;
         this.tenantId = tenantId;
         this.organizationId = organizationId;
-        this.userType = userType != null ? userType : UserType.PUBLIC;
+        this.identifier = identifier;
+        this.hashedPassword = hashedPassword;
         this.userStatus = userStatus;
-        this.credential = credential;
-        this.profile = profile != null ? profile : UserProfile.empty();
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    private void validateRequired(
-            TenantId tenantId, UserStatus userStatus, Instant createdAt, Instant updatedAt) {
-        if (tenantId == null) {
-            throw new IllegalArgumentException("TenantId는 null일 수 없습니다");
-        }
-        if (userStatus == null) {
-            throw new IllegalArgumentException("UserStatus는 null일 수 없습니다");
-        }
-        if (createdAt == null) {
-            throw new IllegalArgumentException("createdAt는 null일 수 없습니다");
-        }
-        if (updatedAt == null) {
-            throw new IllegalArgumentException("updatedAt는 null일 수 없습니다");
-        }
-    }
-
-    /** 새로운 User 생성 (ID 미할당) */
-    public static User forNew(
+    /**
+     * 새 사용자 생성
+     *
+     * @param userId Application Layer에서 생성된 UserId
+     * @param tenantId 테넌트 ID
+     * @param organizationId 소속 조직 ID
+     * @param identifier 사용자 식별자 (이메일 등)
+     * @param hashedPassword 해시된 비밀번호
+     * @param clock 시간 주입 (ClockHolder.clock())
+     * @return 새로운 User 인스턴스
+     */
+    public static User create(
+            UserId userId,
             TenantId tenantId,
             OrganizationId organizationId,
-            UserType userType,
-            Credential credential,
-            UserProfile profile,
+            String identifier,
+            String hashedPassword,
             Clock clock) {
-        Instant now = clock.now();
+        if (organizationId == null) {
+            throw new IllegalArgumentException("OrganizationId는 필수입니다");
+        }
+        Instant now = clock.instant();
         return new User(
-                null,
+                userId,
                 tenantId,
                 organizationId,
-                userType,
+                identifier,
+                hashedPassword,
                 UserStatus.ACTIVE,
-                credential,
-                profile,
                 now,
                 now);
     }
 
-    /** DB에서 User 재구성 (reconstitute) */
+    /** 영속성에서 복원 */
     public static User reconstitute(
             UserId userId,
             TenantId tenantId,
             OrganizationId organizationId,
-            UserType userType,
+            String identifier,
+            String hashedPassword,
             UserStatus userStatus,
-            Credential credential,
-            UserProfile profile,
-            Instant createdAt,
-            Instant updatedAt) {
-        if (userId == null) {
-            throw new IllegalArgumentException("reconstitute requires non-null userId");
-        }
-        return new User(
-                userId,
-                tenantId,
-                organizationId,
-                userType,
-                userStatus,
-                credential,
-                profile,
-                createdAt,
-                updatedAt);
-    }
-
-    /** 모든 필드 지정하여 User 생성 */
-    public static User of(
-            UserId userId,
-            TenantId tenantId,
-            OrganizationId organizationId,
-            UserType userType,
-            UserStatus userStatus,
-            Credential credential,
-            UserProfile profile,
             Instant createdAt,
             Instant updatedAt) {
         return new User(
                 userId,
                 tenantId,
                 organizationId,
-                userType,
+                identifier,
+                hashedPassword,
                 userStatus,
-                credential,
-                profile,
                 createdAt,
                 updatedAt);
     }
-
-    // ========== Business Methods ==========
-
-    /** User 활성화 */
-    public User activate(Clock clock) {
-        if (!userStatus.canTransitionTo(UserStatus.ACTIVE)) {
-            throw new InvalidUserStateException(userStatus, UserStatus.ACTIVE);
-        }
-        return new User(
-                this.userId,
-                this.tenantId,
-                this.organizationId,
-                this.userType,
-                UserStatus.ACTIVE,
-                this.credential,
-                this.profile,
-                this.createdAt,
-                clock.now());
-    }
-
-    /** User 비활성화 */
-    public User deactivate(Clock clock) {
-        if (!userStatus.canTransitionTo(UserStatus.INACTIVE)) {
-            throw new InvalidUserStateException(userStatus, UserStatus.INACTIVE);
-        }
-        return new User(
-                this.userId,
-                this.tenantId,
-                this.organizationId,
-                this.userType,
-                UserStatus.INACTIVE,
-                this.credential,
-                this.profile,
-                this.createdAt,
-                clock.now());
-    }
-
-    /** User 정지 */
-    public User suspend(Clock clock) {
-        if (!userStatus.canTransitionTo(UserStatus.SUSPENDED)) {
-            throw new InvalidUserStateException(userStatus, UserStatus.SUSPENDED);
-        }
-        return new User(
-                this.userId,
-                this.tenantId,
-                this.organizationId,
-                this.userType,
-                UserStatus.SUSPENDED,
-                this.credential,
-                this.profile,
-                this.createdAt,
-                clock.now());
-    }
-
-    /** User 삭제 (논리적) */
-    public User delete(Clock clock) {
-        if (!userStatus.canTransitionTo(UserStatus.DELETED)) {
-            throw new InvalidUserStateException(userStatus, UserStatus.DELETED);
-        }
-        return new User(
-                this.userId,
-                this.tenantId,
-                this.organizationId,
-                this.userType,
-                UserStatus.DELETED,
-                this.credential,
-                this.profile,
-                this.createdAt,
-                clock.now());
-    }
-
-    /** Organization 할당/변경 */
-    public User assignOrganization(OrganizationId newOrganizationId, Clock clock) {
-        return new User(
-                this.userId,
-                this.tenantId,
-                newOrganizationId,
-                this.userType,
-                this.userStatus,
-                this.credential,
-                this.profile,
-                this.createdAt,
-                clock.now());
-    }
-
-    /**
-     * 비밀번호 변경
-     *
-     * <p>활성화된 사용자만 비밀번호를 변경할 수 있습니다.
-     *
-     * @param newPassword 새로운 비밀번호 (해싱된 상태)
-     * @param clock 시간 제공자
-     * @return 비밀번호가 변경된 새로운 User 인스턴스
-     * @throws InvalidUserStateException 사용자가 활성 상태가 아닌 경우
-     */
-    public User changePassword(Password newPassword, Clock clock) {
-        if (!isActive()) {
-            throw new InvalidUserStateException(this.userStatus, "비밀번호 변경은 활성 상태의 사용자만 가능합니다");
-        }
-
-        Credential newCredential = this.credential.withPassword(newPassword);
-        return new User(
-                this.userId,
-                this.tenantId,
-                this.organizationId,
-                this.userType,
-                this.userStatus,
-                newCredential,
-                this.profile,
-                this.createdAt,
-                clock.now());
-    }
-
-    /**
-     * 프로필 정보 업데이트
-     *
-     * <p>활성화된 사용자만 프로필을 변경할 수 있습니다.
-     *
-     * @param newProfile 새로운 프로필 정보 (null인 필드는 기존 값 유지)
-     * @param clock 시간 제공자
-     * @return 프로필이 업데이트된 새로운 User 인스턴스
-     * @throws InvalidUserStateException 사용자가 활성 상태가 아닌 경우
-     */
-    public User updateProfile(UserProfile newProfile, Clock clock) {
-        if (!isActive()) {
-            throw new InvalidUserStateException(this.userStatus, "프로필 변경은 활성 상태의 사용자만 가능합니다");
-        }
-
-        UserProfile mergedProfile = this.profile.mergeWith(newProfile);
-        return new User(
-                this.userId,
-                this.tenantId,
-                this.organizationId,
-                this.userType,
-                this.userStatus,
-                this.credential,
-                mergedProfile,
-                this.createdAt,
-                clock.now());
-    }
-
-    // ========== Helper Methods ==========
-
-    public UUID userIdValue() {
-        return userId != null ? userId.value() : null;
-    }
-
-    public Long tenantIdValue() {
-        return tenantId.value();
-    }
-
-    public Long organizationIdValue() {
-        return organizationId != null ? organizationId.value() : null;
-    }
-
-    public String userTypeValue() {
-        return userType.name();
-    }
-
-    public String statusValue() {
-        return userStatus.name();
-    }
-
-    public boolean isNew() {
-        return userId == null;
-    }
-
-    public boolean isActive() {
-        return userStatus == UserStatus.ACTIVE;
-    }
-
-    public boolean isDeleted() {
-        return userStatus == UserStatus.DELETED;
-    }
-
-    public boolean hasOrganization() {
-        return organizationId != null;
-    }
-
-    // ========== Getter Methods ==========
 
     public UserId getUserId() {
         return userId;
+    }
+
+    public UUID userIdValue() {
+        return userId.value();
     }
 
     public TenantId getTenantId() {
         return tenantId;
     }
 
+    public UUID tenantIdValue() {
+        return tenantId.value();
+    }
+
     public OrganizationId getOrganizationId() {
         return organizationId;
     }
 
-    public UserType getUserType() {
-        return userType;
+    public UUID organizationIdValue() {
+        return organizationId.value();
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public String getHashedPassword() {
+        return hashedPassword;
     }
 
     public UserStatus getUserStatus() {
         return userStatus;
     }
 
-    public Credential getCredential() {
-        return credential;
+    public boolean isActive() {
+        return userStatus.isActive();
     }
 
-    public String getHashedPassword() {
-        return credential.getHashedPasswordValue();
-    }
-
-    public UserProfile getProfile() {
-        return profile;
-    }
-
-    public Instant createdAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public Instant updatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    // ========== Object Methods ==========
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        User user = (User) o;
-        if (userId == null || user.userId == null) {
-            return false;
-        }
-        return Objects.equals(userId, user.userId);
+    /**
+     * 상태 변경
+     *
+     * @param newStatus 새 상태
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User changeStatus(UserStatus newStatus, Clock clock) {
+        return new User(
+                this.userId,
+                this.tenantId,
+                this.organizationId,
+                this.identifier,
+                this.hashedPassword,
+                newStatus,
+                this.createdAt,
+                clock.instant());
     }
 
-    @Override
-    public int hashCode() {
-        return userId != null ? Objects.hash(userId) : System.identityHashCode(this);
+    /**
+     * 비밀번호 변경
+     *
+     * @param newHashedPassword 새 해시된 비밀번호
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User changePassword(String newHashedPassword, Clock clock) {
+        return new User(
+                this.userId,
+                this.tenantId,
+                this.organizationId,
+                this.identifier,
+                newHashedPassword,
+                this.userStatus,
+                this.createdAt,
+                clock.instant());
     }
 
-    @Override
-    public String toString() {
-        return "User{"
-                + "userId="
-                + userId
-                + ", tenantId="
-                + tenantId
-                + ", organizationId="
-                + organizationId
-                + ", userType="
-                + userType
-                + ", userStatus="
-                + userStatus
-                + "}";
+    /**
+     * 식별자 변경
+     *
+     * @param newIdentifier 새 식별자
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User changeIdentifier(String newIdentifier, Clock clock) {
+        return new User(
+                this.userId,
+                this.tenantId,
+                this.organizationId,
+                newIdentifier,
+                this.hashedPassword,
+                this.userStatus,
+                this.createdAt,
+                clock.instant());
+    }
+
+    /**
+     * 삭제 처리 (상태를 DELETED로 변경)
+     *
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User markAsDeleted(Clock clock) {
+        return changeStatus(UserStatus.DELETED, clock);
     }
 }

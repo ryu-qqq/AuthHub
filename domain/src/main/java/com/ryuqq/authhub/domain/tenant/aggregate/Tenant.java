@@ -1,17 +1,33 @@
 package com.ryuqq.authhub.domain.tenant.aggregate;
 
-import com.ryuqq.authhub.domain.common.Clock;
 import com.ryuqq.authhub.domain.tenant.exception.InvalidTenantStateException;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
- * Tenant - Tenant Aggregate Root
+ * Tenant Aggregate Root - 테넌트 도메인 모델
  *
- * <p>멀티테넌시 지원을 위한 테넌트 정보를 관리합니다. 불변 객체로 상태 변경 시 새로운 객체를 반환합니다.
+ * <p>멀티테넌시 시스템의 최상위 도메인입니다.
+ *
+ * <p><strong>상태 전이:</strong>
+ *
+ * <pre>
+ * ACTIVE ↔ INACTIVE → DELETED
+ * </pre>
+ *
+ * <p><strong>Zero-Tolerance 규칙:</strong>
+ *
+ * <ul>
+ *   <li>Lombok 금지 - Plain Java 사용
+ *   <li>Law of Demeter 준수 - Getter 체이닝 금지
+ *   <li>Tell, Don't Ask 패턴 - 상태 질의 대신 행위 위임
+ *   <li>Long FK 전략 - JPA 관계 어노테이션 금지
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -19,130 +35,151 @@ import java.util.Objects;
 public final class Tenant {
 
     private final TenantId tenantId;
-    private final TenantName tenantName;
-    private final TenantStatus tenantStatus;
+    private final TenantName name;
+    private final TenantStatus status;
     private final Instant createdAt;
     private final Instant updatedAt;
 
     private Tenant(
             TenantId tenantId,
-            TenantName tenantName,
-            TenantStatus tenantStatus,
+            TenantName name,
+            TenantStatus status,
             Instant createdAt,
             Instant updatedAt) {
+        validateRequired(name, status, createdAt, updatedAt);
         this.tenantId = tenantId;
-        this.tenantName = tenantName;
-        this.tenantStatus = tenantStatus;
+        this.name = name;
+        this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    // ========== Factory Methods ==========
-
-    public static Tenant forNew(TenantName tenantName, Clock clock) {
-        validateTenantName(tenantName);
-        Instant now = clock.now();
-        return new Tenant(null, tenantName, TenantStatus.ACTIVE, now, now);
-    }
-
-    public static Tenant of(
-            TenantId tenantId,
-            TenantName tenantName,
-            TenantStatus tenantStatus,
-            Instant createdAt,
-            Instant updatedAt) {
-        validateTenantName(tenantName);
-        validateTenantStatus(tenantStatus);
-        validateCreatedAt(createdAt);
-        validateUpdatedAt(updatedAt);
-        return new Tenant(tenantId, tenantName, tenantStatus, createdAt, updatedAt);
-    }
-
-    public static Tenant reconstitute(
-            TenantId tenantId,
-            TenantName tenantName,
-            TenantStatus tenantStatus,
-            Instant createdAt,
-            Instant updatedAt) {
-        if (tenantId == null) {
-            throw new IllegalArgumentException("reconstitute requires non-null tenantId");
-        }
-        validateTenantName(tenantName);
-        validateTenantStatus(tenantStatus);
-        validateCreatedAt(createdAt);
-        validateUpdatedAt(updatedAt);
-        return new Tenant(tenantId, tenantName, tenantStatus, createdAt, updatedAt);
-    }
-
-    // ========== Validation Methods ==========
-
-    private static void validateTenantName(TenantName tenantName) {
-        if (tenantName == null) {
+    private void validateRequired(
+            TenantName name, TenantStatus status, Instant createdAt, Instant updatedAt) {
+        if (name == null) {
             throw new IllegalArgumentException("TenantName은 null일 수 없습니다");
         }
-    }
-
-    private static void validateTenantStatus(TenantStatus tenantStatus) {
-        if (tenantStatus == null) {
+        if (status == null) {
             throw new IllegalArgumentException("TenantStatus는 null일 수 없습니다");
         }
-    }
-
-    private static void validateCreatedAt(Instant createdAt) {
         if (createdAt == null) {
             throw new IllegalArgumentException("createdAt는 null일 수 없습니다");
         }
-    }
-
-    private static void validateUpdatedAt(Instant updatedAt) {
         if (updatedAt == null) {
             throw new IllegalArgumentException("updatedAt는 null일 수 없습니다");
         }
     }
 
+    // ========== Factory Methods ==========
+
+    /**
+     * 새로운 Tenant 생성 (ID 미할당)
+     *
+     * @param name 테넌트 이름
+     * @param clock 시간 제공자
+     * @return 새로운 Tenant 인스턴스
+     */
+    public static Tenant create(TenantName name, Clock clock) {
+        Instant now = clock.instant();
+        return new Tenant(null, name, TenantStatus.ACTIVE, now, now);
+    }
+
+    /**
+     * DB에서 Tenant 재구성 (reconstitute)
+     *
+     * @param tenantId 테넌트 ID
+     * @param name 테넌트 이름
+     * @param status 테넌트 상태
+     * @param createdAt 생성 시간
+     * @param updatedAt 수정 시간
+     * @return 재구성된 Tenant 인스턴스
+     */
+    public static Tenant reconstitute(
+            TenantId tenantId,
+            TenantName name,
+            TenantStatus status,
+            Instant createdAt,
+            Instant updatedAt) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("reconstitute requires non-null tenantId");
+        }
+        return new Tenant(tenantId, name, status, createdAt, updatedAt);
+    }
+
     // ========== Business Methods ==========
 
+    /**
+     * 테넌트 이름 변경
+     *
+     * @param newName 새로운 이름
+     * @param clock 시간 제공자
+     * @return 이름이 변경된 새로운 Tenant 인스턴스
+     * @throws InvalidTenantStateException 삭제된 테넌트인 경우
+     */
+    public Tenant changeName(TenantName newName, Clock clock) {
+        if (status == TenantStatus.DELETED) {
+            throw new InvalidTenantStateException(status, "삭제된 테넌트의 이름을 변경할 수 없습니다");
+        }
+        return new Tenant(this.tenantId, newName, this.status, this.createdAt, clock.instant());
+    }
+
+    /**
+     * 테넌트 활성화
+     *
+     * @param clock 시간 제공자
+     * @return 활성화된 새로운 Tenant 인스턴스
+     * @throws InvalidTenantStateException 상태 전이가 불가능한 경우
+     */
     public Tenant activate(Clock clock) {
-        if (!tenantStatus.canActivate()) {
-            throw new InvalidTenantStateException(tenantStatus, TenantStatus.ACTIVE);
+        if (!status.canTransitionTo(TenantStatus.ACTIVE)) {
+            throw new InvalidTenantStateException(status, TenantStatus.ACTIVE);
         }
-        return new Tenant(tenantId, tenantName, TenantStatus.ACTIVE, createdAt, clock.now());
+        return new Tenant(
+                this.tenantId, this.name, TenantStatus.ACTIVE, this.createdAt, clock.instant());
     }
 
+    /**
+     * 테넌트 비활성화
+     *
+     * @param clock 시간 제공자
+     * @return 비활성화된 새로운 Tenant 인스턴스
+     * @throws InvalidTenantStateException 상태 전이가 불가능한 경우
+     */
     public Tenant deactivate(Clock clock) {
-        if (!tenantStatus.canDeactivate()) {
-            throw new InvalidTenantStateException(tenantStatus, TenantStatus.INACTIVE);
+        if (!status.canTransitionTo(TenantStatus.INACTIVE)) {
+            throw new InvalidTenantStateException(status, TenantStatus.INACTIVE);
         }
-        return new Tenant(tenantId, tenantName, TenantStatus.INACTIVE, createdAt, clock.now());
+        return new Tenant(
+                this.tenantId, this.name, TenantStatus.INACTIVE, this.createdAt, clock.instant());
     }
 
+    /**
+     * 테넌트 삭제 (소프트 삭제)
+     *
+     * @param clock 시간 제공자
+     * @return 삭제된 새로운 Tenant 인스턴스
+     * @throws InvalidTenantStateException 상태 전이가 불가능한 경우
+     */
     public Tenant delete(Clock clock) {
-        if (!tenantStatus.canDelete()) {
-            throw new InvalidTenantStateException(tenantStatus, TenantStatus.DELETED);
+        if (!status.canTransitionTo(TenantStatus.DELETED)) {
+            throw new InvalidTenantStateException(status, TenantStatus.DELETED);
         }
-        return new Tenant(tenantId, tenantName, TenantStatus.DELETED, createdAt, clock.now());
-    }
-
-    public Tenant updateName(TenantName newName, Clock clock) {
-        if (!isActive()) {
-            throw new InvalidTenantStateException("테넌트명 변경은 활성 상태의 테넌트만 가능합니다");
-        }
-        validateTenantName(newName);
-        return new Tenant(tenantId, newName, tenantStatus, createdAt, clock.now());
+        return new Tenant(
+                this.tenantId, this.name, TenantStatus.DELETED, this.createdAt, clock.instant());
     }
 
     // ========== Helper Methods ==========
 
-    public Long tenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
+    public UUID tenantIdValue() {
+        return tenantId != null ? tenantId.value() : null;
     }
 
-    public String tenantNameValue() {
-        return tenantName.value();
+    public String nameValue() {
+        return name.value();
     }
 
     public String statusValue() {
-        return tenantStatus.name();
+        return status.name();
     }
 
     public boolean isNew() {
@@ -150,11 +187,25 @@ public final class Tenant {
     }
 
     public boolean isActive() {
-        return tenantStatus == TenantStatus.ACTIVE;
+        return status == TenantStatus.ACTIVE;
     }
 
     public boolean isDeleted() {
-        return tenantStatus == TenantStatus.DELETED;
+        return status == TenantStatus.DELETED;
+    }
+
+    // ========== Getter Methods ==========
+
+    public TenantId getTenantId() {
+        return tenantId;
+    }
+
+    public TenantName getName() {
+        return name;
+    }
+
+    public TenantStatus getStatus() {
+        return status;
     }
 
     public Instant createdAt() {
@@ -163,20 +214,6 @@ public final class Tenant {
 
     public Instant updatedAt() {
         return updatedAt;
-    }
-
-    // ========== Legacy Getters (for compatibility) ==========
-
-    public TenantId getTenantId() {
-        return tenantId;
-    }
-
-    public TenantName getTenantName() {
-        return tenantName;
-    }
-
-    public TenantStatus getTenantStatus() {
-        return tenantStatus;
     }
 
     // ========== Object Methods ==========
@@ -190,31 +227,19 @@ public final class Tenant {
             return false;
         }
         Tenant tenant = (Tenant) o;
-        return Objects.equals(tenantId, tenant.tenantId)
-                && Objects.equals(tenantName, tenant.tenantName)
-                && tenantStatus == tenant.tenantStatus
-                && Objects.equals(createdAt, tenant.createdAt)
-                && Objects.equals(updatedAt, tenant.updatedAt);
+        if (tenantId == null || tenant.tenantId == null) {
+            return false;
+        }
+        return Objects.equals(tenantId, tenant.tenantId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tenantId, tenantName, tenantStatus, createdAt, updatedAt);
+        return tenantId != null ? Objects.hash(tenantId) : System.identityHashCode(this);
     }
 
     @Override
     public String toString() {
-        return "Tenant{"
-                + "tenantId="
-                + tenantId
-                + ", tenantName="
-                + tenantName
-                + ", tenantStatus="
-                + tenantStatus
-                + ", createdAt="
-                + createdAt
-                + ", updatedAt="
-                + updatedAt
-                + '}';
+        return "Tenant{" + "tenantId=" + tenantId + ", name=" + name + ", status=" + status + "}";
     }
 }

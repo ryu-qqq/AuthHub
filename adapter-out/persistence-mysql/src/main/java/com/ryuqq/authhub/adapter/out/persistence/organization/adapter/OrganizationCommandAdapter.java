@@ -5,50 +5,67 @@ import com.ryuqq.authhub.adapter.out.persistence.organization.mapper.Organizatio
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationJpaRepository;
 import com.ryuqq.authhub.application.organization.port.out.command.OrganizationPersistencePort;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import org.springframework.stereotype.Component;
 
 /**
- * OrganizationCommandAdapter - Organization Command Adapter
+ * OrganizationCommandAdapter - 조직 Command Adapter (CUD 전용)
  *
- * <p>OrganizationPersistencePort 구현체입니다. 신규 저장 및 수정 작업을 담당합니다.
+ * <p>OrganizationPersistencePort 구현체로서 조직 저장 작업을 담당합니다.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p><strong>1:1 매핑 원칙:</strong>
  *
  * <ul>
- *   <li>@Transactional 사용 금지 (UseCase에서 관리)
- *   <li>persist() 메서드만 제공
- *   <li>비즈니스 로직 포함 금지
+ *   <li>OrganizationJpaRepository (1개) + OrganizationJpaEntityMapper (1개)
+ *   <li>필드 2개만 허용
+ *   <li>다른 Repository 주입 금지
  * </ul>
  *
- * @author AuthHub Team
+ * <p><strong>책임:</strong>
+ *
+ * <ul>
+ *   <li>persist() - 조직 저장 (생성/수정)
+ * </ul>
+ *
+ * <p><strong>규칙:</strong>
+ *
+ * <ul>
+ *   <li>@Transactional 금지 (Manager/Facade에서 관리)
+ *   <li>비즈니스 로직 금지 (단순 위임 + 변환만)
+ * </ul>
+ *
+ * @author development-team
  * @since 1.0.0
  */
 @Component
 public class OrganizationCommandAdapter implements OrganizationPersistencePort {
 
-    private final OrganizationJpaRepository organizationJpaRepository;
-    private final OrganizationJpaEntityMapper organizationJpaEntityMapper;
+    private final OrganizationJpaRepository repository;
+    private final OrganizationJpaEntityMapper mapper;
 
     public OrganizationCommandAdapter(
-            OrganizationJpaRepository organizationJpaRepository,
-            OrganizationJpaEntityMapper organizationJpaEntityMapper) {
-        this.organizationJpaRepository = organizationJpaRepository;
-        this.organizationJpaEntityMapper = organizationJpaEntityMapper;
+            OrganizationJpaRepository repository, OrganizationJpaEntityMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
     /**
-     * Organization 저장 (신규 및 수정)
+     * 조직 저장 (생성/수정)
      *
-     * <p>JPA의 save() 메서드는 ID 유무에 따라 INSERT/UPDATE를 자동 결정합니다.
+     * <p><strong>처리 흐름:</strong>
      *
-     * @param organization 저장할 Organization Domain 객체
-     * @return 저장된 Organization의 ID
+     * <ol>
+     *   <li>Domain → Entity 변환 (Mapper)
+     *   <li>Entity 저장 (JpaRepository)
+     *   <li>Entity → Domain 변환 (Mapper)
+     * </ol>
+     *
+     * @param organization 저장할 조직 도메인
+     * @return 저장된 조직 도메인 (ID 할당됨)
      */
     @Override
-    public OrganizationId persist(Organization organization) {
-        OrganizationJpaEntity entity = organizationJpaEntityMapper.toEntity(organization);
-        OrganizationJpaEntity savedEntity = organizationJpaRepository.save(entity);
-        return OrganizationId.of(savedEntity.getId());
+    public Organization persist(Organization organization) {
+        OrganizationJpaEntity entity = mapper.toEntity(organization);
+        OrganizationJpaEntity savedEntity = repository.save(entity);
+        return mapper.toDomain(savedEntity);
     }
 }

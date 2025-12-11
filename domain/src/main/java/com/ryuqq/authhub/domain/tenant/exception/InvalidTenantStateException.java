@@ -5,9 +5,7 @@ import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
 import java.util.Map;
 
 /**
- * InvalidTenantStateException - 유효하지 않은 Tenant 상태 예외
- *
- * <p>Tenant 상태 전이가 유효하지 않을 때 발생하는 예외입니다.
+ * InvalidTenantStateException - 유효하지 않은 테넌트 상태 전이 시 발생하는 예외
  *
  * @author development-team
  * @since 1.0.0
@@ -16,21 +14,15 @@ public class InvalidTenantStateException extends DomainException {
 
     public InvalidTenantStateException(TenantStatus currentStatus, TenantStatus targetStatus) {
         super(
-                TenantErrorCode.INVALID_TENANT_STATUS,
+                TenantErrorCode.INVALID_TENANT_STATE,
                 Map.of(
                         "currentStatus", currentStatus.name(),
                         "targetStatus", targetStatus.name()));
     }
 
-    public InvalidTenantStateException(Long tenantId, String reason) {
+    public InvalidTenantStateException(TenantStatus currentStatus, String reason) {
         super(
-                TenantErrorCode.INVALID_TENANT_STATUS,
-                Map.of(
-                        "tenantId", tenantId,
-                        "reason", reason));
-    }
-
-    public InvalidTenantStateException(String message) {
-        super(TenantErrorCode.INVALID_TENANT_STATUS.getCode(), message);
+                TenantErrorCode.INVALID_TENANT_STATE,
+                Map.of("currentStatus", currentStatus.name(), "reason", reason));
     }
 }

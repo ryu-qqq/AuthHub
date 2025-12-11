@@ -3,90 +3,153 @@ package com.ryuqq.authhub.domain.user.identifier;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.authhub.domain.user.identifier.fixture.UserIdFixture;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-@DisplayName("UserId VO 테스트")
+/**
+ * UserId 식별자 VO 단위 테스트
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
+@Tag("unit")
+@DisplayName("UserId 테스트")
 class UserIdTest {
 
-    @Test
-    @DisplayName("유효한 UUID로 UserId 생성 성공")
-    void shouldCreateUserIdWithValidUUID() {
-        // Given
-        UUID uuid = UUID.randomUUID();
+    @Nested
+    @DisplayName("forNew 팩토리 메서드")
+    class ForNewTest {
 
-        // When
-        UserId userId = UserIdFixture.aUserId(uuid);
+        @Test
+        @DisplayName("새로운 UUIDv7 기반 UserId를 생성한다")
+        void shouldCreateNewUserIdWithUuidV7() {
+            // when
+            UserId userId = UserId.forNew(UUID.randomUUID());
 
-        // Then
-        assertThat(userId).isNotNull();
-        assertThat(userId.value()).isEqualTo(uuid);
+            // then
+            assertThat(userId).isNotNull();
+            assertThat(userId.value()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("매번 새로운 ID를 생성한다")
+        void shouldCreateUniqueIdEachTime() {
+            // when
+            UserId id1 = UserId.forNew(UUID.randomUUID());
+            UserId id2 = UserId.forNew(UUID.randomUUID());
+
+            // then
+            assertThat(id1).isNotEqualTo(id2);
+            assertThat(id1.value()).isNotEqualTo(id2.value());
+        }
     }
 
-    @Test
-    @DisplayName("null UUID로 UserId 생성 시 예외 발생")
-    void shouldThrowExceptionWhenNullUUID() {
-        // Given
-        UUID nullUuid = null;
+    @Nested
+    @DisplayName("of 팩토리 메서드")
+    class OfTest {
 
-        // When & Then
-        assertThatThrownBy(() -> new UserId(nullUuid))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("UserId는 null일 수 없습니다");
+        @Test
+        @DisplayName("UUID로 UserId를 생성한다")
+        void shouldCreateUserIdFromUuid() {
+            // given
+            UUID uuid = UUID.randomUUID();
+
+            // when
+            UserId userId = UserId.of(uuid);
+
+            // then
+            assertThat(userId).isNotNull();
+            assertThat(userId.value()).isEqualTo(uuid);
+        }
+
+        @Test
+        @DisplayName("null UUID로 생성 시 예외 발생")
+        void shouldThrowExceptionWhenUuidIsNull() {
+            assertThatThrownBy(() -> UserId.of(null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("UserId value cannot be null");
+        }
     }
 
-    @Test
-    @DisplayName("[forNew] 새로운 UUID가 자동 생성된 UserId 반환")
-    void forNew_shouldCreateUserIdWithRandomUUID() {
-        // When
-        UserId userId1 = UserId.forNew();
-        UserId userId2 = UserId.forNew();
+    @Nested
+    @DisplayName("equals 및 hashCode")
+    class EqualsHashCodeTest {
 
-        // Then
-        assertThat(userId1).isNotNull();
-        assertThat(userId1.value()).isNotNull();
-        assertThat(userId2).isNotNull();
-        assertThat(userId2.value()).isNotNull();
-        assertThat(userId1.value()).isNotEqualTo(userId2.value());
+        @Test
+        @DisplayName("같은 값을 가진 UserId는 동일하다")
+        void shouldBeEqualWhenSameValue() {
+            // given
+            UUID uuid = UUID.randomUUID();
+            UserId id1 = UserId.of(uuid);
+            UserId id2 = UserId.of(uuid);
+
+            // then
+            assertThat(id1).isEqualTo(id2);
+            assertThat(id1.hashCode()).isEqualTo(id2.hashCode());
+        }
+
+        @Test
+        @DisplayName("다른 값을 가진 UserId는 다르다")
+        void shouldNotBeEqualWhenDifferentValue() {
+            // given
+            UserId id1 = UserId.of(UUID.randomUUID());
+            UserId id2 = UserId.of(UUID.randomUUID());
+
+            // then
+            assertThat(id1).isNotEqualTo(id2);
+        }
+
+        @Test
+        @DisplayName("자기 자신과 같다")
+        void shouldBeEqualToItself() {
+            // given
+            UserId userId = UserId.forNew(UUID.randomUUID());
+
+            // then
+            assertThat(userId).isEqualTo(userId);
+        }
+
+        @Test
+        @DisplayName("null과 같지 않다")
+        void shouldNotBeEqualToNull() {
+            // given
+            UserId userId = UserId.forNew(UUID.randomUUID());
+
+            // then
+            assertThat(userId).isNotEqualTo(null);
+        }
+
+        @Test
+        @DisplayName("다른 타입과 같지 않다")
+        void shouldNotBeEqualToDifferentType() {
+            // given
+            UserId userId = UserId.forNew(UUID.randomUUID());
+
+            // then
+            assertThat(userId).isNotEqualTo("not-a-user-id");
+        }
     }
 
-    @Test
-    @DisplayName("[of] 정적 팩토리 메서드로 UserId 생성 성공")
-    void of_shouldCreateUserIdWithGivenUUID() {
-        // Given
-        UUID uuid = UUID.randomUUID();
+    @Nested
+    @DisplayName("toString")
+    class ToStringTest {
 
-        // When
-        UserId userId = UserId.of(uuid);
+        @Test
+        @DisplayName("UserId의 문자열 표현을 반환한다")
+        void shouldReturnStringRepresentation() {
+            // given
+            UUID uuid = UUID.randomUUID();
+            UserId userId = UserId.of(uuid);
 
-        // Then
-        assertThat(userId).isNotNull();
-        assertThat(userId.value()).isEqualTo(uuid);
-    }
+            // when
+            String toString = userId.toString();
 
-    @Test
-    @DisplayName("[equals/hashCode] 동일한 UUID를 가진 UserId는 동등함")
-    void equals_shouldReturnTrueForSameUUID() {
-        // Given
-        UUID uuid = UUID.randomUUID();
-        UserId userId1 = UserId.of(uuid);
-        UserId userId2 = UserId.of(uuid);
-
-        // Then
-        assertThat(userId1).isEqualTo(userId2);
-        assertThat(userId1.hashCode()).isEqualTo(userId2.hashCode());
-    }
-
-    @Test
-    @DisplayName("[equals/hashCode] 다른 UUID를 가진 UserId는 동등하지 않음")
-    void equals_shouldReturnFalseForDifferentUUID() {
-        // Given
-        UserId userId1 = UserId.forNew();
-        UserId userId2 = UserId.forNew();
-
-        // Then
-        assertThat(userId1).isNotEqualTo(userId2);
+            // then
+            assertThat(toString).contains("UserId");
+            assertThat(toString).contains(uuid.toString());
+        }
     }
 }

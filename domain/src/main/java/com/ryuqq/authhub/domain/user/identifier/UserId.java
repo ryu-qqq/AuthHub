@@ -4,9 +4,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * UserId - User 식별자 Value Object
- *
- * <p>UUID 기반 식별자를 사용합니다.
+ * UserId - 사용자 식별자 Value Object
  *
  * @author development-team
  * @since 1.0.0
@@ -15,9 +13,9 @@ public final class UserId {
 
     private final UUID value;
 
-    UserId(UUID value) {
+    private UserId(UUID value) {
         if (value == null) {
-            throw new IllegalArgumentException("UserId는 null일 수 없습니다");
+            throw new IllegalArgumentException("UserId value cannot be null");
         }
         this.value = value;
     }
@@ -26,8 +24,14 @@ public final class UserId {
         return new UserId(value);
     }
 
-    public static UserId forNew() {
-        return new UserId(UUID.randomUUID());
+    /**
+     * 새로운 UserId 생성 (Application Layer에서 UUID 생성 후 전달)
+     *
+     * @param uuid Application Layer에서 생성된 UUIDv7
+     * @return 새로운 UserId 인스턴스
+     */
+    public static UserId forNew(UUID uuid) {
+        return new UserId(uuid);
     }
 
     public UUID value() {

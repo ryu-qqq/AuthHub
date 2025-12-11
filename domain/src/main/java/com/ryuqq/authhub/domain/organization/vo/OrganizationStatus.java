@@ -1,40 +1,45 @@
 package com.ryuqq.authhub.domain.organization.vo;
 
 /**
- * OrganizationStatus - Organization 상태 열거형
+ * OrganizationStatus - 조직 상태 Value Object
  *
- * <p>Organization의 상태와 상태 전이 규칙을 정의합니다.
+ * <p>상태 전이 규칙:
+ *
+ * <ul>
+ *   <li>ACTIVE ↔ INACTIVE (양방향 전이 가능)
+ *   <li>ACTIVE → DELETED (활성 상태에서 삭제)
+ *   <li>INACTIVE → DELETED (비활성 상태에서 삭제)
+ *   <li>DELETED → X (삭제 상태에서 다른 상태로 전이 불가)
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
 public enum OrganizationStatus {
-    ACTIVE("활성"),
-    INACTIVE("비활성"),
-    DELETED("삭제됨");
+    ACTIVE {
+        @Override
+        public boolean canTransitionTo(OrganizationStatus target) {
+            return target == INACTIVE || target == DELETED;
+        }
+    },
+    INACTIVE {
+        @Override
+        public boolean canTransitionTo(OrganizationStatus target) {
+            return target == ACTIVE || target == DELETED;
+        }
+    },
+    DELETED {
+        @Override
+        public boolean canTransitionTo(OrganizationStatus target) {
+            return false;
+        }
+    };
 
-    private final String description;
-
-    OrganizationStatus(String description) {
-        this.description = description;
-    }
-
-    public String description() {
-        return description;
-    }
-
-    /** 활성화 가능 여부를 반환합니다. INACTIVE 상태에서만 활성화 가능합니다. */
-    public boolean canActivate() {
-        return this == INACTIVE;
-    }
-
-    /** 비활성화 가능 여부를 반환합니다. ACTIVE 상태에서만 비활성화 가능합니다. */
-    public boolean canDeactivate() {
-        return this == ACTIVE;
-    }
-
-    /** 삭제 가능 여부를 반환합니다. DELETED 상태가 아닌 경우에만 삭제 가능합니다. */
-    public boolean canDelete() {
-        return this != DELETED;
-    }
+    /**
+     * 대상 상태로 전이 가능 여부 확인
+     *
+     * @param target 전이 대상 상태
+     * @return 전이 가능하면 true
+     */
+    public abstract boolean canTransitionTo(OrganizationStatus target);
 }

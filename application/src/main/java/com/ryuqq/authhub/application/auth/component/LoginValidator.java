@@ -1,9 +1,10 @@
 package com.ryuqq.authhub.application.auth.component;
 
-import com.ryuqq.authhub.application.common.component.PasswordHasher;
+import com.ryuqq.authhub.application.user.port.out.client.PasswordEncoderPort;
 import com.ryuqq.authhub.domain.auth.exception.InvalidCredentialsException;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.exception.InvalidUserStateException;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,10 +31,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class LoginValidator {
 
-    private final PasswordHasher passwordHasher;
+    private final PasswordEncoderPort passwordEncoderPort;
 
-    public LoginValidator(PasswordHasher passwordHasher) {
-        this.passwordHasher = passwordHasher;
+    public LoginValidator(PasswordEncoderPort passwordEncoderPort) {
+        this.passwordEncoderPort = passwordEncoderPort;
     }
 
     /**
@@ -47,8 +48,8 @@ public class LoginValidator {
      * @param identifier 사용자 식별자 (예외 메시지용)
      * @throws InvalidCredentialsException 비밀번호가 일치하지 않는 경우
      */
-    public void validatePassword(String rawPassword, User user, long tenantId, String identifier) {
-        if (!passwordHasher.matches(rawPassword, user.getHashedPassword())) {
+    public void validatePassword(String rawPassword, User user, UUID tenantId, String identifier) {
+        if (!passwordEncoderPort.matches(rawPassword, user.getHashedPassword())) {
             throw new InvalidCredentialsException(tenantId, identifier);
         }
     }
@@ -75,7 +76,7 @@ public class LoginValidator {
      * @throws InvalidCredentialsException 비밀번호가 일치하지 않는 경우
      * @throws InvalidUserStateException 사용자가 활성 상태가 아닌 경우
      */
-    public void validate(String rawPassword, User user, long tenantId, String identifier) {
+    public void validate(String rawPassword, User user, UUID tenantId, String identifier) {
         validatePassword(rawPassword, user, tenantId, identifier);
         validateActiveStatus(user);
     }

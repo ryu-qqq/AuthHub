@@ -10,6 +10,18 @@
 plugins {
     id 'java-library'
     id 'java-test-fixtures'
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
+}
+
+// ========================================
+// REST Docs Configuration
+// ========================================
+ext {
+    snippetsDir = file('build/generated-snippets')
+}
+
+configurations {
+    asciidoctorExt
 }
 
 dependencies {
@@ -27,12 +39,22 @@ dependencies {
     // Spring Security (Optional)
     implementation libs.spring.boot.starter.security
 
+    // JWT (JJWT)
+    implementation libs.jjwt.api
+    runtimeOnly libs.jjwt.impl
+    runtimeOnly libs.jjwt.jackson
+
     // JSON Processing
     implementation libs.jackson.databind
     implementation libs.jackson.datatype.jsr310
 
     // API Documentation (Optional)
     implementation libs.springdoc.openapi
+
+    // ========================================
+    // AsciiDoctor Extension
+    // ========================================
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.3'
 
     // ========================================
     // Test Dependencies
@@ -69,5 +91,26 @@ tasks.jacocoTestCoverageVerification {
 }
 
 tasks.test {
+    outputs.dir snippetsDir
     finalizedBy tasks.jacocoTestCoverageVerification
+}
+
+// ========================================
+// AsciiDoctor → HTML 변환
+// ========================================
+asciidoctor {
+    inputs.dir snippetsDir
+    configurations 'asciidoctorExt'
+    dependsOn test
+
+    baseDirFollowsSourceFile()
+
+    attributes(
+        'snippets': snippetsDir,
+        'source-highlighter': 'highlightjs',
+        'toc': 'left',
+        'toclevels': 3,
+        'sectlinks': true,
+        'sectnums': true
+    )
 }

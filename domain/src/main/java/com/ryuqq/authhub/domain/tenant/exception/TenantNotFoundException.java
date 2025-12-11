@@ -1,19 +1,23 @@
 package com.ryuqq.authhub.domain.tenant.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * TenantNotFoundException - Tenant를 찾을 수 없는 예외
- *
- * <p>요청한 Tenant가 존재하지 않을 때 발생합니다.
+ * TenantNotFoundException - 테넌트를 찾을 수 없을 때 발생하는 예외
  *
  * @author development-team
  * @since 1.0.0
  */
 public class TenantNotFoundException extends DomainException {
 
-    public TenantNotFoundException(Long tenantId) {
+    public TenantNotFoundException(TenantId tenantId) {
+        super(TenantErrorCode.TENANT_NOT_FOUND, Map.of("tenantId", tenantId.value()));
+    }
+
+    public TenantNotFoundException(UUID tenantId) {
         super(TenantErrorCode.TENANT_NOT_FOUND, Map.of("tenantId", tenantId));
     }
 

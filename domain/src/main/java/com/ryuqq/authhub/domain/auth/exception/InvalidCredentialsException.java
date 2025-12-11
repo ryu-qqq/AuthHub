@@ -2,6 +2,7 @@ package com.ryuqq.authhub.domain.auth.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * InvalidCredentialsException - 인증 실패 예외
@@ -17,7 +18,7 @@ public class InvalidCredentialsException extends DomainException {
         super(AuthErrorCode.INVALID_CREDENTIALS);
     }
 
-    public InvalidCredentialsException(Long tenantId, String identifier) {
+    public InvalidCredentialsException(UUID tenantId, String identifier) {
         super(
                 AuthErrorCode.INVALID_CREDENTIALS,
                 Map.of(

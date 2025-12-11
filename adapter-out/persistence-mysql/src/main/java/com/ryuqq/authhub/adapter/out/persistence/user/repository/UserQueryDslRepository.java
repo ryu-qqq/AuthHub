@@ -1,126 +1,210 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.repository;
 
+import static com.ryuqq.authhub.adapter.out.persistence.user.entity.QUserJpaEntity.userJpaEntity;
+
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.ryuqq.authhub.adapter.out.persistence.user.entity.QUserJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 /**
- * UserQueryDslRepository - User QueryDSL Repository (Query)
+ * UserQueryDslRepository - 사용자 QueryDSL Repository (Query 전용)
  *
- * <p>Query 작업 전용 Repository입니다. 표준 메서드만 제공합니다.
+ * <p>QueryDSL 기반 조회 작업을 담당합니다.
  *
- * <p><strong>표준 메서드:</strong>
- *
- * <ul>
- *   <li>findById(id) - ID로 단일 조회
- *   <li>existsById(id) - 존재 여부 확인
- *   <li>existsByTenantIdAndPhoneNumberExcludingUser - Tenant 내 전화번호 중복 확인
- *   <li>existsActiveByOrganizationId - Organization 내 활성 User 존재 여부
- *   <li>findByTenantIdAndIdentifier - Tenant/Identifier로 User 조회
- * </ul>
- *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p><strong>책임:</strong>
  *
  * <ul>
- *   <li>JOIN 절대 금지 (Long FK 전략)
- *   <li>N+1 문제 발생 시 별도 쿼리로 분리
- *   <li>DTO Projection 사용 권장
+ *   <li>findByUserId() - UUID로 단건 조회
+ *   <li>findByTenantIdAndOrganizationIdAndIdentifier() - 식별자로 조회
+ *   <li>existsByTenantIdAndOrganizationIdAndIdentifier() - 식별자 존재 여부 확인
+ *   <li>search() - 조건 검색
+ *   <li>count() - 조건 개수 조회
  * </ul>
  *
- * @author AuthHub Team
+ * <p><strong>CQRS 패턴:</strong>
+ *
+ * <ul>
+ *   <li>Command: UserJpaRepository (JPA)
+ *   <li>Query: UserQueryDslRepository (QueryDSL)
+ * </ul>
+ *
+ * <p><strong>규칙:</strong>
+ *
+ * <ul>
+ *   <li>Entity 반환 (Domain 변환은 Adapter에서)
+ *   <li>Join 금지 (N+1 해결은 Application Layer에서)
+ *   <li>비즈니스 로직 금지
+ *   <li>DELETED 상태 사용자는 제외하지 않음 (Application에서 판단)
+ * </ul>
+ *
+ * @author development-team
  * @since 1.0.0
  */
 @Repository
 public class UserQueryDslRepository {
 
     private final JPAQueryFactory queryFactory;
-    private static final QUserJpaEntity user = QUserJpaEntity.userJpaEntity;
 
     public UserQueryDslRepository(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
 
     /**
-     * ID로 User 조회
+     * UUID로 사용자 단건 조회
      *
-     * @param id User ID (UUID)
-     * @return UserJpaEntity (Optional)
+     * @param userId 사용자 UUID
+     * @return Optional<UserJpaEntity>
      */
-    public Optional<UserJpaEntity> findById(UUID id) {
-        UserJpaEntity result = queryFactory.selectFrom(user).where(user.id.eq(id)).fetchOne();
+    public Optional<UserJpaEntity> findByUserId(UUID userId) {
+        UserJpaEntity result =
+                queryFactory
+                        .selectFrom(userJpaEntity)
+                        .where(userJpaEntity.userId.eq(userId))
+                        .fetchOne();
         return Optional.ofNullable(result);
     }
 
     /**
-     * ID 존재 여부 확인
+     * 테넌트 내 식별자로 사용자 단건 조회
      *
-     * @param id User ID (UUID)
+     * @param tenantId 테넌트 UUID
+     * @param identifier 사용자 식별자
+     * @return Optional<UserJpaEntity>
+     */
+    public Optional<UserJpaEntity> findByTenantIdAndIdentifier(UUID tenantId, String identifier) {
+        UserJpaEntity result =
+                queryFactory
+                        .selectFrom(userJpaEntity)
+                        .where(
+                                userJpaEntity.tenantId.eq(tenantId),
+                                userJpaEntity.identifier.eq(identifier))
+                        .fetchOne();
+        return Optional.ofNullable(result);
+    }
+
+    /**
+     * 테넌트/조직 내 식별자로 사용자 단건 조회
+     *
+     * @param tenantId 테넌트 UUID
+     * @param organizationId 조직 UUID
+     * @param identifier 사용자 식별자
+     * @return Optional<UserJpaEntity>
+     */
+    public Optional<UserJpaEntity> findByTenantIdAndOrganizationIdAndIdentifier(
+            UUID tenantId, UUID organizationId, String identifier) {
+        UserJpaEntity result =
+                queryFactory
+                        .selectFrom(userJpaEntity)
+                        .where(
+                                userJpaEntity.tenantId.eq(tenantId),
+                                userJpaEntity.organizationId.eq(organizationId),
+                                userJpaEntity.identifier.eq(identifier))
+                        .fetchOne();
+        return Optional.ofNullable(result);
+    }
+
+    /**
+     * 테넌트/조직 내 식별자 존재 여부 확인
+     *
+     * @param tenantId 테넌트 UUID
+     * @param organizationId 조직 UUID
+     * @param identifier 사용자 식별자
      * @return 존재 여부
      */
-    public boolean existsById(UUID id) {
-        Integer result = queryFactory.selectOne().from(user).where(user.id.eq(id)).fetchFirst();
-        return result != null;
-    }
-
-    /**
-     * Tenant 내 전화번호 중복 확인 (본인 제외)
-     *
-     * @param tenantId Tenant ID
-     * @param phoneNumber 전화번호
-     * @param excludeUserId 제외할 User ID (본인, null 가능)
-     * @return 중복 존재 여부
-     */
-    public boolean existsByTenantIdAndPhoneNumberExcludingUser(
-            Long tenantId, String phoneNumber, UUID excludeUserId) {
-        var whereBuilder =
-                queryFactory
-                        .selectOne()
-                        .from(user)
-                        .where(user.tenantId.eq(tenantId), user.phoneNumber.eq(phoneNumber));
-
-        if (excludeUserId != null) {
-            whereBuilder = whereBuilder.where(user.id.ne(excludeUserId));
-        }
-
-        Integer result = whereBuilder.fetchFirst();
-        return result != null;
-    }
-
-    /**
-     * Organization 내 활성 User 존재 여부 확인
-     *
-     * @param organizationId Organization ID
-     * @return 활성 User 존재 여부
-     */
-    public boolean existsActiveByOrganizationId(Long organizationId) {
+    public boolean existsByTenantIdAndOrganizationIdAndIdentifier(
+            UUID tenantId, UUID organizationId, String identifier) {
         Integer result =
                 queryFactory
                         .selectOne()
-                        .from(user)
+                        .from(userJpaEntity)
                         .where(
-                                user.organizationId.eq(organizationId),
-                                user.status.eq(UserStatus.ACTIVE))
+                                userJpaEntity.tenantId.eq(tenantId),
+                                userJpaEntity.organizationId.eq(organizationId),
+                                userJpaEntity.identifier.eq(identifier))
                         .fetchFirst();
         return result != null;
     }
 
     /**
-     * Tenant/Identifier로 User 조회 (로그인용)
+     * 사용자 검색 (페이징)
      *
-     * @param tenantId Tenant ID
-     * @param identifier 사용자 식별자 (email)
-     * @return UserJpaEntity (Optional)
+     * @param tenantId 테넌트 UUID 필터 (null 허용)
+     * @param organizationId 조직 UUID 필터 (null 허용)
+     * @param identifier 식별자 필터 (null 허용, 부분 검색)
+     * @param status 상태 필터 (null 허용)
+     * @param offset 시작 위치
+     * @param limit 조회 개수
+     * @return UserJpaEntity 목록
      */
-    public Optional<UserJpaEntity> findByTenantIdAndIdentifier(Long tenantId, String identifier) {
-        UserJpaEntity result =
+    public List<UserJpaEntity> search(
+            UUID tenantId,
+            UUID organizationId,
+            String identifier,
+            UserStatus status,
+            int offset,
+            int limit) {
+        BooleanBuilder builder = buildSearchCondition(tenantId, organizationId, identifier, status);
+
+        return queryFactory
+                .selectFrom(userJpaEntity)
+                .where(builder)
+                .orderBy(userJpaEntity.createdAt.desc())
+                .offset(offset)
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
+     * 사용자 검색 개수 조회
+     *
+     * @param tenantId 테넌트 UUID 필터 (null 허용)
+     * @param organizationId 조직 UUID 필터 (null 허용)
+     * @param identifier 식별자 필터 (null 허용, 부분 검색)
+     * @param status 상태 필터 (null 허용)
+     * @return 조건에 맞는 사용자 총 개수
+     */
+    public long count(UUID tenantId, UUID organizationId, String identifier, UserStatus status) {
+        BooleanBuilder builder = buildSearchCondition(tenantId, organizationId, identifier, status);
+
+        Long count =
                 queryFactory
-                        .selectFrom(user)
-                        .where(user.tenantId.eq(tenantId), user.identifier.eq(identifier))
+                        .select(userJpaEntity.count())
+                        .from(userJpaEntity)
+                        .where(builder)
                         .fetchOne();
-        return Optional.ofNullable(result);
+        return count != null ? count : 0L;
+    }
+
+    /**
+     * 검색 조건 빌더 생성
+     *
+     * @param tenantId 테넌트 UUID 필터
+     * @param organizationId 조직 UUID 필터
+     * @param identifier 식별자 필터
+     * @param status 상태 필터
+     * @return BooleanBuilder
+     */
+    private BooleanBuilder buildSearchCondition(
+            UUID tenantId, UUID organizationId, String identifier, UserStatus status) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (tenantId != null) {
+            builder.and(userJpaEntity.tenantId.eq(tenantId));
+        }
+        if (organizationId != null) {
+            builder.and(userJpaEntity.organizationId.eq(organizationId));
+        }
+        if (identifier != null && !identifier.isBlank()) {
+            builder.and(userJpaEntity.identifier.containsIgnoreCase(identifier));
+        }
+        if (status != null) {
+            builder.and(userJpaEntity.status.eq(status));
+        }
+        return builder;
     }
 }

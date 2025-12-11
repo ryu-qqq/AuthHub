@@ -2,6 +2,8 @@ package com.ryuqq.authhub.application.tenant.port.out.query;
 
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.vo.TenantName;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -39,4 +41,40 @@ public interface TenantQueryPort {
      * @return 존재 여부
      */
     boolean existsById(TenantId id);
+
+    /**
+     * 이름으로 Tenant 존재 여부 확인
+     *
+     * @param name Tenant 이름 (Value Object)
+     * @return 존재 여부
+     */
+    boolean existsByName(TenantName name);
+
+    /**
+     * 이름으로 Tenant 조회
+     *
+     * @param name Tenant 이름 (Value Object)
+     * @return Tenant Domain (Optional)
+     */
+    Optional<Tenant> findByName(TenantName name);
+
+    /**
+     * 조건에 맞는 Tenant 목록 조회 (페이징)
+     *
+     * @param name Tenant 이름 필터 (null 허용, 부분 검색)
+     * @param status Tenant 상태 필터 (null 허용)
+     * @param offset 시작 위치
+     * @param limit 조회 개수
+     * @return Tenant Domain 목록
+     */
+    List<Tenant> findAllByCriteria(String name, String status, int offset, int limit);
+
+    /**
+     * 조건에 맞는 Tenant 개수 조회
+     *
+     * @param name Tenant 이름 필터 (null 허용, 부분 검색)
+     * @param status Tenant 상태 필터 (null 허용)
+     * @return 조건에 맞는 Tenant 총 개수
+     */
+    long countAll(String name, String status);
 }
