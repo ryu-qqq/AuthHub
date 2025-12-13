@@ -7,7 +7,6 @@ import com.ryuqq.authhub.adapter.in.rest.permission.dto.command.UpdatePermission
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.query.SearchPermissionsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.CreatePermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionSpecApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.UserPermissionsApiResponse;
 import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.command.DeletePermissionCommand;
@@ -15,7 +14,6 @@ import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionComm
 import com.ryuqq.authhub.application.permission.dto.query.GetPermissionQuery;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
-import com.ryuqq.authhub.application.permission.dto.response.PermissionSpecResponse;
 import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import java.time.Instant;
@@ -337,40 +335,6 @@ class PermissionApiMapperTest {
             assertThat(apiResponse.roles()).containsExactlyInAnyOrder("ADMIN", "USER");
             assertThat(apiResponse.permissions())
                     .containsExactlyInAnyOrder("user:read", "user:write");
-        }
-    }
-
-    @Nested
-    @DisplayName("toPermissionSpecApiResponse() 테스트")
-    class ToPermissionSpecApiResponseTest {
-
-        @Test
-        @DisplayName("PermissionSpecResponse를 PermissionSpecApiResponse로 변환 성공")
-        void givenPermissionSpecResponse_whenToPermissionSpecApiResponse_thenSuccess() {
-            // given
-            com.ryuqq.authhub.application.permission.dto.response.EndpointPermissionResponse
-                    endpointResponse =
-                            new com.ryuqq.authhub.application.permission.dto.response
-                                    .EndpointPermissionResponse(
-                                    "auth-service",
-                                    "/api/users",
-                                    "GET",
-                                    List.of("user:read"),
-                                    List.of("USER"),
-                                    false);
-            PermissionSpecResponse response =
-                    new PermissionSpecResponse(1, FIXED_INSTANT, List.of(endpointResponse));
-
-            // when
-            PermissionSpecApiResponse apiResponse = mapper.toPermissionSpecApiResponse(response);
-
-            // then
-            assertThat(apiResponse.version()).isEqualTo(1);
-            assertThat(apiResponse.updatedAt()).isEqualTo(FIXED_INSTANT);
-            assertThat(apiResponse.permissions()).hasSize(1);
-            assertThat(apiResponse.permissions().get(0).serviceName()).isEqualTo("auth-service");
-            assertThat(apiResponse.permissions().get(0).path()).isEqualTo("/api/users");
-            assertThat(apiResponse.permissions().get(0).method()).isEqualTo("GET");
         }
     }
 }

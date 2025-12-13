@@ -4,18 +4,14 @@ import com.ryuqq.authhub.adapter.in.rest.permission.dto.command.CreatePermission
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.command.UpdatePermissionApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.query.SearchPermissionsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.CreatePermissionApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.EndpointPermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionSpecApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.UserPermissionsApiResponse;
 import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.command.DeletePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.query.GetPermissionQuery;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
-import com.ryuqq.authhub.application.permission.dto.response.EndpointPermissionResponse;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
-import com.ryuqq.authhub.application.permission.dto.response.PermissionSpecResponse;
 import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import java.util.List;
@@ -148,37 +144,6 @@ public class PermissionApiMapper {
     public UserPermissionsApiResponse toUserPermissionsApiResponse(UserRolesResponse response) {
         return new UserPermissionsApiResponse(
                 response.userId().toString(), response.roles(), response.permissions());
-    }
-
-    /**
-     * PermissionSpecResponse → PermissionSpecApiResponse 변환
-     *
-     * <p>Gateway API에서 권한 명세 조회 시 사용됩니다.
-     *
-     * @param response Application Response DTO
-     * @return API 응답 DTO
-     */
-    public PermissionSpecApiResponse toPermissionSpecApiResponse(PermissionSpecResponse response) {
-        List<EndpointPermissionApiResponse> permissions =
-                response.permissions().stream().map(this::toEndpointPermissionApiResponse).toList();
-        return new PermissionSpecApiResponse(response.version(), response.updatedAt(), permissions);
-    }
-
-    /**
-     * EndpointPermissionResponse → EndpointPermissionApiResponse 변환
-     *
-     * @param response Application Response DTO
-     * @return API 응답 DTO
-     */
-    private EndpointPermissionApiResponse toEndpointPermissionApiResponse(
-            EndpointPermissionResponse response) {
-        return new EndpointPermissionApiResponse(
-                response.serviceName(),
-                response.path(),
-                response.method(),
-                response.requiredPermissions(),
-                response.requiredRoles(),
-                response.isPublic());
     }
 
     /**

@@ -4,12 +4,9 @@ import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.query.SearchPermissionsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionSpecApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.UserPermissionsApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.mapper.PermissionApiMapper;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
-import com.ryuqq.authhub.application.permission.dto.response.PermissionSpecResponse;
-import com.ryuqq.authhub.application.permission.port.in.query.GetPermissionSpecUseCase;
 import com.ryuqq.authhub.application.permission.port.in.query.GetPermissionUseCase;
 import com.ryuqq.authhub.application.permission.port.in.query.SearchPermissionsUseCase;
 import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
@@ -56,19 +53,16 @@ public class PermissionQueryController {
     private final GetPermissionUseCase getPermissionUseCase;
     private final SearchPermissionsUseCase searchPermissionsUseCase;
     private final GetUserRolesUseCase getUserRolesUseCase;
-    private final GetPermissionSpecUseCase getPermissionSpecUseCase;
     private final PermissionApiMapper mapper;
 
     public PermissionQueryController(
             GetPermissionUseCase getPermissionUseCase,
             SearchPermissionsUseCase searchPermissionsUseCase,
             GetUserRolesUseCase getUserRolesUseCase,
-            GetPermissionSpecUseCase getPermissionSpecUseCase,
             PermissionApiMapper mapper) {
         this.getPermissionUseCase = getPermissionUseCase;
         this.searchPermissionsUseCase = searchPermissionsUseCase;
         this.getUserRolesUseCase = getUserRolesUseCase;
-        this.getPermissionSpecUseCase = getPermissionSpecUseCase;
         this.mapper = mapper;
     }
 
@@ -158,29 +152,6 @@ public class PermissionQueryController {
             @Parameter(description = "사용자 ID", required = true) @PathVariable String userId) {
         UserRolesResponse response = getUserRolesUseCase.execute(UUID.fromString(userId));
         UserPermissionsApiResponse apiResponse = mapper.toUserPermissionsApiResponse(response);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
-    }
-
-    /**
-     * 권한 명세 조회 (Gateway 전용)
-     *
-     * <p>GET /api/v1/permissions/spec
-     *
-     * <p>Gateway에서 전체 엔드포인트별 권한 명세를 조회합니다. Gateway 시작 시 및 주기적으로 호출하여 권한 정책을 캐싱합니다.
-     *
-     * @return 200 OK + 권한 명세 정보
-     */
-    @Operation(summary = "권한 명세 조회", description = "Gateway에서 전체 엔드포인트별 권한 명세를 조회합니다")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                responseCode = "200",
-                description = "조회 성공")
-    })
-    @PreAuthorize("@access.superAdmin()")
-    @GetMapping("/spec")
-    public ResponseEntity<ApiResponse<PermissionSpecApiResponse>> getPermissionSpec() {
-        PermissionSpecResponse response = getPermissionSpecUseCase.execute();
-        PermissionSpecApiResponse apiResponse = mapper.toPermissionSpecApiResponse(response);
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

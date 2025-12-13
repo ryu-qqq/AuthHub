@@ -22,9 +22,7 @@ import com.ryuqq.authhub.adapter.in.rest.permission.dto.command.CreatePermission
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.command.UpdatePermissionApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.query.SearchPermissionsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.CreatePermissionApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.EndpointPermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionSpecApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.UserPermissionsApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.mapper.PermissionApiMapper;
 import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionCommand;
@@ -32,13 +30,10 @@ import com.ryuqq.authhub.application.permission.dto.command.DeletePermissionComm
 import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.query.GetPermissionQuery;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
-import com.ryuqq.authhub.application.permission.dto.response.EndpointPermissionResponse;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
-import com.ryuqq.authhub.application.permission.dto.response.PermissionSpecResponse;
 import com.ryuqq.authhub.application.permission.port.in.command.CreatePermissionUseCase;
 import com.ryuqq.authhub.application.permission.port.in.command.DeletePermissionUseCase;
 import com.ryuqq.authhub.application.permission.port.in.command.UpdatePermissionUseCase;
-import com.ryuqq.authhub.application.permission.port.in.query.GetPermissionSpecUseCase;
 import com.ryuqq.authhub.application.permission.port.in.query.GetPermissionUseCase;
 import com.ryuqq.authhub.application.permission.port.in.query.SearchPermissionsUseCase;
 import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
@@ -91,8 +86,6 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
     @MockBean private SearchPermissionsUseCase searchPermissionsUseCase;
 
     @MockBean private GetUserRolesUseCase getUserRolesUseCase;
-
-    @MockBean private GetPermissionSpecUseCase getPermissionSpecUseCase;
 
     @MockBean private PermissionApiMapper mapper;
 
@@ -423,71 +416,6 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                                             fieldWithPath("data.roles").description("역할 목록"),
                                             fieldWithPath("data.permissions")
                                                     .description("권한 키 목록"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
-                                            fieldWithPath("timestamp").description("응답 시간"),
-                                            fieldWithPath("requestId").description("요청 ID"))));
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /api/v1/permissions/spec - 권한 명세 조회")
-    class GetPermissionSpecDocs {
-
-        @Test
-        @DisplayName("권한 명세 조회 API 문서")
-        void getPermissionSpec() throws Exception {
-            // given
-            Instant now = Instant.now();
-            EndpointPermissionResponse endpointPermission =
-                    new EndpointPermissionResponse(
-                            "auth-service",
-                            "/api/v1/auth/tenants",
-                            "GET",
-                            List.of("tenant:read"),
-                            List.of("ADMIN"),
-                            false);
-            PermissionSpecResponse useCaseResponse =
-                    new PermissionSpecResponse(1, now, List.of(endpointPermission));
-            EndpointPermissionApiResponse endpointApiResponse =
-                    new EndpointPermissionApiResponse(
-                            "auth-service",
-                            "/api/v1/auth/tenants",
-                            "GET",
-                            List.of("tenant:read"),
-                            List.of("ADMIN"),
-                            false);
-            PermissionSpecApiResponse apiResponse =
-                    new PermissionSpecApiResponse(1, now, List.of(endpointApiResponse));
-
-            given(getPermissionSpecUseCase.execute()).willReturn(useCaseResponse);
-            given(mapper.toPermissionSpecApiResponse(any(PermissionSpecResponse.class)))
-                    .willReturn(apiResponse);
-
-            // when & then
-            mockMvc.perform(get("/api/v1/auth/permissions/spec").accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andDo(
-                            document(
-                                    "permission-spec",
-                                    responseFields(
-                                            fieldWithPath("success").description("성공 여부"),
-                                            fieldWithPath("data").description("응답 데이터"),
-                                            fieldWithPath("data.version").description("명세 버전"),
-                                            fieldWithPath("data.updatedAt").description("갱신 시간"),
-                                            fieldWithPath("data.permissions")
-                                                    .description("엔드포인트별 권한 목록"),
-                                            fieldWithPath("data.permissions[].serviceName")
-                                                    .description("서비스명"),
-                                            fieldWithPath("data.permissions[].path")
-                                                    .description("엔드포인트 경로"),
-                                            fieldWithPath("data.permissions[].method")
-                                                    .description("HTTP 메서드"),
-                                            fieldWithPath("data.permissions[].requiredPermissions")
-                                                    .description("필요 권한 목록"),
-                                            fieldWithPath("data.permissions[].requiredRoles")
-                                                    .description("필요 역할 목록"),
-                                            fieldWithPath("data.permissions[].isPublic")
-                                                    .description("공개 엔드포인트 여부"),
                                             fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
