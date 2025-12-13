@@ -76,7 +76,7 @@ variable "web_api_desired_count" {
 variable "image_tag" {
   description = "Docker image tag to deploy. Auto-set by GitHub Actions build-and-deploy.yml. Format: {component}-{build-number}-{git-sha}"
   type        = string
-  default     = "web-api-1-initial"  # Fallback only - GitHub Actions will override this
+  default     = "web-api-1-initial" # Fallback only - GitHub Actions will override this
 
   validation {
     condition     = can(regex("^web-api-[0-9]+-[a-z0-9]+$", var.image_tag))
