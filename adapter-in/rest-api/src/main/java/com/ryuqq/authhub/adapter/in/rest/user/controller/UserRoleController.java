@@ -78,7 +78,14 @@ public class UserRoleController {
      * @param request 역할 할당 요청 (roleId)
      * @return 201 Created + 할당된 역할 정보
      */
-    @Operation(summary = "사용자에게 역할 할당", description = "사용자에게 역할을 할당합니다")
+    @Operation(
+            summary = "사용자에게 역할 할당",
+            description =
+                    """
+                    사용자에게 역할을 할당합니다.
+
+                    **필요 권한**: `role:assign`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "201",
@@ -110,7 +117,14 @@ public class UserRoleController {
      * @param roleId 역할 ID
      * @return 204 No Content
      */
-    @Operation(summary = "사용자에서 역할 해제", description = "사용자에서 역할을 해제합니다")
+    @Operation(
+            summary = "사용자에서 역할 해제",
+            description =
+                    """
+                    사용자에서 역할을 해제합니다.
+
+                    **필요 권한**: `role:assign`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "204",

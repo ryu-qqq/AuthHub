@@ -82,7 +82,14 @@ public class OrganizationCommandController {
      * @param request 조직 생성 요청
      * @return 201 Created + 생성된 조직 ID
      */
-    @Operation(summary = "조직 생성", description = "새로운 조직을 생성합니다")
+    @Operation(
+            summary = "조직 생성",
+            description =
+                    """
+                    새로운 조직을 생성합니다.
+
+                    **필요 권한**: Super Admin 또는 `organization:create`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "201",
@@ -113,7 +120,14 @@ public class OrganizationCommandController {
      * @param request 조직 수정 요청
      * @return 200 OK
      */
-    @Operation(summary = "조직 수정", description = "조직 정보를 수정합니다")
+    @Operation(
+            summary = "조직 수정",
+            description =
+                    """
+                    조직 정보를 수정합니다.
+
+                    **필요 권한**: 해당 조직에 대한 `organization:update` 권한
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -143,7 +157,14 @@ public class OrganizationCommandController {
      * @param request 상태 변경 요청
      * @return 200 OK + 변경된 조직 정보
      */
-    @Operation(summary = "조직 상태 변경", description = "조직의 상태를 변경합니다")
+    @Operation(
+            summary = "조직 상태 변경",
+            description =
+                    """
+                    조직의 상태를 변경합니다.
+
+                    **필요 권한**: 해당 조직에 대한 `organization:update` 권한
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -174,7 +195,14 @@ public class OrganizationCommandController {
      * @param organizationId 조직 ID
      * @return 204 No Content
      */
-    @Operation(summary = "조직 삭제", description = "조직을 삭제합니다")
+    @Operation(
+            summary = "조직 삭제",
+            description =
+                    """
+                    조직을 삭제합니다.
+
+                    **필요 권한**: 해당 조직에 대한 `organization:delete` 권한
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "204",
