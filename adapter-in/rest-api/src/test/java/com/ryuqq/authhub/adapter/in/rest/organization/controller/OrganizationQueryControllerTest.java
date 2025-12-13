@@ -100,7 +100,7 @@ class OrganizationQueryControllerTest {
             given(mapper.toApiResponse(useCaseResponse)).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/organizations/{organizationId}", organizationId))
+            mockMvc.perform(get("/api/v1/auth/organizations/{organizationId}", organizationId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.organizationId").value(organizationId.toString()))
@@ -119,7 +119,7 @@ class OrganizationQueryControllerTest {
                     .willThrow(new IllegalArgumentException("Invalid UUID string: invalid-uuid"));
 
             // When & Then
-            mockMvc.perform(get("/api/v1/organizations/{organizationId}", "invalid-uuid"))
+            mockMvc.perform(get("/api/v1/auth/organizations/{organizationId}", "invalid-uuid"))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -157,7 +157,9 @@ class OrganizationQueryControllerTest {
             given(mapper.toApiResponse(any(OrganizationResponse.class))).willReturn(apiOrgResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/organizations").param("tenantId", tenantId.toString()))
+            mockMvc.perform(
+                            get("/api/v1/auth/organizations")
+                                    .param("tenantId", tenantId.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
@@ -202,7 +204,7 @@ class OrganizationQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/organizations")
+                            get("/api/v1/auth/organizations")
                                     .param("tenantId", tenantId.toString())
                                     .param("name", "Test"))
                     .andExpect(status().isOk())
@@ -243,7 +245,7 @@ class OrganizationQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/organizations")
+                            get("/api/v1/auth/organizations")
                                     .param("tenantId", tenantId.toString())
                                     .param("status", "INACTIVE"))
                     .andExpect(status().isOk())
@@ -267,7 +269,9 @@ class OrganizationQueryControllerTest {
                     .willReturn(emptyPageResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/organizations").param("tenantId", tenantId.toString()))
+            mockMvc.perform(
+                            get("/api/v1/auth/organizations")
+                                    .param("tenantId", tenantId.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
@@ -307,7 +311,7 @@ class OrganizationQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/organizations")
+                            get("/api/v1/auth/organizations")
                                     .param("tenantId", tenantId.toString())
                                     .param("page", "1")
                                     .param("size", "10"))
@@ -327,7 +331,7 @@ class OrganizationQueryControllerTest {
         @DisplayName("[실패] 테넌트 ID 없이 조회 시 400 Bad Request 반환")
         void searchOrganizations_withoutTenantId_returns400BadRequest() throws Exception {
             // When & Then
-            mockMvc.perform(get("/api/v1/organizations")).andExpect(status().isBadRequest());
+            mockMvc.perform(get("/api/v1/auth/organizations")).andExpect(status().isBadRequest());
         }
     }
 }

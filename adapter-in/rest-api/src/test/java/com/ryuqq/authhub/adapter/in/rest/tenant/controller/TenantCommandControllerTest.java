@@ -108,7 +108,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/tenants")
+                            post("/api/v1/auth/tenants")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -132,7 +132,7 @@ class TenantCommandControllerTest {
             // When & Then
             // GlobalExceptionHandler가 ProblemDetail (RFC 7807) 형식으로 반환
             mockMvc.perform(
-                            post("/api/v1/tenants")
+                            post("/api/v1/auth/tenants")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -150,7 +150,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/tenants")
+                            post("/api/v1/auth/tenants")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -167,7 +167,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/tenants")
+                            post("/api/v1/auth/tenants")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -185,7 +185,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/tenants")
+                            post("/api/v1/auth/tenants")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -224,7 +224,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/tenants/{id}/name", tenantId)
+                            put("/api/v1/auth/tenants/{id}/name", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -244,7 +244,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/tenants/{id}/name", tenantId)
+                            put("/api/v1/auth/tenants/{id}/name", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -262,7 +262,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/tenants/{id}/name", tenantId)
+                            put("/api/v1/auth/tenants/{id}/name", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -281,7 +281,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/tenants/{id}/name", tenantId)
+                            put("/api/v1/auth/tenants/{id}/name", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -320,7 +320,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/tenants/{id}/status", tenantId)
+                            patch("/api/v1/auth/tenants/{id}/status", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -355,7 +355,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/tenants/{id}/status", tenantId)
+                            patch("/api/v1/auth/tenants/{id}/status", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -374,7 +374,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/tenants/{id}/status", tenantId)
+                            patch("/api/v1/auth/tenants/{id}/status", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -392,7 +392,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/tenants/{id}/status", tenantId)
+                            patch("/api/v1/auth/tenants/{id}/status", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -410,7 +410,7 @@ class TenantCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/tenants/{id}/status", tenantId)
+                            patch("/api/v1/auth/tenants/{id}/status", tenantId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -435,7 +435,7 @@ class TenantCommandControllerTest {
             willDoNothing().given(deleteTenantUseCase).execute(any(DeleteTenantCommand.class));
 
             // When & Then
-            mockMvc.perform(patch("/api/v1/tenants/{id}/delete", tenantId))
+            mockMvc.perform(patch("/api/v1/auth/tenants/{id}/delete", tenantId))
                     .andExpect(status().isNoContent());
 
             verify(deleteTenantUseCase).execute(any(DeleteTenantCommand.class));
@@ -446,7 +446,7 @@ class TenantCommandControllerTest {
         void deleteTenant_withInvalidUuid_returns400BadRequest() throws Exception {
             // When & Then
             // @PathVariable UUID id 사용으로 Spring이 MethodArgumentTypeMismatchException 발생
-            mockMvc.perform(patch("/api/v1/tenants/{id}/delete", "invalid-uuid"))
+            mockMvc.perform(patch("/api/v1/auth/tenants/{id}/delete", "invalid-uuid"))
                     .andExpect(status().isBadRequest());
 
             verify(deleteTenantUseCase, never()).execute(any());

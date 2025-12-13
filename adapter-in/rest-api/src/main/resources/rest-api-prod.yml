@@ -12,6 +12,12 @@
 # Security Configuration Override (REQUIRED)
 # ===============================================
 security:
+  # 서비스 토큰 설정 (Internal API - Gateway → AuthHub)
+  service-token:
+    # 운영에서 서비스 토큰 인증 필수
+    enabled: true
+    # 서비스 토큰 시크릿 (Secrets Manager에서 주입)
+    secret: ${SERVICE_TOKEN_SECRET}
   jwt:
     # RSA 키 설정 (RSA 키가 Secrets Manager에 등록되면 활성화)
     # TODO: RSA 키 등록 후 enabled: true로 변경
@@ -34,14 +40,13 @@ security:
 # ===============================================
 # SpringDoc OpenAPI Configuration Override
 # ===============================================
-# 보안: 운영 환경에서 API 문서 노출 제어
+# 보안: 운영 환경에서는 환경변수로 제어 (기본값: 비활성화)
+# 활성화 시 SecurityPaths.TenantAdmin에서 TENANT_ADMIN 이상만 접근 허용
 springdoc:
   swagger-ui:
-    # 환경변수로 제어 (기본값: false)
     enabled: ${SWAGGER_ENABLED:false}
   api-docs:
-    # 환경변수로 제어 (기본값: false)
-    enabled: ${API_DOCS_ENABLED:false}
+    enabled: ${SWAGGER_ENABLED:false}
 
 # ===============================================
 # API Error Configuration Override

@@ -114,7 +114,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
 
         // When & Then
         mockMvc.perform(
-                        post("/api/v1/organizations")
+                        post("/api/v1/auth/organizations")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -151,7 +151,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
 
         // When & Then
         mockMvc.perform(
-                        put("/api/v1/organizations/{organizationId}", organizationId)
+                        put("/api/v1/auth/organizations/{organizationId}", organizationId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -206,7 +206,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
 
         // When & Then
         mockMvc.perform(
-                        patch("/api/v1/organizations/{organizationId}/status", organizationId)
+                        patch("/api/v1/auth/organizations/{organizationId}/status", organizationId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -245,7 +245,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                 .execute(any(DeleteOrganizationCommand.class));
 
         // When & Then
-        mockMvc.perform(patch("/api/v1/organizations/{organizationId}/delete", organizationId))
+        mockMvc.perform(patch("/api/v1/auth/organizations/{organizationId}/delete", organizationId))
                 .andExpect(status().isNoContent())
                 .andDo(
                         document(
@@ -280,7 +280,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
         given(mapper.toApiResponse(useCaseResponse)).willReturn(apiResponse);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/organizations/{organizationId}", organizationId))
+        mockMvc.perform(get("/api/v1/auth/organizations/{organizationId}", organizationId))
                 .andExpect(status().isOk())
                 .andDo(
                         document(
@@ -329,7 +329,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
         given(mapper.toApiResponse(any(OrganizationResponse.class))).willReturn(apiOrgResponse);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/organizations").param("tenantId", tenantId.toString()))
+        mockMvc.perform(get("/api/v1/auth/organizations").param("tenantId", tenantId.toString()))
                 .andExpect(status().isOk())
                 .andDo(
                         document(

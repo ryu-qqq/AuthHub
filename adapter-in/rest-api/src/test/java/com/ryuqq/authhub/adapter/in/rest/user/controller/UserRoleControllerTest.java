@@ -98,7 +98,7 @@ class UserRoleControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users/{userId}/roles", userId.toString())
+                            post("/api/v1/auth/users/{userId}/roles", userId.toString())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -127,7 +127,7 @@ class UserRoleControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users/{userId}/roles", userId.toString())
+                            post("/api/v1/auth/users/{userId}/roles", userId.toString())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -149,7 +149,7 @@ class UserRoleControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users/{userId}/roles", userId.toString())
+                            post("/api/v1/auth/users/{userId}/roles", userId.toString())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest());
@@ -175,7 +175,7 @@ class UserRoleControllerTest {
             // when & then
             mockMvc.perform(
                             patch(
-                                    "/api/v1/users/{userId}/roles/{roleId}/revoke",
+                                    "/api/v1/auth/users/{userId}/roles/{roleId}/revoke",
                                     userId.toString(),
                                     roleId.toString()))
                     .andExpect(status().isNoContent());
@@ -197,7 +197,7 @@ class UserRoleControllerTest {
             // when & then
             mockMvc.perform(
                             patch(
-                                    "/api/v1/users/{userId}/roles/{roleId}/revoke",
+                                    "/api/v1/auth/users/{userId}/roles/{roleId}/revoke",
                                     invalidUserId,
                                     roleId.toString()))
                     .andExpect(status().is4xxClientError());
@@ -216,7 +216,7 @@ class UserRoleControllerTest {
             // when & then
             mockMvc.perform(
                             patch(
-                                    "/api/v1/users/{userId}/roles/{roleId}/revoke",
+                                    "/api/v1/auth/users/{userId}/roles/{roleId}/revoke",
                                     userId.toString(),
                                     invalidRoleId))
                     .andExpect(status().is4xxClientError());

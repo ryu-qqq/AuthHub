@@ -110,7 +110,7 @@ class UserQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/users/{userId}", userId)
+                            get("/api/v1/auth/users/{userId}", userId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -146,7 +146,7 @@ class UserQueryControllerTest {
             // When & Then
             // GlobalExceptionHandler가 ProblemDetail (RFC 7807) 형식으로 반환
             mockMvc.perform(
-                            get("/api/v1/users/{userId}", userId)
+                            get("/api/v1/auth/users/{userId}", userId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status").value(404))
@@ -167,7 +167,7 @@ class UserQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/users/{userId}", invalidUuid)
+                            get("/api/v1/auth/users/{userId}", invalidUuid)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
@@ -212,7 +212,7 @@ class UserQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
 
             // When & Then
-            mockMvc.perform(get("/api/v1/users").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/auth/users").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
@@ -236,7 +236,7 @@ class UserQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/users")
+                            get("/api/v1/auth/users")
                                     .param("tenantId", tenantId.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -259,7 +259,7 @@ class UserQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/users")
+                            get("/api/v1/auth/users")
                                     .param("organizationId", organizationId.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -282,7 +282,7 @@ class UserQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/users")
+                            get("/api/v1/auth/users")
                                     .param("identifier", identifier)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -304,7 +304,7 @@ class UserQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/users")
+                            get("/api/v1/auth/users")
                                     .param("status", "ACTIVE")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -326,7 +326,7 @@ class UserQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/users")
+                            get("/api/v1/auth/users")
                                     .param("page", "1")
                                     .param("size", "10")
                                     .accept(MediaType.APPLICATION_JSON))
@@ -355,7 +355,7 @@ class UserQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/users")
+                            get("/api/v1/auth/users")
                                     .param("tenantId", tenantId.toString())
                                     .param("organizationId", organizationId.toString())
                                     .param("identifier", identifier)
@@ -381,7 +381,7 @@ class UserQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
             // When & Then
-            mockMvc.perform(get("/api/v1/users").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/auth/users").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())

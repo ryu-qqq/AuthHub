@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.tenant.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.CreateTenantApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.UpdateTenantNameApiRequest;
@@ -20,6 +21,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,9 +31,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * TenantCommandController - 테넌트 Command API 컨트롤러
+ * TenantCommandController - 테넌트 Command API 컨트롤러 (Admin)
  *
  * <p>테넌트 생성, 수정, 삭제 등 Command 작업을 처리합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/tenants (admin.connectly.com)
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
@@ -47,9 +51,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "Tenant", description = "테넌트 관리 API")
+@Tag(name = "Tenant", description = "테넌트 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/tenants")
+@RequestMapping(ApiPaths.Tenants.BASE)
 public class TenantCommandController {
 
     private final CreateTenantUseCase createTenantUseCase;
@@ -91,6 +95,7 @@ public class TenantCommandController {
                 responseCode = "409",
                 description = "중복된 테넌트 이름")
     })
+    @PreAuthorize("@access.superAdmin()")
     @PostMapping
     public ResponseEntity<
                     com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse<
@@ -122,6 +127,7 @@ public class TenantCommandController {
                 responseCode = "404",
                 description = "테넌트를 찾을 수 없음")
     })
+    @PreAuthorize("@access.superAdmin()")
     @PutMapping("/{id}/name")
     public ResponseEntity<
                     com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse<TenantApiResponse>>
@@ -154,6 +160,7 @@ public class TenantCommandController {
                 responseCode = "404",
                 description = "테넌트를 찾을 수 없음")
     })
+    @PreAuthorize("@access.superAdmin()")
     @PatchMapping("/{id}/status")
     public ResponseEntity<
                     com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse<TenantApiResponse>>
@@ -182,6 +189,7 @@ public class TenantCommandController {
                 responseCode = "404",
                 description = "테넌트를 찾을 수 없음")
     })
+    @PreAuthorize("@access.superAdmin()")
     @PatchMapping("/{id}/delete")
     public ResponseEntity<Void> deleteTenant(
             @Parameter(description = "테넌트 ID", required = true) @PathVariable UUID id) {

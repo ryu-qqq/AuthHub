@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantApiResponse;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -53,6 +55,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * @since 1.0.0
  */
 @WebMvcTest(TenantQueryController.class)
+@Import(ControllerTestSecurityConfig.class)
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("TenantQueryController 단위 테스트")
 @Tag("unit")
@@ -94,7 +97,7 @@ class TenantQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants/{tenantId}", tenantId)
+                            get("/api/v1/auth/tenants/{tenantId}", tenantId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -125,7 +128,7 @@ class TenantQueryControllerTest {
             // When & Then
             // GlobalExceptionHandler가 ProblemDetail (RFC 7807) 형식으로 반환
             mockMvc.perform(
-                            get("/api/v1/tenants/{tenantId}", tenantId)
+                            get("/api/v1/auth/tenants/{tenantId}", tenantId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status").value(404))
@@ -140,7 +143,7 @@ class TenantQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants/{tenantId}", invalidUuid)
+                            get("/api/v1/auth/tenants/{tenantId}", invalidUuid)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
@@ -175,7 +178,7 @@ class TenantQueryControllerTest {
 
             // When & Then
             // PageApiResponse는 직접 content, totalElements 등 필드를 반환 (success/data 래핑 없음)
-            mockMvc.perform(get("/api/v1/tenants").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/auth/tenants").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.totalElements").value(1));
@@ -208,7 +211,7 @@ class TenantQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants")
+                            get("/api/v1/auth/tenants")
                                     .param("name", "Test")
                                     .param("page", "0")
                                     .param("size", "10")
@@ -234,7 +237,7 @@ class TenantQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants")
+                            get("/api/v1/auth/tenants")
                                     .param("status", "ACTIVE")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -248,7 +251,7 @@ class TenantQueryControllerTest {
         void searchTenants_withNegativePage_returns400BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants")
+                            get("/api/v1/auth/tenants")
                                     .param("page", "-1")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
@@ -259,7 +262,7 @@ class TenantQueryControllerTest {
         void searchTenants_withZeroSize_returns400BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants")
+                            get("/api/v1/auth/tenants")
                                     .param("size", "0")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
@@ -270,7 +273,7 @@ class TenantQueryControllerTest {
         void searchTenants_withTooLargeSize_returns400BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/tenants")
+                            get("/api/v1/auth/tenants")
                                     .param("size", "101")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());

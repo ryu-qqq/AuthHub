@@ -124,7 +124,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions/{permissionId}", permissionId)
+                            get("/api/v1/auth/permissions/{permissionId}", permissionId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -159,7 +159,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions/{permissionId}", permissionId)
+                            get("/api/v1/auth/permissions/{permissionId}", permissionId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status").value(404))
@@ -177,7 +177,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions/{permissionId}", invalidUuid)
+                            get("/api/v1/auth/permissions/{permissionId}", invalidUuid)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
@@ -220,7 +220,7 @@ class PermissionQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
 
             // When & Then
-            mockMvc.perform(get("/api/v1/permissions").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/auth/permissions").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
@@ -264,7 +264,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions")
+                            get("/api/v1/auth/permissions")
                                     .param("resource", "tenant")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -309,7 +309,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions")
+                            get("/api/v1/auth/permissions")
                                     .param("action", "read")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -355,7 +355,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions")
+                            get("/api/v1/auth/permissions")
                                     .param("type", "SYSTEM")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -402,7 +402,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions")
+                            get("/api/v1/auth/permissions")
                                     .param("resource", "tenant")
                                     .param("action", "read")
                                     .param("type", "SYSTEM")
@@ -443,7 +443,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions/users/{userId}", userId)
+                            get("/api/v1/auth/permissions/users/{userId}", userId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -462,7 +462,7 @@ class PermissionQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/permissions/users/{userId}", invalidUuid)
+                            get("/api/v1/auth/permissions/users/{userId}", invalidUuid)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
@@ -480,7 +480,7 @@ class PermissionQueryControllerTest {
             EndpointPermissionResponse endpointPermission =
                     new EndpointPermissionResponse(
                             "auth-service",
-                            "/api/v1/tenants",
+                            "/api/v1/auth/tenants",
                             "GET",
                             List.of("tenant:read"),
                             List.of("ADMIN"),
@@ -490,7 +490,7 @@ class PermissionQueryControllerTest {
             EndpointPermissionApiResponse endpointApiResponse =
                     new EndpointPermissionApiResponse(
                             "auth-service",
-                            "/api/v1/tenants",
+                            "/api/v1/auth/tenants",
                             "GET",
                             List.of("tenant:read"),
                             List.of("ADMIN"),
@@ -503,14 +503,14 @@ class PermissionQueryControllerTest {
                     .willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/permissions/spec").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/auth/permissions/spec").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.version").value(1))
                     .andExpect(jsonPath("$.data.updatedAt").exists())
                     .andExpect(jsonPath("$.data.permissions").isArray())
                     .andExpect(jsonPath("$.data.permissions[0].serviceName").value("auth-service"))
-                    .andExpect(jsonPath("$.data.permissions[0].path").value("/api/v1/tenants"))
+                    .andExpect(jsonPath("$.data.permissions[0].path").value("/api/v1/auth/tenants"))
                     .andExpect(jsonPath("$.data.permissions[0].method").value("GET"));
 
             verify(getPermissionSpecUseCase).execute();
@@ -530,7 +530,7 @@ class PermissionQueryControllerTest {
                     .willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/permissions/spec").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/auth/permissions/spec").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.version").value(1))

@@ -139,7 +139,7 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/roles")
+                            post("/api/v1/auth/roles")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -193,7 +193,7 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            put("/api/v1/roles/{roleId}", roleId)
+                            put("/api/v1/auth/roles/{roleId}", roleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -232,7 +232,7 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
             given(mapper.toDeleteCommand(any(String.class))).willReturn(command);
 
             // when & then
-            mockMvc.perform(patch("/api/v1/roles/{roleId}/delete", roleId))
+            mockMvc.perform(patch("/api/v1/auth/roles/{roleId}/delete", roleId))
                     .andExpect(status().isNoContent())
                     .andDo(
                             document(
@@ -280,7 +280,7 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            get("/api/v1/roles/{roleId}", roleId)
+                            get("/api/v1/auth/roles/{roleId}", roleId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andDo(
@@ -348,7 +348,7 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            get("/api/v1/roles")
+                            get("/api/v1/auth/roles")
                                     .param("tenantId", tenantId.toString())
                                     .param("name", "ADMIN")
                                     .param("scope", "TENANT")
@@ -434,7 +434,7 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/roles/{roleId}/permissions", roleId)
+                            post("/api/v1/auth/roles/{roleId}/permissions", roleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -478,7 +478,7 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
             // when & then
             mockMvc.perform(
                             patch(
-                                    "/api/v1/roles/{roleId}/permissions/{permissionId}/revoke",
+                                    "/api/v1/auth/roles/{roleId}/permissions/{permissionId}/revoke",
                                     roleId,
                                     permissionId))
                     .andExpect(status().isNoContent())

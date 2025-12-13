@@ -112,7 +112,7 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
 
         // When & Then
         mockMvc.perform(
-                        post("/api/v1/tenants")
+                        post("/api/v1/auth/tenants")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -157,7 +157,7 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
 
         // When & Then
         mockMvc.perform(
-                        put("/api/v1/tenants/{tenantId}/name", tenantId)
+                        put("/api/v1/auth/tenants/{tenantId}/name", tenantId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -208,7 +208,7 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
 
         // When & Then
         mockMvc.perform(
-                        patch("/api/v1/tenants/{tenantId}/status", tenantId)
+                        patch("/api/v1/auth/tenants/{tenantId}/status", tenantId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -245,7 +245,7 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
         willDoNothing().given(deleteTenantUseCase).execute(any(DeleteTenantCommand.class));
 
         // When & Then
-        mockMvc.perform(patch("/api/v1/tenants/{tenantId}/delete", tenantId))
+        mockMvc.perform(patch("/api/v1/auth/tenants/{tenantId}/delete", tenantId))
                 .andExpect(status().isNoContent())
                 .andDo(
                         document(
@@ -271,7 +271,7 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
 
         // When & Then
         mockMvc.perform(
-                        get("/api/v1/tenants/{tenantId}", tenantId)
+                        get("/api/v1/auth/tenants/{tenantId}", tenantId)
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(
@@ -311,7 +311,7 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
 
         // When & Then
         mockMvc.perform(
-                        get("/api/v1/tenants")
+                        get("/api/v1/auth/tenants")
                                 .param("name", "Test")
                                 .param("status", "ACTIVE")
                                 .param("page", "0")

@@ -15,6 +15,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContextHolder;
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
@@ -53,6 +54,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -67,15 +70,16 @@ import org.springframework.http.MediaType;
  * <p>문서화 대상 엔드포인트:
  *
  * <ul>
- *   <li>POST /api/v1/users - 사용자 생성
- *   <li>PUT /api/v1/users/{userId} - 사용자 정보 수정
- *   <li>PATCH /api/v1/users/{userId}/status - 사용자 상태 변경
- *   <li>PATCH /api/v1/users/{userId}/password - 사용자 비밀번호 변경
- *   <li>PATCH /api/v1/users/{userId}/delete - 사용자 삭제
- *   <li>GET /api/v1/users/{userId} - 사용자 단건 조회
- *   <li>GET /api/v1/users - 사용자 목록 검색
- *   <li>POST /api/v1/users/{userId}/roles - 사용자 역할 할당
- *   <li>PATCH /api/v1/users/{userId}/roles/{roleId}/revoke - 사용자 역할 해제
+ *   <li>POST /api/v1/auth/users - 사용자 생성
+ *   <li>PUT /api/v1/auth/users/{userId} - 사용자 정보 수정
+ *   <li>PATCH /api/v1/auth/users/{userId}/status - 사용자 상태 변경
+ *   <li>PATCH /api/v1/auth/users/{userId}/password - 사용자 비밀번호 변경
+ *   <li>PATCH /api/v1/auth/users/{userId}/delete - 사용자 삭제
+ *   <li>GET /api/v1/auth/users/me - 내 정보 조회
+ *   <li>GET /api/v1/auth/users/{userId} - 사용자 단건 조회
+ *   <li>GET /api/v1/auth/users - 사용자 목록 검색
+ *   <li>POST /api/v1/auth/users/{userId}/roles - 사용자 역할 할당
+ *   <li>PATCH /api/v1/auth/users/{userId}/roles/{roleId}/revoke - 사용자 역할 해제
  * </ul>
  *
  * @author development-team
@@ -136,7 +140,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        post("/api/v1/users")
+                        post("/api/v1/auth/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -174,7 +178,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        put("/api/v1/users/{userId}", userId)
+                        put("/api/v1/auth/users/{userId}", userId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -211,7 +215,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        patch("/api/v1/users/{userId}/status", userId)
+                        patch("/api/v1/auth/users/{userId}/status", userId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -251,7 +255,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        patch("/api/v1/users/{userId}/password", userId)
+                        patch("/api/v1/auth/users/{userId}/password", userId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -283,7 +287,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
         given(mapper.toDeleteCommand(any(String.class))).willReturn(command);
 
         // when & then
-        mockMvc.perform(patch("/api/v1/users/{userId}/delete", userId))
+        mockMvc.perform(patch("/api/v1/auth/users/{userId}/delete", userId))
                 .andExpect(status().isNoContent())
                 .andDo(
                         document(
@@ -291,6 +295,61 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                 pathParameters(
                                         parameterWithName("userId")
                                                 .description("사용자 ID (UUID 형식)"))));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/me - 내 정보 조회")
+    void getMyInfo() throws Exception {
+        // given
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        UUID organizationId = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        UserResponse useCaseResponse =
+                new UserResponse(
+                        userId, tenantId, organizationId, "me@example.com", "ACTIVE", now, now);
+        UserApiResponse apiResponse =
+                new UserApiResponse(
+                        userId.toString(),
+                        tenantId.toString(),
+                        organizationId.toString(),
+                        "me@example.com",
+                        "ACTIVE",
+                        now,
+                        now);
+
+        try (MockedStatic<SecurityContextHolder> mockedStatic =
+                Mockito.mockStatic(SecurityContextHolder.class)) {
+            mockedStatic
+                    .when(SecurityContextHolder::getCurrentUserId)
+                    .thenReturn(userId.toString());
+
+            given(mapper.toGetQuery(userId.toString())).willReturn(new GetUserQuery(userId));
+            given(getUserUseCase.execute(any(GetUserQuery.class))).willReturn(useCaseResponse);
+            given(mapper.toApiResponse(any(UserResponse.class))).willReturn(apiResponse);
+
+            // when & then
+            mockMvc.perform(get("/api/v1/auth/users/me").accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andDo(
+                            document(
+                                    "user-me",
+                                    responseFields(
+                                            fieldWithPath("success").description("API 성공 여부"),
+                                            fieldWithPath("data").description("응답 데이터"),
+                                            fieldWithPath("data.userId").description("사용자 ID"),
+                                            fieldWithPath("data.tenantId").description("테넌트 ID"),
+                                            fieldWithPath("data.organizationId")
+                                                    .description("조직 ID"),
+                                            fieldWithPath("data.identifier").description("사용자 식별자"),
+                                            fieldWithPath("data.status").description("사용자 상태"),
+                                            fieldWithPath("data.createdAt").description("생성 일시"),
+                                            fieldWithPath("data.updatedAt").description("수정 일시"),
+                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
+                                            fieldWithPath("timestamp").description("응답 시간"),
+                                            fieldWithPath("requestId").description("요청 ID"))));
+        }
     }
 
     @Test
@@ -320,7 +379,9 @@ class UserControllerDocsTest extends RestDocsTestSupport {
         given(mapper.toApiResponse(any(UserResponse.class))).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(get("/api/v1/users/{userId}", userId).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(
+                        get("/api/v1/auth/users/{userId}", userId)
+                                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(
                         document(
@@ -375,7 +436,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        get("/api/v1/users")
+                        get("/api/v1/auth/users")
                                 .param("tenantId", tenantId.toString())
                                 .param("organizationId", organizationId.toString())
                                 .param("identifier", "test@example.com")
@@ -443,7 +504,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        post("/api/v1/users/{userId}/roles", userId.toString())
+                        post("/api/v1/auth/users/{userId}/roles", userId.toString())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -480,7 +541,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(
                         patch(
-                                "/api/v1/users/{userId}/roles/{roleId}/revoke",
+                                "/api/v1/auth/users/{userId}/roles/{roleId}/revoke",
                                 userId.toString(),
                                 roleId.toString()))
                 .andExpect(status().isNoContent())

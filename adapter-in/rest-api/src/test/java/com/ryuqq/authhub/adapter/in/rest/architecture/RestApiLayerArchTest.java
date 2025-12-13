@@ -84,10 +84,12 @@ class RestApiLayerArchTest {
                                 "..error..",
                                 "..config..",
                                 "..filter..",
-                                "..auth..")
+                                "..auth..",
+                                "..docs..",
+                                "..internal..")
                         .because(
                                 "REST API Layer는 controller, dto, mapper, error, config, filter,"
-                                        + " auth 패키지로 구성되어야 합니다");
+                                        + " auth, docs, internal 패키지로 구성되어야 합니다");
 
         rule.allowEmptyShould(true).check(classes);
     }
@@ -97,14 +99,19 @@ class RestApiLayerArchTest {
     @DisplayName("[권장] Bounded Context는 controller/dto/mapper/error 하위 패키지를 가져야 한다")
     void boundedContext_ShouldHaveStandardSubPackages() {
         // Note: 이 규칙은 템플릿 프로젝트에서는 검증하지 않음 (실제 BC 구현 시 적용)
-        // auth 패키지는 Cross-Cutting Concern으로 BC 규칙 적용 제외
+        // auth, docs, internal 패키지는 Cross-Cutting Concern으로 BC 규칙 적용 제외
         ArchRule rule =
                 classes()
                         .that()
                         .resideInAPackage("..adapter.in.rest..")
                         .and()
                         .resideOutsideOfPackages(
-                                "..common..", "..config..", "..auth..", "..architecture..")
+                                "..common..",
+                                "..config..",
+                                "..auth..",
+                                "..docs..",
+                                "..internal..",
+                                "..architecture..")
                         .should()
                         .resideInAnyPackage("..controller..", "..dto..", "..mapper..", "..error..")
                         .because("Bounded Context는 controller, dto, mapper, error 패키지로 구성되어야 합니다");

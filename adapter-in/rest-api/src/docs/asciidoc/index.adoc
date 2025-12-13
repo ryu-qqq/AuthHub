@@ -327,49 +327,49 @@ AuthHub에서 권한/설정 변경 시 Gateway 캐시를 무효화합니다.
 | JWKS 조회
 
 | POST
-| /api/v1/tenants
+| /api/v1/auth/tenants
 | SUPER_ADMIN
 | 테넌트 생성
 
 | GET
-| /api/v1/tenants
+| /api/v1/auth/tenants
 | SUPER_ADMIN
 | 테넌트 목록 조회
 
 | POST
-| /api/v1/organizations
+| /api/v1/auth/organizations
 | TENANT_ADMIN
 | 조직 생성
 
 | POST
-| /api/v1/users
-| SUPER_ADMIN, TENANT_ADMIN
+| /api/v1/auth/users
+| user:create
 | 사용자 생성
 
 | GET
-| /api/v1/users
-| SUPER_ADMIN, TENANT_ADMIN, ORG_ADMIN
+| /api/v1/auth/users
+| user:read
 | 사용자 목록 조회
 
 | GET
-| /api/v1/users/me
+| /api/v1/auth/users/me
 | Authenticated
 | 내 정보 조회
 
 | GET
-| /api/v1/roles
-| TENANT_ADMIN
+| /api/v1/auth/roles
+| role:read
 | 역할 목록 조회
 
-| POST
-| /api/v1/endpoint-permissions
+| GET
+| /api/v1/auth/permissions/spec
 | SUPER_ADMIN
-| 엔드포인트 권한 등록
+| 권한 명세 조회 (Gateway용)
 
 | GET
-| /api/v1/endpoint-permissions/spec
-| **Internal** (Gateway)
-| 권한 스펙 조회
+| /api/v1/internal/permissions/spec
+| **Internal** (X-Service-Token)
+| 권한 명세 조회 (Gateway Internal)
 |===
 
 [[api-v1]]
@@ -387,4 +387,4 @@ include::v1/role/role.adoc[]
 
 include::v1/permission/permission.adoc[]
 
-include::v1/endpoint-permission/endpoint-permission.adoc[]
+include::v1/internal/internal.adoc[]

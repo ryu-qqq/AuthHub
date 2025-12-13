@@ -116,7 +116,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/organizations")
+                            post("/api/v1/auth/organizations")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -140,7 +140,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/organizations")
+                            post("/api/v1/auth/organizations")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -160,7 +160,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/organizations")
+                            post("/api/v1/auth/organizations")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -179,7 +179,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/organizations")
+                            post("/api/v1/auth/organizations")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -199,7 +199,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/organizations")
+                            post("/api/v1/auth/organizations")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -230,7 +230,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/organizations/{organizationId}", organizationId)
+                            put("/api/v1/auth/organizations/{organizationId}", organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -248,7 +248,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/organizations/{organizationId}", organizationId)
+                            put("/api/v1/auth/organizations/{organizationId}", organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -266,7 +266,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/organizations/{organizationId}", organizationId)
+                            put("/api/v1/auth/organizations/{organizationId}", organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -285,7 +285,7 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/organizations/{organizationId}", organizationId)
+                            put("/api/v1/auth/organizations/{organizationId}", organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -337,7 +337,9 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/organizations/{organizationId}/status", organizationId)
+                            patch(
+                                            "/api/v1/auth/organizations/{organizationId}/status",
+                                            organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -386,7 +388,9 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/organizations/{organizationId}/status", organizationId)
+                            patch(
+                                            "/api/v1/auth/organizations/{organizationId}/status",
+                                            organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -406,7 +410,9 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/organizations/{organizationId}/status", organizationId)
+                            patch(
+                                            "/api/v1/auth/organizations/{organizationId}/status",
+                                            organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -425,7 +431,9 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/organizations/{organizationId}/status", organizationId)
+                            patch(
+                                            "/api/v1/auth/organizations/{organizationId}/status",
+                                            organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -444,7 +452,9 @@ class OrganizationCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/organizations/{organizationId}/status", organizationId)
+                            patch(
+                                            "/api/v1/auth/organizations/{organizationId}/status",
+                                            organizationId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -471,7 +481,10 @@ class OrganizationCommandControllerTest {
                     .execute(any(DeleteOrganizationCommand.class));
 
             // When & Then
-            mockMvc.perform(patch("/api/v1/organizations/{organizationId}/delete", organizationId))
+            mockMvc.perform(
+                            patch(
+                                    "/api/v1/auth/organizations/{organizationId}/delete",
+                                    organizationId))
                     .andExpect(status().isNoContent());
 
             verify(deleteOrganizationUseCase).execute(any(DeleteOrganizationCommand.class));
@@ -485,7 +498,10 @@ class OrganizationCommandControllerTest {
                     .willThrow(new IllegalArgumentException("Invalid UUID string: invalid-uuid"));
 
             // When & Then
-            mockMvc.perform(patch("/api/v1/organizations/{organizationId}/delete", "invalid-uuid"))
+            mockMvc.perform(
+                            patch(
+                                    "/api/v1/auth/organizations/{organizationId}/delete",
+                                    "invalid-uuid"))
                     .andExpect(status().isBadRequest());
 
             verify(deleteOrganizationUseCase, never()).execute(any());

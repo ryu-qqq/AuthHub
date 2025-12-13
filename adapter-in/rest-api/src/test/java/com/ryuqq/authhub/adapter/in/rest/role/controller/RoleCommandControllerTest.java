@@ -114,7 +114,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/roles")
+                            post("/api/v1/auth/roles")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -154,7 +154,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/roles")
+                            post("/api/v1/auth/roles")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -175,7 +175,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/roles")
+                            post("/api/v1/auth/roles")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -199,7 +199,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/roles")
+                            post("/api/v1/auth/roles")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -220,7 +220,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/roles")
+                            post("/api/v1/auth/roles")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -241,7 +241,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/roles")
+                            post("/api/v1/auth/roles")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -269,7 +269,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/roles/{roleId}", roleId)
+                            put("/api/v1/auth/roles/{roleId}", roleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -287,7 +287,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/roles/{roleId}", roleId)
+                            put("/api/v1/auth/roles/{roleId}", roleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -306,7 +306,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/roles/{roleId}", roleId)
+                            put("/api/v1/auth/roles/{roleId}", roleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -325,7 +325,7 @@ class RoleCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            put("/api/v1/roles/{roleId}", roleId)
+                            put("/api/v1/auth/roles/{roleId}", roleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -350,7 +350,7 @@ class RoleCommandControllerTest {
             willDoNothing().given(deleteRoleUseCase).execute(any(DeleteRoleCommand.class));
 
             // When & Then
-            mockMvc.perform(patch("/api/v1/roles/{roleId}/delete", roleId))
+            mockMvc.perform(patch("/api/v1/auth/roles/{roleId}/delete", roleId))
                     .andExpect(status().isNoContent());
 
             verify(deleteRoleUseCase).execute(any(DeleteRoleCommand.class));
@@ -364,7 +364,7 @@ class RoleCommandControllerTest {
                     .willThrow(new IllegalArgumentException("Invalid UUID string: invalid-uuid"));
 
             // When & Then
-            mockMvc.perform(patch("/api/v1/roles/{roleId}/delete", "invalid-uuid"))
+            mockMvc.perform(patch("/api/v1/auth/roles/{roleId}/delete", "invalid-uuid"))
                     .andExpect(status().isBadRequest());
 
             verify(deleteRoleUseCase, never()).execute(any());

@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.organization.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.query.SearchOrganizationsApiRequest;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,9 +23,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * OrganizationQueryController - 조직 Query API 컨트롤러
+ * OrganizationQueryController - 조직 Query API 컨트롤러 (Admin)
  *
  * <p>조직 조회 등 Query 작업을 처리합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/organizations (admin.connectly.com)
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
@@ -38,9 +42,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "Organization", description = "조직 관리 API")
+@Tag(name = "Organization", description = "조직 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/organizations")
+@RequestMapping(ApiPaths.Organizations.BASE)
 public class OrganizationQueryController {
 
     private final GetOrganizationUseCase getOrganizationUseCase;
@@ -73,6 +77,7 @@ public class OrganizationQueryController {
                 responseCode = "404",
                 description = "조직을 찾을 수 없음")
     })
+    @PreAuthorize("@access.organization(#organizationId, 'read')")
     @GetMapping("/{organizationId}")
     public ResponseEntity<ApiResponse<OrganizationApiResponse>> getOrganization(
             @Parameter(description = "조직 ID", required = true) @PathVariable
@@ -101,6 +106,7 @@ public class OrganizationQueryController {
                 responseCode = "200",
                 description = "조회 성공")
     })
+    @PreAuthorize("@access.superAdmin() or @access.sameTenant(#tenantId)")
     @GetMapping
     public ResponseEntity<ApiResponse<PageApiResponse<OrganizationApiResponse>>>
             searchOrganizations(
