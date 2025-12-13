@@ -515,10 +515,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#user-update-status">6.4.3. 사용자 상태 변경</a></li>
 <li><a href="#user-update-password">6.4.4. 비밀번호 변경</a></li>
 <li><a href="#user-delete">6.4.5. 사용자 삭제</a></li>
-<li><a href="#user-get">6.4.6. 사용자 단건 조회</a></li>
-<li><a href="#user-search">6.4.7. 사용자 목록 조회</a></li>
-<li><a href="#user-role-assign">6.4.8. 사용자 역할 할당</a></li>
-<li><a href="#user-role-revoke">6.4.9. 사용자 역할 해제</a></li>
+<li><a href="#user-me">6.4.6. 내 정보 조회</a></li>
+<li><a href="#user-get">6.4.7. 사용자 단건 조회</a></li>
+<li><a href="#user-search">6.4.8. 사용자 목록 조회</a></li>
+<li><a href="#user-role-assign">6.4.9. 사용자 역할 할당</a></li>
+<li><a href="#user-role-revoke">6.4.10. 사용자 역할 해제</a></li>
 </ul>
 </li>
 <li><a href="#role">6.5. 역할 (Role)</a>
@@ -540,17 +541,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#permission-get">6.6.4. 권한 단건 조회</a></li>
 <li><a href="#permission-search">6.6.5. 권한 목록 조회</a></li>
 <li><a href="#permission-user">6.6.6. 사용자 권한 조회</a></li>
-<li><a href="#permission-spec">6.6.7. 권한 명세 조회</a></li>
 </ul>
 </li>
-<li><a href="#endpoint-permission">6.7. 엔드포인트 권한 (Endpoint Permission)</a>
+<li><a href="#internal">6.7. Internal API (서비스 간 통신)</a>
 <ul class="sectlevel3">
-<li><a href="#endpoint-permission-create">6.7.1. 엔드포인트 권한 생성</a></li>
-<li><a href="#endpoint-permission-update">6.7.2. 엔드포인트 권한 수정</a></li>
-<li><a href="#endpoint-permission-delete">6.7.3. 엔드포인트 권한 삭제</a></li>
-<li><a href="#endpoint-permission-get">6.7.4. 엔드포인트 권한 단건 조회</a></li>
-<li><a href="#endpoint-permission-search">6.7.5. 엔드포인트 권한 목록 조회</a></li>
-<li><a href="#endpoint-permission-spec">6.7.6. 서비스별 엔드포인트 권한 스펙 조회 (Gateway용)</a></li>
+<li><a href="#internal-authentication">6.7.1. 인증 방식</a></li>
+<li><a href="#internal-user-permissions">6.7.2. 사용자 권한 조회 (Gateway용)</a></li>
+<li><a href="#internal-vs-admin-api">6.7.3. Internal API vs Admin API 비교</a></li>
 </ul>
 </li>
 </ul>
@@ -566,7 +563,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>AuthHub는 마이크로서비스 아키텍처의 <strong>인증/인가 중앙 서버</strong>입니다.</p>
 </div>
 <div class="paragraph">
-<p>JWT 발급, 사용자/테넌트/조직/역할/권한 관리, 엔드포인트 권한 명세 제공을 담당합니다.</p>
+<p>JWT 발급, 사용자/테넌트/조직/역할/권한 관리를 담당합니다.</p>
 </div>
 <div class="sect2">
 <h3 id="_base_url"><a class="link" href="#_base_url">1.1. Base URL</a></h3>
@@ -612,7 +609,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 │  ┌───────────────────────────────────────────────────────────────────────────┐  │
 │  │ 1. JWT 검증 (AuthHub JWKS로 RS256 공개키 조회)                             │  │
 │  │ 2. Rate Limiting (IP/User 기반)                                           │  │
-│  │ 3. Permission 검사 (AuthHub의 Endpoint Permission Spec 사용)               │  │
+│  │ 3. Permission 검사 (@PreAuthorize 어노테이션 기반)                          │  │
 │  │ 4. 헤더 주입 → X-User-Id, X-Tenant-Id, X-User-Roles                       │  │
 │  └───────────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────────┘
@@ -627,8 +624,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 │ • 사용자 관리    │          │ • 비즈니스 로직만 │          │ • 비즈니스 로직만 │
 │ • 테넌트/조직관리│          │   집중           │          │   집중           │
 │ • 역할/권한 관리 │          │                  │          │                  │
-│ • Endpoint 권한  │          │                  │          │                  │
-│   Spec 관리/제공 │          │                  │          │                  │
 └──────────────────┘          └──────────────────┘          └──────────────────┘</code></pre>
 </div>
 </div>
@@ -649,7 +644,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>AuthHub</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">인증(JWT 발급), JWKS 제공, 사용자/테넌트/조직/역할/권한 관리, Endpoint Permission Spec 관리</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">인증(JWT 발급), JWKS 제공, 사용자/테넌트/조직/역할/권한 관리</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Gateway</strong></p></td>
@@ -681,7 +676,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
      │                               │                              │
      │                               │  3. Verify JWT Signature     │
      │                               │  4. Extract Claims           │
-     │                               │  5. Check Permission Spec    │
+     │                               │  5. Check User Permissions   │
      │                               │  6. Inject Headers           │
      │                               │                              │
      │  7. Response                  │                              │
@@ -714,42 +709,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">┌─────────────────────────────────────────────────────────────────────────────────┐
-│                 1. Endpoint Permission 등록 (AuthHub 관리)                       │
+│                     @PreAuthorize 기반 권한 검사                                 │
 │  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │ POST /api/v1/endpoint-permissions                                        │    │
-│  │ {                                                                        │    │
-│  │   "httpMethod": "POST",                                                  │    │
-│  │   "pathPattern": "/api/v1/orders",                                       │    │
-│  │   "serviceName": "order-service",                                        │    │
-│  │   "requiredRoles": ["TENANT_ADMIN", "ORDER_MANAGER"],                    │    │
-│  │   "requiredPermissions": ["order:create"],                               │    │
-│  │   "isPublic": false                                                      │    │
-│  │ }                                                                        │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                  2. Gateway가 Permission Spec 조회/캐싱                          │
-│  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │ GET /api/v1/endpoint-permissions/spec                                    │    │
+│  │ 1. Gateway에서 JWT 검증 및 헤더 주입                                      │    │
+│  │    - X-User-Id, X-Tenant-Id, X-Roles, X-Permissions                      │    │
 │  │                                                                          │    │
-│  │ Redis Cache:                                                             │    │
-│  │   "POST:/api/v1/orders" → {roles: [...], permissions: [...]}            │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                     3. 요청 시 Permission 검사 (Gateway)                         │
-│  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │ Client: POST /api/v1/orders (Bearer Token)                               │    │
+│  │ 2. AuthHub Controller에서 @PreAuthorize로 권한 검사                       │    │
+│  │    - @PreAuthorize("@access.hasPermission('user:read')")                 │    │
+│  │    - @PreAuthorize("@access.hasRole('SUPER_ADMIN')")                     │    │
+│  │    - @PreAuthorize("@access.superAdmin()")                               │    │
 │  │                                                                          │    │
-│  │ Gateway PermissionFilter:                                                │    │
-│  │   1. JWT Claims에서 roles, permissions 추출                              │    │
-│  │   2. "POST:/api/v1/orders" 권한 스펙 조회                                │    │
-│  │   3. 사용자 roles/permissions와 비교 (OR 조건)                           │    │
-│  │   4. 매칭되면 통과, 아니면 403 Forbidden                                 │    │
+│  │ 3. 권한 없으면 403 Forbidden 반환                                         │    │
 │  └─────────────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────────────┘</code></pre>
 </div>
@@ -833,11 +803,6 @@ ORG_USER (tenant_id = N, organization_id = M, scope = ORGANIZATION)
 <td class="tableblock halign-left valign-top"><p class="tableblock">Public Key 변경</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">RSA 키 로테이션</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>/actuator/refresh-public-keys</code></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Permission Spec 변경</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 변경</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/webhooks/permission/spec-sync</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">사용자 권한 변경</p></td>
@@ -979,57 +944,51 @@ ORG_USER (tenant_id = N, organization_id = M, scope = ORGANIZATION)
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/tenants</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/tenants</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">SUPER_ADMIN</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">테넌트 생성</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/tenants</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/tenants</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">SUPER_ADMIN</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">테넌트 목록 조회</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/organizations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/organizations</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">TENANT_ADMIN</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">조직 생성</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/users</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SUPER_ADMIN, TENANT_ADMIN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/users</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">user:create</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">사용자 생성</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/users</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SUPER_ADMIN, TENANT_ADMIN, ORG_ADMIN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/users</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">user:read</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">사용자 목록 조회</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/users/me</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/users/me</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Authenticated</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">내 정보 조회</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/roles</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">TENANT_ADMIN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/roles</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">role:read</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">역할 목록 조회</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/endpoint-permissions</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SUPER_ADMIN</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 등록</p></td>
-</tr>
-<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/endpoint-permissions/spec</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Internal</strong> (Gateway)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">권한 스펙 조회</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/permissions/users/{userId}</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SUPER_ADMIN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 권한 조회</p></td>
 </tr>
 </tbody>
 </table>
@@ -1054,11 +1013,10 @@ ORG_USER (tenant_id = N, organization_id = M, scope = ORGANIZATION)
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/login HTTP/1.1
 Content-Type: application/json
-Content-Length: 125
+Content-Length: 70
 Host: localhost:8080
 
 {
-  "tenantId" : "e0eb9663-75e5-472c-9325-3a55e0eee6a8",
   "identifier" : "user@example.com",
   "password" : "password123!"
 }</code></pre>
@@ -1081,11 +1039,6 @@ Host: localhost:8080
 </tr>
 </thead>
 <tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tenantId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">테넌트 ID (UUID 형식)</p></td>
-</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>identifier</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
@@ -1110,15 +1063,15 @@ Content-Length: 414
 {
   "success" : true,
   "data" : {
-    "userId" : "c65b2ea1-548f-4e54-a640-76fac6c38ef2",
+    "userId" : "9c97a534-8819-4197-a4cc-12264ebe2103",
     "accessToken" : "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.signature",
     "refreshToken" : "refresh_token_abc123",
     "expiresIn" : 3600,
     "tokenType" : "Bearer"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:26.225848",
-  "requestId" : "req-1765439126225"
+  "timestamp" : "2025-12-13T23:32:40.371221",
+  "requestId" : "req-1765636360371"
 }</code></pre>
 </div>
 </div>
@@ -1250,8 +1203,8 @@ Content-Length: 411
     "tokenType" : "Bearer"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:26.190399",
-  "requestId" : "req-1765439126190"
+  "timestamp" : "2025-12-13T23:32:40.341636",
+  "requestId" : "req-1765636360341"
 }</code></pre>
 </div>
 </div>
@@ -1336,7 +1289,7 @@ Content-Length: 55
 Host: localhost:8080
 
 {
-  "userId" : "f76a0cb9-504f-4796-ac11-3466ab900d07"
+  "userId" : "551d0593-4d66-4c4a-b2ab-b9b9d77f7d60"
 }</code></pre>
 </div>
 </div>
@@ -1377,8 +1330,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:26.155614",
-  "requestId" : "req-1765439126155"
+  "timestamp" : "2025-12-13T23:32:40.312201",
+  "requestId" : "req-1765636360312"
 }</code></pre>
 </div>
 </div>
@@ -1490,7 +1443,7 @@ Content-Length: 489
 <h5 id="_http_request_5"><a class="link" href="#_http_request_5">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/tenants HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/tenants HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -1536,11 +1489,11 @@ Content-Length: 197
 {
   "success" : true,
   "data" : {
-    "tenantId" : "78b7b333-d3d0-4685-ab46-ef3ea787c1f5"
+    "tenantId" : "709c4434-6520-461a-b9c4-7a89b78fdf8c"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:32.974383",
-  "requestId" : "req-1765439132974"
+  "timestamp" : "2025-12-13T23:32:44.885602",
+  "requestId" : "req-1765636364885"
 }</code></pre>
 </div>
 </div>
@@ -1604,7 +1557,7 @@ Content-Length: 197
 <h5 id="_http_request_6"><a class="link" href="#_http_request_6">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/tenants/b3049e6c-6fb2-4b51-9d95-1eae689b9d9e/name HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/tenants/2f3c29e4-6ac6-4ce8-958b-41ab14ad0760/name HTTP/1.1
 Content-Type: application/json
 Content-Length: 30
 Host: localhost:8080
@@ -1618,7 +1571,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters"><a class="link" href="#_path_parameters">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. /api/v1/tenants/{tenantId}/name</caption>
+<caption class="title">Table 1. /api/v1/auth/tenants/{tenantId}/name</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1672,15 +1625,15 @@ Content-Length: 350
 {
   "success" : true,
   "data" : {
-    "tenantId" : "b3049e6c-6fb2-4b51-9d95-1eae689b9d9e",
+    "tenantId" : "2f3c29e4-6ac6-4ce8-958b-41ab14ad0760",
     "name" : "NewTenantName",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:32.950778Z",
-    "updatedAt" : "2025-12-11T07:45:32.950778Z"
+    "createdAt" : "2025-12-13T14:32:44.857573Z",
+    "updatedAt" : "2025-12-13T14:32:44.857573Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:32.954037",
-  "requestId" : "req-1765439132954"
+  "timestamp" : "2025-12-13T23:32:44.861095",
+  "requestId" : "req-1765636364861"
 }</code></pre>
 </div>
 </div>
@@ -1695,7 +1648,7 @@ Content-Length: 350
 <h5 id="_http_request_7"><a class="link" href="#_http_request_7">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/tenants/6f94ef3e-201f-495d-96a7-55de1985939c/status HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/tenants/c874702b-deef-459a-8a91-a9098e21e873/status HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -1709,7 +1662,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_2"><a class="link" href="#_path_parameters_2">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 2. /api/v1/tenants/{tenantId}/status</caption>
+<caption class="title">Table 2. /api/v1/auth/tenants/{tenantId}/status</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1763,15 +1716,15 @@ Content-Length: 349
 {
   "success" : true,
   "data" : {
-    "tenantId" : "6f94ef3e-201f-495d-96a7-55de1985939c",
+    "tenantId" : "c874702b-deef-459a-8a91-a9098e21e873",
     "name" : "TestTenant",
     "status" : "INACTIVE",
-    "createdAt" : "2025-12-11T07:45:32.961946Z",
-    "updatedAt" : "2025-12-11T07:45:32.961946Z"
+    "createdAt" : "2025-12-13T14:32:44.870421Z",
+    "updatedAt" : "2025-12-13T14:32:44.870421Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:32.964439",
-  "requestId" : "req-1765439132964"
+  "timestamp" : "2025-12-13T23:32:44.873713",
+  "requestId" : "req-1765636364873"
 }</code></pre>
 </div>
 </div>
@@ -1786,7 +1739,7 @@ Content-Length: 349
 <h5 id="_http_request_8"><a class="link" href="#_http_request_8">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/tenants/898eb3f7-ad32-4f37-be9a-a02b88d568dc/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/tenants/9bdf79b9-f578-4cbd-abad-2eae372d6039/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -1795,7 +1748,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_3"><a class="link" href="#_path_parameters_3">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 3. /api/v1/tenants/{tenantId}/delete</caption>
+<caption class="title">Table 3. /api/v1/auth/tenants/{tenantId}/delete</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1832,7 +1785,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <h5 id="_http_request_9"><a class="link" href="#_http_request_9">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/tenants/84eed883-5778-41ef-b6ec-b19c5f015dcd HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/tenants/4afac226-79dc-4614-b635-aaf3580d1ff4 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -1841,7 +1794,7 @@ Host: localhost:8080</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_4"><a class="link" href="#_path_parameters_4">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 4. /api/v1/tenants/{tenantId}</caption>
+<caption class="title">Table 4. /api/v1/auth/tenants/{tenantId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1871,15 +1824,15 @@ Content-Length: 347
 {
   "success" : true,
   "data" : {
-    "tenantId" : "84eed883-5778-41ef-b6ec-b19c5f015dcd",
+    "tenantId" : "4afac226-79dc-4614-b635-aaf3580d1ff4",
     "name" : "TestTenant",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:32.940171Z",
-    "updatedAt" : "2025-12-11T07:45:32.940171Z"
+    "createdAt" : "2025-12-13T14:32:44.846919Z",
+    "updatedAt" : "2025-12-13T14:32:44.846919Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:32.940997",
-  "requestId" : "req-1765439132940"
+  "timestamp" : "2025-12-13T23:32:44.847754",
+  "requestId" : "req-1765636364847"
 }</code></pre>
 </div>
 </div>
@@ -1963,7 +1916,7 @@ Content-Length: 347
 <h5 id="_http_request_10"><a class="link" href="#_http_request_10">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/tenants?name=Test&amp;status=ACTIVE&amp;page=0&amp;size=10 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/tenants?name=Test&amp;status=ACTIVE&amp;page=0&amp;size=10 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -2012,11 +1965,11 @@ Content-Length: 340
 
 {
   "content" : [ {
-    "tenantId" : "beaed55e-9874-440a-a4ab-f668367f5d7f",
+    "tenantId" : "099fc7e8-7612-41fc-a35d-70cd73ff93db",
     "name" : "TestTenant",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:32.920990Z",
-    "updatedAt" : "2025-12-11T07:45:32.920990Z"
+    "createdAt" : "2025-12-13T14:32:44.826512Z",
+    "updatedAt" : "2025-12-13T14:32:44.826512Z"
   } ],
   "page" : 0,
   "size" : 20,
@@ -2123,13 +2076,13 @@ Content-Length: 340
 <h5 id="_http_request_11"><a class="link" href="#_http_request_11">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/organizations HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/organizations HTTP/1.1
 Content-Type: application/json
 Content-Length: 88
 Host: localhost:8080
 
 {
-  "tenantId" : "ef75a818-81a5-4265-83ce-60b975e8837b",
+  "tenantId" : "9431d7f4-7288-477e-b190-e3f7fa8fe0fa",
   "name" : "TestOrganization"
 }</code></pre>
 </div>
@@ -2175,11 +2128,11 @@ Content-Length: 203
 {
   "success" : true,
   "data" : {
-    "organizationId" : "bd29ca85-0208-466e-a62f-18de8bd5214c"
+    "organizationId" : "8a1f44f1-8067-4f15-9e19-b85287f39a8a"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:29.149844",
-  "requestId" : "req-1765439129149"
+  "timestamp" : "2025-12-13T23:32:41.556943",
+  "requestId" : "req-1765636361556"
 }</code></pre>
 </div>
 </div>
@@ -2243,7 +2196,7 @@ Content-Length: 203
 <h5 id="_http_request_12"><a class="link" href="#_http_request_12">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/organizations/0f4fe0a3-9f1d-4558-80f0-ccfde4e18b85 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/organizations/b34f0a16-ea2b-4576-a2e6-408827476ed7 HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -2257,7 +2210,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_5"><a class="link" href="#_path_parameters_5">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 5. /api/v1/organizations/{organizationId}</caption>
+<caption class="title">Table 5. /api/v1/auth/organizations/{organizationId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -2312,8 +2265,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:29.181236",
-  "requestId" : "req-1765439129181"
+  "timestamp" : "2025-12-13T23:32:41.578929",
+  "requestId" : "req-1765636361578"
 }</code></pre>
 </div>
 </div>
@@ -2328,7 +2281,7 @@ Content-Length: 140
 <h5 id="_http_request_13"><a class="link" href="#_http_request_13">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/organizations/3e8df95b-aef3-4974-b89f-93465410beac/status HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/organizations/3799703d-f029-4fba-a268-0ee46c3bc4a4/status HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -2342,7 +2295,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_6"><a class="link" href="#_path_parameters_6">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 6. /api/v1/organizations/{organizationId}/status</caption>
+<caption class="title">Table 6. /api/v1/auth/organizations/{organizationId}/status</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -2396,16 +2349,16 @@ Content-Length: 409
 {
   "success" : true,
   "data" : {
-    "organizationId" : "3e8df95b-aef3-4974-b89f-93465410beac",
-    "tenantId" : "4ec33f9b-2684-4851-88aa-ac7352cdbaa5",
+    "organizationId" : "3799703d-f029-4fba-a268-0ee46c3bc4a4",
+    "tenantId" : "7bdbcc89-26b9-4a80-a7d2-b2d2f8a7833c",
     "name" : "TestOrg",
     "status" : "INACTIVE",
-    "createdAt" : "2025-12-11T07:45:29.280340Z",
-    "updatedAt" : "2025-12-11T07:45:29.280340Z"
+    "createdAt" : "2025-12-13T14:32:41.615472Z",
+    "updatedAt" : "2025-12-13T14:32:41.615473Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:29.284649",
-  "requestId" : "req-1765439129284"
+  "timestamp" : "2025-12-13T23:32:41.619515",
+  "requestId" : "req-1765636361619"
 }</code></pre>
 </div>
 </div>
@@ -2420,7 +2373,7 @@ Content-Length: 409
 <h5 id="_http_request_14"><a class="link" href="#_http_request_14">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/organizations/7aae7d91-36b3-4037-b73d-7059dc0322a3/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/organizations/1337c7ee-7a7e-47bf-b4ef-f782dc51f5dd/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -2429,7 +2382,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_7"><a class="link" href="#_path_parameters_7">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 7. /api/v1/organizations/{organizationId}/delete</caption>
+<caption class="title">Table 7. /api/v1/auth/organizations/{organizationId}/delete</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -2466,7 +2419,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <h5 id="_http_request_15"><a class="link" href="#_http_request_15">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/organizations/3a298857-8076-474b-9d0a-59b08dfc18b6 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/organizations/61add2b4-e8a4-4774-8091-6483de949aac HTTP/1.1
 Host: localhost:8080</code></pre>
 </div>
 </div>
@@ -2474,7 +2427,7 @@ Host: localhost:8080</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_8"><a class="link" href="#_path_parameters_8">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 8. /api/v1/organizations/{organizationId}</caption>
+<caption class="title">Table 8. /api/v1/auth/organizations/{organizationId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -2499,21 +2452,21 @@ Host: localhost:8080</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 406
+Content-Length: 407
 
 {
   "success" : true,
   "data" : {
-    "organizationId" : "3a298857-8076-474b-9d0a-59b08dfc18b6",
-    "tenantId" : "83429552-64ce-4354-af04-a4e26e5c90d3",
+    "organizationId" : "61add2b4-e8a4-4774-8091-6483de949aac",
+    "tenantId" : "4249f313-31f6-4682-b3a6-31e19bdf5191",
     "name" : "TestOrg",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:29.114793Z",
-    "updatedAt" : "2025-12-11T07:45:29.114793Z"
+    "createdAt" : "2025-12-13T14:32:41.532036Z",
+    "updatedAt" : "2025-12-13T14:32:41.532036Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:29.11794",
-  "requestId" : "req-1765439129117"
+  "timestamp" : "2025-12-13T23:32:41.534414",
+  "requestId" : "req-1765636361534"
 }</code></pre>
 </div>
 </div>
@@ -2602,7 +2555,7 @@ Content-Length: 406
 <h5 id="_http_request_16"><a class="link" href="#_http_request_16">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/organizations?tenantId=9ce2296c-98f4-4bbf-a975-b005a53d3401 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/organizations?tenantId=8ef79c0d-e0bc-4653-8ccb-45d210c7eb26 HTTP/1.1
 Host: localhost:8080</code></pre>
 </div>
 </div>
@@ -2656,12 +2609,12 @@ Content-Length: 566
   "success" : true,
   "data" : {
     "content" : [ {
-      "organizationId" : "7026f693-55f9-40d2-ae5f-d33a075b3908",
-      "tenantId" : "9ce2296c-98f4-4bbf-a975-b005a53d3401",
+      "organizationId" : "b9c43c7b-7a32-4523-991b-b18e71880028",
+      "tenantId" : "8ef79c0d-e0bc-4653-8ccb-45d210c7eb26",
       "name" : "TestOrg",
       "status" : "ACTIVE",
-      "createdAt" : "2025-12-11T07:45:29.236617Z",
-      "updatedAt" : "2025-12-11T07:45:29.236617Z"
+      "createdAt" : "2025-12-13T14:32:41.589359Z",
+      "updatedAt" : "2025-12-13T14:32:41.589359Z"
     } ],
     "page" : 0,
     "size" : 20,
@@ -2671,8 +2624,8 @@ Content-Length: 566
     "last" : true
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:29.248348",
-  "requestId" : "req-1765439129248"
+  "timestamp" : "2025-12-13T23:32:41.593305",
+  "requestId" : "req-1765636361593"
 }</code></pre>
 </div>
 </div>
@@ -2802,14 +2755,14 @@ Content-Length: 566
 <h5 id="_http_request_17"><a class="link" href="#_http_request_17">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/users HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/users HTTP/1.1
 Content-Type: application/json
 Content-Length: 185
 Host: localhost:8080
 
 {
-  "tenantId" : "af26c58e-4f0c-4e4d-8f96-92fad7b9d50a",
-  "organizationId" : "972df2d5-5025-4e8b-bf00-4d2fe4c02d05",
+  "tenantId" : "d1a6f5d4-a6b3-4950-a8cb-cf761cc712ab",
+  "organizationId" : "c8b88f2d-7e40-4778-a0c7-7fa3644b9087",
   "identifier" : "user@example.com",
   "password" : "password123"
 }</code></pre>
@@ -2861,16 +2814,16 @@ Host: localhost:8080
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
 Content-Type: application/json
-Content-Length: 195
+Content-Length: 193
 
 {
   "success" : true,
   "data" : {
-    "userId" : "1a99dc0e-f503-4948-9d19-8a00a2d9766a"
+    "userId" : "ba1ddd83-b79f-4bb1-a097-a371c19ff750"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.924932",
-  "requestId" : "req-1765439133924"
+  "timestamp" : "2025-12-13T23:32:45.9029",
+  "requestId" : "req-1765636365902"
 }</code></pre>
 </div>
 </div>
@@ -2934,7 +2887,7 @@ Content-Length: 195
 <h5 id="_http_request_18"><a class="link" href="#_http_request_18">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/users/80d75ded-60e3-4062-9624-b9e61ba733b9 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/users/9c8c035b-0cc2-48d2-960e-fd47d7764235 HTTP/1.1
 Content-Type: application/json
 Content-Length: 42
 Host: localhost:8080
@@ -2948,7 +2901,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_9"><a class="link" href="#_path_parameters_9">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 9. /api/v1/users/{userId}</caption>
+<caption class="title">Table 9. /api/v1/auth/users/{userId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -3003,8 +2956,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.885203",
-  "requestId" : "req-1765439133885"
+  "timestamp" : "2025-12-13T23:32:45.819889",
+  "requestId" : "req-1765636365819"
 }</code></pre>
 </div>
 </div>
@@ -3019,7 +2972,7 @@ Content-Length: 140
 <h5 id="_http_request_19"><a class="link" href="#_http_request_19">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/94f3cdc5-4007-4044-87e8-580e775facb9/status HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/f9adbd4f-d75b-4fcd-a437-7c3750c5ee4a/status HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -3033,7 +2986,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_10"><a class="link" href="#_path_parameters_10">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 10. /api/v1/users/{userId}/status</caption>
+<caption class="title">Table 10. /api/v1/auth/users/{userId}/status</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -3088,8 +3041,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.903059",
-  "requestId" : "req-1765439133903"
+  "timestamp" : "2025-12-13T23:32:45.838178",
+  "requestId" : "req-1765636365838"
 }</code></pre>
 </div>
 </div>
@@ -3104,7 +3057,7 @@ Content-Length: 140
 <h5 id="_http_request_20"><a class="link" href="#_http_request_20">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/e8077f3b-0c65-44c5-8288-b9420548a568/password HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/934d7eab-a662-4879-aaef-277517841467/password HTTP/1.1
 Content-Type: application/json
 Content-Length: 78
 Host: localhost:8080
@@ -3119,7 +3072,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_11"><a class="link" href="#_path_parameters_11">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 11. /api/v1/users/{userId}/password</caption>
+<caption class="title">Table 11. /api/v1/auth/users/{userId}/password</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -3179,8 +3132,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.876425",
-  "requestId" : "req-1765439133876"
+  "timestamp" : "2025-12-13T23:32:45.810746",
+  "requestId" : "req-1765636365810"
 }</code></pre>
 </div>
 </div>
@@ -3195,7 +3148,7 @@ Content-Length: 140
 <h5 id="_http_request_21"><a class="link" href="#_http_request_21">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/e8fe4506-b183-4f61-a457-2c1b2b839b20/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/0d84dc33-b63e-459c-97f2-684ed18b71a5/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -3204,7 +3157,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_12"><a class="link" href="#_path_parameters_12">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 12. /api/v1/users/{userId}/delete</caption>
+<caption class="title">Table 12. /api/v1/auth/users/{userId}/delete</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -3233,41 +3186,19 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="user-get"><a class="link" href="#user-get">6.4.6. 사용자 단건 조회</a></h4>
+<h4 id="user-me"><a class="link" href="#user-me">6.4.6. 내 정보 조회</a></h4>
 <div class="paragraph">
-<p>사용자 정보를 조회합니다.</p>
+<p>현재 인증된 사용자의 정보를 조회합니다.</p>
 </div>
 <div class="sect4">
 <h5 id="_http_request_22"><a class="link" href="#_http_request_22">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/users/a6b08406-152c-4b5c-bbe6-af78fb82ec8f HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users/me HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
 </div>
-</div>
-<div class="sect4">
-<h5 id="_path_parameters_13"><a class="link" href="#_path_parameters_13">Path Parameters</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 13. /api/v1/users/{userId}</caption>
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 ID (UUID 형식)</p></td>
-</tr>
-</tbody>
-</table>
 </div>
 <div class="sect4">
 <h5 id="_http_response_22"><a class="link" href="#_http_response_22">HTTP Response</a></h5>
@@ -3275,22 +3206,22 @@ Host: localhost:8080</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 477
+Content-Length: 475
 
 {
   "success" : true,
   "data" : {
-    "userId" : "a6b08406-152c-4b5c-bbe6-af78fb82ec8f",
-    "tenantId" : "358690ec-a767-46c2-a685-c4d4269f010c",
-    "organizationId" : "ec5b9e98-9463-4a2e-9c95-f3682ef7d44d",
-    "identifier" : "test@example.com",
+    "userId" : "be60f979-9773-45ba-bd6d-b372f5678cb7",
+    "tenantId" : "594695b4-915e-4fa5-a0ba-75a1beec4cf7",
+    "organizationId" : "d09763af-cd1e-4dd6-9559-e27246a90188",
+    "identifier" : "me@example.com",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:33.891931Z",
-    "updatedAt" : "2025-12-11T07:45:33.891931Z"
+    "createdAt" : "2025-12-13T14:32:45.844618Z",
+    "updatedAt" : "2025-12-13T14:32:45.844618Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.892802",
-  "requestId" : "req-1765439133892"
+  "timestamp" : "2025-12-13T23:32:45.879785",
+  "requestId" : "req-1765636365879"
 }</code></pre>
 </div>
 </div>
@@ -3376,15 +3307,158 @@ Content-Length: 477
 </div>
 </div>
 <div class="sect3">
-<h4 id="user-search"><a class="link" href="#user-search">6.4.7. 사용자 목록 조회</a></h4>
+<h4 id="user-get"><a class="link" href="#user-get">6.4.7. 사용자 단건 조회</a></h4>
 <div class="paragraph">
-<p>사용자 목록을 조회합니다.</p>
+<p>사용자 정보를 조회합니다.</p>
 </div>
 <div class="sect4">
 <h5 id="_http_request_23"><a class="link" href="#_http_request_23">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/users?tenantId=99c1e94e-0091-45d7-93dc-42a2164ded1f&amp;organizationId=8b942b36-4d6e-42a4-b3df-9929e957b33f&amp;identifier=test%40example.com&amp;status=ACTIVE&amp;page=0&amp;size=20 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users/affab998-51c2-4f21-b5e4-8aca34f10ef4 HTTP/1.1
+Accept: application/json
+Host: localhost:8080</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_path_parameters_13"><a class="link" href="#_path_parameters_13">Path Parameters</a></h5>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 13. /api/v1/auth/users/{userId}</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 ID (UUID 형식)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_http_response_23"><a class="link" href="#_http_response_23">HTTP Response</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 477
+
+{
+  "success" : true,
+  "data" : {
+    "userId" : "affab998-51c2-4f21-b5e4-8aca34f10ef4",
+    "tenantId" : "3331b09e-f1a8-42db-8527-3a575e9ada57",
+    "organizationId" : "fbf7446e-c730-4016-8648-1ff0acfafc99",
+    "identifier" : "test@example.com",
+    "status" : "ACTIVE",
+    "createdAt" : "2025-12-13T14:32:45.827245Z",
+    "updatedAt" : "2025-12-13T14:32:45.827245Z"
+  },
+  "error" : null,
+  "timestamp" : "2025-12-13T23:32:45.828078",
+  "requestId" : "req-1765636365828"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_response_fields_12"><a class="link" href="#_response_fields_12">Response Fields</a></h5>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.tenantId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">테넌트 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.organizationId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">조직 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.identifier</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 식별자</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 상태</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.createdAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성 일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.updatedAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">수정 일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보 (성공 시 null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시간</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="user-search"><a class="link" href="#user-search">6.4.8. 사용자 목록 조회</a></h4>
+<div class="paragraph">
+<p>사용자 목록을 조회합니다.</p>
+</div>
+<div class="sect4">
+<h5 id="_http_request_24"><a class="link" href="#_http_request_24">HTTP Request</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users?tenantId=5f3b3fd0-09ee-4d52-a77b-b47df113bbe5&amp;organizationId=7fcdbca1-0a3f-4c16-bea5-badc44bfba22&amp;identifier=test%40example.com&amp;status=ACTIVE&amp;page=0&amp;size=20 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -3432,7 +3506,7 @@ Host: localhost:8080</code></pre>
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_23"><a class="link" href="#_http_response_23">HTTP Response</a></h5>
+<h5 id="_http_response_24"><a class="link" href="#_http_response_24">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
@@ -3442,23 +3516,23 @@ Content-Length: 481
 {
   "success" : true,
   "data" : [ {
-    "userId" : "8d8b6a2d-fb7b-4f48-bc4f-a57f51a901c7",
-    "tenantId" : "99c1e94e-0091-45d7-93dc-42a2164ded1f",
-    "organizationId" : "8b942b36-4d6e-42a4-b3df-9929e957b33f",
+    "userId" : "5e44d550-08f3-435a-b69a-296f549c0982",
+    "tenantId" : "5f3b3fd0-09ee-4d52-a77b-b47df113bbe5",
+    "organizationId" : "7fcdbca1-0a3f-4c16-bea5-badc44bfba22",
     "identifier" : "test@example.com",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:33.860276Z",
-    "updatedAt" : "2025-12-11T07:45:33.860276Z"
+    "createdAt" : "2025-12-13T14:32:45.794816Z",
+    "updatedAt" : "2025-12-13T14:32:45.794816Z"
   } ],
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.862182",
-  "requestId" : "req-1765439133862"
+  "timestamp" : "2025-12-13T23:32:45.796841",
+  "requestId" : "req-1765636365796"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_12"><a class="link" href="#_response_fields_12">Response Fields</a></h5>
+<h5 id="_response_fields_13"><a class="link" href="#_response_fields_13">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3538,21 +3612,21 @@ Content-Length: 481
 </div>
 </div>
 <div class="sect3">
-<h4 id="user-role-assign"><a class="link" href="#user-role-assign">6.4.8. 사용자 역할 할당</a></h4>
+<h4 id="user-role-assign"><a class="link" href="#user-role-assign">6.4.9. 사용자 역할 할당</a></h4>
 <div class="paragraph">
 <p>사용자에게 역할을 할당합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_24"><a class="link" href="#_http_request_24">HTTP Request</a></h5>
+<h5 id="_http_request_25"><a class="link" href="#_http_request_25">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/users/2bf33e24-875e-405b-87b6-9600d3ce880c/roles HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/users/4208bfb4-5b75-4d99-a62b-095961357523/roles HTTP/1.1
 Content-Type: application/json
 Content-Length: 55
 Host: localhost:8080
 
 {
-  "roleId" : "187bb188-db6d-4b86-a625-91758e4361bc"
+  "roleId" : "be70cb09-cd83-4574-8ad4-10dea8fe6d19"
 }</code></pre>
 </div>
 </div>
@@ -3560,7 +3634,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_14"><a class="link" href="#_path_parameters_14">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 14. /api/v1/users/{userId}/roles</caption>
+<caption class="title">Table 14. /api/v1/auth/users/{userId}/roles</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -3604,7 +3678,7 @@ Host: localhost:8080
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_24"><a class="link" href="#_http_response_24">HTTP Response</a></h5>
+<h5 id="_http_response_25"><a class="link" href="#_http_response_25">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
@@ -3614,19 +3688,19 @@ Content-Length: 300
 {
   "success" : true,
   "data" : {
-    "userId" : "2bf33e24-875e-405b-87b6-9600d3ce880c",
-    "roleId" : "187bb188-db6d-4b86-a625-91758e4361bc",
-    "assignedAt" : "2025-12-11T07:45:33.910149Z"
+    "userId" : "4208bfb4-5b75-4d99-a62b-095961357523",
+    "roleId" : "be70cb09-cd83-4574-8ad4-10dea8fe6d19",
+    "assignedAt" : "2025-12-13T14:32:45.887249Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.912798",
-  "requestId" : "req-1765439133912"
+  "timestamp" : "2025-12-13T23:32:45.890131",
+  "requestId" : "req-1765636365890"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_13"><a class="link" href="#_response_fields_13">Response Fields</a></h5>
+<h5 id="_response_fields_14"><a class="link" href="#_response_fields_14">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3686,15 +3760,15 @@ Content-Length: 300
 </div>
 </div>
 <div class="sect3">
-<h4 id="user-role-revoke"><a class="link" href="#user-role-revoke">6.4.9. 사용자 역할 해제</a></h4>
+<h4 id="user-role-revoke"><a class="link" href="#user-role-revoke">6.4.10. 사용자 역할 해제</a></h4>
 <div class="paragraph">
 <p>사용자의 역할을 해제합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_25"><a class="link" href="#_http_request_25">HTTP Request</a></h5>
+<h5 id="_http_request_26"><a class="link" href="#_http_request_26">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/9a6e7dcd-390e-41a8-8286-9d773ef48c74/roles/3cf774b5-fe27-4318-8400-a2d972e50683/revoke HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/a48b108b-488b-4e43-92fc-90044cf81fe6/roles/c7069768-eacb-48d1-9519-9f214af3727e/revoke HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -3703,7 +3777,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_15"><a class="link" href="#_path_parameters_15">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 15. /api/v1/users/{userId}/roles/{roleId}/revoke</caption>
+<caption class="title">Table 15. /api/v1/auth/users/{userId}/roles/{roleId}/revoke</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -3727,7 +3801,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_25"><a class="link" href="#_http_response_25">HTTP Response</a></h5>
+<h5 id="_http_response_26"><a class="link" href="#_http_response_26">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 204 No Content</code></pre>
@@ -3747,16 +3821,16 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <p>새로운 역할을 생성합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_26"><a class="link" href="#_http_request_26">HTTP Request</a></h5>
+<h5 id="_http_request_27"><a class="link" href="#_http_request_27">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/roles HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/roles HTTP/1.1
 Content-Type: application/json
 Content-Length: 176
 Host: localhost:8080
 
 {
-  "tenantId" : "314b31cf-bb4b-45e6-806d-b26ba518206a",
+  "tenantId" : "191f7888-2382-48f3-a0e7-3dd7f7d38867",
   "name" : "TENANT_ADMIN",
   "description" : "테넌트 관리자 역할",
   "scope" : "TENANT",
@@ -3810,7 +3884,7 @@ Host: localhost:8080
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_26"><a class="link" href="#_http_response_26">HTTP Response</a></h5>
+<h5 id="_http_response_27"><a class="link" href="#_http_response_27">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
@@ -3820,17 +3894,17 @@ Content-Length: 195
 {
   "success" : true,
   "data" : {
-    "roleId" : "3205c264-5338-4f75-85b0-7405cef5fe8a"
+    "roleId" : "c8cd85df-a210-4649-8b4b-da497336851b"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.887671",
-  "requestId" : "req-1765439131887"
+  "timestamp" : "2025-12-13T23:32:43.736433",
+  "requestId" : "req-1765636363736"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_14"><a class="link" href="#_response_fields_14">Response Fields</a></h5>
+<h5 id="_response_fields_15"><a class="link" href="#_response_fields_15">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3885,10 +3959,10 @@ Content-Length: 195
 <p>역할 정보를 수정합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_27"><a class="link" href="#_http_request_27">HTTP Request</a></h5>
+<h5 id="_http_request_28"><a class="link" href="#_http_request_28">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/roles/5d6ece8d-0176-4340-9e9d-200a71f80eda HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/roles/69071759-ef6c-4bb7-bbd5-86e48f1de7a8 HTTP/1.1
 Content-Type: application/json
 Content-Length: 74
 Host: localhost:8080
@@ -3903,7 +3977,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_16"><a class="link" href="#_path_parameters_16">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 16. /api/v1/roles/{roleId}</caption>
+<caption class="title">Table 16. /api/v1/auth/roles/{roleId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -3952,7 +4026,7 @@ Host: localhost:8080
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_27"><a class="link" href="#_http_response_27">HTTP Response</a></h5>
+<h5 id="_http_response_28"><a class="link" href="#_http_response_28">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
@@ -3963,8 +4037,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.862857",
-  "requestId" : "req-1765439131862"
+  "timestamp" : "2025-12-13T23:32:43.718169",
+  "requestId" : "req-1765636363718"
 }</code></pre>
 </div>
 </div>
@@ -3976,10 +4050,10 @@ Content-Length: 140
 <p>역할을 삭제합니다. (소프트 삭제)</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_28"><a class="link" href="#_http_request_28">HTTP Request</a></h5>
+<h5 id="_http_request_29"><a class="link" href="#_http_request_29">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/roles/d9931680-b409-4eea-9155-8a4913a6ad1e/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/roles/6df4b2a5-773d-4b4e-ac67-5a765bfc4b8f/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -3988,53 +4062,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_17"><a class="link" href="#_path_parameters_17">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 17. /api/v1/roles/{roleId}/delete</caption>
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>roleId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">역할 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_http_response_28"><a class="link" href="#_http_response_28">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 204 No Content</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="role-get"><a class="link" href="#role-get">6.5.4. 역할 단건 조회</a></h4>
-<div class="paragraph">
-<p>역할 정보를 조회합니다.</p>
-</div>
-<div class="sect4">
-<h5 id="_http_request_29"><a class="link" href="#_http_request_29">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/roles/8df17ac0-d08f-4122-b0f1-ade7026209f7 HTTP/1.1
-Accept: application/json
-Host: localhost:8080</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_path_parameters_18"><a class="link" href="#_path_parameters_18">Path Parameters</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 18. /api/v1/roles/{roleId}</caption>
+<caption class="title">Table 17. /api/v1/auth/roles/{roleId}/delete</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -4057,6 +4085,52 @@ Host: localhost:8080</code></pre>
 <h5 id="_http_response_29"><a class="link" href="#_http_response_29">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 204 No Content</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="role-get"><a class="link" href="#role-get">6.5.4. 역할 단건 조회</a></h4>
+<div class="paragraph">
+<p>역할 정보를 조회합니다.</p>
+</div>
+<div class="sect4">
+<h5 id="_http_request_30"><a class="link" href="#_http_request_30">HTTP Request</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/roles/db464520-d6a9-4d20-9b72-3f6545287056 HTTP/1.1
+Accept: application/json
+Host: localhost:8080</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_path_parameters_18"><a class="link" href="#_path_parameters_18">Path Parameters</a></h5>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 18. /api/v1/auth/roles/{roleId}</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>roleId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">역할 ID</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_http_response_30"><a class="link" href="#_http_response_30">HTTP Response</a></h5>
+<div class="listingblock">
+<div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
 Content-Length: 476
@@ -4064,24 +4138,24 @@ Content-Length: 476
 {
   "success" : true,
   "data" : {
-    "roleId" : "8df17ac0-d08f-4122-b0f1-ade7026209f7",
-    "tenantId" : "df1c16e9-8d9c-4bba-929b-3c1cffc0b1a8",
+    "roleId" : "db464520-d6a9-4d20-9b72-3f6545287056",
+    "tenantId" : "4e8fd516-682e-4444-a947-5765bef0785c",
     "name" : "TENANT_ADMIN",
     "description" : "테넌트 관리자 역할",
     "scope" : "TENANT",
     "type" : "CUSTOM",
-    "createdAt" : "2025-12-11T07:45:31.832337Z",
-    "updatedAt" : "2025-12-11T07:45:31.832337Z"
+    "createdAt" : "2025-12-13T14:32:43.685826Z",
+    "updatedAt" : "2025-12-13T14:32:43.685826Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.833458",
-  "requestId" : "req-1765439131833"
+  "timestamp" : "2025-12-13T23:32:43.686769",
+  "requestId" : "req-1765636363686"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_15"><a class="link" href="#_response_fields_15">Response Fields</a></h5>
+<h5 id="_response_fields_16"><a class="link" href="#_response_fields_16">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4171,10 +4245,10 @@ Content-Length: 476
 <p>역할 목록을 조회합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_30"><a class="link" href="#_http_request_30">HTTP Request</a></h5>
+<h5 id="_http_request_31"><a class="link" href="#_http_request_31">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/roles?tenantId=2fa30d08-8cfa-4161-81c3-70403894b844&amp;name=ADMIN&amp;scope=TENANT&amp;type=CUSTOM&amp;page=0&amp;size=20 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/roles?tenantId=789ab375-c5fa-4e3b-b98b-4cc32fa880e9&amp;name=ADMIN&amp;scope=TENANT&amp;type=CUSTOM&amp;page=0&amp;size=20 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -4222,7 +4296,7 @@ Host: localhost:8080</code></pre>
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_30"><a class="link" href="#_http_response_30">HTTP Response</a></h5>
+<h5 id="_http_response_31"><a class="link" href="#_http_response_31">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
@@ -4232,24 +4306,24 @@ Content-Length: 480
 {
   "success" : true,
   "data" : [ {
-    "roleId" : "4be6173c-fcd5-4f94-ae9a-166d607411bf",
-    "tenantId" : "2fa30d08-8cfa-4161-81c3-70403894b844",
+    "roleId" : "a2559bdb-845d-4df2-bf46-279035adba89",
+    "tenantId" : "789ab375-c5fa-4e3b-b98b-4cc32fa880e9",
     "name" : "TENANT_ADMIN",
     "description" : "테넌트 관리자 역할",
     "scope" : "TENANT",
     "type" : "CUSTOM",
-    "createdAt" : "2025-12-11T07:45:31.814499Z",
-    "updatedAt" : "2025-12-11T07:45:31.814499Z"
+    "createdAt" : "2025-12-13T14:32:43.665495Z",
+    "updatedAt" : "2025-12-13T14:32:43.665495Z"
   } ],
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.817152",
-  "requestId" : "req-1765439131817"
+  "timestamp" : "2025-12-13T23:32:43.667893",
+  "requestId" : "req-1765636363667"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_16"><a class="link" href="#_response_fields_16">Response Fields</a></h5>
+<h5 id="_response_fields_17"><a class="link" href="#_response_fields_17">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4344,16 +4418,16 @@ Content-Length: 480
 <p>역할에 권한을 부여합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_31"><a class="link" href="#_http_request_31">HTTP Request</a></h5>
+<h5 id="_http_request_32"><a class="link" href="#_http_request_32">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/roles/7ee9b1e9-019b-46fc-a433-4537a45f5b6a/permissions HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/roles/044fe853-5595-4544-b7e2-036a08f1b7d6/permissions HTTP/1.1
 Content-Type: application/json
 Content-Length: 61
 Host: localhost:8080
 
 {
-  "permissionId" : "39e22595-e9c0-4649-bb27-c6dabe678a86"
+  "permissionId" : "287c2e72-5e30-4eb8-87a9-abfabf04a632"
 }</code></pre>
 </div>
 </div>
@@ -4361,7 +4435,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_19"><a class="link" href="#_path_parameters_19">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 19. /api/v1/roles/{roleId}/permissions</caption>
+<caption class="title">Table 19. /api/v1/auth/roles/{roleId}/permissions</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -4405,7 +4479,7 @@ Host: localhost:8080
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_31"><a class="link" href="#_http_response_31">HTTP Response</a></h5>
+<h5 id="_http_response_32"><a class="link" href="#_http_response_32">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
@@ -4415,19 +4489,19 @@ Content-Length: 305
 {
   "success" : true,
   "data" : {
-    "roleId" : "7ee9b1e9-019b-46fc-a433-4537a45f5b6a",
-    "permissionId" : "39e22595-e9c0-4649-bb27-c6dabe678a86",
-    "grantedAt" : "2025-12-11T07:45:31.796300Z"
+    "roleId" : "044fe853-5595-4544-b7e2-036a08f1b7d6",
+    "permissionId" : "287c2e72-5e30-4eb8-87a9-abfabf04a632",
+    "grantedAt" : "2025-12-13T14:32:43.643963Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.800191",
-  "requestId" : "req-1765439131800"
+  "timestamp" : "2025-12-13T23:32:43.648181",
+  "requestId" : "req-1765636363648"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_17"><a class="link" href="#_response_fields_17">Response Fields</a></h5>
+<h5 id="_response_fields_18"><a class="link" href="#_response_fields_18">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4492,10 +4566,10 @@ Content-Length: 305
 <p>역할의 권한을 해제합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_32"><a class="link" href="#_http_request_32">HTTP Request</a></h5>
+<h5 id="_http_request_33"><a class="link" href="#_http_request_33">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/roles/8a75167f-90a4-4a96-acf1-a37b12335379/permissions/994e222e-7c77-4295-baf4-d44c12efa5c2/revoke HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/roles/d1a27104-09fc-4884-a505-2f6a09074508/permissions/c5ba5f28-89fb-4153-9007-2306f0083ab4/revoke HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -4504,7 +4578,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_20"><a class="link" href="#_path_parameters_20">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 20. /api/v1/roles/{roleId}/permissions/{permissionId}/revoke</caption>
+<caption class="title">Table 20. /api/v1/auth/roles/{roleId}/permissions/{permissionId}/revoke</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -4528,7 +4602,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_32"><a class="link" href="#_http_response_32">HTTP Response</a></h5>
+<h5 id="_http_response_33"><a class="link" href="#_http_response_33">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 204 No Content</code></pre>
@@ -4548,10 +4622,10 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <p>새로운 권한을 생성합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_33"><a class="link" href="#_http_request_33">HTTP Request</a></h5>
+<h5 id="_http_request_34"><a class="link" href="#_http_request_34">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/permissions HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/permissions HTTP/1.1
 Content-Type: application/json
 Content-Length: 113
 Host: localhost:8080
@@ -4605,7 +4679,7 @@ Host: localhost:8080
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_33"><a class="link" href="#_http_response_33">HTTP Response</a></h5>
+<h5 id="_http_response_34"><a class="link" href="#_http_response_34">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
@@ -4615,17 +4689,17 @@ Content-Length: 201
 {
   "success" : true,
   "data" : {
-    "permissionId" : "e80e5d4f-5bb3-4a57-a041-5349679cd15a"
+    "permissionId" : "eb6709db-5956-4918-8ebc-5bb3b8ffa7b3"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:30.668214",
-  "requestId" : "req-1765439130668"
+  "timestamp" : "2025-12-13T23:32:42.698449",
+  "requestId" : "req-1765636362698"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_18"><a class="link" href="#_response_fields_18">Response Fields</a></h5>
+<h5 id="_response_fields_19"><a class="link" href="#_response_fields_19">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4680,10 +4754,10 @@ Content-Length: 201
 <p>권한 정보를 수정합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_34"><a class="link" href="#_http_request_34">HTTP Request</a></h5>
+<h5 id="_http_request_35"><a class="link" href="#_http_request_35">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/permissions/6140db5e-097d-45c9-86af-3d2d8b14651a HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/permissions/e80285f1-fe24-41b6-8f8f-9c8cac9c3932 HTTP/1.1
 Content-Type: application/json
 Content-Length: 47
 Host: localhost:8080
@@ -4697,7 +4771,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_21"><a class="link" href="#_path_parameters_21">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 21. /api/v1/permissions/{permissionId}</caption>
+<caption class="title">Table 21. /api/v1/auth/permissions/{permissionId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -4741,19 +4815,19 @@ Host: localhost:8080
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_34"><a class="link" href="#_http_response_34">HTTP Response</a></h5>
+<h5 id="_http_response_35"><a class="link" href="#_http_response_35">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 140
+Content-Length: 138
 
 {
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:30.639763",
-  "requestId" : "req-1765439130639"
+  "timestamp" : "2025-12-13T23:32:42.6775",
+  "requestId" : "req-1765636362677"
 }</code></pre>
 </div>
 </div>
@@ -4765,10 +4839,10 @@ Content-Length: 140
 <p>권한을 삭제합니다. (소프트 삭제)</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_35"><a class="link" href="#_http_request_35">HTTP Request</a></h5>
+<h5 id="_http_request_36"><a class="link" href="#_http_request_36">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/permissions/ef23a1b5-9f05-4e73-b68b-89e425c839c9/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/permissions/a9f9e1b9-1edc-448f-98ca-2847a4022b40/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -4777,53 +4851,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_22"><a class="link" href="#_path_parameters_22">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 22. /api/v1/permissions/{permissionId}/delete</caption>
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>permissionId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">권한 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_http_response_35"><a class="link" href="#_http_response_35">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 204 No Content</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="permission-get"><a class="link" href="#permission-get">6.6.4. 권한 단건 조회</a></h4>
-<div class="paragraph">
-<p>권한 정보를 조회합니다.</p>
-</div>
-<div class="sect4">
-<h5 id="_http_request_36"><a class="link" href="#_http_request_36">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/permissions/628c95ee-1fc1-44c7-a0f6-f47fb1b6e52a HTTP/1.1
-Accept: application/json
-Host: localhost:8080</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_path_parameters_23"><a class="link" href="#_path_parameters_23">Path Parameters</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 23. /api/v1/permissions/{permissionId}</caption>
+<caption class="title">Table 22. /api/v1/auth/permissions/{permissionId}/delete</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -4846,31 +4874,77 @@ Host: localhost:8080</code></pre>
 <h5 id="_http_response_36"><a class="link" href="#_http_response_36">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 204 No Content</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="permission-get"><a class="link" href="#permission-get">6.6.4. 권한 단건 조회</a></h4>
+<div class="paragraph">
+<p>권한 정보를 조회합니다.</p>
+</div>
+<div class="sect4">
+<h5 id="_http_request_37"><a class="link" href="#_http_request_37">HTTP Request</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/9c824632-36ed-4172-b6d9-0af8b299e4f2 HTTP/1.1
+Accept: application/json
+Host: localhost:8080</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_path_parameters_23"><a class="link" href="#_path_parameters_23">Path Parameters</a></h5>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 23. /api/v1/auth/permissions/{permissionId}</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>permissionId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">권한 ID</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_http_response_37"><a class="link" href="#_http_response_37">HTTP Response</a></h5>
+<div class="listingblock">
+<div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 446
+Content-Length: 445
 
 {
   "success" : true,
   "data" : {
-    "permissionId" : "628c95ee-1fc1-44c7-a0f6-f47fb1b6e52a",
+    "permissionId" : "9c824632-36ed-4172-b6d9-0af8b299e4f2",
     "key" : "tenant:read",
     "resource" : "tenant",
     "action" : "read",
     "description" : "테넌트 조회 권한",
     "type" : "SYSTEM",
-    "createdAt" : "2025-12-11T07:45:30.590147Z",
-    "updatedAt" : "2025-12-11T07:45:30.590147Z"
+    "createdAt" : "2025-12-13T14:32:42.643094Z",
+    "updatedAt" : "2025-12-13T14:32:42.643094Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:30.591747",
-  "requestId" : "req-1765439130591"
+  "timestamp" : "2025-12-13T23:32:42.64418",
+  "requestId" : "req-1765636362644"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_19"><a class="link" href="#_response_fields_19">Response Fields</a></h5>
+<h5 id="_response_fields_20"><a class="link" href="#_response_fields_20">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4960,10 +5034,10 @@ Content-Length: 446
 <p>권한 목록을 조회합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_37"><a class="link" href="#_http_request_37">HTTP Request</a></h5>
+<h5 id="_http_request_38"><a class="link" href="#_http_request_38">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/permissions?resource=tenant&amp;action=read&amp;type=SYSTEM&amp;page=0&amp;size=20 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions?resource=tenant&amp;action=read&amp;type=SYSTEM&amp;page=0&amp;size=20 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -5007,7 +5081,7 @@ Host: localhost:8080</code></pre>
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_37"><a class="link" href="#_http_response_37">HTTP Response</a></h5>
+<h5 id="_http_response_38"><a class="link" href="#_http_response_38">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
@@ -5017,24 +5091,24 @@ Content-Length: 450
 {
   "success" : true,
   "data" : [ {
-    "permissionId" : "ada7777f-2c85-4113-b513-c727f60718a3",
+    "permissionId" : "49605197-f0e7-4220-99c0-67cd1f4ea170",
     "key" : "tenant:read",
     "resource" : "tenant",
     "action" : "read",
     "description" : "테넌트 조회 권한",
     "type" : "SYSTEM",
-    "createdAt" : "2025-12-11T07:45:30.551866Z",
-    "updatedAt" : "2025-12-11T07:45:30.551866Z"
+    "createdAt" : "2025-12-13T14:32:42.620509Z",
+    "updatedAt" : "2025-12-13T14:32:42.620509Z"
   } ],
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:30.555585",
-  "requestId" : "req-1765439130555"
+  "timestamp" : "2025-12-13T23:32:42.622325",
+  "requestId" : "req-1765636362622"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_20"><a class="link" href="#_response_fields_20">Response Fields</a></h5>
+<h5 id="_response_fields_21"><a class="link" href="#_response_fields_21">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5129,10 +5203,10 @@ Content-Length: 450
 <p>사용자의 역할과 권한 목록을 조회합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_38"><a class="link" href="#_http_request_38">HTTP Request</a></h5>
+<h5 id="_http_request_39"><a class="link" href="#_http_request_39">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/permissions/users/97804b98-a950-4062-8bf7-b72931060724 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/users/1b1808b6-2d83-4c1c-b569-3456220b9a2f HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -5141,7 +5215,7 @@ Host: localhost:8080</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_24"><a class="link" href="#_path_parameters_24">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 24. /api/v1/permissions/users/{userId}</caption>
+<caption class="title">Table 24. /api/v1/auth/permissions/users/{userId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -5161,7 +5235,7 @@ Host: localhost:8080</code></pre>
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_38"><a class="link" href="#_http_response_38">HTTP Response</a></h5>
+<h5 id="_http_response_39"><a class="link" href="#_http_response_39">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
@@ -5171,19 +5245,19 @@ Content-Length: 289
 {
   "success" : true,
   "data" : {
-    "userId" : "97804b98-a950-4062-8bf7-b72931060724",
-    "roles" : [ "TENANT_ADMIN", "USER" ],
-    "permissions" : [ "tenant:read", "user:read" ]
+    "userId" : "1b1808b6-2d83-4c1c-b569-3456220b9a2f",
+    "roles" : [ "USER", "TENANT_ADMIN" ],
+    "permissions" : [ "user:read", "tenant:read" ]
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:30.529151",
-  "requestId" : "req-1765439130529"
+  "timestamp" : "2025-12-13T23:32:42.598902",
+  "requestId" : "req-1765636362598"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_21"><a class="link" href="#_response_fields_21">Response Fields</a></h5>
+<h5 id="_response_fields_22"><a class="link" href="#_response_fields_22">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5242,814 +5316,11 @@ Content-Length: 289
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="permission-spec"><a class="link" href="#permission-spec">6.6.7. 권한 명세 조회</a></h4>
-<div class="paragraph">
-<p>엔드포인트별 필요 권한 명세를 조회합니다.</p>
-</div>
-<div class="sect4">
-<h5 id="_http_request_39"><a class="link" href="#_http_request_39">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/permissions/spec HTTP/1.1
-Accept: application/json
-Host: localhost:8080</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_http_response_39"><a class="link" href="#_http_response_39">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 448
-
-{
-  "success" : true,
-  "data" : {
-    "version" : 1,
-    "updatedAt" : "2025-12-11T07:45:30.491374Z",
-    "permissions" : [ {
-      "serviceName" : "auth-service",
-      "path" : "/api/v1/tenants",
-      "method" : "GET",
-      "requiredPermissions" : [ "tenant:read" ],
-      "requiredRoles" : [ "ADMIN" ],
-      "isPublic" : false
-    } ]
-  },
-  "error" : null,
-  "timestamp" : "2025-12-11T16:45:30.494263",
-  "requestId" : "req-1765439130494"
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_response_fields_22"><a class="link" href="#_response_fields_22">Response Fields</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Path</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">성공 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.version</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">명세 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.updatedAt</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">갱신 시간</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.permissions</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트별 권한 목록</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.permissions[].serviceName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서비스명</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.permissions[].path</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 경로</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.permissions[].method</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP 메서드</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.permissions[].requiredPermissions</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 권한 목록</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.permissions[].requiredRoles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 역할 목록</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.permissions[].isPublic</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">공개 엔드포인트 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보 (성공 시 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시간</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
 </div>
 <div class="sect2">
-<h3 id="endpoint-permission"><a class="link" href="#endpoint-permission">6.7. 엔드포인트 권한 (Endpoint Permission)</a></h3>
+<h3 id="internal"><a class="link" href="#internal">6.7. Internal API (서비스 간 통신)</a></h3>
 <div class="paragraph">
-<p>엔드포인트별 권한 관리 API입니다.</p>
-</div>
-<div class="paragraph">
-<p>각 엔드포인트에 접근하기 위해 필요한 권한(requiredPermissions)과 역할(requiredRoles)을 정의합니다.
-권한/역할 검증은 <strong>OR 조건</strong>으로, 정의된 권한 중 하나 <strong>또는</strong> 역할 중 하나를 가지면 접근이 허용됩니다.</p>
-</div>
-<div class="sect3">
-<h4 id="endpoint-permission-create"><a class="link" href="#endpoint-permission-create">6.7.1. 엔드포인트 권한 생성</a></h4>
-<div class="paragraph">
-<p>새로운 엔드포인트 권한을 생성합니다.</p>
-</div>
-<div class="sect4">
-<h5 id="_http_request_40"><a class="link" href="#_http_request_40">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/endpoint-permissions HTTP/1.1
-Content-Type: application/json
-Content-Length: 264
-Host: localhost:8080
-
-{
-  "serviceName" : "auth-hub",
-  "path" : "/api/v1/users/{userId}",
-  "method" : "GET",
-  "description" : "사용자 상세 조회 엔드포인트",
-  "isPublic" : false,
-  "requiredPermissions" : [ "user:read" ],
-  "requiredRoles" : [ "ADMIN", "USER_MANAGER" ]
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_request_fields_20"><a class="link" href="#_request_fields_20">Request Fields</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Path</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>serviceName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 이름 (1~100자, 필수)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>path</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 경로 (1~500자, 필수)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>method</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP 메서드 (필수)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>description</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">설명 (최대 500자, 선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isPublic</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">공개 여부 (true: 인증 불필요, 필수)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requiredPermissions</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 권한 목록 (OR 조건, 선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requiredRoles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 역할 목록 (OR 조건, 선택)</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_http_response_40"><a class="link" href="#_http_response_40">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
-Content-Type: application/json
-Content-Length: 191
-
-{
-  "success" : true,
-  "data" : {
-    "id" : "dc5a0fe6-ee02-4690-bcc1-cef115af7dd6"
-  },
-  "error" : null,
-  "timestamp" : "2025-12-11T16:45:27.694197",
-  "requestId" : "req-1765439127694"
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_response_fields_23"><a class="link" href="#_response_fields_23">Response Fields</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Path</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">성공 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.id</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">생성된 엔드포인트 권한 ID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보 (성공 시 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시간</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="endpoint-permission-update"><a class="link" href="#endpoint-permission-update">6.7.2. 엔드포인트 권한 수정</a></h4>
-<div class="paragraph">
-<p>엔드포인트 권한 정보를 수정합니다.</p>
-</div>
-<div class="sect4">
-<h5 id="_http_request_41"><a class="link" href="#_http_request_41">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/endpoint-permissions/128058d4-35fa-4dd9-b914-a61cee947653 HTTP/1.1
-Content-Type: application/json
-Content-Length: 144
-Host: localhost:8080
-
-{
-  "description" : "수정된 설명",
-  "isPublic" : true,
-  "requiredPermissions" : [ "user:write" ],
-  "requiredRoles" : [ "SUPER_ADMIN" ]
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_path_parameters_25"><a class="link" href="#_path_parameters_25">Path Parameters</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 25. /api/v1/endpoint-permissions/{endpointPermissionId}</caption>
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpointPermissionId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_request_fields_21"><a class="link" href="#_request_fields_21">Request Fields</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Path</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>description</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">설명 (최대 500자, 선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isPublic</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">공개 여부 (선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requiredPermissions</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 권한 목록 (OR 조건, 선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requiredRoles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 역할 목록 (OR 조건, 선택)</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_http_response_41"><a class="link" href="#_http_response_41">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 140
-
-{
-  "success" : true,
-  "data" : null,
-  "error" : null,
-  "timestamp" : "2025-12-11T16:45:27.666212",
-  "requestId" : "req-1765439127666"
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="endpoint-permission-delete"><a class="link" href="#endpoint-permission-delete">6.7.3. 엔드포인트 권한 삭제</a></h4>
-<div class="paragraph">
-<p>엔드포인트 권한을 삭제합니다. (소프트 삭제)</p>
-</div>
-<div class="sect4">
-<h5 id="_http_request_42"><a class="link" href="#_http_request_42">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/endpoint-permissions/52ef5078-d774-4d1b-9358-b7234bc6d2ab/delete HTTP/1.1
-Host: localhost:8080
-Content-Type: application/x-www-form-urlencoded</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_path_parameters_26"><a class="link" href="#_path_parameters_26">Path Parameters</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 26. /api/v1/endpoint-permissions/{endpointPermissionId}/delete</caption>
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpointPermissionId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_http_response_42"><a class="link" href="#_http_response_42">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 204 No Content</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="endpoint-permission-get"><a class="link" href="#endpoint-permission-get">6.7.4. 엔드포인트 권한 단건 조회</a></h4>
-<div class="paragraph">
-<p>엔드포인트 권한 정보를 조회합니다.</p>
-</div>
-<div class="sect4">
-<h5 id="_http_request_43"><a class="link" href="#_http_request_43">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/endpoint-permissions/0b788c61-165c-45bb-8262-0c45701314b2 HTTP/1.1
-Accept: application/json
-Host: localhost:8080</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_path_parameters_27"><a class="link" href="#_path_parameters_27">Path Parameters</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 27. /api/v1/endpoint-permissions/{endpointPermissionId}</caption>
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpointPermissionId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_http_response_43"><a class="link" href="#_http_response_43">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 568
-
-{
-  "success" : true,
-  "data" : {
-    "id" : "0b788c61-165c-45bb-8262-0c45701314b2",
-    "serviceName" : "auth-hub",
-    "path" : "/api/v1/users/{userId}",
-    "method" : "GET",
-    "description" : "사용자 상세 조회 엔드포인트",
-    "isPublic" : false,
-    "requiredPermissions" : [ "user:read" ],
-    "requiredRoles" : [ "ADMIN" ],
-    "version" : 1,
-    "createdAt" : "2025-12-11T07:45:27.570204Z",
-    "updatedAt" : "2025-12-11T07:45:27.570204Z"
-  },
-  "error" : null,
-  "timestamp" : "2025-12-11T16:45:27.571596",
-  "requestId" : "req-1765439127571"
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_response_fields_24"><a class="link" href="#_response_fields_24">Response Fields</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Path</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">성공 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.id</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 ID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.serviceName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 이름</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.path</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 경로</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.method</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP 메서드</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.description</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">설명</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.isPublic</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">공개 여부 (true: 인증 불필요)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.requiredPermissions</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 권한 목록 (OR 조건)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.requiredRoles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 역할 목록 (OR 조건)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.version</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">버전 (낙관적 락)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.createdAt</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">생성 일시</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.updatedAt</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">수정 일시</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보 (성공 시 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시간</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="endpoint-permission-search"><a class="link" href="#endpoint-permission-search">6.7.5. 엔드포인트 권한 목록 조회</a></h4>
-<div class="paragraph">
-<p>엔드포인트 권한 목록을 조회합니다.</p>
-</div>
-<div class="sect4">
-<h5 id="_http_request_44"><a class="link" href="#_http_request_44">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/endpoint-permissions?serviceName=auth-hub&amp;pathPattern=%2Fapi%2Fv1&amp;method=GET&amp;isPublic=false&amp;page=0&amp;size=20 HTTP/1.1
-Accept: application/json
-Host: localhost:8080</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_query_parameters_6"><a class="link" href="#_query_parameters_6">Query Parameters</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>serviceName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 이름 필터 (선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>pathPattern</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">경로 패턴 필터 (부분 일치, 선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>method</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP 메서드 필터 (선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isPublic</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">공개 여부 필터 (선택)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>page</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">페이지 번호 (기본값: 0)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>size</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">페이지 크기 (기본값: 20)</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_http_response_44"><a class="link" href="#_http_response_44">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 572
-
-{
-  "success" : true,
-  "data" : [ {
-    "id" : "473111ef-2ddc-421d-b6ae-496b4a00eb50",
-    "serviceName" : "auth-hub",
-    "path" : "/api/v1/users/{userId}",
-    "method" : "GET",
-    "description" : "사용자 상세 조회 엔드포인트",
-    "isPublic" : false,
-    "requiredPermissions" : [ "user:read" ],
-    "requiredRoles" : [ "ADMIN" ],
-    "version" : 1,
-    "createdAt" : "2025-12-11T07:45:27.524125Z",
-    "updatedAt" : "2025-12-11T07:45:27.524125Z"
-  } ],
-  "error" : null,
-  "timestamp" : "2025-12-11T16:45:27.529927",
-  "requestId" : "req-1765439127529"
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_response_fields_25"><a class="link" href="#_response_fields_25">Response Fields</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Path</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">성공 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[]</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 목록</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].id</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 ID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].serviceName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 이름</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].path</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 경로</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].method</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP 메서드</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].description</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">설명</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].isPublic</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">공개 여부 (true: 인증 불필요)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].requiredPermissions</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 권한 목록 (OR 조건)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].requiredRoles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 역할 목록 (OR 조건)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].version</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">버전 (낙관적 락)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].createdAt</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">생성 일시</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].updatedAt</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">수정 일시</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보 (성공 시 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시간</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="endpoint-permission-spec"><a class="link" href="#endpoint-permission-spec">6.7.6. 서비스별 엔드포인트 권한 스펙 조회 (Gateway용)</a></h4>
-<div class="paragraph">
-<p>Gateway에서 캐싱할 서비스별 엔드포인트 권한 스펙을 조회합니다.</p>
-</div>
-<div class="paragraph">
-<p>이 API는 Gateway가 시작 시 또는 주기적으로 호출하여 권한 검사에 사용할 엔드포인트 스펙을 캐싱하는 용도입니다.</p>
+<p>Gateway 등 내부 서비스에서 호출하는 API입니다.</p>
 </div>
 <div class="admonitionblock important">
 <table>
@@ -6058,217 +5329,124 @@ Content-Length: 572
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-이 API는 내부 통신용으로 설계되었으며, Gateway에서만 호출해야 합니다.
+Internal API는 Kubernetes 클러스터 내부에서만 접근 가능하며, <strong>X-Service-Token</strong> 헤더로 인증합니다.
 </td>
 </tr>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_http_request_45"><a class="link" href="#_http_request_45">HTTP Request</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/endpoint-permissions/spec?serviceName=auth-hub HTTP/1.1
-Accept: application/json
-Host: localhost:8080</code></pre>
+<div class="sect3">
+<h4 id="internal-authentication"><a class="link" href="#internal-authentication">6.7.1. 인증 방식</a></h4>
+<div class="paragraph">
+<p>Internal API는 JWT 인증 대신 <strong>X-Service-Token</strong> 헤더를 사용합니다.</p>
 </div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_query_parameters_7"><a class="link" href="#_query_parameters_7">Query Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 25%;">
+<col style="width: 75%;">
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>serviceName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 이름 (필수)</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_http_response_45"><a class="link" href="#_http_response_45">HTTP Response</a></h5>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 689
-
-{
-  "success" : true,
-  "data" : {
-    "endpoints" : [ {
-      "method" : "POST",
-      "pattern" : "/api/v1/auth/login",
-      "service" : "auth-hub",
-      "requiredRoles" : [ ],
-      "requiredPermissions" : [ ],
-      "isPublic" : true,
-      "requireMfa" : false
-    }, {
-      "method" : "GET",
-      "pattern" : "/api/v1/users/{userId}",
-      "service" : "auth-hub",
-      "requiredRoles" : [ "ADMIN", "USER_MANAGER" ],
-      "requiredPermissions" : [ "user:read" ],
-      "isPublic" : false,
-      "requireMfa" : false
-    } ],
-    "version" : "2025-12-11T07:45:27.597082Z"
-  },
-  "error" : null,
-  "timestamp" : "2025-12-11T16:45:27.598076",
-  "requestId" : "req-1765439127598"
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_response_fields_26"><a class="link" href="#_response_fields_26">Response Fields</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Path</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">성공 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.endpoints</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">엔드포인트 권한 스펙 목록</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.endpoints[].method</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP 메서드</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.endpoints[].pattern</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">경로 패턴</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.endpoints[].service</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 이름</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.endpoints[].requiredRoles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 역할 목록 (OR 조건)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.endpoints[].requiredPermissions</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 권한 목록 (OR 조건)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.endpoints[].isPublic</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">공개 여부 (true: 인증 불필요)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.endpoints[].requireMfa</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MFA 필수 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.version</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">스펙 버전 (마지막 업데이트 시간, ISO-8601)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보 (성공 시 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시간</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect4">
-<h5 id="_response_예시_설명"><a class="link" href="#_response_예시_설명">Response 예시 설명</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 20%;">
-<col style="width: 80%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">필드</th>
+<th class="tableblock halign-left valign-top">헤더</th>
 <th class="tableblock halign-left valign-top">설명</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpoints[].method</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP 메서드 (GET, POST, PUT, DELETE 등)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpoints[].pattern</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">경로 패턴 (예: <code>/api/v1/users/{userId}</code>)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpoints[].service</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 이름 (예: <code>auth-hub</code>)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpoints[].requiredRoles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 역할 목록 (OR 조건, 빈 배열이면 역할 검사 스킵)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpoints[].requiredPermissions</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">필요 권한 목록 (OR 조건, 빈 배열이면 권한 검사 스킵)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpoints[].isPublic</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">공개 여부 (`true`면 인증/권한 검사 스킵)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>endpoints[].requireMfa</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MFA 필수 여부 (향후 확장용)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>version</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">스펙 버전 (ISO-8601 형식, Gateway에서 캐시 무효화 판단에 사용)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>X-Service-Token</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 간 통신용 비밀 토큰 (환경 변수 `SECURITY_SERVICE_TOKEN_SECRET`으로 설정)</p></td>
 </tr>
 </tbody>
 </table>
+<div class="sect4">
+<h5 id="_요청_예시"><a class="link" href="#_요청_예시">요청 예시</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/spec HTTP/1.1
+Host: auth-hub.internal:8080
+X-Service-Token: your-service-secret-token
+Accept: application/json</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="internal-user-permissions"><a class="link" href="#internal-user-permissions">6.7.2. 사용자 권한 조회 (Gateway용)</a></h4>
+<div class="paragraph">
+<p>Gateway에서 사용자의 역할 및 권한 목록을 조회합니다.</p>
+</div>
+<div class="sect4">
+<h5 id="_http_request_40"><a class="link" href="#_http_request_40">HTTP Request</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/users/{userId} HTTP/1.1
+Host: auth-hub.internal:8080
+X-Service-Token: your-service-secret-token
+Accept: application/json</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_http_response_40"><a class="link" href="#_http_response_40">HTTP Response</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "success": true,
+    "data": {
+        "userId": "550e8400-e29b-41d4-a716-446655440000",
+        "roles": ["TENANT_ADMIN", "ORDER_MANAGER"],
+        "permissions": ["user:read", "user:create", "order:*"]
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="internal-vs-admin-api"><a class="link" href="#internal-vs-admin-api">6.7.3. Internal API vs Admin API 비교</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">구분</th>
+<th class="tableblock halign-left valign-top">Internal API</th>
+<th class="tableblock halign-left valign-top">Admin API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">경로</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/auth/*</code> (X-Service-Token)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/auth/*</code> (JWT)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">인증 방식</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X-Service-Token 헤더</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JWT (Bearer Token)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용 주체</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gateway, 내부 서비스</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">관리자 (Admin Console)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">네트워크 접근</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kubernetes 내부만</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">외부 접근 가능 (admin.connectly.com)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">용도</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 간 데이터 동기화</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CRUD 관리 작업</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -6277,7 +5455,7 @@ Content-Length: 689
 <div id="footer">
 <div id="footer-text">
 Version 1.0.0-SNAPSHOT<br>
-Last updated 2025-12-11 14:38:17 +0900
+Last updated 2025-12-13 17:46:37 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

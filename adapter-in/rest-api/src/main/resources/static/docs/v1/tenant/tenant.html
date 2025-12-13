@@ -470,7 +470,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h5 id="_http_request"><a class="link" href="#_http_request">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/tenants HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/tenants HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -516,11 +516,11 @@ Content-Length: 197
 {
   "success" : true,
   "data" : {
-    "tenantId" : "78b7b333-d3d0-4685-ab46-ef3ea787c1f5"
+    "tenantId" : "709c4434-6520-461a-b9c4-7a89b78fdf8c"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:32.974383",
-  "requestId" : "req-1765439132974"
+  "timestamp" : "2025-12-13T23:32:44.885602",
+  "requestId" : "req-1765636364885"
 }</code></pre>
 </div>
 </div>
@@ -584,7 +584,7 @@ Content-Length: 197
 <h5 id="_http_request_2"><a class="link" href="#_http_request_2">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/tenants/b3049e6c-6fb2-4b51-9d95-1eae689b9d9e/name HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/tenants/2f3c29e4-6ac6-4ce8-958b-41ab14ad0760/name HTTP/1.1
 Content-Type: application/json
 Content-Length: 30
 Host: localhost:8080
@@ -598,7 +598,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters"><a class="link" href="#_path_parameters">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. /api/v1/tenants/{tenantId}/name</caption>
+<caption class="title">Table 1. /api/v1/auth/tenants/{tenantId}/name</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -652,15 +652,15 @@ Content-Length: 350
 {
   "success" : true,
   "data" : {
-    "tenantId" : "b3049e6c-6fb2-4b51-9d95-1eae689b9d9e",
+    "tenantId" : "2f3c29e4-6ac6-4ce8-958b-41ab14ad0760",
     "name" : "NewTenantName",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:32.950778Z",
-    "updatedAt" : "2025-12-11T07:45:32.950778Z"
+    "createdAt" : "2025-12-13T14:32:44.857573Z",
+    "updatedAt" : "2025-12-13T14:32:44.857573Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:32.954037",
-  "requestId" : "req-1765439132954"
+  "timestamp" : "2025-12-13T23:32:44.861095",
+  "requestId" : "req-1765636364861"
 }</code></pre>
 </div>
 </div>
@@ -675,7 +675,7 @@ Content-Length: 350
 <h5 id="_http_request_3"><a class="link" href="#_http_request_3">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/tenants/6f94ef3e-201f-495d-96a7-55de1985939c/status HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/tenants/c874702b-deef-459a-8a91-a9098e21e873/status HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -689,7 +689,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_2"><a class="link" href="#_path_parameters_2">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 2. /api/v1/tenants/{tenantId}/status</caption>
+<caption class="title">Table 2. /api/v1/auth/tenants/{tenantId}/status</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -743,15 +743,15 @@ Content-Length: 349
 {
   "success" : true,
   "data" : {
-    "tenantId" : "6f94ef3e-201f-495d-96a7-55de1985939c",
+    "tenantId" : "c874702b-deef-459a-8a91-a9098e21e873",
     "name" : "TestTenant",
     "status" : "INACTIVE",
-    "createdAt" : "2025-12-11T07:45:32.961946Z",
-    "updatedAt" : "2025-12-11T07:45:32.961946Z"
+    "createdAt" : "2025-12-13T14:32:44.870421Z",
+    "updatedAt" : "2025-12-13T14:32:44.870421Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:32.964439",
-  "requestId" : "req-1765439132964"
+  "timestamp" : "2025-12-13T23:32:44.873713",
+  "requestId" : "req-1765636364873"
 }</code></pre>
 </div>
 </div>
@@ -766,7 +766,7 @@ Content-Length: 349
 <h5 id="_http_request_4"><a class="link" href="#_http_request_4">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/tenants/898eb3f7-ad32-4f37-be9a-a02b88d568dc/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/tenants/9bdf79b9-f578-4cbd-abad-2eae372d6039/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -775,7 +775,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_3"><a class="link" href="#_path_parameters_3">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 3. /api/v1/tenants/{tenantId}/delete</caption>
+<caption class="title">Table 3. /api/v1/auth/tenants/{tenantId}/delete</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -812,7 +812,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <h5 id="_http_request_5"><a class="link" href="#_http_request_5">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/tenants/84eed883-5778-41ef-b6ec-b19c5f015dcd HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/tenants/4afac226-79dc-4614-b635-aaf3580d1ff4 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -821,7 +821,7 @@ Host: localhost:8080</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_4"><a class="link" href="#_path_parameters_4">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 4. /api/v1/tenants/{tenantId}</caption>
+<caption class="title">Table 4. /api/v1/auth/tenants/{tenantId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -851,15 +851,15 @@ Content-Length: 347
 {
   "success" : true,
   "data" : {
-    "tenantId" : "84eed883-5778-41ef-b6ec-b19c5f015dcd",
+    "tenantId" : "4afac226-79dc-4614-b635-aaf3580d1ff4",
     "name" : "TestTenant",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:32.940171Z",
-    "updatedAt" : "2025-12-11T07:45:32.940171Z"
+    "createdAt" : "2025-12-13T14:32:44.846919Z",
+    "updatedAt" : "2025-12-13T14:32:44.846919Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:32.940997",
-  "requestId" : "req-1765439132940"
+  "timestamp" : "2025-12-13T23:32:44.847754",
+  "requestId" : "req-1765636364847"
 }</code></pre>
 </div>
 </div>
@@ -943,7 +943,7 @@ Content-Length: 347
 <h5 id="_http_request_6"><a class="link" href="#_http_request_6">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/tenants?name=Test&amp;status=ACTIVE&amp;page=0&amp;size=10 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/tenants?name=Test&amp;status=ACTIVE&amp;page=0&amp;size=10 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -992,11 +992,11 @@ Content-Length: 340
 
 {
   "content" : [ {
-    "tenantId" : "beaed55e-9874-440a-a4ab-f668367f5d7f",
+    "tenantId" : "099fc7e8-7612-41fc-a35d-70cd73ff93db",
     "name" : "TestTenant",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:32.920990Z",
-    "updatedAt" : "2025-12-11T07:45:32.920990Z"
+    "createdAt" : "2025-12-13T14:32:44.826512Z",
+    "updatedAt" : "2025-12-13T14:32:44.826512Z"
   } ],
   "page" : 0,
   "size" : 20,

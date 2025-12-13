@@ -471,13 +471,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h5 id="_http_request"><a class="link" href="#_http_request">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/roles HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/roles HTTP/1.1
 Content-Type: application/json
 Content-Length: 176
 Host: localhost:8080
 
 {
-  "tenantId" : "314b31cf-bb4b-45e6-806d-b26ba518206a",
+  "tenantId" : "191f7888-2382-48f3-a0e7-3dd7f7d38867",
   "name" : "TENANT_ADMIN",
   "description" : "테넌트 관리자 역할",
   "scope" : "TENANT",
@@ -541,11 +541,11 @@ Content-Length: 195
 {
   "success" : true,
   "data" : {
-    "roleId" : "3205c264-5338-4f75-85b0-7405cef5fe8a"
+    "roleId" : "c8cd85df-a210-4649-8b4b-da497336851b"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.887671",
-  "requestId" : "req-1765439131887"
+  "timestamp" : "2025-12-13T23:32:43.736433",
+  "requestId" : "req-1765636363736"
 }</code></pre>
 </div>
 </div>
@@ -609,7 +609,7 @@ Content-Length: 195
 <h5 id="_http_request_2"><a class="link" href="#_http_request_2">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/roles/5d6ece8d-0176-4340-9e9d-200a71f80eda HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/roles/69071759-ef6c-4bb7-bbd5-86e48f1de7a8 HTTP/1.1
 Content-Type: application/json
 Content-Length: 74
 Host: localhost:8080
@@ -624,7 +624,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters"><a class="link" href="#_path_parameters">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. /api/v1/roles/{roleId}</caption>
+<caption class="title">Table 1. /api/v1/auth/roles/{roleId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -684,8 +684,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.862857",
-  "requestId" : "req-1765439131862"
+  "timestamp" : "2025-12-13T23:32:43.718169",
+  "requestId" : "req-1765636363718"
 }</code></pre>
 </div>
 </div>
@@ -700,7 +700,7 @@ Content-Length: 140
 <h5 id="_http_request_3"><a class="link" href="#_http_request_3">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/roles/d9931680-b409-4eea-9155-8a4913a6ad1e/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/roles/6df4b2a5-773d-4b4e-ac67-5a765bfc4b8f/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -709,7 +709,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_2"><a class="link" href="#_path_parameters_2">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 2. /api/v1/roles/{roleId}/delete</caption>
+<caption class="title">Table 2. /api/v1/auth/roles/{roleId}/delete</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -746,7 +746,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <h5 id="_http_request_4"><a class="link" href="#_http_request_4">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/roles/8df17ac0-d08f-4122-b0f1-ade7026209f7 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/roles/db464520-d6a9-4d20-9b72-3f6545287056 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -755,7 +755,7 @@ Host: localhost:8080</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_3"><a class="link" href="#_path_parameters_3">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 3. /api/v1/roles/{roleId}</caption>
+<caption class="title">Table 3. /api/v1/auth/roles/{roleId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -785,18 +785,18 @@ Content-Length: 476
 {
   "success" : true,
   "data" : {
-    "roleId" : "8df17ac0-d08f-4122-b0f1-ade7026209f7",
-    "tenantId" : "df1c16e9-8d9c-4bba-929b-3c1cffc0b1a8",
+    "roleId" : "db464520-d6a9-4d20-9b72-3f6545287056",
+    "tenantId" : "4e8fd516-682e-4444-a947-5765bef0785c",
     "name" : "TENANT_ADMIN",
     "description" : "테넌트 관리자 역할",
     "scope" : "TENANT",
     "type" : "CUSTOM",
-    "createdAt" : "2025-12-11T07:45:31.832337Z",
-    "updatedAt" : "2025-12-11T07:45:31.832337Z"
+    "createdAt" : "2025-12-13T14:32:43.685826Z",
+    "updatedAt" : "2025-12-13T14:32:43.685826Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.833458",
-  "requestId" : "req-1765439131833"
+  "timestamp" : "2025-12-13T23:32:43.686769",
+  "requestId" : "req-1765636363686"
 }</code></pre>
 </div>
 </div>
@@ -895,7 +895,7 @@ Content-Length: 476
 <h5 id="_http_request_5"><a class="link" href="#_http_request_5">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/roles?tenantId=2fa30d08-8cfa-4161-81c3-70403894b844&amp;name=ADMIN&amp;scope=TENANT&amp;type=CUSTOM&amp;page=0&amp;size=20 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/roles?tenantId=789ab375-c5fa-4e3b-b98b-4cc32fa880e9&amp;name=ADMIN&amp;scope=TENANT&amp;type=CUSTOM&amp;page=0&amp;size=20 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -953,18 +953,18 @@ Content-Length: 480
 {
   "success" : true,
   "data" : [ {
-    "roleId" : "4be6173c-fcd5-4f94-ae9a-166d607411bf",
-    "tenantId" : "2fa30d08-8cfa-4161-81c3-70403894b844",
+    "roleId" : "a2559bdb-845d-4df2-bf46-279035adba89",
+    "tenantId" : "789ab375-c5fa-4e3b-b98b-4cc32fa880e9",
     "name" : "TENANT_ADMIN",
     "description" : "테넌트 관리자 역할",
     "scope" : "TENANT",
     "type" : "CUSTOM",
-    "createdAt" : "2025-12-11T07:45:31.814499Z",
-    "updatedAt" : "2025-12-11T07:45:31.814499Z"
+    "createdAt" : "2025-12-13T14:32:43.665495Z",
+    "updatedAt" : "2025-12-13T14:32:43.665495Z"
   } ],
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.817152",
-  "requestId" : "req-1765439131817"
+  "timestamp" : "2025-12-13T23:32:43.667893",
+  "requestId" : "req-1765636363667"
 }</code></pre>
 </div>
 </div>
@@ -1068,13 +1068,13 @@ Content-Length: 480
 <h5 id="_http_request_6"><a class="link" href="#_http_request_6">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/roles/7ee9b1e9-019b-46fc-a433-4537a45f5b6a/permissions HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/roles/044fe853-5595-4544-b7e2-036a08f1b7d6/permissions HTTP/1.1
 Content-Type: application/json
 Content-Length: 61
 Host: localhost:8080
 
 {
-  "permissionId" : "39e22595-e9c0-4649-bb27-c6dabe678a86"
+  "permissionId" : "287c2e72-5e30-4eb8-87a9-abfabf04a632"
 }</code></pre>
 </div>
 </div>
@@ -1082,7 +1082,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_4"><a class="link" href="#_path_parameters_4">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 4. /api/v1/roles/{roleId}/permissions</caption>
+<caption class="title">Table 4. /api/v1/auth/roles/{roleId}/permissions</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1136,13 +1136,13 @@ Content-Length: 305
 {
   "success" : true,
   "data" : {
-    "roleId" : "7ee9b1e9-019b-46fc-a433-4537a45f5b6a",
-    "permissionId" : "39e22595-e9c0-4649-bb27-c6dabe678a86",
-    "grantedAt" : "2025-12-11T07:45:31.796300Z"
+    "roleId" : "044fe853-5595-4544-b7e2-036a08f1b7d6",
+    "permissionId" : "287c2e72-5e30-4eb8-87a9-abfabf04a632",
+    "grantedAt" : "2025-12-13T14:32:43.643963Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:31.800191",
-  "requestId" : "req-1765439131800"
+  "timestamp" : "2025-12-13T23:32:43.648181",
+  "requestId" : "req-1765636363648"
 }</code></pre>
 </div>
 </div>
@@ -1216,7 +1216,7 @@ Content-Length: 305
 <h5 id="_http_request_7"><a class="link" href="#_http_request_7">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/roles/8a75167f-90a4-4a96-acf1-a37b12335379/permissions/994e222e-7c77-4295-baf4-d44c12efa5c2/revoke HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/roles/d1a27104-09fc-4884-a505-2f6a09074508/permissions/c5ba5f28-89fb-4153-9007-2306f0083ab4/revoke HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -1225,7 +1225,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_5"><a class="link" href="#_path_parameters_5">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 5. /api/v1/roles/{roleId}/permissions/{permissionId}/revoke</caption>
+<caption class="title">Table 5. /api/v1/auth/roles/{roleId}/permissions/{permissionId}/revoke</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">

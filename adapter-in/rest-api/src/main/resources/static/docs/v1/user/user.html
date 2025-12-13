@@ -449,10 +449,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#user-update-status">1.3. 사용자 상태 변경</a></li>
 <li><a href="#user-update-password">1.4. 비밀번호 변경</a></li>
 <li><a href="#user-delete">1.5. 사용자 삭제</a></li>
-<li><a href="#user-get">1.6. 사용자 단건 조회</a></li>
-<li><a href="#user-search">1.7. 사용자 목록 조회</a></li>
-<li><a href="#user-role-assign">1.8. 사용자 역할 할당</a></li>
-<li><a href="#user-role-revoke">1.9. 사용자 역할 해제</a></li>
+<li><a href="#user-me">1.6. 내 정보 조회</a></li>
+<li><a href="#user-get">1.7. 사용자 단건 조회</a></li>
+<li><a href="#user-search">1.8. 사용자 목록 조회</a></li>
+<li><a href="#user-role-assign">1.9. 사용자 역할 할당</a></li>
+<li><a href="#user-role-revoke">1.10. 사용자 역할 해제</a></li>
 </ul>
 </li>
 </ul>
@@ -473,14 +474,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h5 id="_http_request"><a class="link" href="#_http_request">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/users HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/users HTTP/1.1
 Content-Type: application/json
 Content-Length: 185
 Host: localhost:8080
 
 {
-  "tenantId" : "af26c58e-4f0c-4e4d-8f96-92fad7b9d50a",
-  "organizationId" : "972df2d5-5025-4e8b-bf00-4d2fe4c02d05",
+  "tenantId" : "d1a6f5d4-a6b3-4950-a8cb-cf761cc712ab",
+  "organizationId" : "c8b88f2d-7e40-4778-a0c7-7fa3644b9087",
   "identifier" : "user@example.com",
   "password" : "password123"
 }</code></pre>
@@ -532,16 +533,16 @@ Host: localhost:8080
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
 Content-Type: application/json
-Content-Length: 195
+Content-Length: 193
 
 {
   "success" : true,
   "data" : {
-    "userId" : "1a99dc0e-f503-4948-9d19-8a00a2d9766a"
+    "userId" : "ba1ddd83-b79f-4bb1-a097-a371c19ff750"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.924932",
-  "requestId" : "req-1765439133924"
+  "timestamp" : "2025-12-13T23:32:45.9029",
+  "requestId" : "req-1765636365902"
 }</code></pre>
 </div>
 </div>
@@ -605,7 +606,7 @@ Content-Length: 195
 <h5 id="_http_request_2"><a class="link" href="#_http_request_2">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/users/80d75ded-60e3-4062-9624-b9e61ba733b9 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/users/9c8c035b-0cc2-48d2-960e-fd47d7764235 HTTP/1.1
 Content-Type: application/json
 Content-Length: 42
 Host: localhost:8080
@@ -619,7 +620,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters"><a class="link" href="#_path_parameters">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. /api/v1/users/{userId}</caption>
+<caption class="title">Table 1. /api/v1/auth/users/{userId}</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -674,8 +675,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.885203",
-  "requestId" : "req-1765439133885"
+  "timestamp" : "2025-12-13T23:32:45.819889",
+  "requestId" : "req-1765636365819"
 }</code></pre>
 </div>
 </div>
@@ -690,7 +691,7 @@ Content-Length: 140
 <h5 id="_http_request_3"><a class="link" href="#_http_request_3">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/94f3cdc5-4007-4044-87e8-580e775facb9/status HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/f9adbd4f-d75b-4fcd-a437-7c3750c5ee4a/status HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -704,7 +705,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_2"><a class="link" href="#_path_parameters_2">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 2. /api/v1/users/{userId}/status</caption>
+<caption class="title">Table 2. /api/v1/auth/users/{userId}/status</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -759,8 +760,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.903059",
-  "requestId" : "req-1765439133903"
+  "timestamp" : "2025-12-13T23:32:45.838178",
+  "requestId" : "req-1765636365838"
 }</code></pre>
 </div>
 </div>
@@ -775,7 +776,7 @@ Content-Length: 140
 <h5 id="_http_request_4"><a class="link" href="#_http_request_4">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/e8077f3b-0c65-44c5-8288-b9420548a568/password HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/934d7eab-a662-4879-aaef-277517841467/password HTTP/1.1
 Content-Type: application/json
 Content-Length: 78
 Host: localhost:8080
@@ -790,7 +791,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_3"><a class="link" href="#_path_parameters_3">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 3. /api/v1/users/{userId}/password</caption>
+<caption class="title">Table 3. /api/v1/auth/users/{userId}/password</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -850,8 +851,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.876425",
-  "requestId" : "req-1765439133876"
+  "timestamp" : "2025-12-13T23:32:45.810746",
+  "requestId" : "req-1765636365810"
 }</code></pre>
 </div>
 </div>
@@ -866,7 +867,7 @@ Content-Length: 140
 <h5 id="_http_request_5"><a class="link" href="#_http_request_5">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/e8fe4506-b183-4f61-a457-2c1b2b839b20/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/0d84dc33-b63e-459c-97f2-684ed18b71a5/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -875,7 +876,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_4"><a class="link" href="#_path_parameters_4">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 4. /api/v1/users/{userId}/delete</caption>
+<caption class="title">Table 4. /api/v1/auth/users/{userId}/delete</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -904,41 +905,19 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="user-get"><a class="link" href="#user-get">1.6. 사용자 단건 조회</a></h4>
+<h4 id="user-me"><a class="link" href="#user-me">1.6. 내 정보 조회</a></h4>
 <div class="paragraph">
-<p>사용자 정보를 조회합니다.</p>
+<p>현재 인증된 사용자의 정보를 조회합니다.</p>
 </div>
 <div class="sect4">
 <h5 id="_http_request_6"><a class="link" href="#_http_request_6">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/users/a6b08406-152c-4b5c-bbe6-af78fb82ec8f HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users/me HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
 </div>
-</div>
-<div class="sect4">
-<h5 id="_path_parameters_5"><a class="link" href="#_path_parameters_5">Path Parameters</a></h5>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 5. /api/v1/users/{userId}</caption>
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 ID (UUID 형식)</p></td>
-</tr>
-</tbody>
-</table>
 </div>
 <div class="sect4">
 <h5 id="_http_response_6"><a class="link" href="#_http_response_6">HTTP Response</a></h5>
@@ -946,22 +925,22 @@ Host: localhost:8080</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 477
+Content-Length: 475
 
 {
   "success" : true,
   "data" : {
-    "userId" : "a6b08406-152c-4b5c-bbe6-af78fb82ec8f",
-    "tenantId" : "358690ec-a767-46c2-a685-c4d4269f010c",
-    "organizationId" : "ec5b9e98-9463-4a2e-9c95-f3682ef7d44d",
-    "identifier" : "test@example.com",
+    "userId" : "be60f979-9773-45ba-bd6d-b372f5678cb7",
+    "tenantId" : "594695b4-915e-4fa5-a0ba-75a1beec4cf7",
+    "organizationId" : "d09763af-cd1e-4dd6-9559-e27246a90188",
+    "identifier" : "me@example.com",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:33.891931Z",
-    "updatedAt" : "2025-12-11T07:45:33.891931Z"
+    "createdAt" : "2025-12-13T14:32:45.844618Z",
+    "updatedAt" : "2025-12-13T14:32:45.844618Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.892802",
-  "requestId" : "req-1765439133892"
+  "timestamp" : "2025-12-13T23:32:45.879785",
+  "requestId" : "req-1765636365879"
 }</code></pre>
 </div>
 </div>
@@ -1047,15 +1026,158 @@ Content-Length: 477
 </div>
 </div>
 <div class="sect3">
-<h4 id="user-search"><a class="link" href="#user-search">1.7. 사용자 목록 조회</a></h4>
+<h4 id="user-get"><a class="link" href="#user-get">1.7. 사용자 단건 조회</a></h4>
 <div class="paragraph">
-<p>사용자 목록을 조회합니다.</p>
+<p>사용자 정보를 조회합니다.</p>
 </div>
 <div class="sect4">
 <h5 id="_http_request_7"><a class="link" href="#_http_request_7">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/users?tenantId=99c1e94e-0091-45d7-93dc-42a2164ded1f&amp;organizationId=8b942b36-4d6e-42a4-b3df-9929e957b33f&amp;identifier=test%40example.com&amp;status=ACTIVE&amp;page=0&amp;size=20 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users/affab998-51c2-4f21-b5e4-8aca34f10ef4 HTTP/1.1
+Accept: application/json
+Host: localhost:8080</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_path_parameters_5"><a class="link" href="#_path_parameters_5">Path Parameters</a></h5>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 5. /api/v1/auth/users/{userId}</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 ID (UUID 형식)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_http_response_7"><a class="link" href="#_http_response_7">HTTP Response</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 477
+
+{
+  "success" : true,
+  "data" : {
+    "userId" : "affab998-51c2-4f21-b5e4-8aca34f10ef4",
+    "tenantId" : "3331b09e-f1a8-42db-8527-3a575e9ada57",
+    "organizationId" : "fbf7446e-c730-4016-8648-1ff0acfafc99",
+    "identifier" : "test@example.com",
+    "status" : "ACTIVE",
+    "createdAt" : "2025-12-13T14:32:45.827245Z",
+    "updatedAt" : "2025-12-13T14:32:45.827245Z"
+  },
+  "error" : null,
+  "timestamp" : "2025-12-13T23:32:45.828078",
+  "requestId" : "req-1765636365828"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_response_fields_3"><a class="link" href="#_response_fields_3">Response Fields</a></h5>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.tenantId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">테넌트 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.organizationId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">조직 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.identifier</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 식별자</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 상태</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.createdAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성 일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.updatedAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">수정 일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보 (성공 시 null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시간</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="user-search"><a class="link" href="#user-search">1.8. 사용자 목록 조회</a></h4>
+<div class="paragraph">
+<p>사용자 목록을 조회합니다.</p>
+</div>
+<div class="sect4">
+<h5 id="_http_request_8"><a class="link" href="#_http_request_8">HTTP Request</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users?tenantId=5f3b3fd0-09ee-4d52-a77b-b47df113bbe5&amp;organizationId=7fcdbca1-0a3f-4c16-bea5-badc44bfba22&amp;identifier=test%40example.com&amp;status=ACTIVE&amp;page=0&amp;size=20 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -1103,7 +1225,7 @@ Host: localhost:8080</code></pre>
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_7"><a class="link" href="#_http_response_7">HTTP Response</a></h5>
+<h5 id="_http_response_8"><a class="link" href="#_http_response_8">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
@@ -1113,23 +1235,23 @@ Content-Length: 481
 {
   "success" : true,
   "data" : [ {
-    "userId" : "8d8b6a2d-fb7b-4f48-bc4f-a57f51a901c7",
-    "tenantId" : "99c1e94e-0091-45d7-93dc-42a2164ded1f",
-    "organizationId" : "8b942b36-4d6e-42a4-b3df-9929e957b33f",
+    "userId" : "5e44d550-08f3-435a-b69a-296f549c0982",
+    "tenantId" : "5f3b3fd0-09ee-4d52-a77b-b47df113bbe5",
+    "organizationId" : "7fcdbca1-0a3f-4c16-bea5-badc44bfba22",
     "identifier" : "test@example.com",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-11T07:45:33.860276Z",
-    "updatedAt" : "2025-12-11T07:45:33.860276Z"
+    "createdAt" : "2025-12-13T14:32:45.794816Z",
+    "updatedAt" : "2025-12-13T14:32:45.794816Z"
   } ],
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.862182",
-  "requestId" : "req-1765439133862"
+  "timestamp" : "2025-12-13T23:32:45.796841",
+  "requestId" : "req-1765636365796"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_3"><a class="link" href="#_response_fields_3">Response Fields</a></h5>
+<h5 id="_response_fields_4"><a class="link" href="#_response_fields_4">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1209,21 +1331,21 @@ Content-Length: 481
 </div>
 </div>
 <div class="sect3">
-<h4 id="user-role-assign"><a class="link" href="#user-role-assign">1.8. 사용자 역할 할당</a></h4>
+<h4 id="user-role-assign"><a class="link" href="#user-role-assign">1.9. 사용자 역할 할당</a></h4>
 <div class="paragraph">
 <p>사용자에게 역할을 할당합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_8"><a class="link" href="#_http_request_8">HTTP Request</a></h5>
+<h5 id="_http_request_9"><a class="link" href="#_http_request_9">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/users/2bf33e24-875e-405b-87b6-9600d3ce880c/roles HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/users/4208bfb4-5b75-4d99-a62b-095961357523/roles HTTP/1.1
 Content-Type: application/json
 Content-Length: 55
 Host: localhost:8080
 
 {
-  "roleId" : "187bb188-db6d-4b86-a625-91758e4361bc"
+  "roleId" : "be70cb09-cd83-4574-8ad4-10dea8fe6d19"
 }</code></pre>
 </div>
 </div>
@@ -1231,7 +1353,7 @@ Host: localhost:8080
 <div class="sect4">
 <h5 id="_path_parameters_6"><a class="link" href="#_path_parameters_6">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 6. /api/v1/users/{userId}/roles</caption>
+<caption class="title">Table 6. /api/v1/auth/users/{userId}/roles</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1275,7 +1397,7 @@ Host: localhost:8080
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_8"><a class="link" href="#_http_response_8">HTTP Response</a></h5>
+<h5 id="_http_response_9"><a class="link" href="#_http_response_9">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
@@ -1285,19 +1407,19 @@ Content-Length: 300
 {
   "success" : true,
   "data" : {
-    "userId" : "2bf33e24-875e-405b-87b6-9600d3ce880c",
-    "roleId" : "187bb188-db6d-4b86-a625-91758e4361bc",
-    "assignedAt" : "2025-12-11T07:45:33.910149Z"
+    "userId" : "4208bfb4-5b75-4d99-a62b-095961357523",
+    "roleId" : "be70cb09-cd83-4574-8ad4-10dea8fe6d19",
+    "assignedAt" : "2025-12-13T14:32:45.887249Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:33.912798",
-  "requestId" : "req-1765439133912"
+  "timestamp" : "2025-12-13T23:32:45.890131",
+  "requestId" : "req-1765636365890"
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_response_fields_4"><a class="link" href="#_response_fields_4">Response Fields</a></h5>
+<h5 id="_response_fields_5"><a class="link" href="#_response_fields_5">Response Fields</a></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1357,15 +1479,15 @@ Content-Length: 300
 </div>
 </div>
 <div class="sect3">
-<h4 id="user-role-revoke"><a class="link" href="#user-role-revoke">1.9. 사용자 역할 해제</a></h4>
+<h4 id="user-role-revoke"><a class="link" href="#user-role-revoke">1.10. 사용자 역할 해제</a></h4>
 <div class="paragraph">
 <p>사용자의 역할을 해제합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_9"><a class="link" href="#_http_request_9">HTTP Request</a></h5>
+<h5 id="_http_request_10"><a class="link" href="#_http_request_10">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/9a6e7dcd-390e-41a8-8286-9d773ef48c74/roles/3cf774b5-fe27-4318-8400-a2d972e50683/revoke HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/a48b108b-488b-4e43-92fc-90044cf81fe6/roles/c7069768-eacb-48d1-9519-9f214af3727e/revoke HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -1374,7 +1496,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div class="sect4">
 <h5 id="_path_parameters_7"><a class="link" href="#_path_parameters_7">Path Parameters</a></h5>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 7. /api/v1/users/{userId}/roles/{roleId}/revoke</caption>
+<caption class="title">Table 7. /api/v1/auth/users/{userId}/roles/{roleId}/revoke</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1398,7 +1520,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 </table>
 </div>
 <div class="sect4">
-<h5 id="_http_response_9"><a class="link" href="#_http_response_9">HTTP Response</a></h5>
+<h5 id="_http_response_10"><a class="link" href="#_http_response_10">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 204 No Content</code></pre>
@@ -1411,7 +1533,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version 1.0.0-SNAPSHOT<br>
-Last updated 2025-12-11 11:18:45 +0900
+Last updated 2025-12-13 15:25:38 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

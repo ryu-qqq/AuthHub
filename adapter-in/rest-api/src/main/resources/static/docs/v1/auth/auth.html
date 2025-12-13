@@ -470,11 +470,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/login HTTP/1.1
 Content-Type: application/json
-Content-Length: 125
+Content-Length: 70
 Host: localhost:8080
 
 {
-  "tenantId" : "e0eb9663-75e5-472c-9325-3a55e0eee6a8",
   "identifier" : "user@example.com",
   "password" : "password123!"
 }</code></pre>
@@ -497,11 +496,6 @@ Host: localhost:8080
 </tr>
 </thead>
 <tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tenantId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">테넌트 ID (UUID 형식)</p></td>
-</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>identifier</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
@@ -526,15 +520,15 @@ Content-Length: 414
 {
   "success" : true,
   "data" : {
-    "userId" : "c65b2ea1-548f-4e54-a640-76fac6c38ef2",
+    "userId" : "9c97a534-8819-4197-a4cc-12264ebe2103",
     "accessToken" : "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.signature",
     "refreshToken" : "refresh_token_abc123",
     "expiresIn" : 3600,
     "tokenType" : "Bearer"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:26.225848",
-  "requestId" : "req-1765439126225"
+  "timestamp" : "2025-12-13T23:32:40.371221",
+  "requestId" : "req-1765636360371"
 }</code></pre>
 </div>
 </div>
@@ -666,8 +660,8 @@ Content-Length: 411
     "tokenType" : "Bearer"
   },
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:26.190399",
-  "requestId" : "req-1765439126190"
+  "timestamp" : "2025-12-13T23:32:40.341636",
+  "requestId" : "req-1765636360341"
 }</code></pre>
 </div>
 </div>
@@ -752,7 +746,7 @@ Content-Length: 55
 Host: localhost:8080
 
 {
-  "userId" : "f76a0cb9-504f-4796-ac11-3466ab900d07"
+  "userId" : "551d0593-4d66-4c4a-b2ab-b9b9d77f7d60"
 }</code></pre>
 </div>
 </div>
@@ -793,8 +787,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-11T16:45:26.155614",
-  "requestId" : "req-1765439126155"
+  "timestamp" : "2025-12-13T23:32:40.312201",
+  "requestId" : "req-1765636360312"
 }</code></pre>
 </div>
 </div>
