@@ -125,19 +125,3 @@ include::{snippets}/permission-user/http-response.adoc[]
 
 include::{snippets}/permission-user/response-fields.adoc[]
 
-[[permission-spec]]
-==== 권한 명세 조회
-
-엔드포인트별 필요 권한 명세를 조회합니다.
-
-===== HTTP Request
-
-include::{snippets}/permission-spec/http-request.adoc[]
-
-===== HTTP Response
-
-include::{snippets}/permission-spec/http-response.adoc[]
-
-===== Response Fields
-
-include::{snippets}/permission-spec/response-fields.adoc[]

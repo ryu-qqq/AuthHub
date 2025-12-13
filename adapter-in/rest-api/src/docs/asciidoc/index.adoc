@@ -12,7 +12,7 @@
 
 AuthHub는 마이크로서비스 아키텍처의 **인증/인가 중앙 서버**입니다.
 
-JWT 발급, 사용자/테넌트/조직/역할/권한 관리, 엔드포인트 권한 명세 제공을 담당합니다.
+JWT 발급, 사용자/테넌트/조직/역할/권한 관리를 담당합니다.
 
 === Base URL
 
@@ -45,7 +45,7 @@ JWT 발급, 사용자/테넌트/조직/역할/권한 관리, 엔드포인트 권
 │  ┌───────────────────────────────────────────────────────────────────────────┐  │
 │  │ 1. JWT 검증 (AuthHub JWKS로 RS256 공개키 조회)                             │  │
 │  │ 2. Rate Limiting (IP/User 기반)                                           │  │
-│  │ 3. Permission 검사 (AuthHub의 Endpoint Permission Spec 사용)               │  │
+│  │ 3. Permission 검사 (@PreAuthorize 어노테이션 기반)                          │  │
 │  │ 4. 헤더 주입 → X-User-Id, X-Tenant-Id, X-User-Roles                       │  │
 │  └───────────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────────┘
@@ -60,8 +60,6 @@ JWT 발급, 사용자/테넌트/조직/역할/권한 관리, 엔드포인트 권
 │ • 사용자 관리    │          │ • 비즈니스 로직만 │          │ • 비즈니스 로직만 │
 │ • 테넌트/조직관리│          │   집중           │          │   집중           │
 │ • 역할/권한 관리 │          │                  │          │                  │
-│ • Endpoint 권한  │          │                  │          │                  │
-│   Spec 관리/제공 │          │                  │          │                  │
 └──────────────────┘          └──────────────────┘          └──────────────────┘
 ----
 
@@ -73,7 +71,7 @@ JWT 발급, 사용자/테넌트/조직/역할/권한 관리, 엔드포인트 권
 | 서버 | 역할
 
 | **AuthHub**
-| 인증(JWT 발급), JWKS 제공, 사용자/테넌트/조직/역할/권한 관리, Endpoint Permission Spec 관리
+| 인증(JWT 발급), JWKS 제공, 사용자/테넌트/조직/역할/권한 관리
 
 | **Gateway**
 | JWT 검증(RS256), Rate Limiting, Permission 검사, 헤더 주입
@@ -102,7 +100,7 @@ JWT 발급, 사용자/테넌트/조직/역할/권한 관리, 엔드포인트 권
      │                               │                              │
      │                               │  3. Verify JWT Signature     │
      │                               │  4. Extract Claims           │
-     │                               │  5. Check Permission Spec    │
+     │                               │  5. Check User Permissions   │
      │                               │  6. Inject Headers           │
      │                               │                              │
      │  7. Response                  │                              │
@@ -134,42 +132,17 @@ JWT 발급, 사용자/테넌트/조직/역할/권한 관리, 엔드포인트 권
 [source]
 ----
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                 1. Endpoint Permission 등록 (AuthHub 관리)                       │
+│                     @PreAuthorize 기반 권한 검사                                 │
 │  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │ POST /api/v1/endpoint-permissions                                        │    │
-│  │ {                                                                        │    │
-│  │   "httpMethod": "POST",                                                  │    │
-│  │   "pathPattern": "/api/v1/orders",                                       │    │
-│  │   "serviceName": "order-service",                                        │    │
-│  │   "requiredRoles": ["TENANT_ADMIN", "ORDER_MANAGER"],                    │    │
-│  │   "requiredPermissions": ["order:create"],                               │    │
-│  │   "isPublic": false                                                      │    │
-│  │ }                                                                        │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                  2. Gateway가 Permission Spec 조회/캐싱                          │
-│  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │ GET /api/v1/endpoint-permissions/spec                                    │    │
+│  │ 1. Gateway에서 JWT 검증 및 헤더 주입                                      │    │
+│  │    - X-User-Id, X-Tenant-Id, X-Roles, X-Permissions                      │    │
 │  │                                                                          │    │
-│  │ Redis Cache:                                                             │    │
-│  │   "POST:/api/v1/orders" → {roles: [...], permissions: [...]}            │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                     3. 요청 시 Permission 검사 (Gateway)                         │
-│  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │ Client: POST /api/v1/orders (Bearer Token)                               │    │
+│  │ 2. AuthHub Controller에서 @PreAuthorize로 권한 검사                       │    │
+│  │    - @PreAuthorize("@access.hasPermission('user:read')")                 │    │
+│  │    - @PreAuthorize("@access.hasRole('SUPER_ADMIN')")                     │    │
+│  │    - @PreAuthorize("@access.superAdmin()")                               │    │
 │  │                                                                          │    │
-│  │ Gateway PermissionFilter:                                                │    │
-│  │   1. JWT Claims에서 roles, permissions 추출                              │    │
-│  │   2. "POST:/api/v1/orders" 권한 스펙 조회                                │    │
-│  │   3. 사용자 roles/permissions와 비교 (OR 조건)                           │    │
-│  │   4. 매칭되면 통과, 아니면 403 Forbidden                                 │    │
+│  │ 3. 권한 없으면 403 Forbidden 반환                                         │    │
 │  └─────────────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ----
@@ -227,10 +200,6 @@ AuthHub에서 권한/설정 변경 시 Gateway 캐시를 무효화합니다.
 | Public Key 변경
 | RSA 키 로테이션
 | `/actuator/refresh-public-keys`
-
-| Permission Spec 변경
-| 엔드포인트 권한 변경
-| `/webhooks/permission/spec-sync`
 
 | 사용자 권한 변경
 | 역할 할당/해제
@@ -362,14 +331,9 @@ AuthHub에서 권한/설정 변경 시 Gateway 캐시를 무효화합니다.
 | 역할 목록 조회
 
 | GET
-| /api/v1/auth/permissions/spec
+| /api/v1/auth/permissions/users/{userId}
 | SUPER_ADMIN
-| 권한 명세 조회 (Gateway용)
-
-| GET
-| /api/v1/internal/permissions/spec
-| **Internal** (X-Service-Token)
-| 권한 명세 조회 (Gateway Internal)
+| 사용자 권한 조회
 |===
 
 [[api-v1]]
