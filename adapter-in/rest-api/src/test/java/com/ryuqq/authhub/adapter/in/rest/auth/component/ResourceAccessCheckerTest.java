@@ -359,6 +359,310 @@ class ResourceAccessCheckerTest {
         }
     }
 
+    @Nested
+    @DisplayName("tenantAdmin() 테스트")
+    class TenantAdminTest {
+
+        @Test
+        @DisplayName("TENANT_ADMIN 역할이 있으면 true를 반환한다")
+        void tenantAdmin_withTenantAdminRole_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.TENANT_ADMIN);
+
+            // when & then
+            assertThat(checker.tenantAdmin()).isTrue();
+        }
+
+        @Test
+        @DisplayName("TENANT_ADMIN 역할이 없으면 false를 반환한다")
+        void tenantAdmin_withoutTenantAdminRole_shouldReturnFalse() {
+            // given
+            setSecurityContext(Role.USER);
+
+            // when & then
+            assertThat(checker.tenantAdmin()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("orgAdmin() 테스트")
+    class OrgAdminTest {
+
+        @Test
+        @DisplayName("ORG_ADMIN 역할이 있으면 true를 반환한다")
+        void orgAdmin_withOrgAdminRole_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.ORG_ADMIN);
+
+            // when & then
+            assertThat(checker.orgAdmin()).isTrue();
+        }
+
+        @Test
+        @DisplayName("ORG_ADMIN 역할이 없으면 false를 반환한다")
+        void orgAdmin_withoutOrgAdminRole_shouldReturnFalse() {
+            // given
+            setSecurityContext(Role.USER);
+
+            // when & then
+            assertThat(checker.orgAdmin()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("hasAnyPermission() 테스트")
+    class HasAnyPermissionTest {
+
+        @Test
+        @DisplayName("SUPER_ADMIN은 모든 권한을 가진다")
+        void hasAnyPermission_whenSuperAdmin_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.SUPER_ADMIN);
+
+            // when & then
+            assertThat(checker.hasAnyPermission("any:permission", "other:permission")).isTrue();
+        }
+
+        @Test
+        @DisplayName("주어진 권한 중 하나라도 있으면 true를 반환한다")
+        void hasAnyPermission_whenHasOneOfPermissions_shouldReturnTrue() {
+            // given
+            setSecurityContextWithPermissions(Set.of("user:read"));
+
+            // when & then
+            assertThat(checker.hasAnyPermission("user:read", "user:write")).isTrue();
+        }
+
+        @Test
+        @DisplayName("주어진 권한이 하나도 없으면 false를 반환한다")
+        void hasAnyPermission_whenHasNoneOfPermissions_shouldReturnFalse() {
+            // given
+            setSecurityContextWithPermissions(Set.of("order:read"));
+
+            // when & then
+            assertThat(checker.hasAnyPermission("user:read", "user:write")).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("hasAllPermissions() 테스트")
+    class HasAllPermissionsTest {
+
+        @Test
+        @DisplayName("SUPER_ADMIN은 모든 권한을 가진다")
+        void hasAllPermissions_whenSuperAdmin_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.SUPER_ADMIN);
+
+            // when & then
+            assertThat(checker.hasAllPermissions("user:read", "user:write", "order:create"))
+                    .isTrue();
+        }
+
+        @Test
+        @DisplayName("주어진 권한을 모두 가지고 있으면 true를 반환한다")
+        void hasAllPermissions_whenHasAllPermissions_shouldReturnTrue() {
+            // given
+            setSecurityContextWithPermissions(Set.of("user:read", "user:write", "order:create"));
+
+            // when & then
+            assertThat(checker.hasAllPermissions("user:read", "user:write")).isTrue();
+        }
+
+        @Test
+        @DisplayName("주어진 권한 중 하나라도 없으면 false를 반환한다")
+        void hasAllPermissions_whenMissingOnePermission_shouldReturnFalse() {
+            // given
+            setSecurityContextWithPermissions(Set.of("user:read"));
+
+            // when & then
+            assertThat(checker.hasAllPermissions("user:read", "user:write")).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("hasRole() 테스트")
+    class HasRoleTest {
+
+        @Test
+        @DisplayName("해당 역할이 있으면 true를 반환한다")
+        void hasRole_whenHasRole_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.TENANT_ADMIN);
+
+            // when & then
+            assertThat(checker.hasRole(Role.TENANT_ADMIN)).isTrue();
+        }
+
+        @Test
+        @DisplayName("해당 역할이 없으면 false를 반환한다")
+        void hasRole_whenNoRole_shouldReturnFalse() {
+            // given
+            setSecurityContext(Role.USER);
+
+            // when & then
+            assertThat(checker.hasRole(Role.TENANT_ADMIN)).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("hasAnyRole() 테스트")
+    class HasAnyRoleTest {
+
+        @Test
+        @DisplayName("주어진 역할 중 하나라도 있으면 true를 반환한다")
+        void hasAnyRole_whenHasOneOfRoles_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.USER);
+
+            // when & then
+            assertThat(checker.hasAnyRole(Role.USER, Role.TENANT_ADMIN)).isTrue();
+        }
+
+        @Test
+        @DisplayName("주어진 역할이 하나도 없으면 false를 반환한다")
+        void hasAnyRole_whenHasNoneOfRoles_shouldReturnFalse() {
+            // given
+            setSecurityContext(Role.USER);
+
+            // when & then
+            assertThat(checker.hasAnyRole(Role.SUPER_ADMIN, Role.TENANT_ADMIN)).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("tenant() 테스트")
+    class TenantAccessTest {
+
+        @Test
+        @DisplayName("SUPER_ADMIN은 모든 테넌트에 접근 가능하다")
+        void tenant_whenSuperAdmin_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.SUPER_ADMIN);
+
+            // when & then
+            assertThat(checker.tenant(OTHER_TENANT_ID, "delete")).isTrue();
+        }
+
+        @Test
+        @DisplayName("같은 테넌트이고 권한이 있으면 true를 반환한다")
+        void tenant_whenSameTenantAndHasPermission_shouldReturnTrue() {
+            // given
+            setSecurityContextWithPermissions(Set.of("tenant:read"));
+
+            // when & then
+            assertThat(checker.tenant(TENANT_ID, "read")).isTrue();
+        }
+
+        @Test
+        @DisplayName("다른 테넌트면 false를 반환한다")
+        void tenant_whenDifferentTenant_shouldReturnFalse() {
+            // given
+            setSecurityContextWithPermissions(Set.of("tenant:read"));
+
+            // when & then
+            assertThat(checker.tenant(OTHER_TENANT_ID, "read")).isFalse();
+        }
+
+        @Test
+        @DisplayName("같은 테넌트이지만 권한이 없으면 false를 반환한다")
+        void tenant_whenSameTenantButNoPermission_shouldReturnFalse() {
+            // given
+            setSecurityContext(Role.USER);
+
+            // when & then
+            assertThat(checker.tenant(TENANT_ID, "update")).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("organization() 테스트")
+    class OrganizationAccessTest {
+
+        @Test
+        @DisplayName("SUPER_ADMIN은 모든 조직에 접근 가능하다")
+        void organization_whenSuperAdmin_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.SUPER_ADMIN);
+
+            // when & then
+            assertThat(checker.organization(OTHER_ORG_ID, "delete")).isTrue();
+        }
+
+        @Test
+        @DisplayName("TENANT_ADMIN이고 organization 권한이 있으면 true를 반환한다")
+        void organization_whenTenantAdminAndHasPermission_shouldReturnTrue() {
+            // given
+            SecurityContext context =
+                    SecurityContext.builder()
+                            .userId(USER_ID)
+                            .tenantId(TENANT_ID)
+                            .organizationId(ORG_ID)
+                            .roles(Set.of(Role.TENANT_ADMIN))
+                            .permissions(Set.of("organization:read"))
+                            .build();
+            SecurityContextHolder.setContext(context);
+
+            // when & then
+            assertThat(checker.organization(OTHER_ORG_ID, "read")).isTrue();
+        }
+
+        @Test
+        @DisplayName("같은 조직이고 권한이 있으면 true를 반환한다")
+        void organization_whenSameOrgAndHasPermission_shouldReturnTrue() {
+            // given
+            setSecurityContextWithPermissions(Set.of("organization:read"));
+
+            // when & then
+            assertThat(checker.organization(ORG_ID, "read")).isTrue();
+        }
+
+        @Test
+        @DisplayName("다른 조직이면 false를 반환한다")
+        void organization_whenDifferentOrg_shouldReturnFalse() {
+            // given
+            setSecurityContextWithPermissions(Set.of("organization:read"));
+
+            // when & then
+            assertThat(checker.organization(OTHER_ORG_ID, "read")).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("role() 테스트")
+    class RoleAccessTest {
+
+        @Test
+        @DisplayName("SUPER_ADMIN은 모든 역할에 접근 가능하다")
+        void role_whenSuperAdmin_shouldReturnTrue() {
+            // given
+            setSecurityContext(Role.SUPER_ADMIN);
+
+            // when & then
+            assertThat(checker.role("role-id", "delete")).isTrue();
+        }
+
+        @Test
+        @DisplayName("role 권한이 있으면 true를 반환한다")
+        void role_whenHasPermission_shouldReturnTrue() {
+            // given
+            setSecurityContextWithPermissions(Set.of("role:read"));
+
+            // when & then
+            assertThat(checker.role("role-id", "read")).isTrue();
+        }
+
+        @Test
+        @DisplayName("role 권한이 없으면 false를 반환한다")
+        void role_whenNoPermission_shouldReturnFalse() {
+            // given
+            setSecurityContext(Role.USER);
+
+            // when & then
+            assertThat(checker.role("role-id", "read")).isFalse();
+        }
+    }
+
     private void setSecurityContext(String role) {
         SecurityContext context =
                 SecurityContext.builder()
