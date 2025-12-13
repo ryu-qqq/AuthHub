@@ -34,7 +34,7 @@ resource "aws_security_group" "redis" {
     from_port   = 6379
     to_port     = 6379
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/8"]  # VPC CIDR
+    cidr_blocks = ["10.0.0.0/8"] # VPC CIDR
   }
 
   egress {
@@ -63,10 +63,10 @@ resource "aws_security_group" "redis" {
 module "redis" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/elasticache?ref=main"
 
-  cluster_id     = "${var.project_name}-redis-${var.environment}"
-  engine         = "redis"
-  engine_version = "7.0"
-  node_type      = var.redis_node_type
+  cluster_id      = "${var.project_name}-redis-${var.environment}"
+  engine          = "redis"
+  engine_version  = "7.0"
+  node_type       = var.redis_node_type
   num_cache_nodes = 1
 
   # Explicit port to avoid module validation bug with null
@@ -91,9 +91,9 @@ module "redis" {
   maintenance_window       = "mon:09:00-mon:10:00"
 
   # CloudWatch Alarms
-  enable_cloudwatch_alarms = true
-  alarm_cpu_threshold      = 80
-  alarm_memory_threshold   = 85
+  enable_cloudwatch_alarms   = true
+  alarm_cpu_threshold        = 80
+  alarm_memory_threshold     = 85
   alarm_connection_threshold = 1000
 
   # Required Tags (governance compliance)
