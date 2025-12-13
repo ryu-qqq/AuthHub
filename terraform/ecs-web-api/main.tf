@@ -38,6 +38,18 @@ data "aws_ecs_cluster" "main" {
 data "aws_caller_identity" "current" {}
 
 # ========================================
+# Service Discovery Namespace (from shared infrastructure)
+# ========================================
+data "aws_ssm_parameter" "service_discovery_namespace_id" {
+  name = "/shared/service-discovery/namespace-id"
+}
+
+# VPC data source for internal communication
+data "aws_vpc" "main" {
+  id = local.vpc_id
+}
+
+# ========================================
 # KMS Key for CloudWatch Logs Encryption
 # ========================================
 resource "aws_kms_key" "logs" {
@@ -165,6 +177,13 @@ module "ecs_security_group" {
       protocol                 = "tcp"
       source_security_group_id = aws_security_group.alb.id
       description              = "From ALB only"
+    },
+    {
+      from_port   = 8080
+      to_port     = 8080
+      protocol    = "tcp"
+      cidr_blocks = [data.aws_vpc.main.cidr_block]
+      description = "Service Discovery - internal VPC communication"
     }
   ]
 
@@ -530,6 +549,11 @@ module "ecs_service" {
   # Deployment Configuration
   deployment_circuit_breaker_enable   = true
   deployment_circuit_breaker_rollback = true
+
+  # Service Discovery Configuration
+  enable_service_discovery         = true
+  service_discovery_namespace_id   = data.aws_ssm_parameter.service_discovery_namespace_id.value
+  service_discovery_namespace_name = "connectly.local"
 
   # Tagging
   environment  = local.common_tags.environment
