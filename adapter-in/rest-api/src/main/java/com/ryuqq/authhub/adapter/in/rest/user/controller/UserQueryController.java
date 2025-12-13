@@ -69,7 +69,14 @@ public class UserQueryController {
      *
      * @return 200 OK + 현재 사용자 정보
      */
-    @Operation(summary = "내 정보 조회", description = "현재 인증된 사용자의 정보를 조회합니다")
+    @Operation(
+            summary = "내 정보 조회",
+            description =
+                    """
+                    현재 인증된 사용자의 정보를 조회합니다.
+
+                    **필요 권한**: 인증된 사용자 (로그인 필수)
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -95,7 +102,14 @@ public class UserQueryController {
      * @param userId 사용자 ID
      * @return 200 OK + 사용자 상세 정보
      */
-    @Operation(summary = "사용자 단건 조회", description = "사용자 ID로 사용자 정보를 조회합니다")
+    @Operation(
+            summary = "사용자 단건 조회",
+            description =
+                    """
+                    사용자 ID로 사용자 정보를 조회합니다.
+
+                    **필요 권한**: 본인 또는 `user:read` 권한 보유자
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -126,7 +140,14 @@ public class UserQueryController {
      * @param size 페이지 크기 (기본값: 20)
      * @return 200 OK + 사용자 목록
      */
-    @Operation(summary = "사용자 목록 검색", description = "조건에 맞는 사용자 목록을 검색합니다")
+    @Operation(
+            summary = "사용자 목록 검색",
+            description =
+                    """
+                    조건에 맞는 사용자 목록을 검색합니다.
+
+                    **필요 권한**: `user:read`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",

@@ -67,7 +67,14 @@ public class RoleQueryController {
      * @param roleId 역할 ID
      * @return 200 OK + 역할 상세 정보
      */
-    @Operation(summary = "역할 단건 조회", description = "역할 ID로 역할 정보를 조회합니다")
+    @Operation(
+            summary = "역할 단건 조회",
+            description =
+                    """
+                    역할 ID로 역할 정보를 조회합니다.
+
+                    **필요 권한**: `role:read`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -98,7 +105,14 @@ public class RoleQueryController {
      * @param size 페이지 크기 (기본값: 20)
      * @return 200 OK + 역할 목록
      */
-    @Operation(summary = "역할 목록 검색", description = "조건에 맞는 역할 목록을 검색합니다")
+    @Operation(
+            summary = "역할 목록 검색",
+            description =
+                    """
+                    조건에 맞는 역할 목록을 검색합니다.
+
+                    **필요 권한**: `role:read`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",

@@ -68,7 +68,14 @@ public class OrganizationQueryController {
      * @param organizationId 조직 ID
      * @return 200 OK + 조직 상세 정보
      */
-    @Operation(summary = "조직 단건 조회", description = "조직 ID로 조직 정보를 조회합니다")
+    @Operation(
+            summary = "조직 단건 조회",
+            description =
+                    """
+                    조직 ID로 조직 정보를 조회합니다.
+
+                    **필요 권한**: 해당 조직에 대한 `organization:read` 권한
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -100,7 +107,14 @@ public class OrganizationQueryController {
      * @param size 페이지 크기 (기본값: 20)
      * @return 200 OK + 조직 목록 (페이징)
      */
-    @Operation(summary = "조직 목록 검색", description = "조건에 맞는 조직 목록을 페이징하여 조회합니다")
+    @Operation(
+            summary = "조직 목록 검색",
+            description =
+                    """
+                    조건에 맞는 조직 목록을 페이징하여 조회합니다.
+
+                    **필요 권한**: Super Admin 또는 해당 테넌트 소속 사용자
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",

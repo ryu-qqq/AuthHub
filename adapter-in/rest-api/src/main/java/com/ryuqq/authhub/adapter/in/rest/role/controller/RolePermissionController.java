@@ -78,7 +78,14 @@ public class RolePermissionController {
      * @param request 권한 부여 요청 (permissionId)
      * @return 201 Created + 부여된 권한 정보
      */
-    @Operation(summary = "역할에 권한 부여", description = "역할에 권한을 부여합니다")
+    @Operation(
+            summary = "역할에 권한 부여",
+            description =
+                    """
+                    역할에 권한을 부여합니다.
+
+                    **필요 권한**: `permission:assign`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "201",
@@ -111,7 +118,14 @@ public class RolePermissionController {
      * @param permissionId 권한 ID
      * @return 204 No Content
      */
-    @Operation(summary = "역할에서 권한 해제", description = "역할에서 권한을 해제합니다")
+    @Operation(
+            summary = "역할에서 권한 해제",
+            description =
+                    """
+                    역할에서 권한을 해제합니다.
+
+                    **필요 권한**: `permission:assign`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "204",

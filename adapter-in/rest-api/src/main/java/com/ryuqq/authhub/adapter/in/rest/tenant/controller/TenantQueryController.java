@@ -71,7 +71,14 @@ public class TenantQueryController {
      * @param tenantId 테넌트 ID
      * @return 200 OK + 테넌트 정보
      */
-    @Operation(summary = "테넌트 단건 조회", description = "테넌트 ID로 테넌트 정보를 조회합니다")
+    @Operation(
+            summary = "테넌트 단건 조회",
+            description =
+                    """
+                    테넌트 ID로 테넌트 정보를 조회합니다.
+
+                    **필요 권한**: Super Admin 또는 해당 테넌트 소속 사용자
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -96,7 +103,14 @@ public class TenantQueryController {
      * @param request 검색 조건
      * @return 200 OK + 테넌트 목록 (페이징)
      */
-    @Operation(summary = "테넌트 목록 조회", description = "조건에 맞는 테넌트 목록을 페이징하여 조회합니다")
+    @Operation(
+            summary = "테넌트 목록 조회",
+            description =
+                    """
+                    조건에 맞는 테넌트 목록을 페이징하여 조회합니다.
+
+                    **필요 권한**: Super Admin 전용
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",

@@ -76,7 +76,14 @@ public class RoleCommandController {
      * @param request 역할 생성 요청
      * @return 201 Created + 생성된 역할 ID
      */
-    @Operation(summary = "역할 생성", description = "새로운 역할을 생성합니다")
+    @Operation(
+            summary = "역할 생성",
+            description =
+                    """
+                    새로운 역할을 생성합니다.
+
+                    **필요 권한**: `role:create`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "201",
@@ -106,7 +113,14 @@ public class RoleCommandController {
      * @param request 역할 수정 요청
      * @return 200 OK
      */
-    @Operation(summary = "역할 수정", description = "역할 정보를 수정합니다")
+    @Operation(
+            summary = "역할 수정",
+            description =
+                    """
+                    역할 정보를 수정합니다.
+
+                    **필요 권한**: `role:update`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -135,7 +149,14 @@ public class RoleCommandController {
      * @param roleId 역할 ID
      * @return 204 No Content
      */
-    @Operation(summary = "역할 삭제", description = "역할을 삭제합니다")
+    @Operation(
+            summary = "역할 삭제",
+            description =
+                    """
+                    역할을 삭제합니다.
+
+                    **필요 권한**: `role:delete`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "204",

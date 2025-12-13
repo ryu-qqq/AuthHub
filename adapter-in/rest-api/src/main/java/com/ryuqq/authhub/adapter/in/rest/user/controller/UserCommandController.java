@@ -86,7 +86,14 @@ public class UserCommandController {
      * @param request 사용자 생성 요청
      * @return 201 Created + 생성된 사용자 ID
      */
-    @Operation(summary = "사용자 생성", description = "새로운 사용자를 생성합니다")
+    @Operation(
+            summary = "사용자 생성",
+            description =
+                    """
+                    새로운 사용자를 생성합니다.
+
+                    **필요 권한**: `user:create`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "201",
@@ -116,7 +123,14 @@ public class UserCommandController {
      * @param request 사용자 수정 요청
      * @return 200 OK
      */
-    @Operation(summary = "사용자 정보 수정", description = "사용자 정보를 수정합니다")
+    @Operation(
+            summary = "사용자 정보 수정",
+            description =
+                    """
+                    사용자 정보를 수정합니다.
+
+                    **필요 권한**: 본인 또는 `user:update` 권한 보유자
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -146,7 +160,14 @@ public class UserCommandController {
      * @param request 상태 변경 요청
      * @return 200 OK
      */
-    @Operation(summary = "사용자 상태 변경", description = "사용자의 상태를 변경합니다")
+    @Operation(
+            summary = "사용자 상태 변경",
+            description =
+                    """
+                    사용자의 상태를 변경합니다.
+
+                    **필요 권한**: `user:update`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -176,7 +197,14 @@ public class UserCommandController {
      * @param request 비밀번호 변경 요청
      * @return 200 OK
      */
-    @Operation(summary = "사용자 비밀번호 변경", description = "사용자의 비밀번호를 변경합니다")
+    @Operation(
+            summary = "사용자 비밀번호 변경",
+            description =
+                    """
+                    사용자의 비밀번호를 변경합니다.
+
+                    **필요 권한**: 본인 또는 `user:update` 권한 보유자
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -205,7 +233,14 @@ public class UserCommandController {
      * @param userId 사용자 ID
      * @return 204 No Content
      */
-    @Operation(summary = "사용자 삭제", description = "사용자를 삭제합니다")
+    @Operation(
+            summary = "사용자 삭제",
+            description =
+                    """
+                    사용자를 삭제합니다.
+
+                    **필요 권한**: `user:delete`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "204",

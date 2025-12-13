@@ -76,7 +76,14 @@ public class PermissionCommandController {
      * @param request 권한 생성 요청
      * @return 201 Created + 생성된 권한 ID
      */
-    @Operation(summary = "권한 생성", description = "새로운 권한을 생성합니다")
+    @Operation(
+            summary = "권한 생성",
+            description =
+                    """
+                    새로운 권한을 생성합니다.
+
+                    **필요 권한**: Super Admin 전용
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "201",
@@ -106,7 +113,14 @@ public class PermissionCommandController {
      * @param request 권한 수정 요청
      * @return 200 OK
      */
-    @Operation(summary = "권한 수정", description = "권한 정보를 수정합니다")
+    @Operation(
+            summary = "권한 수정",
+            description =
+                    """
+                    권한 정보를 수정합니다.
+
+                    **필요 권한**: Super Admin 전용
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -135,7 +149,14 @@ public class PermissionCommandController {
      * @param permissionId 권한 ID
      * @return 204 No Content
      */
-    @Operation(summary = "권한 삭제", description = "권한을 삭제합니다")
+    @Operation(
+            summary = "권한 삭제",
+            description =
+                    """
+                    권한을 삭제합니다.
+
+                    **필요 권한**: Super Admin 전용
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "204",

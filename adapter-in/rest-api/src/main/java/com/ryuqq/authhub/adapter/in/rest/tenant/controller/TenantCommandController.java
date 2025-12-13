@@ -83,7 +83,14 @@ public class TenantCommandController {
      * @param request 테넌트 생성 요청
      * @return 201 Created + 생성된 테넌트 ID
      */
-    @Operation(summary = "테넌트 생성", description = "새로운 테넌트를 생성합니다")
+    @Operation(
+            summary = "테넌트 생성",
+            description =
+                    """
+                    새로운 테넌트를 생성합니다.
+
+                    **필요 권한**: Super Admin 전용
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "201",
@@ -115,7 +122,14 @@ public class TenantCommandController {
      * @param request 이름 변경 요청
      * @return 200 OK + 변경된 테넌트 정보
      */
-    @Operation(summary = "테넌트 이름 변경", description = "테넌트의 이름을 변경합니다")
+    @Operation(
+            summary = "테넌트 이름 변경",
+            description =
+                    """
+                    테넌트의 이름을 변경합니다.
+
+                    **필요 권한**: Super Admin 전용
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -148,7 +162,14 @@ public class TenantCommandController {
      * @param request 상태 변경 요청
      * @return 200 OK + 변경된 테넌트 정보
      */
-    @Operation(summary = "테넌트 상태 변경", description = "테넌트의 상태를 변경합니다 (ACTIVE, SUSPENDED, INACTIVE)")
+    @Operation(
+            summary = "테넌트 상태 변경",
+            description =
+                    """
+                    테넌트의 상태를 변경합니다 (ACTIVE, SUSPENDED, INACTIVE).
+
+                    **필요 권한**: Super Admin 전용
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -180,7 +201,14 @@ public class TenantCommandController {
      * @param id 테넌트 ID
      * @return 204 No Content
      */
-    @Operation(summary = "테넌트 삭제", description = "테넌트를 삭제합니다 (Soft Delete)")
+    @Operation(
+            summary = "테넌트 삭제",
+            description =
+                    """
+                    테넌트를 삭제합니다 (Soft Delete).
+
+                    **필요 권한**: Super Admin 전용
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "204",

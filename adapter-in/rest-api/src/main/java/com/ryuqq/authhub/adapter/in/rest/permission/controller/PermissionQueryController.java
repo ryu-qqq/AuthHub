@@ -74,7 +74,14 @@ public class PermissionQueryController {
      * @param permissionId 권한 ID
      * @return 200 OK + 권한 상세 정보
      */
-    @Operation(summary = "권한 단건 조회", description = "권한 ID로 권한 정보를 조회합니다")
+    @Operation(
+            summary = "권한 단건 조회",
+            description =
+                    """
+                    권한 ID로 권한 정보를 조회합니다.
+
+                    **필요 권한**: `permission:read`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -104,7 +111,14 @@ public class PermissionQueryController {
      * @param size 페이지 크기 (기본값: 20)
      * @return 200 OK + 권한 목록
      */
-    @Operation(summary = "권한 목록 검색", description = "조건에 맞는 권한 목록을 검색합니다")
+    @Operation(
+            summary = "권한 목록 검색",
+            description =
+                    """
+                    조건에 맞는 권한 목록을 검색합니다.
+
+                    **필요 권한**: `permission:read`
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -137,7 +151,14 @@ public class PermissionQueryController {
      * @param userId 사용자 ID
      * @return 200 OK + 사용자 역할/권한 정보
      */
-    @Operation(summary = "사용자 권한 조회", description = "Gateway에서 사용자의 역할 및 권한 목록을 조회합니다")
+    @Operation(
+            summary = "사용자 권한 조회",
+            description =
+                    """
+                    Gateway에서 사용자의 역할 및 권한 목록을 조회합니다.
+
+                    **필요 권한**: Super Admin 전용 (Gateway 내부 호출용)
+                    """)
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
