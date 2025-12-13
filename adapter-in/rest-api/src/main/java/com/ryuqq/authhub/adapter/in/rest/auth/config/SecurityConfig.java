@@ -2,10 +2,10 @@ package com.ryuqq.authhub.adapter.in.rest.auth.config;
 
 import com.ryuqq.authhub.adapter.in.rest.auth.filter.GatewayAuthenticationFilter;
 import com.ryuqq.authhub.adapter.in.rest.auth.handler.SecurityExceptionHandler;
-import java.util.Locale;
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.SecurityPaths;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,15 +28,22 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * <pre>
  * Gateway (JWT 검증) → X-* 헤더 → GatewayAuthenticationFilter → SecurityContext
  *                                                              ↓
- *                                              @PreAuthorize (역할 기반 접근 제어)
+ *                                              @PreAuthorize (권한 기반 접근 제어)
  * </pre>
  *
- * <p>엔드포인트 권한 분류:
+ * <p>엔드포인트 권한 분류 (SecurityPaths 참조):
  *
  * <ul>
- *   <li>PUBLIC: 인증 불필요 (api.public-endpoints)
- *   <li>ADMIN: 관리자 권한 필요 (api.admin-endpoints)
- *   <li>AUTHENTICATED: 인증된 사용자만 접근 가능 (나머지)
+ *   <li>PUBLIC: 인증 불필요 (로그인, 헬스체크, OAuth2)
+ *   <li>DOCS: 인증된 사용자면 접근 가능 (API 문서)
+ *   <li>AUTHENTICATED: 인증된 사용자 + @PreAuthorize 권한 검사 (관리 API)
+ * </ul>
+ *
+ * <p>권한 처리:
+ *
+ * <ul>
+ *   <li>URL 기반 역할 검사 제거 → @PreAuthorize 어노테이션으로 대체
+ *   <li>ResourceAccessChecker SpEL 함수로 리소스 접근 제어
  * </ul>
  *
  * @author development-team
@@ -47,15 +54,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    private final SecurityProperties securityProperties;
+    private final CorsProperties corsProperties;
     private final GatewayAuthenticationFilter gatewayAuthenticationFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
 
+    @Autowired
     public SecurityConfig(
-            SecurityProperties securityProperties,
+            CorsProperties corsProperties,
             GatewayAuthenticationFilter gatewayAuthenticationFilter,
             SecurityExceptionHandler securityExceptionHandler) {
-        this.securityProperties = securityProperties;
+        this.corsProperties = corsProperties;
         this.gatewayAuthenticationFilter = gatewayAuthenticationFilter;
         this.securityExceptionHandler = securityExceptionHandler;
     }
@@ -63,105 +71,65 @@ public class SecurityConfig {
     @Bean
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                // CSRF 비활성화 (Stateless JWT 사용)
-                .csrf(AbstractHttpConfigurer::disable)
-
+        // CSRF 비활성화 (Stateless JWT 사용)
+        http.csrf(AbstractHttpConfigurer::disable)
                 // CORS 설정
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
                 // 세션 비활성화 (Stateless)
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 // 인증 실패 / 접근 거부 핸들러 설정
                 .exceptionHandling(
                         exception ->
                                 exception
                                         .authenticationEntryPoint(securityExceptionHandler)
                                         .accessDeniedHandler(securityExceptionHandler))
-
                 // 엔드포인트 권한 설정
                 .authorizeHttpRequests(this::configureAuthorization)
-
                 // Gateway 인증 필터 추가 (X-* 헤더 기반)
                 .addFilterBefore(
-                        gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                        gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     /**
      * 엔드포인트 권한 설정
      *
-     * <p>SecurityProperties에서 정의된 public/admin 엔드포인트를 등록합니다.
+     * <p>SecurityPaths에서 정의된 경로별 권한을 설정합니다. 관리 API의 세부 권한은 @PreAuthorize 어노테이션으로 처리됩니다.
      */
     private void configureAuthorization(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
                     auth) {
 
-        // PUBLIC 엔드포인트 설정
-        configurePublicEndpoints(auth);
+        // PUBLIC 엔드포인트 설정 (인증 불필요)
+        auth.requestMatchers(SecurityPaths.Public.PATTERNS.toArray(String[]::new)).permitAll();
 
-        // ADMIN 엔드포인트 설정
-        configureAdminEndpoints(auth);
+        // DOCS 엔드포인트 설정 (인증된 사용자면 접근 가능)
+        auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).authenticated();
 
-        // 그 외 모든 요청은 인증 필요
+        // 그 외 모든 요청은 인증 필요 + @PreAuthorize로 세부 권한 검사
         auth.anyRequest().authenticated();
-    }
-
-    /** Public 엔드포인트 설정 */
-    private void configurePublicEndpoints(
-            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
-                    auth) {
-
-        for (SecurityProperties.PublicEndpoint endpoint : securityProperties.getPublicEndpoints()) {
-            if (endpoint.hasMethod()) {
-                HttpMethod httpMethod =
-                        HttpMethod.valueOf(endpoint.getMethod().toUpperCase(Locale.ROOT));
-                auth.requestMatchers(httpMethod, endpoint.getPattern()).permitAll();
-            } else {
-                auth.requestMatchers(endpoint.getPattern()).permitAll();
-            }
-        }
-    }
-
-    /** Admin 엔드포인트 설정 */
-    private void configureAdminEndpoints(
-            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
-                    auth) {
-
-        for (SecurityProperties.AdminEndpoint endpoint : securityProperties.getAdminEndpoints()) {
-            String role = endpoint.getRole();
-            if (endpoint.hasMethod()) {
-                HttpMethod httpMethod =
-                        HttpMethod.valueOf(endpoint.getMethod().toUpperCase(Locale.ROOT));
-                auth.requestMatchers(httpMethod, endpoint.getPattern()).hasRole(role);
-            } else {
-                auth.requestMatchers(endpoint.getPattern()).hasRole(role);
-            }
-        }
     }
 
     /** CORS 설정 */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        SecurityProperties.CorsProperties corsProps = securityProperties.getCors();
-
         CorsConfiguration configuration = new CorsConfiguration();
 
-        if (!corsProps.getAllowedOrigins().isEmpty()) {
-            configuration.setAllowedOrigins(corsProps.getAllowedOrigins());
+        if (!corsProperties.getAllowedOrigins().isEmpty()) {
+            configuration.setAllowedOrigins(corsProperties.getAllowedOrigins());
         }
-        if (!corsProps.getAllowedMethods().isEmpty()) {
-            configuration.setAllowedMethods(corsProps.getAllowedMethods());
+        if (!corsProperties.getAllowedMethods().isEmpty()) {
+            configuration.setAllowedMethods(corsProperties.getAllowedMethods());
         }
-        if (!corsProps.getAllowedHeaders().isEmpty()) {
-            configuration.setAllowedHeaders(corsProps.getAllowedHeaders());
+        if (!corsProperties.getAllowedHeaders().isEmpty()) {
+            configuration.setAllowedHeaders(corsProperties.getAllowedHeaders());
         }
-        if (!corsProps.getExposedHeaders().isEmpty()) {
-            configuration.setExposedHeaders(corsProps.getExposedHeaders());
+        if (!corsProperties.getExposedHeaders().isEmpty()) {
+            configuration.setExposedHeaders(corsProperties.getExposedHeaders());
         }
-        configuration.setAllowCredentials(corsProps.isAllowCredentials());
+        configuration.setAllowCredentials(corsProperties.isAllowCredentials());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

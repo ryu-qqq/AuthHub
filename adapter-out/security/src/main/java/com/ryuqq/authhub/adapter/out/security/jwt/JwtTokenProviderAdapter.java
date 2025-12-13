@@ -12,12 +12,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Key;
 import java.security.KeyFactory;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,6 +53,8 @@ import org.springframework.stereotype.Component;
  *   <li>email: 사용자 이메일
  *   <li>roles: 역할 목록
  *   <li>permissions: 권한 목록
+ *   <li>permission_hash: 권한 목록의 SHA-256 해시 (Gateway 캐시 무효화용)
+ *   <li>mfa_verified: MFA 인증 완료 여부 (boolean)
  * </ul>
  *
  * <p><strong>디코딩 안내:</strong> 다른 서비스에서 키 없이 Base64 디코딩으로 Payload 확인 가능
@@ -68,6 +73,8 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
     private static final String EMAIL_CLAIM = "email";
     private static final String ROLES_CLAIM = "roles";
     private static final String PERMISSIONS_CLAIM = "permissions";
+    private static final String PERMISSION_HASH_CLAIM = "permission_hash";
+    private static final String MFA_VERIFIED_CLAIM = "mfa_verified";
     private static final String ACCESS_TOKEN_TYPE = "access";
     private static final String REFRESH_TOKEN_TYPE = "refresh";
     private static final String TOKEN_TYPE = "Bearer";
@@ -142,13 +149,39 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
                         .claim(ORGANIZATION_NAME_CLAIM, context.organizationName())
                         .claim(EMAIL_CLAIM, context.email())
                         .claim(ROLES_CLAIM, context.roles())
-                        .claim(PERMISSIONS_CLAIM, context.permissions());
+                        .claim(PERMISSIONS_CLAIM, context.permissions())
+                        .claim(
+                                PERMISSION_HASH_CLAIM,
+                                calculatePermissionHash(context.permissions()))
+                        .claim(MFA_VERIFIED_CLAIM, context.mfaVerified());
 
         if (rsaEnabled) {
             builder.header().add("kid", jwtProperties.getRsa().getKeyId());
         }
 
         return builder.signWith(signingKey).compact();
+    }
+
+    private String calculatePermissionHash(Set<String> permissions) {
+        if (permissions == null || permissions.isEmpty()) {
+            return "";
+        }
+        String sortedPermissions = permissions.stream().sorted().collect(Collectors.joining(","));
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(sortedPermissions.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
     }
 
     private String createRefreshToken(String userId, long now) {

@@ -1,5 +1,11 @@
 package com.ryuqq.authhub.adapter.in.rest.common;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor;
+import java.util.Optional;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,5 +32,17 @@ public class ControllerTestSecurityConfig {
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();
+    }
+
+    /**
+     * JWT Claims 추출기 Mock
+     *
+     * <p>테스트에서는 JWT 검증을 수행하지 않으므로 항상 empty를 반환합니다.
+     */
+    @Bean
+    public JwtClaimsExtractor jwtClaimsExtractor() {
+        JwtClaimsExtractor mock = mock(JwtClaimsExtractor.class);
+        when(mock.extractClaims(anyString())).thenReturn(Optional.empty());
+        return mock;
     }
 }

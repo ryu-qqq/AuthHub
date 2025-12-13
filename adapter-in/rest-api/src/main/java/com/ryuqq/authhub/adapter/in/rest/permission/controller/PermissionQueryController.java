@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.permission.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.query.SearchPermissionsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
@@ -20,6 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,9 +29,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * PermissionQueryController - 권한 Query API 컨트롤러
+ * PermissionQueryController - 권한 Query API 컨트롤러 (Admin)
  *
  * <p>권한 조회 등 Query 작업을 처리합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/permissions (admin.connectly.com)
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
@@ -44,9 +48,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "Permission", description = "권한 관리 API")
+@Tag(name = "Permission", description = "권한 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/permissions")
+@RequestMapping(ApiPaths.Permissions.BASE)
 public class PermissionQueryController {
 
     private final GetPermissionUseCase getPermissionUseCase;
@@ -85,6 +89,7 @@ public class PermissionQueryController {
                 responseCode = "404",
                 description = "권한을 찾을 수 없음")
     })
+    @PreAuthorize("@access.hasPermission('permission:read')")
     @GetMapping("/{permissionId}")
     public ResponseEntity<ApiResponse<PermissionApiResponse>> getPermission(
             @Parameter(description = "권한 ID", required = true) @PathVariable String permissionId) {
@@ -111,6 +116,7 @@ public class PermissionQueryController {
                 responseCode = "200",
                 description = "조회 성공")
     })
+    @PreAuthorize("@access.hasPermission('permission:read')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<PermissionApiResponse>>> searchPermissions(
             @Parameter(description = "리소스 필터") @RequestParam(required = false) String resource,
@@ -146,6 +152,7 @@ public class PermissionQueryController {
                 responseCode = "404",
                 description = "사용자를 찾을 수 없음")
     })
+    @PreAuthorize("@access.superAdmin()")
     @GetMapping("/users/{userId}")
     public ResponseEntity<ApiResponse<UserPermissionsApiResponse>> getUserPermissions(
             @Parameter(description = "사용자 ID", required = true) @PathVariable String userId) {
@@ -169,6 +176,7 @@ public class PermissionQueryController {
                 responseCode = "200",
                 description = "조회 성공")
     })
+    @PreAuthorize("@access.superAdmin()")
     @GetMapping("/spec")
     public ResponseEntity<ApiResponse<PermissionSpecApiResponse>> getPermissionSpec() {
         PermissionSpecResponse response = getPermissionSpecUseCase.execute();

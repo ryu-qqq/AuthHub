@@ -104,6 +104,23 @@ include::{snippets}/user-delete/path-parameters.adoc[]
 
 include::{snippets}/user-delete/http-response.adoc[]
 
+[[user-me]]
+==== 내 정보 조회
+
+현재 인증된 사용자의 정보를 조회합니다.
+
+===== HTTP Request
+
+include::{snippets}/user-me/http-request.adoc[]
+
+===== HTTP Response
+
+include::{snippets}/user-me/http-response.adoc[]
+
+===== Response Fields
+
+include::{snippets}/user-me/response-fields.adoc[]
+
 [[user-get]]
 ==== 사용자 단건 조회
 

@@ -128,7 +128,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users")
+                            post("/api/v1/auth/users")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -156,7 +156,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users")
+                            post("/api/v1/auth/users")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -180,7 +180,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users")
+                            post("/api/v1/auth/users")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -204,7 +204,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users")
+                            post("/api/v1/auth/users")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -228,7 +228,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users")
+                            post("/api/v1/auth/users")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -252,7 +252,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/users")
+                            post("/api/v1/auth/users")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -281,7 +281,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            put("/api/v1/users/{userId}", userId)
+                            put("/api/v1/auth/users/{userId}", userId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -308,7 +308,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            put("/api/v1/users/{userId}", userId)
+                            put("/api/v1/auth/users/{userId}", userId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -337,7 +337,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            patch("/api/v1/users/{userId}/status", userId)
+                            patch("/api/v1/auth/users/{userId}/status", userId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -362,7 +362,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            patch("/api/v1/users/{userId}/status", userId)
+                            patch("/api/v1/auth/users/{userId}/status", userId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -396,7 +396,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            patch("/api/v1/users/{userId}/password", userId)
+                            patch("/api/v1/auth/users/{userId}/password", userId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -422,7 +422,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            patch("/api/v1/users/{userId}/password", userId)
+                            patch("/api/v1/auth/users/{userId}/password", userId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -445,7 +445,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            patch("/api/v1/users/{userId}/password", userId)
+                            patch("/api/v1/auth/users/{userId}/password", userId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -468,7 +468,7 @@ class UserCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            patch("/api/v1/users/{userId}/password", userId)
+                            patch("/api/v1/auth/users/{userId}/password", userId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -491,7 +491,7 @@ class UserCommandControllerTest {
             given(mapper.toDeleteCommand(any(String.class))).willReturn(command);
 
             // when & then
-            mockMvc.perform(patch("/api/v1/users/{userId}/delete", userId))
+            mockMvc.perform(patch("/api/v1/auth/users/{userId}/delete", userId))
                     .andExpect(status().isNoContent());
 
             verify(mapper).toDeleteCommand(any(String.class));

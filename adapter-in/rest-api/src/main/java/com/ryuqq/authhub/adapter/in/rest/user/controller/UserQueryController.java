@@ -1,5 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.user.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContextHolder;
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.query.SearchUsersApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserApiResponse;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +23,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * UserQueryController - 사용자 Query API 컨트롤러
+ * UserQueryController - 사용자 Query API 컨트롤러 (Admin)
  *
  * <p>사용자 조회 등 Query 작업을 처리합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/users (admin.connectly.com)
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
@@ -37,9 +42,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "User", description = "사용자 관리 API")
+@Tag(name = "User", description = "사용자 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping(ApiPaths.Users.BASE)
 public class UserQueryController {
 
     private final GetUserUseCase getUserUseCase;
@@ -53,6 +58,33 @@ public class UserQueryController {
         this.getUserUseCase = getUserUseCase;
         this.searchUsersUseCase = searchUsersUseCase;
         this.mapper = mapper;
+    }
+
+    /**
+     * 내 정보 조회
+     *
+     * <p>GET /api/v1/auth/users/me
+     *
+     * <p>현재 인증된 사용자의 정보를 조회합니다. 인증된 모든 사용자가 접근할 수 있습니다.
+     *
+     * @return 200 OK + 현재 사용자 정보
+     */
+    @Operation(summary = "내 정보 조회", description = "현재 인증된 사용자의 정보를 조회합니다")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 필요")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(ApiPaths.Users.ME)
+    public ResponseEntity<ApiResponse<UserApiResponse>> getMyInfo() {
+        String currentUserId = SecurityContextHolder.getCurrentUserId();
+        UserResponse response = getUserUseCase.execute(mapper.toGetQuery(currentUserId));
+        UserApiResponse apiResponse = mapper.toApiResponse(response);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 
     /**
@@ -72,6 +104,7 @@ public class UserQueryController {
                 responseCode = "404",
                 description = "사용자를 찾을 수 없음")
     })
+    @PreAuthorize("@access.user(#userId, 'read')")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserApiResponse>> getUser(
             @Parameter(description = "사용자 ID", required = true) @PathVariable String userId) {
@@ -99,6 +132,7 @@ public class UserQueryController {
                 responseCode = "200",
                 description = "조회 성공")
     })
+    @PreAuthorize("@access.hasPermission('user:read')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserApiResponse>>> searchUsers(
             @Parameter(description = "테넌트 ID 필터") @RequestParam(required = false) String tenantId,

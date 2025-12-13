@@ -111,7 +111,7 @@ class PermissionCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/permissions")
+                            post("/api/v1/auth/permissions")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -138,7 +138,7 @@ class PermissionCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/permissions")
+                            post("/api/v1/auth/permissions")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -162,7 +162,7 @@ class PermissionCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/permissions")
+                            post("/api/v1/auth/permissions")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -188,7 +188,7 @@ class PermissionCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/permissions")
+                            post("/api/v1/auth/permissions")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -214,7 +214,7 @@ class PermissionCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/permissions")
+                            post("/api/v1/auth/permissions")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -243,7 +243,7 @@ class PermissionCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            put("/api/v1/permissions/{permissionId}", permissionId)
+                            put("/api/v1/auth/permissions/{permissionId}", permissionId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -269,7 +269,7 @@ class PermissionCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            put("/api/v1/permissions/{permissionId}", permissionId)
+                            put("/api/v1/auth/permissions/{permissionId}", permissionId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -297,7 +297,7 @@ class PermissionCommandControllerTest {
 
             // when & then
             mockMvc.perform(
-                            put("/api/v1/permissions/{permissionId}", permissionId)
+                            put("/api/v1/auth/permissions/{permissionId}", permissionId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requestBody))
                     .andExpect(status().isOk())
@@ -323,7 +323,7 @@ class PermissionCommandControllerTest {
             given(mapper.toDeleteCommand(any(String.class))).willReturn(command);
 
             // when & then
-            mockMvc.perform(patch("/api/v1/permissions/{permissionId}/delete", permissionId))
+            mockMvc.perform(patch("/api/v1/auth/permissions/{permissionId}/delete", permissionId))
                     .andExpect(status().isNoContent());
 
             verify(mapper).toDeleteCommand(any(String.class));

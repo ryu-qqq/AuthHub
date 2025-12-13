@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.user.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.AssignUserRoleApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserRoleApiResponse;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,15 +24,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * UserRoleController - 사용자 역할 할당/해제 API 컨트롤러
+ * UserRoleController - 사용자 역할 할당/해제 API 컨트롤러 (Admin)
  *
  * <p>사용자에게 역할을 할당하거나 해제하는 API를 제공합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/users/{userId}/roles (admin.connectly.com)
  *
  * <p><strong>RESTful 설계:</strong>
  *
  * <ul>
- *   <li>POST /api/v1/users/{userId}/roles - 역할 할당
- *   <li>DELETE /api/v1/users/{userId}/roles/{roleId} - 역할 해제
+ *   <li>POST /api/v1/auth/admin/users/{userId}/roles - 역할 할당
+ *   <li>DELETE /api/v1/auth/admin/users/{userId}/roles/{roleId} - 역할 해제
  * </ul>
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
@@ -47,9 +51,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "UserRole", description = "사용자 역할 관리 API")
+@Tag(name = "UserRole", description = "사용자 역할 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/users/{userId}/roles")
+@RequestMapping(ApiPaths.Users.BASE + ApiPaths.Users.ROLES)
 public class UserRoleController {
 
     private final AssignUserRoleUseCase assignUserRoleUseCase;
@@ -86,6 +90,7 @@ public class UserRoleController {
                 responseCode = "404",
                 description = "사용자 또는 역할을 찾을 수 없음")
     })
+    @PreAuthorize("@access.hasPermission('role:assign')")
     @PostMapping
     public ResponseEntity<ApiResponse<UserRoleApiResponse>> assignRole(
             @Parameter(description = "사용자 ID", required = true) @PathVariable String userId,
@@ -114,6 +119,7 @@ public class UserRoleController {
                 responseCode = "404",
                 description = "사용자 또는 역할을 찾을 수 없음")
     })
+    @PreAuthorize("@access.hasPermission('role:assign')")
     @PatchMapping("/{roleId}/revoke")
     public ResponseEntity<Void> revokeRole(
             @Parameter(description = "사용자 ID", required = true) @PathVariable String userId,

@@ -100,7 +100,7 @@ class RolePermissionControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/roles/{roleId}/permissions", roleId)
+                            post("/api/v1/auth/roles/{roleId}/permissions", roleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -127,7 +127,7 @@ class RolePermissionControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/roles/{roleId}/permissions", roleId)
+                            post("/api/v1/auth/roles/{roleId}/permissions", roleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest())
@@ -150,7 +150,7 @@ class RolePermissionControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/roles/{roleId}/permissions", invalidRoleId)
+                            post("/api/v1/auth/roles/{roleId}/permissions", invalidRoleId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -179,7 +179,7 @@ class RolePermissionControllerTest {
             // when & then
             mockMvc.perform(
                             patch(
-                                            "/api/v1/roles/{roleId}/permissions/{permissionId}/revoke",
+                                            "/api/v1/auth/roles/{roleId}/permissions/{permissionId}/revoke",
                                             roleId,
                                             permissionId)
                                     .contentType(MediaType.APPLICATION_JSON))
@@ -203,7 +203,7 @@ class RolePermissionControllerTest {
             // when & then
             mockMvc.perform(
                             patch(
-                                            "/api/v1/roles/{roleId}/permissions/{permissionId}/revoke",
+                                            "/api/v1/auth/roles/{roleId}/permissions/{permissionId}/revoke",
                                             invalidRoleId,
                                             permissionId)
                                     .contentType(MediaType.APPLICATION_JSON))
@@ -223,7 +223,7 @@ class RolePermissionControllerTest {
             // when & then
             mockMvc.perform(
                             patch(
-                                            "/api/v1/roles/{roleId}/permissions/{permissionId}/revoke",
+                                            "/api/v1/auth/roles/{roleId}/permissions/{permissionId}/revoke",
                                             roleId,
                                             invalidPermissionId)
                                     .contentType(MediaType.APPLICATION_JSON))

@@ -2,6 +2,8 @@ package com.ryuqq.authhub.adapter.in.rest.auth.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor;
+import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor.JwtClaims;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContext;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContextHolder;
 import jakarta.servlet.FilterChain;
@@ -10,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,25 +23,24 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Gateway 헤더 기반 인증 필터
+ * Gateway 헤더 기반 인증 필터 (JWT Fallback 지원)
  *
  * <p>Gateway에서 전달하는 X-* 헤더를 파싱하여 SecurityContext를 설정합니다.
  *
- * <p>처리 흐름:
+ * <p><strong>인증 우선순위:</strong>
  *
  * <ol>
- *   <li>X-User-Id 헤더 확인 (있으면 인증된 요청, UUID 형식)
- *   <li>X-Tenant-Id, X-Roles, X-Permissions 헤더 추출
- *   <li>SecurityContext 설정
- *   <li>Spring SecurityContextHolder에 동기화
+ *   <li>X-User-Id 헤더가 있으면 Gateway 인증 사용 (프로덕션 권장)
+ *   <li>X-User-Id 없고 Authorization: Bearer가 있으면 JWT 직접 검증 (로컬 개발용)
+ *   <li>둘 다 없으면 Anonymous 처리
  * </ol>
  *
- * <p>X-User-Id 헤더가 없는 경우:
+ * <p><strong>JWT Fallback 사용 시나리오:</strong>
  *
  * <ul>
- *   <li>Public API 요청으로 판단
- *   <li>Anonymous SecurityContext 설정
- *   <li>인증이 필요한 API는 Spring Security에서 401 반환
+ *   <li>로컬 개발 환경에서 Gateway 없이 직접 호출
+ *   <li>프론트엔드 직접 연동 테스트
+ *   <li>AuthHub API 직접 테스트
  * </ul>
  *
  * <p>하이브리드 권한 체계:
@@ -60,11 +62,16 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
     private static final String HEADER_ROLES = "X-Roles";
     private static final String HEADER_PERMISSIONS = "X-Permissions";
     private static final String HEADER_TRACE_ID = "X-Trace-Id";
+    private static final String HEADER_AUTHORIZATION = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     private final ObjectMapper objectMapper;
+    private final JwtClaimsExtractor jwtClaimsExtractor;
 
-    public GatewayAuthenticationFilter(ObjectMapper objectMapper) {
+    public GatewayAuthenticationFilter(
+            ObjectMapper objectMapper, JwtClaimsExtractor jwtClaimsExtractor) {
         this.objectMapper = objectMapper;
+        this.jwtClaimsExtractor = jwtClaimsExtractor;
     }
 
     @Override
@@ -89,12 +96,28 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private SecurityContext buildSecurityContext(HttpServletRequest request) {
+        // 1. Gateway 인증 (X-User-Id 헤더) - 우선순위 최상위
         String userId = request.getHeader(HEADER_USER_ID);
-
-        if (!StringUtils.hasText(userId)) {
-            return SecurityContext.anonymous();
+        if (StringUtils.hasText(userId)) {
+            return buildGatewaySecurityContext(request, userId);
         }
 
+        // 2. JWT Fallback (Authorization: Bearer) - 로컬 개발/직접 호출용
+        Optional<JwtClaims> jwtClaims = extractJwtClaimsFromAuthorizationHeader(request);
+        if (jwtClaims.isPresent()) {
+            return buildJwtSecurityContext(jwtClaims.get());
+        }
+
+        // 3. Anonymous
+        return SecurityContext.anonymous();
+    }
+
+    /**
+     * Gateway 인증 컨텍스트 생성
+     *
+     * <p>X-* 헤더에서 인증 정보를 추출합니다.
+     */
+    private SecurityContext buildGatewaySecurityContext(HttpServletRequest request, String userId) {
         String tenantId = parseStringHeader(request.getHeader(HEADER_TENANT_ID));
         String organizationId = parseStringHeader(request.getHeader(HEADER_ORGANIZATION_ID));
         Set<String> roles = parseRoles(request.getHeader(HEADER_ROLES));
@@ -108,6 +131,39 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
                 .roles(roles)
                 .permissions(permissions)
                 .traceId(traceId)
+                .build();
+    }
+
+    /**
+     * Authorization 헤더에서 JWT Claims 추출
+     *
+     * @param request HTTP 요청
+     * @return JWT Claims (유효하지 않으면 empty)
+     */
+    private Optional<JwtClaims> extractJwtClaimsFromAuthorizationHeader(
+            HttpServletRequest request) {
+        String authHeader = request.getHeader(HEADER_AUTHORIZATION);
+        if (!StringUtils.hasText(authHeader) || !authHeader.startsWith(BEARER_PREFIX)) {
+            return Optional.empty();
+        }
+
+        String token = authHeader.substring(BEARER_PREFIX.length());
+        return jwtClaimsExtractor.extractClaims(token);
+    }
+
+    /**
+     * JWT Claims로 SecurityContext 생성
+     *
+     * <p>JWT에서 추출한 정보로 인증 컨텍스트를 생성합니다.
+     */
+    private SecurityContext buildJwtSecurityContext(JwtClaims claims) {
+        return SecurityContext.builder()
+                .userId(claims.userId())
+                .tenantId(claims.tenantId())
+                .organizationId(claims.organizationId())
+                .roles(claims.roles())
+                .permissions(claims.permissions())
+                .traceId(null)
                 .build();
     }
 

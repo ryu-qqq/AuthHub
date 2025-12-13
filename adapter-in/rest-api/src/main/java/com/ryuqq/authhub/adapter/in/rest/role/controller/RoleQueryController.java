@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.role.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.query.SearchRolesApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleApiResponse;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +22,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * RoleQueryController - 역할 Query API 컨트롤러
+ * RoleQueryController - 역할 Query API 컨트롤러 (Admin)
  *
  * <p>역할 조회 등 Query 작업을 처리합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/roles (admin.connectly.com)
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
@@ -37,9 +41,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "Role", description = "역할 관리 API")
+@Tag(name = "Role", description = "역할 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/roles")
+@RequestMapping(ApiPaths.Roles.BASE)
 public class RoleQueryController {
 
     private final GetRoleUseCase getRoleUseCase;
@@ -72,6 +76,7 @@ public class RoleQueryController {
                 responseCode = "404",
                 description = "역할을 찾을 수 없음")
     })
+    @PreAuthorize("@access.hasPermission('role:read')")
     @GetMapping("/{roleId}")
     public ResponseEntity<ApiResponse<RoleApiResponse>> getRole(
             @Parameter(description = "역할 ID", required = true) @PathVariable String roleId) {
@@ -99,6 +104,7 @@ public class RoleQueryController {
                 responseCode = "200",
                 description = "조회 성공")
     })
+    @PreAuthorize("@access.hasPermission('role:read')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<RoleApiResponse>>> searchRoles(
             @Parameter(description = "테넌트 ID 필터") @RequestParam(required = false) String tenantId,

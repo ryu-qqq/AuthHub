@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.tenant.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.query.SearchTenantsApiRequest;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,9 +26,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * TenantQueryController - 테넌트 Query API 컨트롤러
+ * TenantQueryController - 테넌트 Query API 컨트롤러 (Admin)
  *
  * <p>테넌트 조회 작업을 처리합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/tenants (admin.connectly.com)
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
@@ -41,9 +45,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "Tenant", description = "테넌트 관리 API")
+@Tag(name = "Tenant", description = "테넌트 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/tenants")
+@RequestMapping(ApiPaths.Tenants.BASE)
 public class TenantQueryController {
 
     private final GetTenantUseCase getTenantUseCase;
@@ -76,6 +80,7 @@ public class TenantQueryController {
                 responseCode = "404",
                 description = "테넌트를 찾을 수 없음")
     })
+    @PreAuthorize("@access.superAdmin() or @access.sameTenant(#tenantId.toString())")
     @GetMapping("/{tenantId}")
     public ResponseEntity<ApiResponse<TenantApiResponse>> getTenant(
             @Parameter(description = "테넌트 ID", required = true) @PathVariable UUID tenantId) {
@@ -97,6 +102,7 @@ public class TenantQueryController {
                 responseCode = "200",
                 description = "조회 성공")
     })
+    @PreAuthorize("@access.superAdmin()")
     @GetMapping
     public ResponseEntity<PageApiResponse<TenantApiResponse>> getTenants(
             @Valid @ModelAttribute SearchTenantsApiRequest request) {

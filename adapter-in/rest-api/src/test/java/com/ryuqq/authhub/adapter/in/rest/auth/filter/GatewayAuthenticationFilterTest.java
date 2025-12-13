@@ -1,13 +1,19 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContext;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContextHolder;
 import com.ryuqq.authhub.domain.auth.vo.Role;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,11 +44,14 @@ class GatewayAuthenticationFilterTest {
 
     private GatewayAuthenticationFilter filter;
     private ObjectMapper objectMapper;
+    private JwtClaimsExtractor jwtClaimsExtractor;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        filter = new GatewayAuthenticationFilter(objectMapper);
+        jwtClaimsExtractor = mock(JwtClaimsExtractor.class);
+        when(jwtClaimsExtractor.extractClaims(anyString())).thenReturn(Optional.empty());
+        filter = new GatewayAuthenticationFilter(objectMapper, jwtClaimsExtractor);
     }
 
     @AfterEach
@@ -381,6 +390,95 @@ class GatewayAuthenticationFilterTest {
             SecurityContext capturedContext = filterChain.getCapturedContext();
             assertThat(capturedContext.isAuthenticated()).isTrue();
             assertThat(capturedContext.getPermissions()).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("JWT Fallback 테스트")
+    class JwtFallbackTest {
+
+        @Test
+        @DisplayName("X-User-Id 없이 유효한 JWT가 있으면 인증된 SecurityContext를 설정한다")
+        void doFilter_withValidJwt_shouldSetAuthenticatedContext()
+                throws ServletException, IOException {
+            // given
+            JwtClaimsExtractor.JwtClaims jwtClaims =
+                    new JwtClaimsExtractor.JwtClaims(
+                            TEST_USER_ID,
+                            TEST_TENANT_ID,
+                            TEST_ORGANIZATION_ID,
+                            Set.of(Role.TENANT_ADMIN),
+                            Set.of("user:read"));
+            when(jwtClaimsExtractor.extractClaims("valid-token"))
+                    .thenReturn(Optional.of(jwtClaims));
+
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.addHeader("Authorization", "Bearer valid-token");
+
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            SecurityContextCapturingFilterChain filterChain =
+                    new SecurityContextCapturingFilterChain();
+
+            // when
+            filter.doFilterInternal(request, response, filterChain);
+
+            // then
+            SecurityContext capturedContext = filterChain.getCapturedContext();
+            assertThat(capturedContext.isAuthenticated()).isTrue();
+            assertThat(capturedContext.getUserId()).isEqualTo(TEST_USER_ID);
+            assertThat(capturedContext.getTenantId()).isEqualTo(TEST_TENANT_ID);
+            assertThat(capturedContext.getOrganizationId()).isEqualTo(TEST_ORGANIZATION_ID);
+            assertThat(capturedContext.getRoles()).contains(Role.TENANT_ADMIN);
+            assertThat(capturedContext.getPermissions()).contains("user:read");
+        }
+
+        @Test
+        @DisplayName("X-User-Id가 있으면 JWT보다 Gateway 인증이 우선한다")
+        void doFilter_withBothGatewayAndJwt_gatewayHasPriority()
+                throws ServletException, IOException {
+            // given
+            String gatewayUserId = "gateway-user-id";
+            JwtClaimsExtractor.JwtClaims jwtClaims =
+                    new JwtClaimsExtractor.JwtClaims("jwt-user-id", null, null, Set.of(), Set.of());
+            when(jwtClaimsExtractor.extractClaims("valid-token"))
+                    .thenReturn(Optional.of(jwtClaims));
+
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.addHeader("X-User-Id", gatewayUserId);
+            request.addHeader("Authorization", "Bearer valid-token");
+
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            SecurityContextCapturingFilterChain filterChain =
+                    new SecurityContextCapturingFilterChain();
+
+            // when
+            filter.doFilterInternal(request, response, filterChain);
+
+            // then
+            SecurityContext capturedContext = filterChain.getCapturedContext();
+            assertThat(capturedContext.getUserId()).isEqualTo(gatewayUserId);
+        }
+
+        @Test
+        @DisplayName("유효하지 않은 JWT면 Anonymous SecurityContext를 설정한다")
+        void doFilter_withInvalidJwt_shouldSetAnonymousContext()
+                throws ServletException, IOException {
+            // given
+            when(jwtClaimsExtractor.extractClaims("invalid-token")).thenReturn(Optional.empty());
+
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.addHeader("Authorization", "Bearer invalid-token");
+
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            SecurityContextCapturingFilterChain filterChain =
+                    new SecurityContextCapturingFilterChain();
+
+            // when
+            filter.doFilterInternal(request, response, filterChain);
+
+            // then
+            SecurityContext capturedContext = filterChain.getCapturedContext();
+            assertThat(capturedContext.isAuthenticated()).isFalse();
         }
     }
 

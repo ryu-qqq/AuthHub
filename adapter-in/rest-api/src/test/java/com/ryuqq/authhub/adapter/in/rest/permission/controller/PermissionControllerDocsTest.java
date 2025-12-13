@@ -132,7 +132,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            post("/api/v1/permissions")
+                            post("/api/v1/auth/permissions")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -180,7 +180,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            put("/api/v1/permissions/{permissionId}", permissionId)
+                            put("/api/v1/auth/permissions/{permissionId}", permissionId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -217,7 +217,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
             given(mapper.toDeleteCommand(any(String.class))).willReturn(command);
 
             // when & then
-            mockMvc.perform(patch("/api/v1/permissions/{permissionId}/delete", permissionId))
+            mockMvc.perform(patch("/api/v1/auth/permissions/{permissionId}/delete", permissionId))
                     .andExpect(status().isNoContent())
                     .andDo(
                             document(
@@ -267,7 +267,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            get("/api/v1/permissions/{permissionId}", permissionId)
+                            get("/api/v1/auth/permissions/{permissionId}", permissionId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andDo(
@@ -334,7 +334,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            get("/api/v1/permissions")
+                            get("/api/v1/auth/permissions")
                                     .param("resource", "tenant")
                                     .param("action", "read")
                                     .param("type", "SYSTEM")
@@ -408,7 +408,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
 
             // when & then
             mockMvc.perform(
-                            get("/api/v1/permissions/users/{userId}", userId)
+                            get("/api/v1/auth/permissions/users/{userId}", userId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andDo(
@@ -441,7 +441,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
             EndpointPermissionResponse endpointPermission =
                     new EndpointPermissionResponse(
                             "auth-service",
-                            "/api/v1/tenants",
+                            "/api/v1/auth/tenants",
                             "GET",
                             List.of("tenant:read"),
                             List.of("ADMIN"),
@@ -451,7 +451,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
             EndpointPermissionApiResponse endpointApiResponse =
                     new EndpointPermissionApiResponse(
                             "auth-service",
-                            "/api/v1/tenants",
+                            "/api/v1/auth/tenants",
                             "GET",
                             List.of("tenant:read"),
                             List.of("ADMIN"),
@@ -464,7 +464,7 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                     .willReturn(apiResponse);
 
             // when & then
-            mockMvc.perform(get("/api/v1/permissions/spec").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/auth/permissions/spec").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andDo(
                             document(

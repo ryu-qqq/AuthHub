@@ -17,6 +17,7 @@ import java.util.UUID;
  *   <li>organizationId, organizationName: 조직 정보
  *   <li>email: 사용자 이메일 (identifier)
  *   <li>roles, permissions: 권한 정보
+ *   <li>mfaVerified: MFA 인증 완료 여부
  * </ul>
  *
  * <p><strong>하이브리드 JWT 전략:</strong>
@@ -25,6 +26,7 @@ import java.util.UUID;
  *   <li>불변 정보 (tenantId, tenantName, email): JWT에 포함
  *   <li>가변 정보 (roles, permissions): JWT에 포함 + Gateway 실시간 조회 가능
  *   <li>선택적 정보 (organizationId, organizationName): JWT에 포함, Gateway에서 전환 가능
+ *   <li>보안 정보 (mfaVerified): MFA 인증 상태, Gateway에서 MFA 필수 엔드포인트 검사용
  * </ul>
  *
  * @author development-team
@@ -38,7 +40,8 @@ public record TokenClaimsContext(
         String organizationName,
         String email,
         Set<String> roles,
-        Set<String> permissions) {
+        Set<String> permissions,
+        boolean mfaVerified) {
 
     /**
      * Builder 패턴으로 TokenClaimsContext 생성
@@ -59,6 +62,7 @@ public record TokenClaimsContext(
         private String email;
         private Set<String> roles = Set.of();
         private Set<String> permissions = Set.of();
+        private boolean mfaVerified = false;
 
         private TokenClaimsContextBuilder() {}
 
@@ -102,6 +106,11 @@ public record TokenClaimsContext(
             return this;
         }
 
+        public TokenClaimsContextBuilder mfaVerified(boolean mfaVerified) {
+            this.mfaVerified = mfaVerified;
+            return this;
+        }
+
         public TokenClaimsContext build() {
             return new TokenClaimsContext(
                     userId,
@@ -111,7 +120,8 @@ public record TokenClaimsContext(
                     organizationName,
                     email,
                     roles,
-                    permissions);
+                    permissions,
+                    mfaVerified);
         }
     }
 }

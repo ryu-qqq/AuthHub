@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.role.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.command.GrantRolePermissionApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RolePermissionApiResponse;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,15 +24,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * RolePermissionController - 역할 권한 부여/해제 API 컨트롤러
+ * RolePermissionController - 역할 권한 부여/해제 API 컨트롤러 (Admin)
  *
  * <p>역할에 권한을 부여하거나 해제하는 API를 제공합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/roles/{roleId}/permissions (admin.connectly.com)
  *
  * <p><strong>RESTful 설계:</strong>
  *
  * <ul>
- *   <li>POST /api/v1/roles/{roleId}/permissions - 권한 부여
- *   <li>DELETE /api/v1/roles/{roleId}/permissions/{permissionId} - 권한 해제
+ *   <li>POST /api/v1/auth/admin/roles/{roleId}/permissions - 권한 부여
+ *   <li>DELETE /api/v1/auth/admin/roles/{roleId}/permissions/{permissionId} - 권한 해제
  * </ul>
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
@@ -47,9 +51,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "RolePermission", description = "역할 권한 관리 API")
+@Tag(name = "RolePermission", description = "역할 권한 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/roles/{roleId}/permissions")
+@RequestMapping(ApiPaths.Roles.BASE + ApiPaths.Roles.PERMISSIONS)
 public class RolePermissionController {
 
     private final GrantRolePermissionUseCase grantRolePermissionUseCase;
@@ -86,6 +90,7 @@ public class RolePermissionController {
                 responseCode = "404",
                 description = "역할 또는 권한을 찾을 수 없음")
     })
+    @PreAuthorize("@access.hasPermission('permission:assign')")
     @PostMapping
     public ResponseEntity<ApiResponse<RolePermissionApiResponse>> grantPermission(
             @Parameter(description = "역할 ID", required = true) @PathVariable String roleId,
@@ -115,6 +120,7 @@ public class RolePermissionController {
                 responseCode = "404",
                 description = "역할 또는 권한을 찾을 수 없음")
     })
+    @PreAuthorize("@access.hasPermission('permission:assign')")
     @PatchMapping("/{permissionId}/revoke")
     public ResponseEntity<Void> revokePermission(
             @Parameter(description = "역할 ID", required = true) @PathVariable String roleId,

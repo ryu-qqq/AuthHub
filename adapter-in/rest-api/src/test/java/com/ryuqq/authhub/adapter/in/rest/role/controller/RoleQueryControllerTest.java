@@ -105,7 +105,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles/{roleId}", roleId))
+            mockMvc.perform(get("/api/v1/auth/roles/{roleId}", roleId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.roleId").value(roleId.toString()))
@@ -150,7 +150,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles/{roleId}", roleId))
+            mockMvc.perform(get("/api/v1/auth/roles/{roleId}", roleId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.roleId").value(roleId.toString()))
@@ -224,7 +224,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles"))
+            mockMvc.perform(get("/api/v1/auth/roles"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
@@ -273,7 +273,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles").param("tenantId", tenantId.toString()))
+            mockMvc.perform(get("/api/v1/auth/roles").param("tenantId", tenantId.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
@@ -321,7 +321,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles").param("name", "Admin"))
+            mockMvc.perform(get("/api/v1/auth/roles").param("name", "Admin"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
@@ -368,7 +368,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles").param("scope", "GLOBAL"))
+            mockMvc.perform(get("/api/v1/auth/roles").param("scope", "GLOBAL"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
@@ -414,7 +414,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles").param("type", "SYSTEM"))
+            mockMvc.perform(get("/api/v1/auth/roles").param("type", "SYSTEM"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
@@ -433,7 +433,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles").param("page", "1").param("size", "10"))
+            mockMvc.perform(get("/api/v1/auth/roles").param("page", "1").param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray());
@@ -451,7 +451,7 @@ class RoleQueryControllerTest {
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
             // When & Then
-            mockMvc.perform(get("/api/v1/roles").param("name", "nonexistent"))
+            mockMvc.perform(get("/api/v1/auth/roles").param("name", "nonexistent"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())

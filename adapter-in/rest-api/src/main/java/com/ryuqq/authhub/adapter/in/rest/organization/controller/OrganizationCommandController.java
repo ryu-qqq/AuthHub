@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.organization.controller;
 
+import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.CreateOrganizationApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.UpdateOrganizationApiRequest;
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,9 +30,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * OrganizationCommandController - 조직 Command API 컨트롤러
+ * OrganizationCommandController - 조직 Command API 컨트롤러 (Admin)
  *
  * <p>조직 생성, 수정, 삭제 등 Command 작업을 처리합니다.
+ *
+ * <p><strong>API 경로:</strong> /api/v1/auth/admin/organizations (admin.connectly.com)
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
@@ -46,9 +50,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "Organization", description = "조직 관리 API")
+@Tag(name = "Organization", description = "조직 관리 API (Admin)")
 @RestController
-@RequestMapping("/api/v1/organizations")
+@RequestMapping(ApiPaths.Organizations.BASE)
 public class OrganizationCommandController {
 
     private final CreateOrganizationUseCase createOrganizationUseCase;
@@ -90,6 +94,7 @@ public class OrganizationCommandController {
                 responseCode = "409",
                 description = "중복된 조직")
     })
+    @PreAuthorize("@access.superAdmin() or @access.hasPermission('organization:create')")
     @PostMapping
     public ResponseEntity<ApiResponse<CreateOrganizationApiResponse>> createOrganization(
             @Valid @RequestBody CreateOrganizationApiRequest request) {
@@ -120,6 +125,7 @@ public class OrganizationCommandController {
                 responseCode = "404",
                 description = "조직을 찾을 수 없음")
     })
+    @PreAuthorize("@access.organization(#organizationId, 'update')")
     @PutMapping("/{organizationId}")
     public ResponseEntity<ApiResponse<Void>> updateOrganization(
             @Parameter(description = "조직 ID", required = true) @PathVariable String organizationId,
@@ -149,6 +155,7 @@ public class OrganizationCommandController {
                 responseCode = "404",
                 description = "조직을 찾을 수 없음")
     })
+    @PreAuthorize("@access.organization(#organizationId, 'update')")
     @PatchMapping("/{organizationId}/status")
     public ResponseEntity<ApiResponse<OrganizationApiResponse>> updateOrganizationStatus(
             @Parameter(description = "조직 ID", required = true) @PathVariable String organizationId,
@@ -176,6 +183,7 @@ public class OrganizationCommandController {
                 responseCode = "404",
                 description = "조직을 찾을 수 없음")
     })
+    @PreAuthorize("@access.organization(#organizationId, 'delete')")
     @PatchMapping("/{organizationId}/delete")
     public ResponseEntity<Void> deleteOrganization(
             @Parameter(description = "조직 ID", required = true) @PathVariable
