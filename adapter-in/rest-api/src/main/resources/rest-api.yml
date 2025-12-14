@@ -89,6 +89,8 @@ api:
   cors:
     allowed-origins:
       - http://localhost:3000
+      - http://localhost:5173
+      - http://localhost:5174
       - http://localhost:8080
     allowed-methods:
       - GET
@@ -108,14 +110,14 @@ api:
 # ===============================================
 # SpringDoc OpenAPI Configuration
 # ===============================================
-# Swagger UI: http://localhost:8080/swagger-ui.html
-# API Docs: http://localhost:8080/v3/api-docs
+# Swagger UI: http://localhost:8080/api/v1/auth/swagger-ui.html
+# API Docs: http://localhost:8080/api/v1/auth/api-docs
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: /api/v1/auth/api-docs
     enabled: true
   swagger-ui:
-    path: /swagger-ui.html
+    path: /api/v1/auth/swagger-ui.html
     enabled: true
     # 태그/오퍼레이션 정렬
     tags-sorter: alpha

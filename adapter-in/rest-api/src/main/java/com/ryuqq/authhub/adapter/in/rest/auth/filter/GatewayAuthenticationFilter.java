@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -46,7 +48,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <p>하이브리드 권한 체계:
  *
  * <ul>
- *   <li>X-Roles: 역할 기반 권한 (JSON 배열, 예: ["ROLE_TENANT_ADMIN"])
+ *   <li>X-User-Roles: 역할 기반 권한 (콤마 구분, 예: ROLE_SUPER_ADMIN,ROLE_ADMIN)
  *   <li>X-Permissions: 리소스 기반 권한 (콤마 구분, 예: user:read,order:write)
  * </ul>
  *
@@ -56,10 +58,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(GatewayAuthenticationFilter.class);
+
     private static final String HEADER_USER_ID = "X-User-Id";
     private static final String HEADER_TENANT_ID = "X-Tenant-Id";
     private static final String HEADER_ORGANIZATION_ID = "X-Organization-Id";
-    private static final String HEADER_ROLES = "X-Roles";
+    private static final String HEADER_ROLES = "X-User-Roles";
     private static final String HEADER_PERMISSIONS = "X-Permissions";
     private static final String HEADER_TRACE_ID = "X-Trace-Id";
     private static final String HEADER_AUTHORIZATION = "Authorization";
@@ -96,20 +100,40 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private SecurityContext buildSecurityContext(HttpServletRequest request) {
+        // 디버그: 인증 관련 헤더 로깅
+        logAuthHeaders(request);
+
         // 1. Gateway 인증 (X-User-Id 헤더) - 우선순위 최상위
         String userId = request.getHeader(HEADER_USER_ID);
         if (StringUtils.hasText(userId)) {
+            log.info("[AUTH] Gateway 인증 시도: userId={}", userId);
             return buildGatewaySecurityContext(request, userId);
         }
 
         // 2. JWT Fallback (Authorization: Bearer) - 로컬 개발/직접 호출용
         Optional<JwtClaims> jwtClaims = extractJwtClaimsFromAuthorizationHeader(request);
         if (jwtClaims.isPresent()) {
+            log.info("[AUTH] JWT Fallback 인증 시도");
             return buildJwtSecurityContext(jwtClaims.get());
         }
 
         // 3. Anonymous
+        log.info("[AUTH] Anonymous 처리 (인증 헤더 없음)");
         return SecurityContext.anonymous();
+    }
+
+    /**
+     * 인증 관련 헤더를 로깅합니다 (디버깅용).
+     *
+     * @param request HTTP 요청
+     */
+    private void logAuthHeaders(HttpServletRequest request) {
+        log.info("[AUTH-HEADERS] URI: {} {}", request.getMethod(), request.getRequestURI());
+        log.info("[AUTH-HEADERS] X-User-Id: {}", request.getHeader(HEADER_USER_ID));
+        log.info("[AUTH-HEADERS] X-Tenant-Id: {}", request.getHeader(HEADER_TENANT_ID));
+        log.info("[AUTH-HEADERS] X-User-Roles: {}", request.getHeader(HEADER_ROLES));
+        log.info("[AUTH-HEADERS] Authorization: {}",
+                request.getHeader(HEADER_AUTHORIZATION) != null ? "[PRESENT]" : "[ABSENT]");
     }
 
     /**
@@ -123,6 +147,9 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         Set<String> roles = parseRoles(request.getHeader(HEADER_ROLES));
         Set<String> permissions = parsePermissions(request.getHeader(HEADER_PERMISSIONS));
         String traceId = request.getHeader(HEADER_TRACE_ID);
+
+        log.info("[AUTH] Gateway SecurityContext 생성: userId={}, tenantId={}, roles={}, permissions={}",
+                userId, tenantId, roles, permissions);
 
         return SecurityContext.builder()
                 .userId(userId)
@@ -179,16 +206,22 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         return StringUtils.hasText(header) ? header : null;
     }
 
+    /**
+     * X-User-Roles 헤더 파싱
+     *
+     * <p>콤마로 구분된 역할 문자열을 파싱합니다. 예: "ROLE_SUPER_ADMIN,ROLE_ADMIN"
+     *
+     * @param rolesHeader 역할 헤더 값
+     * @return 역할 Set
+     */
     private Set<String> parseRoles(String rolesHeader) {
         if (!StringUtils.hasText(rolesHeader)) {
             return Set.of();
         }
-        try {
-            String[] roles = objectMapper.readValue(rolesHeader, String[].class);
-            return Set.of(roles);
-        } catch (JsonProcessingException e) {
-            return Set.of();
-        }
+        return Arrays.stream(rolesHeader.split(","))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toSet());
     }
 
     /**

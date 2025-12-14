@@ -105,8 +105,8 @@ public class SecurityConfig {
         // PUBLIC 엔드포인트 설정 (인증 불필요)
         auth.requestMatchers(SecurityPaths.Public.PATTERNS.toArray(String[]::new)).permitAll();
 
-        // DOCS 엔드포인트 설정 (인증된 사용자면 접근 가능)
-        auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).authenticated();
+        // DOCS 엔드포인트 설정 (인증 불필요 - 개발 편의)
+        auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).permitAll();
 
         // 그 외 모든 요청은 인증 필요 + @PreAuthorize로 세부 권한 검사
         auth.anyRequest().authenticated();

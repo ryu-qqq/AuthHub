@@ -104,13 +104,13 @@ fi
 echo "ElastiCache 엔드포인트 검색 중..."
 REDIS_ENDPOINT=$(aws elasticache describe-cache-clusters \
     --region $AWS_REGION \
-    --cache-cluster-id fileflow-redis-prod \
+    --cache-cluster-id authhub-redis-prod \
     --show-cache-node-info \
     --query 'CacheClusters[0].CacheNodes[0].Endpoint.Address' \
     --output text 2>/dev/null || echo "")
 
 if [ -z "$REDIS_ENDPOINT" ] || [ "$REDIS_ENDPOINT" == "None" ]; then
-    echo -e "${YELLOW}⚠️  ElastiCache(fileflow-redis-prod)를 찾을 수 없습니다. Redis 포트 포워딩을 건너뜁니다.${NC}"
+    echo -e "${YELLOW}⚠️  ElastiCache(authhub-redis-prod)를 찾을 수 없습니다. Redis 포트 포워딩을 건너뜁니다.${NC}"
     REDIS_ENDPOINT=""
 else
     echo -e "${GREEN}✅ Redis 엔드포인트: ${REDIS_ENDPOINT}${NC}"
@@ -123,7 +123,7 @@ echo -e "${GREEN}========================================${NC}"
 echo ""
 
 # PID 파일 디렉토리
-PID_DIR="/tmp/fileflow-port-forward"
+PID_DIR="/tmp/authhub-port-forward"
 mkdir -p $PID_DIR
 
 # 기존 포트 포워딩 종료 함수

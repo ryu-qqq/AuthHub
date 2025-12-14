@@ -124,10 +124,10 @@ public final class ApiPaths {
 
     /** OpenAPI (Swagger) 문서 경로 */
     public static final class OpenApi {
-        public static final String DOCS = "/v3/api-docs/**";
-        public static final String SWAGGER_UI = "/swagger-ui/**";
-        public static final String SWAGGER_UI_HTML = "/swagger-ui.html";
-        public static final String SWAGGER_REDIRECT = "/swagger";
+        public static final String DOCS = AUTH_SERVICE_BASE + "/api-docs/**";
+        public static final String SWAGGER_UI = AUTH_SERVICE_BASE + "/swagger-ui/**";
+        public static final String SWAGGER_UI_HTML = AUTH_SERVICE_BASE + "/swagger-ui.html";
+        public static final String SWAGGER_REDIRECT = AUTH_SERVICE_BASE + "/swagger";
 
         private OpenApi() {}
     }

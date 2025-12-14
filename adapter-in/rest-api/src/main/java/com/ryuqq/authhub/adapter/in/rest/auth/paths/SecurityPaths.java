@@ -59,17 +59,23 @@ public final class SecurityPaths {
     /**
      * API 문서 경로 (Swagger, REST Docs)
      *
-     * <p>인증된 사용자면 접근 가능한 API 문서 경로입니다.
+     * <p>개발 편의를 위해 인증 없이 접근 가능한 API 문서 경로입니다.
      */
     public static final class Docs {
 
-        /** API 문서 경로 목록 */
+        /** API 문서 경로 목록 (Gateway 경로 + SpringDoc 기본 경로) */
         public static final List<String> PATTERNS =
                 List.of(
+                        // Gateway 라우팅용 경로 (서비스별 prefix)
                         ApiPaths.OpenApi.SWAGGER_REDIRECT,
                         ApiPaths.OpenApi.SWAGGER_UI,
                         ApiPaths.OpenApi.SWAGGER_UI_HTML,
                         ApiPaths.OpenApi.DOCS,
+                        // SpringDoc 기본 경로 (로컬 개발용)
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        // REST Docs
                         ApiPaths.Docs.BASE,
                         ApiPaths.Docs.ALL);
 
