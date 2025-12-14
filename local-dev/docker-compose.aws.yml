@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile.local
       args:
         MODULE_NAME: auth-web-api
-    container_name: auth-web-api-aws
+    container_name: authhub
     env_file:
       - .env.aws
     environment:

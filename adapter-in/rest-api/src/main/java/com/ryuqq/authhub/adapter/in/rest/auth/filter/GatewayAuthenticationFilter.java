@@ -209,10 +209,13 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
     /**
      * X-User-Roles 헤더 파싱
      *
-     * <p>콤마로 구분된 역할 문자열을 파싱합니다. 예: "ROLE_SUPER_ADMIN,ROLE_ADMIN"
+     * <p>콤마로 구분된 역할 문자열을 파싱합니다. 예: "SUPER_ADMIN,ADMIN"
+     *
+     * <p>Spring Security의 hasRole()은 자동으로 ROLE_ prefix를 추가하여 검사하므로,
+     * Gateway에서 prefix 없이 보내도 여기서 자동으로 ROLE_ prefix를 추가합니다.
      *
      * @param rolesHeader 역할 헤더 값
-     * @return 역할 Set
+     * @return ROLE_ prefix가 추가된 역할 Set
      */
     private Set<String> parseRoles(String rolesHeader) {
         if (!StringUtils.hasText(rolesHeader)) {
@@ -221,6 +224,7 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         return Arrays.stream(rolesHeader.split(","))
                 .map(String::trim)
                 .filter(StringUtils::hasText)
+                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
                 .collect(Collectors.toSet());
     }
 
