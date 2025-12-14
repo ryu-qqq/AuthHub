@@ -1,6 +1,5 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor.JwtClaims;
@@ -132,7 +131,8 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         log.info("[AUTH-HEADERS] X-User-Id: {}", request.getHeader(HEADER_USER_ID));
         log.info("[AUTH-HEADERS] X-Tenant-Id: {}", request.getHeader(HEADER_TENANT_ID));
         log.info("[AUTH-HEADERS] X-User-Roles: {}", request.getHeader(HEADER_ROLES));
-        log.info("[AUTH-HEADERS] Authorization: {}",
+        log.info(
+                "[AUTH-HEADERS] Authorization: {}",
                 request.getHeader(HEADER_AUTHORIZATION) != null ? "[PRESENT]" : "[ABSENT]");
     }
 
@@ -148,8 +148,13 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         Set<String> permissions = parsePermissions(request.getHeader(HEADER_PERMISSIONS));
         String traceId = request.getHeader(HEADER_TRACE_ID);
 
-        log.info("[AUTH] Gateway SecurityContext 생성: userId={}, tenantId={}, roles={}, permissions={}",
-                userId, tenantId, roles, permissions);
+        log.info(
+                "[AUTH] Gateway SecurityContext 생성: userId={}, tenantId={}, roles={},"
+                        + " permissions={}",
+                userId,
+                tenantId,
+                roles,
+                permissions);
 
         return SecurityContext.builder()
                 .userId(userId)
@@ -211,8 +216,8 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
      *
      * <p>콤마로 구분된 역할 문자열을 파싱합니다. 예: "SUPER_ADMIN,ADMIN"
      *
-     * <p>Spring Security의 hasRole()은 자동으로 ROLE_ prefix를 추가하여 검사하므로,
-     * Gateway에서 prefix 없이 보내도 여기서 자동으로 ROLE_ prefix를 추가합니다.
+     * <p>Spring Security의 hasRole()은 자동으로 ROLE_ prefix를 추가하여 검사하므로, Gateway에서 prefix 없이 보내도 여기서
+     * 자동으로 ROLE_ prefix를 추가합니다.
      *
      * @param rolesHeader 역할 헤더 값
      * @return ROLE_ prefix가 추가된 역할 Set

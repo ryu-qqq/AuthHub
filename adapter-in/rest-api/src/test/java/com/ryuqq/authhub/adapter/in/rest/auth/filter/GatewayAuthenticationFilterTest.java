@@ -73,7 +73,7 @@ class GatewayAuthenticationFilterTest {
             request.addHeader("X-User-Id", TEST_USER_ID);
             request.addHeader("X-Tenant-Id", TEST_TENANT_ID);
             request.addHeader("X-Organization-Id", TEST_ORGANIZATION_ID);
-            request.addHeader("X-Roles", "[\"ROLE_TENANT_ADMIN\"]");
+            request.addHeader("X-User-Roles", "TENANT_ADMIN");
             request.addHeader("X-Trace-Id", "trace-123");
 
             MockHttpServletResponse response = new MockHttpServletResponse();
@@ -125,7 +125,7 @@ class GatewayAuthenticationFilterTest {
             // given
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.addHeader("X-User-Id", TEST_USER_ID);
-            request.addHeader("X-Roles", "[\"ROLE_SUPER_ADMIN\",\"ROLE_TENANT_ADMIN\"]");
+            request.addHeader("X-User-Roles", "SUPER_ADMIN,TENANT_ADMIN");
 
             MockHttpServletResponse response = new MockHttpServletResponse();
             SecurityContextCapturingFilterChain filterChain =
@@ -191,7 +191,7 @@ class GatewayAuthenticationFilterTest {
             // given
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.addHeader("X-User-Id", TEST_USER_ID);
-            request.addHeader("X-Roles", "[\"ROLE_TENANT_ADMIN\"]");
+            request.addHeader("X-User-Roles", "TENANT_ADMIN");
             request.addHeader("X-Permissions", "user:read");
 
             MockHttpServletResponse response = new MockHttpServletResponse();

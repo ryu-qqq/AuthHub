@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/user-prompt-submit.sh '{{prompt}}'"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/user-prompt-submit.sh '{{prompt}}'"
           }
         ]
       }
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/stop-session.sh"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/stop-session.sh"
           }
         ]
       }
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pre-tool-use-edit.sh '{{tool_input}}'"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/pre-tool-use-edit.sh '{{tool_input}}'"
           }
         ]
       },
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pre-tool-use-edit.sh '{{tool_input}}'"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/pre-tool-use-edit.sh '{{tool_input}}'"
           }
         ]
       },
@@ -44,7 +44,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pre-tool-use-edit.sh '{{tool_input}}'"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/pre-tool-use-edit.sh '{{tool_input}}'"
           }
         ]
       },
@@ -53,27 +53,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pre-tool-use-impl.sh '{{tool_input}}'"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/pre-tool-use-impl.sh '{{tool_input}}'"
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/track-tdd-cycle.sh '{{output}}'"
-          }
-        ]
-      },
-      {
         "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/post-tool-use-format.sh '{{tool_input}}'"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/post-tool-use-format.sh '{{tool_input}}'"
           }
         ]
       },
@@ -82,7 +73,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/post-tool-use-format.sh '{{tool_input}}'"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/post-tool-use-format.sh '{{tool_input}}'"
           }
         ]
       },
@@ -91,7 +82,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/post-tool-use-format.sh '{{tool_input}}'"
+            "command": "/Users/sangwon-ryu/AuthHub/.claude/hooks/post-tool-use-format.sh '{{tool_input}}'"
           }
         ]
       }
@@ -99,6 +90,6 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "python3 .claude/scripts/context-monitor.py"
+    "command": "python3 /Users/sangwon-ryu/AuthHub/.claude/scripts/context-monitor.py"
   }
 }
