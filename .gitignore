@@ -74,3 +74,4 @@ local-dev/.env.aws
 local-dev/test-files/
 # Terraform
 **/.terraform/
+local-dev/secrets/
