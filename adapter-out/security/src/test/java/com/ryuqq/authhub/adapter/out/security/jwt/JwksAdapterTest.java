@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.security.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.authhub.adapter.out.security.config.JwtProperties;
 import com.ryuqq.authhub.application.auth.dto.response.JwkResponse;
@@ -51,37 +52,41 @@ class JwksAdapterTest {
         }
 
         @Test
-        @DisplayName("공개키 경로가 null이면 빈 리스트를 반환한다")
-        void shouldReturnEmptyListWhenPublicKeyPathIsNull() {
+        @DisplayName("공개키 경로와 내용이 모두 null이면 예외를 발생시킨다")
+        void shouldThrowExceptionWhenPublicKeyPathAndContentAreNull() {
             // given
             JwtProperties.RsaKeyProperties rsaProps = new JwtProperties.RsaKeyProperties();
             rsaProps.setEnabled(true);
             rsaProps.setPublicKeyPath(null);
+            rsaProps.setPublicKeyContent(null);
             jwtProperties.setRsa(rsaProps);
             adapter = new JwksAdapter(jwtProperties);
 
-            // when
-            List<JwkResponse> result = adapter.getPublicKeys();
-
-            // then
-            assertThat(result).isEmpty();
+            // when & then
+            assertThatThrownBy(() -> adapter.getPublicKeys())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining(
+                            "RSA is enabled but neither publicKeyContent nor publicKeyPath is"
+                                    + " configured");
         }
 
         @Test
-        @DisplayName("공개키 경로가 빈 문자열이면 빈 리스트를 반환한다")
-        void shouldReturnEmptyListWhenPublicKeyPathIsBlank() {
+        @DisplayName("공개키 경로가 빈 문자열이고 내용도 없으면 예외를 발생시킨다")
+        void shouldThrowExceptionWhenPublicKeyPathIsBlankAndContentIsNull() {
             // given
             JwtProperties.RsaKeyProperties rsaProps = new JwtProperties.RsaKeyProperties();
             rsaProps.setEnabled(true);
             rsaProps.setPublicKeyPath("   ");
+            rsaProps.setPublicKeyContent(null);
             jwtProperties.setRsa(rsaProps);
             adapter = new JwksAdapter(jwtProperties);
 
-            // when
-            List<JwkResponse> result = adapter.getPublicKeys();
-
-            // then
-            assertThat(result).isEmpty();
+            // when & then
+            assertThatThrownBy(() -> adapter.getPublicKeys())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining(
+                            "RSA is enabled but neither publicKeyContent nor publicKeyPath is"
+                                    + " configured");
         }
 
         @Test

@@ -333,7 +333,9 @@ class JwtTokenProviderAdapterTest {
                             true,
                             RSA_KEY_ID,
                             resourcePath.resolve("public_key.pem").toString(),
-                            resourcePath.resolve("private_key_pkcs8.pem").toString());
+                            resourcePath.resolve("private_key_pkcs8.pem").toString(),
+                            null, // publicKeyContent - 테스트에서는 파일 경로 사용
+                            null); // privateKeyContent - 테스트에서는 파일 경로 사용
 
             JwtProperties properties =
                     new JwtProperties(
