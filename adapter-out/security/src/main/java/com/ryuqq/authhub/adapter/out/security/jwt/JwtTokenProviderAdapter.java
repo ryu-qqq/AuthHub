@@ -91,14 +91,47 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
 
     private Key initializeSigningKey(JwtProperties properties) {
         if (properties.getRsa().isEnabled()) {
-            return loadRsaPrivateKey(properties.getRsa().getPrivateKeyPath());
+            return loadRsaPrivateKey(properties.getRsa());
         }
         return Keys.hmacShaKeyFor(properties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    private RSAPrivateKey loadRsaPrivateKey(String path) {
+    /**
+     * RSA Private Key를 로드합니다.
+     *
+     * <p>로딩 우선순위:
+     *
+     * <ol>
+     *   <li>privateKeyContent - 환경변수로 직접 전달된 키 내용 (ECS 권장)
+     *   <li>privateKeyPath - 파일 경로에서 로딩 (로컬 개발용)
+     * </ol>
+     */
+    private RSAPrivateKey loadRsaPrivateKey(JwtProperties.RsaKeyProperties rsaProperties) {
+        String keyContent = rsaProperties.getResolvedPrivateKeyContent();
+
+        if (keyContent == null) {
+            String path = rsaProperties.getPrivateKeyPath();
+            if (path == null || path.isBlank()) {
+                throw new IllegalStateException(
+                        "RSA is enabled but neither privateKeyContent nor privateKeyPath is"
+                                + " configured");
+            }
+            keyContent = loadKeyFromFile(path);
+        }
+
+        return parseRsaPrivateKey(keyContent);
+    }
+
+    private String loadKeyFromFile(String path) {
         try {
-            String keyContent = Files.readString(Path.of(path));
+            return Files.readString(Path.of(path));
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load RSA private key from path: " + path, e);
+        }
+    }
+
+    private RSAPrivateKey parseRsaPrivateKey(String keyContent) {
+        try {
             String privateKeyPem =
                     keyContent
                             .replace("-----BEGIN RSA PRIVATE KEY-----", "")
@@ -111,8 +144,8 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new IllegalStateException("Failed to load RSA private key from path: " + path, e);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new IllegalStateException("Failed to parse RSA private key", e);
         }
     }
 

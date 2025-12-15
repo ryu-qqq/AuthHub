@@ -102,6 +102,11 @@ data "aws_secretsmanager_secret" "jwt" {
   name = "authhub/jwt/secret"
 }
 
+# JWT RSA Keys for RS256 signing (Gateway integration)
+data "aws_secretsmanager_secret" "jwt_rsa" {
+  name = "authhub/jwt/rsa-keys"
+}
+
 # ========================================
 # RDS Configuration (MySQL)
 # ========================================

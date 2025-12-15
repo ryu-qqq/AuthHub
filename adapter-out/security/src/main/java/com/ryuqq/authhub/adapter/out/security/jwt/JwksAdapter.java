@@ -42,6 +42,16 @@ public class JwksAdapter implements JwksPort {
         this.jwtProperties = jwtProperties;
     }
 
+    /**
+     * JWKS 형식의 공개키 목록을 반환합니다.
+     *
+     * <p>로딩 우선순위:
+     *
+     * <ol>
+     *   <li>publicKeyContent - 환경변수로 직접 전달된 키 내용 (ECS 권장)
+     *   <li>publicKeyPath - 파일 경로에서 로딩 (로컬 개발용)
+     * </ol>
+     */
     @Override
     public List<JwkResponse> getPublicKeys() {
         JwtProperties.RsaKeyProperties rsaProperties = jwtProperties.getRsa();
@@ -50,24 +60,42 @@ public class JwksAdapter implements JwksPort {
             return Collections.emptyList();
         }
 
-        String publicKeyPath = rsaProperties.getPublicKeyPath();
-        if (publicKeyPath == null || publicKeyPath.isBlank()) {
-            return Collections.emptyList();
-        }
-
         try {
-            RSAPublicKey publicKey = loadPublicKey(publicKeyPath);
+            RSAPublicKey publicKey = loadPublicKey(rsaProperties);
             JwkResponse jwk = toJwkResponse(rsaProperties.getKeyId(), publicKey);
             return List.of(jwk);
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new IllegalStateException(
-                    "Failed to load RSA public key from path: " + publicKeyPath, e);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new IllegalStateException("Failed to load RSA public key", e);
         }
     }
 
-    private RSAPublicKey loadPublicKey(String path)
-            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        String keyContent = Files.readString(Path.of(path));
+    private RSAPublicKey loadPublicKey(JwtProperties.RsaKeyProperties rsaProperties)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        String keyContent = rsaProperties.getResolvedPublicKeyContent();
+
+        if (keyContent == null) {
+            String path = rsaProperties.getPublicKeyPath();
+            if (path == null || path.isBlank()) {
+                throw new IllegalStateException(
+                        "RSA is enabled but neither publicKeyContent nor publicKeyPath is"
+                                + " configured");
+            }
+            keyContent = loadKeyFromFile(path);
+        }
+
+        return parseRsaPublicKey(keyContent);
+    }
+
+    private String loadKeyFromFile(String path) {
+        try {
+            return Files.readString(Path.of(path));
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load RSA public key from path: " + path, e);
+        }
+    }
+
+    private RSAPublicKey parseRsaPublicKey(String keyContent)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
         String publicKeyPem =
                 keyContent
                         .replace("-----BEGIN PUBLIC KEY-----", "")

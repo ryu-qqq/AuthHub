@@ -96,21 +96,37 @@ public class JwtProperties {
      * RSA 키 설정
      *
      * <p>JWT 서명/검증에 사용할 RSA 키 쌍 설정입니다.
+     *
+     * <p><strong>키 로딩 우선순위:</strong>
+     *
+     * <ol>
+     *   <li>privateKeyContent/publicKeyContent - 환경변수로 직접 키 내용 전달 (ECS 권장)
+     *   <li>privateKeyPath/publicKeyPath - 파일 경로에서 로딩 (로컬 개발용)
+     * </ol>
      */
     public static class RsaKeyProperties {
         private boolean enabled;
         private String keyId = "authhub-key-1";
         private String publicKeyPath;
         private String privateKeyPath;
+        private String publicKeyContent;
+        private String privateKeyContent;
 
         public RsaKeyProperties() {}
 
         public RsaKeyProperties(
-                boolean enabled, String keyId, String publicKeyPath, String privateKeyPath) {
+                boolean enabled,
+                String keyId,
+                String publicKeyPath,
+                String privateKeyPath,
+                String publicKeyContent,
+                String privateKeyContent) {
             this.enabled = enabled;
             this.keyId = keyId;
             this.publicKeyPath = publicKeyPath;
             this.privateKeyPath = privateKeyPath;
+            this.publicKeyContent = publicKeyContent;
+            this.privateKeyContent = privateKeyContent;
         }
 
         public boolean isEnabled() {
@@ -143,6 +159,38 @@ public class JwtProperties {
 
         public void setPrivateKeyPath(String privateKeyPath) {
             this.privateKeyPath = privateKeyPath;
+        }
+
+        public String getPublicKeyContent() {
+            return publicKeyContent;
+        }
+
+        public void setPublicKeyContent(String publicKeyContent) {
+            this.publicKeyContent = publicKeyContent;
+        }
+
+        public String getPrivateKeyContent() {
+            return privateKeyContent;
+        }
+
+        public void setPrivateKeyContent(String privateKeyContent) {
+            this.privateKeyContent = privateKeyContent;
+        }
+
+        /** Private Key 내용을 반환합니다. privateKeyContent가 설정되어 있으면 우선 사용하고, 없으면 null을 반환합니다. */
+        public String getResolvedPrivateKeyContent() {
+            if (privateKeyContent != null && !privateKeyContent.isBlank()) {
+                return privateKeyContent;
+            }
+            return null;
+        }
+
+        /** Public Key 내용을 반환합니다. publicKeyContent가 설정되어 있으면 우선 사용하고, 없으면 null을 반환합니다. */
+        public String getResolvedPublicKeyContent() {
+            if (publicKeyContent != null && !publicKeyContent.isBlank()) {
+                return publicKeyContent;
+            }
+            return null;
         }
     }
 }

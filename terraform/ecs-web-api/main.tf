@@ -182,7 +182,7 @@ module "web_api_task_execution_role" {
   ]
 
   enable_secrets_manager_policy = true
-  secrets_manager_secret_arns   = [data.aws_secretsmanager_secret.rds.arn, data.aws_secretsmanager_secret.jwt.arn]
+  secrets_manager_secret_arns   = [data.aws_secretsmanager_secret.rds.arn, data.aws_secretsmanager_secret.jwt.arn, data.aws_secretsmanager_secret.jwt_rsa.arn]
 
   custom_inline_policies = {
     ssm-access = {
@@ -295,12 +295,12 @@ module "web_api_task_role" {
             }
           },
           {
-            Sid    = "S3ConfigAccess"
+            Sid    = "S3OtelConfigAccess"
             Effect = "Allow"
             Action = [
               "s3:GetObject"
             ]
-            Resource = "arn:aws:s3:::connectly-prod/*"
+            Resource = "arn:aws:s3:::prod-connectly/otel-config/*"
           }
         ]
       })
@@ -367,13 +367,19 @@ module "ecs_service" {
     { name = "DB_NAME", value = local.rds_dbname },
     { name = "DB_USER", value = local.rds_username },
     { name = "REDIS_HOST", value = local.redis_host },
-    { name = "REDIS_PORT", value = tostring(local.redis_port) }
+    { name = "REDIS_PORT", value = tostring(local.redis_port) },
+    # RS256 JWT Configuration (Gateway Integration)
+    { name = "SECURITY_JWT_RSA_ENABLED", value = "true" },
+    { name = "SECURITY_JWT_RSA_KEY_ID", value = "authhub-key-1" }
   ]
 
   # Container Secrets
   container_secrets = [
     { name = "DB_PASSWORD", valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::" },
-    { name = "JWT_SECRET", valueFrom = "${data.aws_secretsmanager_secret.jwt.arn}:secret::" }
+    { name = "JWT_SECRET", valueFrom = "${data.aws_secretsmanager_secret.jwt.arn}:secret::" },
+    # RS256 RSA Keys (loaded from Secrets Manager)
+    { name = "SECURITY_JWT_RSA_PRIVATE_KEY_CONTENT", valueFrom = "${data.aws_secretsmanager_secret.jwt_rsa.arn}:private_key::" },
+    { name = "SECURITY_JWT_RSA_PUBLIC_KEY_CONTENT", valueFrom = "${data.aws_secretsmanager_secret.jwt_rsa.arn}:public_key::" }
   ]
 
   # Health Check
