@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.authhub.adapter.out.security.config.JwtProperties;
 import com.ryuqq.authhub.application.auth.dto.response.JwkResponse;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -99,6 +102,85 @@ class JwksAdapterTest {
 
             // then
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("RSA가 활성화되고 공개키 파일 경로가 설정되면 JWK를 반환한다")
+        void shouldReturnJwkWhenRsaEnabledWithPublicKeyPath() {
+            // given
+            Path resourcePath = Path.of("src/test/resources/keys").toAbsolutePath();
+            String publicKeyPath = resourcePath.resolve("public_key.pem").toString();
+            String keyId = "test-key-id";
+
+            JwtProperties.RsaKeyProperties rsaProps =
+                    new JwtProperties.RsaKeyProperties(
+                            true, keyId, publicKeyPath, null, null, null);
+            jwtProperties.setRsa(rsaProps);
+            adapter = new JwksAdapter(jwtProperties);
+
+            // when
+            List<JwkResponse> result = adapter.getPublicKeys();
+
+            // then
+            assertThat(result).hasSize(1);
+            JwkResponse jwk = result.get(0);
+            assertThat(jwk.kty()).isEqualTo("RSA");
+            assertThat(jwk.use()).isEqualTo("sig");
+            assertThat(jwk.alg()).isEqualTo("RS256");
+            assertThat(jwk.kid()).isEqualTo(keyId);
+            assertThat(jwk.n()).isNotBlank();
+            assertThat(jwk.e()).isNotBlank();
+        }
+
+        @Test
+        @DisplayName("RSA가 활성화되고 공개키 내용이 직접 설정되면 JWK를 반환한다")
+        void shouldReturnJwkWhenRsaEnabledWithPublicKeyContent() throws IOException {
+            // given
+            Path resourcePath = Path.of("src/test/resources/keys").toAbsolutePath();
+            String publicKeyContent = Files.readString(resourcePath.resolve("public_key.pem"));
+            String keyId = "test-key-id-content";
+
+            JwtProperties.RsaKeyProperties rsaProps =
+                    new JwtProperties.RsaKeyProperties(
+                            true, keyId, null, null, publicKeyContent, null);
+            jwtProperties.setRsa(rsaProps);
+            adapter = new JwksAdapter(jwtProperties);
+
+            // when
+            List<JwkResponse> result = adapter.getPublicKeys();
+
+            // then
+            assertThat(result).hasSize(1);
+            JwkResponse jwk = result.get(0);
+            assertThat(jwk.kty()).isEqualTo("RSA");
+            assertThat(jwk.use()).isEqualTo("sig");
+            assertThat(jwk.alg()).isEqualTo("RS256");
+            assertThat(jwk.kid()).isEqualTo(keyId);
+            assertThat(jwk.n()).isNotBlank();
+            assertThat(jwk.e()).isNotBlank();
+        }
+
+        @Test
+        @DisplayName("공개키 내용이 설정되면 파일 경로보다 우선한다")
+        void shouldPrioritizePublicKeyContentOverPath() throws IOException {
+            // given
+            Path resourcePath = Path.of("src/test/resources/keys").toAbsolutePath();
+            String publicKeyContent = Files.readString(resourcePath.resolve("public_key.pem"));
+            String invalidPath = "/invalid/path/to/key.pem";
+            String keyId = "test-priority-key";
+
+            JwtProperties.RsaKeyProperties rsaProps =
+                    new JwtProperties.RsaKeyProperties(
+                            true, keyId, invalidPath, null, publicKeyContent, null);
+            jwtProperties.setRsa(rsaProps);
+            adapter = new JwksAdapter(jwtProperties);
+
+            // when - should succeed because content is prioritized over invalid path
+            List<JwkResponse> result = adapter.getPublicKeys();
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).kid()).isEqualTo(keyId);
         }
     }
 }
