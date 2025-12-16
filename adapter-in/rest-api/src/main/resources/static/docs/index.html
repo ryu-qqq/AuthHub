@@ -543,11 +543,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#permission-user">6.6.6. 사용자 권한 조회</a></li>
 </ul>
 </li>
-<li><a href="#internal">6.7. Internal API (서비스 간 통신)</a>
+<li><a href="#system">6.7. System API (서버 간 통신 - 입점/온보딩)</a>
 <ul class="sectlevel3">
-<li><a href="#internal-authentication">6.7.1. 인증 방식</a></li>
-<li><a href="#internal-user-permissions">6.7.2. 사용자 권한 조회 (Gateway용)</a></li>
-<li><a href="#internal-vs-admin-api">6.7.3. Internal API vs Admin API 비교</a></li>
+<li><a href="#system-authentication">6.7.1. 인증 방식</a></li>
+<li><a href="#system-tenant-onboarding">6.7.2. 테넌트 온보딩</a></li>
+</ul>
+</li>
+<li><a href="#internal">6.8. Internal API (서비스 간 통신)</a>
+<ul class="sectlevel3">
+<li><a href="#internal-authentication">6.8.1. 인증 방식</a></li>
+<li><a href="#internal-user-permissions">6.8.2. 사용자 권한 조회 (Gateway용)</a></li>
+<li><a href="#internal-vs-admin-api">6.8.3. Internal API vs Admin API 비교</a></li>
 </ul>
 </li>
 </ul>
@@ -990,6 +996,12 @@ ORG_USER (tenant_id = N, organization_id = M, scope = ORGANIZATION)
 <td class="tableblock halign-left valign-top"><p class="tableblock">SUPER_ADMIN</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">사용자 권한 조회</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/api/v1/auth/system/tenants/onboarding</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>X-Service-Token</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">테넌트 온보딩 (입점 승인)</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1063,15 +1075,15 @@ Content-Length: 414
 {
   "success" : true,
   "data" : {
-    "userId" : "9c97a534-8819-4197-a4cc-12264ebe2103",
+    "userId" : "0add89ad-efd2-44b8-9c8b-1e8312f9cdeb",
     "accessToken" : "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.signature",
     "refreshToken" : "refresh_token_abc123",
     "expiresIn" : 3600,
     "tokenType" : "Bearer"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:40.371221",
-  "requestId" : "req-1765636360371"
+  "timestamp" : "2025-12-17T01:12:02.012754",
+  "requestId" : "req-1765901522012"
 }</code></pre>
 </div>
 </div>
@@ -1203,8 +1215,8 @@ Content-Length: 411
     "tokenType" : "Bearer"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:40.341636",
-  "requestId" : "req-1765636360341"
+  "timestamp" : "2025-12-17T01:12:01.982067",
+  "requestId" : "req-1765901521982"
 }</code></pre>
 </div>
 </div>
@@ -1289,7 +1301,7 @@ Content-Length: 55
 Host: localhost:8080
 
 {
-  "userId" : "551d0593-4d66-4c4a-b2ab-b9b9d77f7d60"
+  "userId" : "6081fba5-7508-45c9-8871-3c45ef14db32"
 }</code></pre>
 </div>
 </div>
@@ -1330,8 +1342,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:40.312201",
-  "requestId" : "req-1765636360312"
+  "timestamp" : "2025-12-17T01:12:01.949559",
+  "requestId" : "req-1765901521949"
 }</code></pre>
 </div>
 </div>
@@ -1489,11 +1501,11 @@ Content-Length: 197
 {
   "success" : true,
   "data" : {
-    "tenantId" : "709c4434-6520-461a-b9c4-7a89b78fdf8c"
+    "tenantId" : "68fce735-966a-473b-827c-f5f19447a4ec"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:44.885602",
-  "requestId" : "req-1765636364885"
+  "timestamp" : "2025-12-17T01:12:06.690414",
+  "requestId" : "req-1765901526690"
 }</code></pre>
 </div>
 </div>
@@ -1557,7 +1569,7 @@ Content-Length: 197
 <h5 id="_http_request_6"><a class="link" href="#_http_request_6">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/tenants/2f3c29e4-6ac6-4ce8-958b-41ab14ad0760/name HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/tenants/633396c0-8cf0-4084-bc95-18f6d66f1b2b/name HTTP/1.1
 Content-Type: application/json
 Content-Length: 30
 Host: localhost:8080
@@ -1625,15 +1637,15 @@ Content-Length: 350
 {
   "success" : true,
   "data" : {
-    "tenantId" : "2f3c29e4-6ac6-4ce8-958b-41ab14ad0760",
+    "tenantId" : "633396c0-8cf0-4084-bc95-18f6d66f1b2b",
     "name" : "NewTenantName",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-13T14:32:44.857573Z",
-    "updatedAt" : "2025-12-13T14:32:44.857573Z"
+    "createdAt" : "2025-12-16T16:12:06.663902Z",
+    "updatedAt" : "2025-12-16T16:12:06.663902Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:44.861095",
-  "requestId" : "req-1765636364861"
+  "timestamp" : "2025-12-17T01:12:06.666645",
+  "requestId" : "req-1765901526666"
 }</code></pre>
 </div>
 </div>
@@ -1648,7 +1660,7 @@ Content-Length: 350
 <h5 id="_http_request_7"><a class="link" href="#_http_request_7">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/tenants/c874702b-deef-459a-8a91-a9098e21e873/status HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/tenants/ada131d1-6b37-47c0-8692-2a7250984847/status HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -1716,15 +1728,15 @@ Content-Length: 349
 {
   "success" : true,
   "data" : {
-    "tenantId" : "c874702b-deef-459a-8a91-a9098e21e873",
+    "tenantId" : "ada131d1-6b37-47c0-8692-2a7250984847",
     "name" : "TestTenant",
     "status" : "INACTIVE",
-    "createdAt" : "2025-12-13T14:32:44.870421Z",
-    "updatedAt" : "2025-12-13T14:32:44.870421Z"
+    "createdAt" : "2025-12-16T16:12:06.676765Z",
+    "updatedAt" : "2025-12-16T16:12:06.676765Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:44.873713",
-  "requestId" : "req-1765636364873"
+  "timestamp" : "2025-12-17T01:12:06.679609",
+  "requestId" : "req-1765901526679"
 }</code></pre>
 </div>
 </div>
@@ -1739,7 +1751,7 @@ Content-Length: 349
 <h5 id="_http_request_8"><a class="link" href="#_http_request_8">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/tenants/9bdf79b9-f578-4cbd-abad-2eae372d6039/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/tenants/42fe74ca-467b-4d9d-9f84-55e346f31ed4/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -1785,7 +1797,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <h5 id="_http_request_9"><a class="link" href="#_http_request_9">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/tenants/4afac226-79dc-4614-b635-aaf3580d1ff4 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/tenants/c83a58ad-8267-4283-904f-8a9f3852ebdf HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -1824,15 +1836,15 @@ Content-Length: 347
 {
   "success" : true,
   "data" : {
-    "tenantId" : "4afac226-79dc-4614-b635-aaf3580d1ff4",
+    "tenantId" : "c83a58ad-8267-4283-904f-8a9f3852ebdf",
     "name" : "TestTenant",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-13T14:32:44.846919Z",
-    "updatedAt" : "2025-12-13T14:32:44.846919Z"
+    "createdAt" : "2025-12-16T16:12:06.653387Z",
+    "updatedAt" : "2025-12-16T16:12:06.653387Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:44.847754",
-  "requestId" : "req-1765636364847"
+  "timestamp" : "2025-12-17T01:12:06.654302",
+  "requestId" : "req-1765901526654"
 }</code></pre>
 </div>
 </div>
@@ -1965,11 +1977,11 @@ Content-Length: 340
 
 {
   "content" : [ {
-    "tenantId" : "099fc7e8-7612-41fc-a35d-70cd73ff93db",
+    "tenantId" : "bed3260b-2c7c-43a4-b6d7-7e0746237f81",
     "name" : "TestTenant",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-13T14:32:44.826512Z",
-    "updatedAt" : "2025-12-13T14:32:44.826512Z"
+    "createdAt" : "2025-12-16T16:12:06.635242Z",
+    "updatedAt" : "2025-12-16T16:12:06.635242Z"
   } ],
   "page" : 0,
   "size" : 20,
@@ -2082,7 +2094,7 @@ Content-Length: 88
 Host: localhost:8080
 
 {
-  "tenantId" : "9431d7f4-7288-477e-b190-e3f7fa8fe0fa",
+  "tenantId" : "c3f52105-858b-438f-b6a8-be570bb0d994",
   "name" : "TestOrganization"
 }</code></pre>
 </div>
@@ -2128,11 +2140,11 @@ Content-Length: 203
 {
   "success" : true,
   "data" : {
-    "organizationId" : "8a1f44f1-8067-4f15-9e19-b85287f39a8a"
+    "organizationId" : "911f9dbb-143a-4a25-ac53-041363471832"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:41.556943",
-  "requestId" : "req-1765636361556"
+  "timestamp" : "2025-12-17T01:12:03.248379",
+  "requestId" : "req-1765901523248"
 }</code></pre>
 </div>
 </div>
@@ -2196,7 +2208,7 @@ Content-Length: 203
 <h5 id="_http_request_12"><a class="link" href="#_http_request_12">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/organizations/b34f0a16-ea2b-4576-a2e6-408827476ed7 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/organizations/d53bae33-be75-4334-a4d5-02def4b19c75 HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -2259,14 +2271,14 @@ Host: localhost:8080
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 140
+Content-Length: 139
 
 {
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:41.578929",
-  "requestId" : "req-1765636361578"
+  "timestamp" : "2025-12-17T01:12:03.26982",
+  "requestId" : "req-1765901523269"
 }</code></pre>
 </div>
 </div>
@@ -2281,7 +2293,7 @@ Content-Length: 140
 <h5 id="_http_request_13"><a class="link" href="#_http_request_13">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/organizations/3799703d-f029-4fba-a268-0ee46c3bc4a4/status HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/organizations/fa973000-6bf7-4451-961c-2c5f60a9cfb3/status HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -2349,16 +2361,16 @@ Content-Length: 409
 {
   "success" : true,
   "data" : {
-    "organizationId" : "3799703d-f029-4fba-a268-0ee46c3bc4a4",
-    "tenantId" : "7bdbcc89-26b9-4a80-a7d2-b2d2f8a7833c",
+    "organizationId" : "fa973000-6bf7-4451-961c-2c5f60a9cfb3",
+    "tenantId" : "7b89b58b-5048-443f-a226-e1607737b13e",
     "name" : "TestOrg",
     "status" : "INACTIVE",
-    "createdAt" : "2025-12-13T14:32:41.615472Z",
-    "updatedAt" : "2025-12-13T14:32:41.615473Z"
+    "createdAt" : "2025-12-16T16:12:03.305771Z",
+    "updatedAt" : "2025-12-16T16:12:03.305771Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:41.619515",
-  "requestId" : "req-1765636361619"
+  "timestamp" : "2025-12-17T01:12:03.310014",
+  "requestId" : "req-1765901523310"
 }</code></pre>
 </div>
 </div>
@@ -2373,7 +2385,7 @@ Content-Length: 409
 <h5 id="_http_request_14"><a class="link" href="#_http_request_14">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/organizations/1337c7ee-7a7e-47bf-b4ef-f782dc51f5dd/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/organizations/e1cf1aa4-b966-4b13-82e9-80cf118d07eb/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -2419,7 +2431,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <h5 id="_http_request_15"><a class="link" href="#_http_request_15">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/organizations/61add2b4-e8a4-4774-8091-6483de949aac HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/organizations/918d3365-5395-44d1-8fb1-8b8af7f81bc6 HTTP/1.1
 Host: localhost:8080</code></pre>
 </div>
 </div>
@@ -2457,16 +2469,16 @@ Content-Length: 407
 {
   "success" : true,
   "data" : {
-    "organizationId" : "61add2b4-e8a4-4774-8091-6483de949aac",
-    "tenantId" : "4249f313-31f6-4682-b3a6-31e19bdf5191",
+    "organizationId" : "918d3365-5395-44d1-8fb1-8b8af7f81bc6",
+    "tenantId" : "09be028e-ec20-40e9-ab1d-76ef2d9f86da",
     "name" : "TestOrg",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-13T14:32:41.532036Z",
-    "updatedAt" : "2025-12-13T14:32:41.532036Z"
+    "createdAt" : "2025-12-16T16:12:03.221544Z",
+    "updatedAt" : "2025-12-16T16:12:03.221544Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:41.534414",
-  "requestId" : "req-1765636361534"
+  "timestamp" : "2025-12-17T01:12:03.224216",
+  "requestId" : "req-1765901523224"
 }</code></pre>
 </div>
 </div>
@@ -2555,7 +2567,7 @@ Content-Length: 407
 <h5 id="_http_request_16"><a class="link" href="#_http_request_16">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/organizations?tenantId=8ef79c0d-e0bc-4653-8ccb-45d210c7eb26 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/organizations?tenantId=75c970d9-c812-4308-8a57-d67b688a022c HTTP/1.1
 Host: localhost:8080</code></pre>
 </div>
 </div>
@@ -2609,12 +2621,12 @@ Content-Length: 566
   "success" : true,
   "data" : {
     "content" : [ {
-      "organizationId" : "b9c43c7b-7a32-4523-991b-b18e71880028",
-      "tenantId" : "8ef79c0d-e0bc-4653-8ccb-45d210c7eb26",
+      "organizationId" : "b2c55be0-81d4-4253-9652-ef951ded3228",
+      "tenantId" : "75c970d9-c812-4308-8a57-d67b688a022c",
       "name" : "TestOrg",
       "status" : "ACTIVE",
-      "createdAt" : "2025-12-13T14:32:41.589359Z",
-      "updatedAt" : "2025-12-13T14:32:41.589359Z"
+      "createdAt" : "2025-12-16T16:12:03.280103Z",
+      "updatedAt" : "2025-12-16T16:12:03.280103Z"
     } ],
     "page" : 0,
     "size" : 20,
@@ -2624,8 +2636,8 @@ Content-Length: 566
     "last" : true
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:41.593305",
-  "requestId" : "req-1765636361593"
+  "timestamp" : "2025-12-17T01:12:03.284361",
+  "requestId" : "req-1765901523284"
 }</code></pre>
 </div>
 </div>
@@ -2761,8 +2773,8 @@ Content-Length: 185
 Host: localhost:8080
 
 {
-  "tenantId" : "d1a6f5d4-a6b3-4950-a8cb-cf761cc712ab",
-  "organizationId" : "c8b88f2d-7e40-4778-a0c7-7fa3644b9087",
+  "tenantId" : "5e0bfd16-5c7c-4cd1-bb44-cc1cb5df60c0",
+  "organizationId" : "5f30a5d8-31a3-4c2d-90b0-a426fec1bc2d",
   "identifier" : "user@example.com",
   "password" : "password123"
 }</code></pre>
@@ -2814,16 +2826,16 @@ Host: localhost:8080
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
 Content-Type: application/json
-Content-Length: 193
+Content-Length: 195
 
 {
   "success" : true,
   "data" : {
-    "userId" : "ba1ddd83-b79f-4bb1-a097-a371c19ff750"
+    "userId" : "71dd704f-069c-4691-acbc-a74f5124cd7b"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:45.9029",
-  "requestId" : "req-1765636365902"
+  "timestamp" : "2025-12-17T01:12:07.699437",
+  "requestId" : "req-1765901527699"
 }</code></pre>
 </div>
 </div>
@@ -2887,7 +2899,7 @@ Content-Length: 193
 <h5 id="_http_request_18"><a class="link" href="#_http_request_18">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/users/9c8c035b-0cc2-48d2-960e-fd47d7764235 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/users/d5ca9577-86e4-4645-aed6-808541412491 HTTP/1.1
 Content-Type: application/json
 Content-Length: 42
 Host: localhost:8080
@@ -2956,8 +2968,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:45.819889",
-  "requestId" : "req-1765636365819"
+  "timestamp" : "2025-12-17T01:12:07.619078",
+  "requestId" : "req-1765901527619"
 }</code></pre>
 </div>
 </div>
@@ -2972,7 +2984,7 @@ Content-Length: 140
 <h5 id="_http_request_19"><a class="link" href="#_http_request_19">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/f9adbd4f-d75b-4fcd-a437-7c3750c5ee4a/status HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/2f12a1dd-b7b2-4158-b3ca-d850a0dcdd71/status HTTP/1.1
 Content-Type: application/json
 Content-Length: 27
 Host: localhost:8080
@@ -3041,8 +3053,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:45.838178",
-  "requestId" : "req-1765636365838"
+  "timestamp" : "2025-12-17T01:12:07.635688",
+  "requestId" : "req-1765901527635"
 }</code></pre>
 </div>
 </div>
@@ -3057,7 +3069,7 @@ Content-Length: 140
 <h5 id="_http_request_20"><a class="link" href="#_http_request_20">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/934d7eab-a662-4879-aaef-277517841467/password HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/fffe2554-0f5e-490c-8712-e4b638cd4492/password HTTP/1.1
 Content-Type: application/json
 Content-Length: 78
 Host: localhost:8080
@@ -3132,8 +3144,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:45.810746",
-  "requestId" : "req-1765636365810"
+  "timestamp" : "2025-12-17T01:12:07.609604",
+  "requestId" : "req-1765901527609"
 }</code></pre>
 </div>
 </div>
@@ -3148,7 +3160,7 @@ Content-Length: 140
 <h5 id="_http_request_21"><a class="link" href="#_http_request_21">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/0d84dc33-b63e-459c-97f2-684ed18b71a5/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/763229e5-82d1-4c9f-80da-f68f196afd00/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -3211,17 +3223,17 @@ Content-Length: 475
 {
   "success" : true,
   "data" : {
-    "userId" : "be60f979-9773-45ba-bd6d-b372f5678cb7",
-    "tenantId" : "594695b4-915e-4fa5-a0ba-75a1beec4cf7",
-    "organizationId" : "d09763af-cd1e-4dd6-9559-e27246a90188",
+    "userId" : "77670966-b73b-4c48-a89d-cc8b3275f2a2",
+    "tenantId" : "92f7cce4-8c98-4c11-9aff-259dd72b4214",
+    "organizationId" : "61d05fd9-68e3-4096-9f26-dced5a0c3892",
     "identifier" : "me@example.com",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-13T14:32:45.844618Z",
-    "updatedAt" : "2025-12-13T14:32:45.844618Z"
+    "createdAt" : "2025-12-16T16:12:07.642607Z",
+    "updatedAt" : "2025-12-16T16:12:07.642607Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:45.879785",
-  "requestId" : "req-1765636365879"
+  "timestamp" : "2025-12-17T01:12:07.677346",
+  "requestId" : "req-1765901527677"
 }</code></pre>
 </div>
 </div>
@@ -3315,7 +3327,7 @@ Content-Length: 475
 <h5 id="_http_request_23"><a class="link" href="#_http_request_23">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users/affab998-51c2-4f21-b5e4-8aca34f10ef4 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users/c2d59865-649b-4f99-9234-f48faf07b09a HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -3354,17 +3366,17 @@ Content-Length: 477
 {
   "success" : true,
   "data" : {
-    "userId" : "affab998-51c2-4f21-b5e4-8aca34f10ef4",
-    "tenantId" : "3331b09e-f1a8-42db-8527-3a575e9ada57",
-    "organizationId" : "fbf7446e-c730-4016-8648-1ff0acfafc99",
+    "userId" : "c2d59865-649b-4f99-9234-f48faf07b09a",
+    "tenantId" : "bd7f4b71-8af8-4f7d-8e45-f15515727f9f",
+    "organizationId" : "4c720038-3db5-4dd8-ad19-53c8a1334e30",
     "identifier" : "test@example.com",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-13T14:32:45.827245Z",
-    "updatedAt" : "2025-12-13T14:32:45.827245Z"
+    "createdAt" : "2025-12-16T16:12:07.625489Z",
+    "updatedAt" : "2025-12-16T16:12:07.625489Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:45.828078",
-  "requestId" : "req-1765636365828"
+  "timestamp" : "2025-12-17T01:12:07.626291",
+  "requestId" : "req-1765901527626"
 }</code></pre>
 </div>
 </div>
@@ -3458,7 +3470,7 @@ Content-Length: 477
 <h5 id="_http_request_24"><a class="link" href="#_http_request_24">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users?tenantId=5f3b3fd0-09ee-4d52-a77b-b47df113bbe5&amp;organizationId=7fcdbca1-0a3f-4c16-bea5-badc44bfba22&amp;identifier=test%40example.com&amp;status=ACTIVE&amp;page=0&amp;size=20 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/users?tenantId=0e09f3be-1dee-49d7-9ce3-4e88146dbe67&amp;organizationId=d35fe5e5-817e-4123-b6a0-76f7c0c96cf9&amp;identifier=test%40example.com&amp;status=ACTIVE&amp;page=0&amp;size=20 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -3516,17 +3528,17 @@ Content-Length: 481
 {
   "success" : true,
   "data" : [ {
-    "userId" : "5e44d550-08f3-435a-b69a-296f549c0982",
-    "tenantId" : "5f3b3fd0-09ee-4d52-a77b-b47df113bbe5",
-    "organizationId" : "7fcdbca1-0a3f-4c16-bea5-badc44bfba22",
+    "userId" : "9596eb26-0a5e-46b2-8b08-0e9a72d28983",
+    "tenantId" : "0e09f3be-1dee-49d7-9ce3-4e88146dbe67",
+    "organizationId" : "d35fe5e5-817e-4123-b6a0-76f7c0c96cf9",
     "identifier" : "test@example.com",
     "status" : "ACTIVE",
-    "createdAt" : "2025-12-13T14:32:45.794816Z",
-    "updatedAt" : "2025-12-13T14:32:45.794816Z"
+    "createdAt" : "2025-12-16T16:12:07.592925Z",
+    "updatedAt" : "2025-12-16T16:12:07.592925Z"
   } ],
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:45.796841",
-  "requestId" : "req-1765636365796"
+  "timestamp" : "2025-12-17T01:12:07.594794",
+  "requestId" : "req-1765901527594"
 }</code></pre>
 </div>
 </div>
@@ -3620,13 +3632,13 @@ Content-Length: 481
 <h5 id="_http_request_25"><a class="link" href="#_http_request_25">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/users/4208bfb4-5b75-4d99-a62b-095961357523/roles HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/users/8d9ec70a-f103-4393-b81c-950349131984/roles HTTP/1.1
 Content-Type: application/json
 Content-Length: 55
 Host: localhost:8080
 
 {
-  "roleId" : "be70cb09-cd83-4574-8ad4-10dea8fe6d19"
+  "roleId" : "d7b35139-1832-463c-9ef1-8a36b129de6c"
 }</code></pre>
 </div>
 </div>
@@ -3688,13 +3700,13 @@ Content-Length: 300
 {
   "success" : true,
   "data" : {
-    "userId" : "4208bfb4-5b75-4d99-a62b-095961357523",
-    "roleId" : "be70cb09-cd83-4574-8ad4-10dea8fe6d19",
-    "assignedAt" : "2025-12-13T14:32:45.887249Z"
+    "userId" : "8d9ec70a-f103-4393-b81c-950349131984",
+    "roleId" : "d7b35139-1832-463c-9ef1-8a36b129de6c",
+    "assignedAt" : "2025-12-16T16:12:07.684755Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:45.890131",
-  "requestId" : "req-1765636365890"
+  "timestamp" : "2025-12-17T01:12:07.688087",
+  "requestId" : "req-1765901527688"
 }</code></pre>
 </div>
 </div>
@@ -3768,7 +3780,7 @@ Content-Length: 300
 <h5 id="_http_request_26"><a class="link" href="#_http_request_26">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/a48b108b-488b-4e43-92fc-90044cf81fe6/roles/c7069768-eacb-48d1-9519-9f214af3727e/revoke HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/users/c6151b58-931a-4941-8eb0-b12f04fead18/roles/a261c1ad-260a-4976-a066-37e5316234a7/revoke HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -3830,7 +3842,7 @@ Content-Length: 176
 Host: localhost:8080
 
 {
-  "tenantId" : "191f7888-2382-48f3-a0e7-3dd7f7d38867",
+  "tenantId" : "ce920f3e-6e4d-455f-8199-9e35c2efb6b6",
   "name" : "TENANT_ADMIN",
   "description" : "테넌트 관리자 역할",
   "scope" : "TENANT",
@@ -3894,11 +3906,11 @@ Content-Length: 195
 {
   "success" : true,
   "data" : {
-    "roleId" : "c8cd85df-a210-4649-8b4b-da497336851b"
+    "roleId" : "d864d51e-3ae8-4097-a83a-70a02a3a771c"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:43.736433",
-  "requestId" : "req-1765636363736"
+  "timestamp" : "2025-12-17T01:12:05.375637",
+  "requestId" : "req-1765901525375"
 }</code></pre>
 </div>
 </div>
@@ -3962,7 +3974,7 @@ Content-Length: 195
 <h5 id="_http_request_28"><a class="link" href="#_http_request_28">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/roles/69071759-ef6c-4bb7-bbd5-86e48f1de7a8 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/roles/15fdf024-c100-4b91-aa52-91bce0442e8b HTTP/1.1
 Content-Type: application/json
 Content-Length: 74
 Host: localhost:8080
@@ -4037,8 +4049,8 @@ Content-Length: 140
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:43.718169",
-  "requestId" : "req-1765636363718"
+  "timestamp" : "2025-12-17T01:12:05.356146",
+  "requestId" : "req-1765901525356"
 }</code></pre>
 </div>
 </div>
@@ -4053,7 +4065,7 @@ Content-Length: 140
 <h5 id="_http_request_29"><a class="link" href="#_http_request_29">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/roles/6df4b2a5-773d-4b4e-ac67-5a765bfc4b8f/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/roles/a05a3aae-988b-436e-b54d-de1a52c4a00d/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -4099,7 +4111,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <h5 id="_http_request_30"><a class="link" href="#_http_request_30">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/roles/db464520-d6a9-4d20-9b72-3f6545287056 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/roles/7cdc1aed-17bf-4b9e-9dc7-2a9d9926453a HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -4138,18 +4150,18 @@ Content-Length: 476
 {
   "success" : true,
   "data" : {
-    "roleId" : "db464520-d6a9-4d20-9b72-3f6545287056",
-    "tenantId" : "4e8fd516-682e-4444-a947-5765bef0785c",
+    "roleId" : "7cdc1aed-17bf-4b9e-9dc7-2a9d9926453a",
+    "tenantId" : "dbb12f73-583b-485b-9f5e-fbfdd811063f",
     "name" : "TENANT_ADMIN",
     "description" : "테넌트 관리자 역할",
     "scope" : "TENANT",
     "type" : "CUSTOM",
-    "createdAt" : "2025-12-13T14:32:43.685826Z",
-    "updatedAt" : "2025-12-13T14:32:43.685826Z"
+    "createdAt" : "2025-12-16T16:12:05.324403Z",
+    "updatedAt" : "2025-12-16T16:12:05.324403Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:43.686769",
-  "requestId" : "req-1765636363686"
+  "timestamp" : "2025-12-17T01:12:05.325506",
+  "requestId" : "req-1765901525325"
 }</code></pre>
 </div>
 </div>
@@ -4248,7 +4260,7 @@ Content-Length: 476
 <h5 id="_http_request_31"><a class="link" href="#_http_request_31">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/roles?tenantId=789ab375-c5fa-4e3b-b98b-4cc32fa880e9&amp;name=ADMIN&amp;scope=TENANT&amp;type=CUSTOM&amp;page=0&amp;size=20 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/roles?tenantId=72e93e2b-8109-4ac8-8063-afd12eaf8c5a&amp;name=ADMIN&amp;scope=TENANT&amp;type=CUSTOM&amp;page=0&amp;size=20 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -4306,18 +4318,18 @@ Content-Length: 480
 {
   "success" : true,
   "data" : [ {
-    "roleId" : "a2559bdb-845d-4df2-bf46-279035adba89",
-    "tenantId" : "789ab375-c5fa-4e3b-b98b-4cc32fa880e9",
+    "roleId" : "a41ef45e-3260-4d17-a4f4-7c9aade90844",
+    "tenantId" : "72e93e2b-8109-4ac8-8063-afd12eaf8c5a",
     "name" : "TENANT_ADMIN",
     "description" : "테넌트 관리자 역할",
     "scope" : "TENANT",
     "type" : "CUSTOM",
-    "createdAt" : "2025-12-13T14:32:43.665495Z",
-    "updatedAt" : "2025-12-13T14:32:43.665495Z"
+    "createdAt" : "2025-12-16T16:12:05.302789Z",
+    "updatedAt" : "2025-12-16T16:12:05.302789Z"
   } ],
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:43.667893",
-  "requestId" : "req-1765636363667"
+  "timestamp" : "2025-12-17T01:12:05.305518",
+  "requestId" : "req-1765901525305"
 }</code></pre>
 </div>
 </div>
@@ -4421,13 +4433,13 @@ Content-Length: 480
 <h5 id="_http_request_32"><a class="link" href="#_http_request_32">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/roles/044fe853-5595-4544-b7e2-036a08f1b7d6/permissions HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/roles/2cec1802-f2fa-45d9-8ca6-2b19b489c7d2/permissions HTTP/1.1
 Content-Type: application/json
 Content-Length: 61
 Host: localhost:8080
 
 {
-  "permissionId" : "287c2e72-5e30-4eb8-87a9-abfabf04a632"
+  "permissionId" : "02ac77b5-d396-4ce7-ae28-8b1a9526a55a"
 }</code></pre>
 </div>
 </div>
@@ -4489,13 +4501,13 @@ Content-Length: 305
 {
   "success" : true,
   "data" : {
-    "roleId" : "044fe853-5595-4544-b7e2-036a08f1b7d6",
-    "permissionId" : "287c2e72-5e30-4eb8-87a9-abfabf04a632",
-    "grantedAt" : "2025-12-13T14:32:43.643963Z"
+    "roleId" : "2cec1802-f2fa-45d9-8ca6-2b19b489c7d2",
+    "permissionId" : "02ac77b5-d396-4ce7-ae28-8b1a9526a55a",
+    "grantedAt" : "2025-12-16T16:12:05.273115Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:43.648181",
-  "requestId" : "req-1765636363648"
+  "timestamp" : "2025-12-17T01:12:05.278002",
+  "requestId" : "req-1765901525278"
 }</code></pre>
 </div>
 </div>
@@ -4569,7 +4581,7 @@ Content-Length: 305
 <h5 id="_http_request_33"><a class="link" href="#_http_request_33">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/roles/d1a27104-09fc-4884-a505-2f6a09074508/permissions/c5ba5f28-89fb-4153-9007-2306f0083ab4/revoke HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/roles/c41d5e4a-36aa-4c69-988e-dcb293068f83/permissions/0b3be37d-09b8-45a4-94b2-391f95afafb9/revoke HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -4689,11 +4701,11 @@ Content-Length: 201
 {
   "success" : true,
   "data" : {
-    "permissionId" : "eb6709db-5956-4918-8ebc-5bb3b8ffa7b3"
+    "permissionId" : "0d556bf7-298f-45d9-a81f-eff363ce5c13"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:42.698449",
-  "requestId" : "req-1765636362698"
+  "timestamp" : "2025-12-17T01:12:04.351868",
+  "requestId" : "req-1765901524351"
 }</code></pre>
 </div>
 </div>
@@ -4757,7 +4769,7 @@ Content-Length: 201
 <h5 id="_http_request_35"><a class="link" href="#_http_request_35">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/permissions/e80285f1-fe24-41b6-8f8f-9c8cac9c3932 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/v1/auth/permissions/e6e12d0a-838f-40e8-89de-496d4484ae3d HTTP/1.1
 Content-Type: application/json
 Content-Length: 47
 Host: localhost:8080
@@ -4820,14 +4832,14 @@ Host: localhost:8080
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 138
+Content-Length: 139
 
 {
   "success" : true,
   "data" : null,
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:42.6775",
-  "requestId" : "req-1765636362677"
+  "timestamp" : "2025-12-17T01:12:04.33026",
+  "requestId" : "req-1765901524330"
 }</code></pre>
 </div>
 </div>
@@ -4842,7 +4854,7 @@ Content-Length: 138
 <h5 id="_http_request_36"><a class="link" href="#_http_request_36">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/permissions/a9f9e1b9-1edc-448f-98ca-2847a4022b40/delete HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/auth/permissions/12718d97-c361-41c8-95ac-93e226011b58/delete HTTP/1.1
 Host: localhost:8080
 Content-Type: application/x-www-form-urlencoded</code></pre>
 </div>
@@ -4888,7 +4900,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <h5 id="_http_request_37"><a class="link" href="#_http_request_37">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/9c824632-36ed-4172-b6d9-0af8b299e4f2 HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/eae2cdfb-8474-4808-a1c5-23a8f2bac4e3 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -4922,23 +4934,23 @@ Host: localhost:8080</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 445
+Content-Length: 446
 
 {
   "success" : true,
   "data" : {
-    "permissionId" : "9c824632-36ed-4172-b6d9-0af8b299e4f2",
+    "permissionId" : "eae2cdfb-8474-4808-a1c5-23a8f2bac4e3",
     "key" : "tenant:read",
     "resource" : "tenant",
     "action" : "read",
     "description" : "테넌트 조회 권한",
     "type" : "SYSTEM",
-    "createdAt" : "2025-12-13T14:32:42.643094Z",
-    "updatedAt" : "2025-12-13T14:32:42.643094Z"
+    "createdAt" : "2025-12-16T16:12:04.295633Z",
+    "updatedAt" : "2025-12-16T16:12:04.295633Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:42.64418",
-  "requestId" : "req-1765636362644"
+  "timestamp" : "2025-12-17T01:12:04.296924",
+  "requestId" : "req-1765901524296"
 }</code></pre>
 </div>
 </div>
@@ -5091,18 +5103,18 @@ Content-Length: 450
 {
   "success" : true,
   "data" : [ {
-    "permissionId" : "49605197-f0e7-4220-99c0-67cd1f4ea170",
+    "permissionId" : "3bead29e-dcb8-4e5d-b64f-c62be46078b0",
     "key" : "tenant:read",
     "resource" : "tenant",
     "action" : "read",
     "description" : "테넌트 조회 권한",
     "type" : "SYSTEM",
-    "createdAt" : "2025-12-13T14:32:42.620509Z",
-    "updatedAt" : "2025-12-13T14:32:42.620509Z"
+    "createdAt" : "2025-12-16T16:12:04.274743Z",
+    "updatedAt" : "2025-12-16T16:12:04.274743Z"
   } ],
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:42.622325",
-  "requestId" : "req-1765636362622"
+  "timestamp" : "2025-12-17T01:12:04.276483",
+  "requestId" : "req-1765901524276"
 }</code></pre>
 </div>
 </div>
@@ -5206,7 +5218,7 @@ Content-Length: 450
 <h5 id="_http_request_39"><a class="link" href="#_http_request_39">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/users/1b1808b6-2d83-4c1c-b569-3456220b9a2f HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/users/da6ca994-f3e7-4068-8394-ea35301e18d5 HTTP/1.1
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -5245,13 +5257,13 @@ Content-Length: 289
 {
   "success" : true,
   "data" : {
-    "userId" : "1b1808b6-2d83-4c1c-b569-3456220b9a2f",
+    "userId" : "da6ca994-f3e7-4068-8394-ea35301e18d5",
     "roles" : [ "USER", "TENANT_ADMIN" ],
     "permissions" : [ "user:read", "tenant:read" ]
   },
   "error" : null,
-  "timestamp" : "2025-12-13T23:32:42.598902",
-  "requestId" : "req-1765636362598"
+  "timestamp" : "2025-12-17T01:12:04.253091",
+  "requestId" : "req-1765901524253"
 }</code></pre>
 </div>
 </div>
@@ -5318,7 +5330,327 @@ Content-Length: 289
 </div>
 </div>
 <div class="sect2">
-<h3 id="internal"><a class="link" href="#internal">6.7. Internal API (서비스 간 통신)</a></h3>
+<h3 id="system"><a class="link" href="#system">6.7. System API (서버 간 통신 - 입점/온보딩)</a></h3>
+<div class="paragraph">
+<p>입점 승인 등 시스템 수준의 작업을 처리하는 API입니다.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+System API는 Kubernetes 클러스터 내부에서만 접근 가능하며, <strong>X-Service-Token</strong> 헤더로 인증합니다.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="system-authentication"><a class="link" href="#system-authentication">6.7.1. 인증 방식</a></h4>
+<div class="paragraph">
+<p>System API는 JWT 인증 대신 <strong>X-Service-Token</strong> 헤더를 사용합니다.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">헤더</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>X-Service-Token</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서비스 간 통신용 비밀 토큰 (환경 변수 `SECURITY_SERVICE_TOKEN_SECRET`으로 설정)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="system-tenant-onboarding"><a class="link" href="#system-tenant-onboarding">6.7.2. 테넌트 온보딩</a></h4>
+<div class="paragraph">
+<p>입점 승인 시 Tenant, Organization, User를 일괄 생성합니다.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+이 API는 입점 서비스에서 입점 승인 시 호출됩니다. 임시 비밀번호가 반환되므로 호출자가 마스터 사용자에게 이메일로 발송해야 합니다.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_http_request_40"><a class="link" href="#_http_request_40">HTTP Request</a></h5>
+<div class="sect5">
+<h6 id="_http_request_40_http_request"><a class="link" href="#_http_request_40_http_request">HTTP request</a></h6>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/system/tenants/onboarding HTTP/1.1
+Content-Type: application/json
+Content-Length: 143
+Host: localhost:8080
+
+{
+  "tenantName" : "Acme Corporation",
+  "masterEmail" : "admin@acme.com",
+  "masterName" : "홍길동",
+  "defaultOrgName" : "기본 조직"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_http_request_40_request_fields"><a class="link" href="#_http_request_40_request_fields">Request fields</a></h6>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tenantName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">테넌트(회사) 이름 (2-100자)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>masterEmail</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">마스터 관리자 이메일</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>masterName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">마스터 관리자 이름 (1-50자)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>defaultOrgName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">기본 조직 이름 (2-100자)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_http_response_40"><a class="link" href="#_http_response_40">HTTP Response</a></h5>
+<div class="sect5">
+<h6 id="_http_response_40_http_response"><a class="link" href="#_http_response_40_http_response">HTTP response</a></h6>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
+Content-Type: application/json
+Content-Length: 357
+
+{
+  "success" : true,
+  "data" : {
+    "tenantId" : "d9fab4ee-929f-4d74-b017-c69ecda49cc4",
+    "organizationId" : "b94772ef-b03f-4d67-8df6-b746d54432d5",
+    "userId" : "8f59ba13-01cc-4b25-9de8-533c054d71ed",
+    "temporaryPassword" : "a1b2c3d4e5f6"
+  },
+  "error" : null,
+  "timestamp" : "2025-12-17T01:12:06.009268",
+  "requestId" : "req-1765901526009"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_http_response_40_response_fields"><a class="link" href="#_http_response_40_response_fields">Response fields</a></h6>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.tenantId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성된 테넌트 ID (UUID)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.organizationId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성된 조직 ID (UUID)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성된 마스터 사용자 ID (UUID)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.temporaryPassword</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">임시 비밀번호 (호출자가 이메일로 발송해야 함)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보 (성공 시 null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시간</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_curl_예시"><a class="link" href="#_curl_예시">cURL 예시</a></h5>
+<div class="sect5">
+<h6 id="_curl_예시_curl_request"><a class="link" href="#_curl_예시_curl_request">Curl request</a></h6>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/auth/system/tenants/onboarding' -i -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{
+  "tenantName" : "Acme Corporation",
+  "masterEmail" : "admin@acme.com",
+  "masterName" : "홍길동",
+  "defaultOrgName" : "기본 조직"
+}'</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_생성되는_리소스"><a class="link" href="#_생성되는_리소스">생성되는 리소스</a></h5>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">리소스</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tenant</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">테넌트(회사) 엔티티 - ACTIVE 상태로 생성</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Organization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">기본 조직 엔티티 - 테넌트에 속하는 기본 조직</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">마스터 관리자 - ADMIN 역할 자동 부여</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_에러_응답_2"><a class="link" href="#_에러_응답_2">에러 응답</a></h5>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 33.3333%;">
+<col style="width: 50.0001%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">HTTP Status</th>
+<th class="tableblock halign-left valign-top">Error Code</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400 Bad Request</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VALIDATION_ERROR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">필수 필드 누락 또는 형식 오류</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">401 Unauthorized</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UNAUTHORIZED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X-Service-Token 헤더 누락 또는 유효하지 않음</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">409 Conflict</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EMAIL_ALREADY_EXISTS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">마스터 이메일이 이미 존재함</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_사용_흐름"><a class="link" href="#_사용_흐름">사용 흐름</a></h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">┌─────────────────┐                     ┌──────────┐
+│  입점 서비스     │                     │ AuthHub  │
+└────────┬────────┘                     └────┬─────┘
+         │                                    │
+         │  1. 입점 승인                       │
+         │  POST /system/tenants/onboarding   │
+         │ ──────────────────────────────────▶│
+         │    {tenantName, masterEmail, ...}  │
+         │                                    │
+         │                                    │ 2. Tenant 생성
+         │                                    │ 3. Organization 생성
+         │                                    │ 4. User 생성 (ADMIN)
+         │                                    │ 5. 임시 비밀번호 생성
+         │                                    │
+         │  6. 응답                            │
+         │ ◀────────────────────────────────── │
+         │    {tenantId, orgId, userId,       │
+         │     temporaryPassword}             │
+         │                                    │
+         │  7. 마스터 사용자에게 이메일 발송    │
+         │  (temporaryPassword 포함)          │
+         │                                    │</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="internal"><a class="link" href="#internal">6.8. Internal API (서비스 간 통신)</a></h3>
 <div class="paragraph">
 <p>Gateway 등 내부 서비스에서 호출하는 API입니다.</p>
 </div>
@@ -5335,7 +5667,7 @@ Internal API는 Kubernetes 클러스터 내부에서만 접근 가능하며, <st
 </table>
 </div>
 <div class="sect3">
-<h4 id="internal-authentication"><a class="link" href="#internal-authentication">6.7.1. 인증 방식</a></h4>
+<h4 id="internal-authentication"><a class="link" href="#internal-authentication">6.8.1. 인증 방식</a></h4>
 <div class="paragraph">
 <p>Internal API는 JWT 인증 대신 <strong>X-Service-Token</strong> 헤더를 사용합니다.</p>
 </div>
@@ -5370,12 +5702,12 @@ Accept: application/json</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="internal-user-permissions"><a class="link" href="#internal-user-permissions">6.7.2. 사용자 권한 조회 (Gateway용)</a></h4>
+<h4 id="internal-user-permissions"><a class="link" href="#internal-user-permissions">6.8.2. 사용자 권한 조회 (Gateway용)</a></h4>
 <div class="paragraph">
 <p>Gateway에서 사용자의 역할 및 권한 목록을 조회합니다.</p>
 </div>
 <div class="sect4">
-<h5 id="_http_request_40"><a class="link" href="#_http_request_40">HTTP Request</a></h5>
+<h5 id="_http_request_41"><a class="link" href="#_http_request_41">HTTP Request</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">GET /api/v1/auth/permissions/users/{userId} HTTP/1.1
@@ -5386,7 +5718,7 @@ Accept: application/json</code></pre>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_http_response_40"><a class="link" href="#_http_response_40">HTTP Response</a></h5>
+<h5 id="_http_response_41"><a class="link" href="#_http_response_41">HTTP Response</a></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
@@ -5405,7 +5737,7 @@ Content-Type: application/json
 </div>
 </div>
 <div class="sect3">
-<h4 id="internal-vs-admin-api"><a class="link" href="#internal-vs-admin-api">6.7.3. Internal API vs Admin API 비교</a></h4>
+<h4 id="internal-vs-admin-api"><a class="link" href="#internal-vs-admin-api">6.8.3. Internal API vs Admin API 비교</a></h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 20%;">
@@ -5455,7 +5787,7 @@ Content-Type: application/json
 <div id="footer">
 <div id="footer-text">
 Version 1.0.0-SNAPSHOT<br>
-Last updated 2025-12-13 17:46:37 +0900
+Last updated 2025-12-17 01:05:02 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
