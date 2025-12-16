@@ -132,11 +132,11 @@ public final class ApiPaths {
         private OpenApi() {}
     }
 
-    /** REST Docs 문서 경로 */
+    /** REST Docs 문서 경로 (Gateway 라우팅용 /api/v1/auth prefix) */
     public static final class Docs {
-        public static final String BASE = "/docs";
-        public static final String ALL = "/docs/**";
-        public static final String INDEX = "/docs/index.html";
+        public static final String BASE = AUTH_SERVICE_BASE + "/docs";
+        public static final String ALL = AUTH_SERVICE_BASE + "/docs/**";
+        public static final String INDEX = AUTH_SERVICE_BASE + "/docs/index.html";
 
         private Docs() {}
     }
@@ -154,5 +154,17 @@ public final class ApiPaths {
         public static final String CHECK = API_VERSION + "/health";
 
         private Health() {}
+    }
+
+    /**
+     * 시스템 API 경로 (Service Token 인증)
+     *
+     * <p>서버 간 통신용 API입니다. X-Service-Token 헤더로 인증합니다.
+     */
+    public static final class System {
+        public static final String BASE = AUTH_SERVICE_BASE + "/system";
+        public static final String ONBOARDING = "/tenants/onboarding";
+
+        private System() {}
     }
 }

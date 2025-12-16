@@ -33,4 +33,96 @@
         <Class name="~.*Configuration"/>
         <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
     </Match>
+
+    <!-- ========================================
+         Spring Dependency Injection
+         - EI_EXPOSE_REP2 is false positive for Spring managed beans
+         - Spring beans are singletons managed by IoC container
+         ======================================== -->
+    <Match>
+        <Or>
+            <Class name="~.*Service"/>
+            <Class name="~.*Manager"/>
+            <Class name="~.*Facade"/>
+            <Class name="~.*Handler"/>
+            <Class name="~.*Controller"/>
+            <Class name="~.*Adapter"/>
+            <Class name="~.*Repository"/>
+            <Class name="~.*Reader"/>
+            <Class name="~.*Config"/>
+            <Class name="~.*Filter"/>
+            <Class name="~.*Registry"/>
+        </Or>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         DTO/Record Classes
+         - EI_EXPOSE_REP is intentional for immutable DTOs/Records
+         - Records with collection fields are common Java patterns
+         - Defensive copies should be made at system boundaries, not DTOs
+         ======================================== -->
+    <Match>
+        <Or>
+            <Class name="~.*Response"/>
+            <Class name="~.*Request"/>
+            <Class name="~.*Command"/>
+            <Class name="~.*Context"/>
+            <Class name="~.*Claims"/>
+        </Or>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Spring Boot Configuration Properties
+         - Properties classes use mutable setters for Spring binding
+         - This is standard Spring Boot pattern
+         ======================================== -->
+    <Match>
+        <Class name="~.*Properties"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Component Initialization
+         - CT_CONSTRUCTOR_THROW is intentional fail-fast behavior
+         - Misconfigured components should fail at startup
+         ======================================== -->
+    <Match>
+        <Or>
+            <Class name="~.*Extractor"/>
+            <Class name="~.*Provider"/>
+            <Class name="~.*Adapter"/>
+        </Or>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- ========================================
+         Global Exception Handler
+         - NP false positive after Objects.requireNonNull()
+         - SpotBugs doesn't understand requireNonNull semantics
+         ======================================== -->
+    <Match>
+        <Class name="~.*GlobalExceptionHandler"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- ========================================
+         Builder Pattern Classes
+         - Builder classes intentionally store mutable references
+         - Immutability is enforced at build() time
+         ======================================== -->
+    <Match>
+        <Class name="~.*\$Builder"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
 </FindBugsFilter>

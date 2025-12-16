@@ -334,6 +334,11 @@ AuthHub에서 권한/설정 변경 시 Gateway 캐시를 무효화합니다.
 | /api/v1/auth/permissions/users/{userId}
 | SUPER_ADMIN
 | 사용자 권한 조회
+
+| POST
+| /api/v1/auth/system/tenants/onboarding
+| **X-Service-Token**
+| 테넌트 온보딩 (입점 승인)
 |===
 
 [[api-v1]]
@@ -350,5 +355,7 @@ include::v1/user/user.adoc[]
 include::v1/role/role.adoc[]
 
 include::v1/permission/permission.adoc[]
+
+include::v1/system/system.adoc[]
 
 include::v1/internal/internal.adoc[]
