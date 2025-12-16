@@ -105,12 +105,31 @@ public class TenantOnboardingFacade {
         return OnboardingPersistenceResult.of(savedTenant, savedOrganization, savedUser);
     }
 
-    /** 온보딩 영속화 결과 - 내부 전달용 */
+    /**
+     * 온보딩 영속화 결과 - 내부 전달용
+     *
+     * <p><strong>Law of Demeter 준수:</strong> 편의 메서드를 통해 내부 객체의 값에 직접 접근할 수 있습니다.
+     */
     public record OnboardingPersistenceResult(Tenant tenant, Organization organization, User user) {
 
         public static OnboardingPersistenceResult of(
                 Tenant tenant, Organization organization, User user) {
             return new OnboardingPersistenceResult(tenant, organization, user);
+        }
+
+        /** 테넌트 ID 값 반환 (Law of Demeter 준수) */
+        public UUID tenantIdValue() {
+            return tenant.getTenantId().value();
+        }
+
+        /** 조직 ID 값 반환 (Law of Demeter 준수) */
+        public UUID organizationIdValue() {
+            return organization.getOrganizationId().value();
+        }
+
+        /** 사용자 ID 값 반환 (Law of Demeter 준수) */
+        public UUID userIdValue() {
+            return user.getUserId().value();
         }
     }
 }

@@ -83,6 +83,19 @@ public final class SecurityPaths {
     }
 
     /**
+     * 시스템 API 경로 (Internal/Service-to-Service)
+     *
+     * <p>X-Service-Token 헤더로 인증하는 서버 간 통신용 API입니다.
+     */
+    public static final class System {
+
+        /** System API 경로 패턴 */
+        public static final String PATTERN = ApiPaths.System.BASE + "/**";
+
+        private System() {}
+    }
+
+    /**
      * 헤더 상수
      *
      * <p>Gateway에서 전달하는 인증 정보 헤더입니다.

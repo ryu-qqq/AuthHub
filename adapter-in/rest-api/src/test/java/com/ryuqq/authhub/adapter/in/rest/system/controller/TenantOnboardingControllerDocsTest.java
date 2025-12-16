@@ -2,6 +2,8 @@ package com.ryuqq.authhub.adapter.in.rest.system.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -87,12 +89,16 @@ class TenantOnboardingControllerDocsTest extends RestDocsTestSupport {
         // When & Then
         mockMvc.perform(
                         post("/api/v1/auth/system/tenants/onboarding")
+                                .header("X-Service-Token", "test-service-token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andDo(
                         document(
                                 "system-tenant-onboarding",
+                                requestHeaders(
+                                        headerWithName("X-Service-Token")
+                                                .description("서비스 토큰 (서버 간 통신 인증용, Gateway에서 발급)")),
                                 requestFields(
                                         fieldWithPath("tenantName")
                                                 .description("테넌트(회사) 이름 (2-100자)"),

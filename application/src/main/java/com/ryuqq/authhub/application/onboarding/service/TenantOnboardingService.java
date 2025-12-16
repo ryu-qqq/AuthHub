@@ -9,7 +9,7 @@ import com.ryuqq.authhub.application.role.manager.query.RoleReadManager;
 import com.ryuqq.authhub.application.user.port.out.client.PasswordEncoderPort;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import java.util.UUID;
+import java.security.SecureRandom;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,6 +34,10 @@ import org.springframework.stereotype.Service;
 public class TenantOnboardingService implements TenantOnboardingUseCase {
 
     private static final String ADMIN_ROLE_NAME = "ADMIN";
+    private static final int TEMPORARY_PASSWORD_LENGTH = 12;
+    private static final String PASSWORD_CHARACTERS =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final RoleReadManager roleReadManager;
     private final TenantOnboardingFacade onboardingFacade;
@@ -66,20 +70,27 @@ public class TenantOnboardingService implements TenantOnboardingUseCase {
                         hashedPassword,
                         adminRole);
 
-        // 4. Response 생성 및 반환
+        // 4. Response 생성 및 반환 (Law of Demeter 준수 - 편의 메서드 사용)
         return TenantOnboardingResponse.of(
-                result.tenant().getTenantId().value(),
-                result.organization().getOrganizationId().value(),
-                result.user().getUserId().value(),
+                result.tenantIdValue(),
+                result.organizationIdValue(),
+                result.userIdValue(),
                 temporaryPassword);
     }
 
     /**
-     * 임시 비밀번호 생성
+     * 임시 비밀번호 생성 (SecureRandom 사용)
      *
-     * @return 12자리 임시 비밀번호
+     * <p>보안을 위해 SecureRandom을 사용하여 암호학적으로 안전한 임시 비밀번호를 생성합니다.
+     *
+     * @return 12자리 임시 비밀번호 (대소문자 + 숫자)
      */
     private String generateTemporaryPassword() {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        StringBuilder password = new StringBuilder(TEMPORARY_PASSWORD_LENGTH);
+        for (int i = 0; i < TEMPORARY_PASSWORD_LENGTH; i++) {
+            int index = SECURE_RANDOM.nextInt(PASSWORD_CHARACTERS.length());
+            password.append(PASSWORD_CHARACTERS.charAt(index));
+        }
+        return password.toString();
     }
 }

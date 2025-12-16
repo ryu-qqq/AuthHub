@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.ryuqq.authhub.adapter.in.rest.auth.filter.GatewayAuthenticationFilter;
+import com.ryuqq.authhub.adapter.in.rest.auth.filter.ServiceTokenAuthenticationFilter;
 import com.ryuqq.authhub.adapter.in.rest.auth.handler.SecurityExceptionHandler;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,16 +30,21 @@ class SecurityConfigTest {
     private SecurityConfig securityConfig;
     private CorsProperties corsProperties;
     private GatewayAuthenticationFilter gatewayAuthenticationFilter;
+    private ServiceTokenAuthenticationFilter serviceTokenAuthenticationFilter;
     private SecurityExceptionHandler securityExceptionHandler;
 
     @BeforeEach
     void setUp() {
         corsProperties = new CorsProperties();
         gatewayAuthenticationFilter = mock(GatewayAuthenticationFilter.class);
+        serviceTokenAuthenticationFilter = mock(ServiceTokenAuthenticationFilter.class);
         securityExceptionHandler = mock(SecurityExceptionHandler.class);
         securityConfig =
                 new SecurityConfig(
-                        corsProperties, gatewayAuthenticationFilter, securityExceptionHandler);
+                        corsProperties,
+                        gatewayAuthenticationFilter,
+                        serviceTokenAuthenticationFilter,
+                        securityExceptionHandler);
     }
 
     @Nested
@@ -172,7 +178,10 @@ class SecurityConfigTest {
             // given & when
             SecurityConfig config =
                     new SecurityConfig(
-                            corsProperties, gatewayAuthenticationFilter, securityExceptionHandler);
+                            corsProperties,
+                            gatewayAuthenticationFilter,
+                            serviceTokenAuthenticationFilter,
+                            securityExceptionHandler);
 
             // then
             assertThat(config).isNotNull();
