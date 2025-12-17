@@ -113,8 +113,8 @@ public class SecurityConfig {
         // PUBLIC 엔드포인트 설정 (인증 불필요)
         auth.requestMatchers(SecurityPaths.Public.PATTERNS.toArray(String[]::new)).permitAll();
 
-        // DOCS 엔드포인트 설정 (인증 불필요 - 개발 편의)
-        auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).permitAll();
+        // DOCS 엔드포인트 설정 (인증된 사용자만 접근 가능)
+        auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).authenticated();
 
         // SYSTEM 엔드포인트 설정 (X-Service-Token 인증 - ROLE_SERVICE 필요)
         auth.requestMatchers(SecurityPaths.System.PATTERN).hasRole("SERVICE");
