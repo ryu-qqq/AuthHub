@@ -40,12 +40,13 @@ security:
 # ===============================================
 # SpringDoc OpenAPI Configuration Override
 # ===============================================
+# 환경변수로 제어 (기본값: 비활성화)
 # 인증된 사용자만 접근 가능 (SecurityConfig에서 authenticated() 설정)
 springdoc:
   swagger-ui:
-    enabled: true
+    enabled: ${SWAGGER_ENABLED:false}
   api-docs:
-    enabled: true
+    enabled: ${SWAGGER_ENABLED:false}
 
 # ===============================================
 # API Error Configuration Override

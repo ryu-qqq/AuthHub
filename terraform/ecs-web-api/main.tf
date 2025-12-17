@@ -370,7 +370,9 @@ module "ecs_service" {
     { name = "REDIS_PORT", value = tostring(local.redis_port) },
     # RS256 JWT Configuration (Gateway Integration)
     { name = "SECURITY_JWT_RSA_ENABLED", value = "true" },
-    { name = "SECURITY_JWT_RSA_KEY_ID", value = "authhub-key-1" }
+    { name = "SECURITY_JWT_RSA_KEY_ID", value = "authhub-key-1" },
+    # Swagger/OpenAPI (authenticated access only via SecurityConfig)
+    { name = "SWAGGER_ENABLED", value = "true" }
   ]
 
   # Container Secrets
