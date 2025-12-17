@@ -44,9 +44,9 @@ security:
 # 활성화 시 SecurityPaths.TenantAdmin에서 TENANT_ADMIN 이상만 접근 허용
 springdoc:
   swagger-ui:
-    enabled: ${SWAGGER_ENABLED:false}
+    enabled: ${SWAGGER_ENABLED:true}
   api-docs:
-    enabled: ${SWAGGER_ENABLED:false}
+    enabled: ${SWAGGER_ENABLED:true}
 
 # ===============================================
 # API Error Configuration Override
