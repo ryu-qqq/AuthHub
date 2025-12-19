@@ -118,20 +118,24 @@ public final class RoleFixture {
                 FIXED_TIME);
     }
 
-    /** 새로운 커스텀 ORGANIZATION Role 생성 (ID 미할당) */
+    /** 새로운 커스텀 ORGANIZATION Role 생성 (ID 할당됨) */
     public static Role createNew() {
         ClockHolder clockHolder = () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
+        RoleId roleId = RoleId.of(UUID.randomUUID());
         return Role.createCustomOrganization(
+                roleId,
                 TenantId.of(DEFAULT_TENANT_UUID),
                 RoleName.of("NEW_ROLE"),
                 RoleDescription.of("New role description"),
                 clockHolder.clock());
     }
 
-    /** 새로운 커스텀 TENANT Role 생성 (ID 미할당) */
+    /** 새로운 커스텀 TENANT Role 생성 (ID 할당됨) */
     public static Role createNewTenant() {
         ClockHolder clockHolder = () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
+        RoleId roleId = RoleId.of(UUID.randomUUID());
         return Role.createCustomTenant(
+                roleId,
                 TenantId.of(DEFAULT_TENANT_UUID),
                 RoleName.of("NEW_TENANT_ROLE"),
                 RoleDescription.of("New tenant role description"),

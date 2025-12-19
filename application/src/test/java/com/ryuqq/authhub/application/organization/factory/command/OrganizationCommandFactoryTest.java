@@ -1,8 +1,10 @@
 package com.ryuqq.authhub.application.organization.factory.command;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.authhub.application.organization.dto.command.CreateOrganizationCommand;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import java.time.Clock;
@@ -12,6 +14,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * OrganizationCommandFactory 단위 테스트
@@ -20,8 +25,11 @@ import org.junit.jupiter.api.Test;
  * @since 1.0.0
  */
 @Tag("unit")
+@ExtendWith(MockitoExtension.class)
 @DisplayName("OrganizationCommandFactory 단위 테스트")
 class OrganizationCommandFactoryTest {
+
+    @Mock private UuidHolder uuidHolder;
 
     private OrganizationCommandFactory factory;
     private Clock clock;
@@ -29,7 +37,7 @@ class OrganizationCommandFactoryTest {
     @BeforeEach
     void setUp() {
         clock = OrganizationFixture.fixedClock();
-        factory = new OrganizationCommandFactory(clock);
+        factory = new OrganizationCommandFactory(clock, uuidHolder);
     }
 
     @Nested
@@ -40,6 +48,7 @@ class OrganizationCommandFactoryTest {
         @DisplayName("CreateOrganizationCommand로 Organization을 생성한다")
         void shouldCreateOrganizationFromCommand() {
             // given
+            given(uuidHolder.random()).willReturn(UUID.randomUUID());
             UUID tenantId = OrganizationFixture.defaultTenantUUID();
             CreateOrganizationCommand command = new CreateOrganizationCommand(tenantId, "New Org");
 
@@ -57,6 +66,7 @@ class OrganizationCommandFactoryTest {
         @DisplayName("생성된 조직의 상태는 ACTIVE이다")
         void shouldCreateOrganizationWithActiveStatus() {
             // given
+            given(uuidHolder.random()).willReturn(UUID.randomUUID());
             CreateOrganizationCommand command =
                     new CreateOrganizationCommand(
                             OrganizationFixture.defaultTenantUUID(), "Active Org");
@@ -72,6 +82,7 @@ class OrganizationCommandFactoryTest {
         @DisplayName("다양한 이름으로 조직을 생성한다")
         void shouldCreateOrganizationWithVariousNames() {
             // given
+            given(uuidHolder.random()).willReturn(UUID.randomUUID());
             UUID tenantId = OrganizationFixture.defaultTenantUUID();
             CreateOrganizationCommand command1 = new CreateOrganizationCommand(tenantId, "개발팀");
             CreateOrganizationCommand command2 = new CreateOrganizationCommand(tenantId, "DevOps");
@@ -93,6 +104,7 @@ class OrganizationCommandFactoryTest {
         @DisplayName("다른 테넌트로 조직을 생성한다")
         void shouldCreateOrganizationWithDifferentTenant() {
             // given
+            given(uuidHolder.random()).willReturn(UUID.randomUUID());
             UUID tenantId1 = UUID.randomUUID();
             UUID tenantId2 = UUID.randomUUID();
             CreateOrganizationCommand command1 = new CreateOrganizationCommand(tenantId1, "Org A");

@@ -41,17 +41,18 @@ class TenantTest {
         @DisplayName("새로운 Tenant를 생성한다")
         void shouldCreateNewTenant() {
             // given
+            TenantId tenantId = TenantId.forNew(UUID.randomUUID());
             TenantName name = TenantName.of("New Tenant");
 
             // when
-            Tenant tenant = Tenant.create(name, FIXED_CLOCK);
+            Tenant tenant = Tenant.create(tenantId, name, FIXED_CLOCK);
 
             // then
             assertThat(tenant).isNotNull();
-            assertThat(tenant.isNew()).isTrue();
+            assertThat(tenant.isNew()).isFalse();
             assertThat(tenant.nameValue()).isEqualTo("New Tenant");
             assertThat(tenant.isActive()).isTrue();
-            assertThat(tenant.tenantIdValue()).isNull();
+            assertThat(tenant.tenantIdValue()).isNotNull();
             assertThat(tenant.createdAt()).isEqualTo(FIXED_TIME);
             assertThat(tenant.updatedAt()).isEqualTo(FIXED_TIME);
         }
@@ -60,10 +61,11 @@ class TenantTest {
         @DisplayName("생성된 Tenant는 ACTIVE 상태이다")
         void shouldCreateWithActiveStatus() {
             // given
+            TenantId tenantId = TenantId.forNew(UUID.randomUUID());
             TenantName name = TenantName.of("Active Tenant");
 
             // when
-            Tenant tenant = Tenant.create(name, FIXED_CLOCK);
+            Tenant tenant = Tenant.create(tenantId, name, FIXED_CLOCK);
 
             // then
             assertThat(tenant.getStatus()).isEqualTo(TenantStatus.ACTIVE);
@@ -71,9 +73,18 @@ class TenantTest {
         }
 
         @Test
+        @DisplayName("tenantId가 null이면 예외 발생")
+        void shouldThrowExceptionWhenTenantIdIsNull() {
+            assertThatThrownBy(() -> Tenant.create(null, TenantName.of("Test"), FIXED_CLOCK))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("TenantId는 null일 수 없습니다");
+        }
+
+        @Test
         @DisplayName("name이 null이면 예외 발생")
         void shouldThrowExceptionWhenNameIsNull() {
-            assertThatThrownBy(() -> Tenant.create(null, FIXED_CLOCK))
+            TenantId tenantId = TenantId.forNew(UUID.randomUUID());
+            assertThatThrownBy(() -> Tenant.create(tenantId, null, FIXED_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("TenantName은 null일 수 없습니다");
         }
@@ -374,11 +385,19 @@ class TenantTest {
         }
 
         @Test
-        @DisplayName("ID가 null인 Tenant는 서로 다르다")
-        void shouldNotBeEqualWhenIdIsNull() {
+        @DisplayName("다른 ID로 생성된 Tenant는 서로 다르다")
+        void shouldNotBeEqualWhenDifferentIdCreated() {
             // given
-            Tenant tenant1 = Tenant.create(TenantName.of("Tenant1"), FIXED_CLOCK);
-            Tenant tenant2 = Tenant.create(TenantName.of("Tenant2"), FIXED_CLOCK);
+            Tenant tenant1 =
+                    Tenant.create(
+                            TenantId.forNew(UUID.randomUUID()),
+                            TenantName.of("Tenant1"),
+                            FIXED_CLOCK);
+            Tenant tenant2 =
+                    Tenant.create(
+                            TenantId.forNew(UUID.randomUUID()),
+                            TenantName.of("Tenant2"),
+                            FIXED_CLOCK);
 
             // then
             assertThat(tenant1).isNotEqualTo(tenant2);

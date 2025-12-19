@@ -1,7 +1,9 @@
 package com.ryuqq.authhub.application.tenant.factory.command;
 
 import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import java.time.Clock;
 import org.springframework.stereotype.Component;
@@ -29,18 +31,23 @@ import org.springframework.stereotype.Component;
 public class TenantCommandFactory {
 
     private final Clock clock;
+    private final UuidHolder uuidHolder;
 
-    public TenantCommandFactory(Clock clock) {
+    public TenantCommandFactory(Clock clock, UuidHolder uuidHolder) {
         this.clock = clock;
+        this.uuidHolder = uuidHolder;
     }
 
     /**
      * CreateTenantCommand → Tenant 변환
      *
+     * <p>UUIDv7 기반 식별자를 생성하여 Tenant를 생성합니다.
+     *
      * @param command 테넌트 생성 Command
-     * @return 새로운 Tenant 인스턴스 (ID 미할당)
+     * @return 새로운 Tenant 인스턴스 (UUIDv7 ID 할당)
      */
     public Tenant create(CreateTenantCommand command) {
-        return Tenant.create(TenantName.of(command.name()), clock);
+        TenantId tenantId = TenantId.forNew(uuidHolder.random());
+        return Tenant.create(tenantId, TenantName.of(command.name()), clock);
     }
 }

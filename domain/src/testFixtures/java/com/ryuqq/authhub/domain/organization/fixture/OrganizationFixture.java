@@ -60,10 +60,12 @@ public final class OrganizationFixture {
                 FIXED_TIME);
     }
 
-    /** 새로운 Organization 생성 (ID 미할당) */
+    /** 새로운 Organization 생성 (ID 할당됨) */
     public static Organization createNew() {
         ClockHolder clockHolder = () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
+        OrganizationId organizationId = OrganizationId.forNew(UUID.randomUUID());
         return Organization.create(
+                organizationId,
                 TenantId.of(DEFAULT_TENANT_UUID),
                 OrganizationName.of("New Organization"),
                 clockHolder.clock());

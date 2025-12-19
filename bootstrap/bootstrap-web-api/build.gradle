@@ -24,6 +24,11 @@ dependencies {
     implementation project(':application')
 
     // ========================================
+    // UUID Generation (RFC 9562 UUIDv7)
+    // ========================================
+    implementation libs.uuid.creator
+
+    // ========================================
     // Adapters
     // ========================================
     // Inbound
