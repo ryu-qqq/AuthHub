@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor;
 import com.ryuqq.authhub.adapter.in.rest.auth.config.ServiceTokenProperties;
-import com.ryuqq.authhub.adapter.in.rest.auth.filter.ServiceTokenAuthenticationFilter;
 import java.util.Optional;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -58,15 +57,5 @@ public class ControllerTestSecurityConfig {
         ServiceTokenProperties mock = mock(ServiceTokenProperties.class);
         when(mock.isEnabled()).thenReturn(false);
         return mock;
-    }
-
-    /**
-     * Service Token Authentication Filter Mock
-     *
-     * <p>테스트에서는 서비스 토큰 인증 필터를 mock으로 대체합니다.
-     */
-    @Bean
-    public ServiceTokenAuthenticationFilter serviceTokenAuthenticationFilter() {
-        return mock(ServiceTokenAuthenticationFilter.class);
     }
 }

@@ -155,16 +155,4 @@ public final class ApiPaths {
 
         private Health() {}
     }
-
-    /**
-     * 시스템 API 경로 (Service Token 인증)
-     *
-     * <p>서버 간 통신용 API입니다. X-Service-Token 헤더로 인증합니다.
-     */
-    public static final class System {
-        public static final String BASE = AUTH_SERVICE_BASE + "/system";
-        public static final String ONBOARDING = "/tenants/onboarding";
-
-        private System() {}
-    }
 }

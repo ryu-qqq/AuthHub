@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.config;
 
 import com.ryuqq.authhub.adapter.in.rest.auth.filter.GatewayAuthenticationFilter;
-import com.ryuqq.authhub.adapter.in.rest.auth.filter.ServiceTokenAuthenticationFilter;
 import com.ryuqq.authhub.adapter.in.rest.auth.handler.SecurityExceptionHandler;
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.SecurityPaths;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,18 +56,15 @@ public class SecurityConfig {
 
     private final CorsProperties corsProperties;
     private final GatewayAuthenticationFilter gatewayAuthenticationFilter;
-    private final ServiceTokenAuthenticationFilter serviceTokenAuthenticationFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
 
     @Autowired
     public SecurityConfig(
             CorsProperties corsProperties,
             GatewayAuthenticationFilter gatewayAuthenticationFilter,
-            ServiceTokenAuthenticationFilter serviceTokenAuthenticationFilter,
             SecurityExceptionHandler securityExceptionHandler) {
         this.corsProperties = corsProperties;
         this.gatewayAuthenticationFilter = gatewayAuthenticationFilter;
-        this.serviceTokenAuthenticationFilter = serviceTokenAuthenticationFilter;
         this.securityExceptionHandler = securityExceptionHandler;
     }
 
@@ -90,10 +86,6 @@ public class SecurityConfig {
                                         .accessDeniedHandler(securityExceptionHandler))
                 // 엔드포인트 권한 설정
                 .authorizeHttpRequests(this::configureAuthorization)
-                // Service Token 인증 필터 추가 (System API용 X-Service-Token 헤더 기반)
-                .addFilterBefore(
-                        serviceTokenAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class)
                 // Gateway 인증 필터 추가 (X-* 헤더 기반)
                 .addFilterBefore(
                         gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -115,9 +107,6 @@ public class SecurityConfig {
 
         // DOCS 엔드포인트 설정 (인증된 사용자만 접근 가능)
         auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).authenticated();
-
-        // SYSTEM 엔드포인트 설정 (X-Service-Token 인증 - ROLE_SERVICE 필요)
-        auth.requestMatchers(SecurityPaths.System.PATTERN).hasRole("SERVICE");
 
         // 그 외 모든 요청은 인증 필요 + @PreAuthorize로 세부 권한 검사
         auth.anyRequest().authenticated();
