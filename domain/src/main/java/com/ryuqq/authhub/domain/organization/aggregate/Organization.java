@@ -84,16 +84,25 @@ public final class Organization {
     // ========== Factory Methods ==========
 
     /**
-     * 새로운 Organization 생성 (ID 미할당)
+     * 새로운 Organization 생성 (ID 할당)
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param organizationId 조직 ID (UUIDv7)
      * @param tenantId 소속 테넌트 ID
      * @param name 조직 이름
      * @param clock 시간 제공자
      * @return 새로운 Organization 인스턴스
+     * @throws IllegalArgumentException organizationId가 null인 경우
      */
-    public static Organization create(TenantId tenantId, OrganizationName name, Clock clock) {
+    public static Organization create(
+            OrganizationId organizationId, TenantId tenantId, OrganizationName name, Clock clock) {
+        if (organizationId == null) {
+            throw new IllegalArgumentException("OrganizationId는 null일 수 없습니다");
+        }
         Instant now = clock.instant();
-        return new Organization(null, tenantId, name, OrganizationStatus.ACTIVE, now, now);
+        return new Organization(
+                organizationId, tenantId, name, OrganizationStatus.ACTIVE, now, now);
     }
 
     /**

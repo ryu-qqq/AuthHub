@@ -45,15 +45,16 @@ class RoleTest {
         @DisplayName("새로운 시스템 GLOBAL 역할을 생성한다")
         void shouldCreateSystemGlobalRole() {
             // given
+            RoleId roleId = RoleId.of(UUID.randomUUID());
             RoleName name = RoleName.of("SUPER_ADMIN");
             RoleDescription description = RoleDescription.of("Super admin role");
 
             // when
-            Role role = Role.createSystemGlobal(name, description, FIXED_CLOCK);
+            Role role = Role.createSystemGlobal(roleId, name, description, FIXED_CLOCK);
 
             // then
             assertThat(role).isNotNull();
-            assertThat(role.isNew()).isTrue();
+            assertThat(role.isNew()).isFalse();
             assertThat(role.nameValue()).isEqualTo("SUPER_ADMIN");
             assertThat(role.getScope()).isEqualTo(RoleScope.GLOBAL);
             assertThat(role.getType()).isEqualTo(RoleType.SYSTEM);
@@ -68,10 +69,11 @@ class RoleTest {
         @DisplayName("설명이 null이면 빈 설명으로 생성된다")
         void shouldCreateWithEmptyDescriptionWhenNull() {
             // given
+            RoleId roleId = RoleId.of(UUID.randomUUID());
             RoleName name = RoleName.of("ADMIN");
 
             // when
-            Role role = Role.createSystemGlobal(name, null, FIXED_CLOCK);
+            Role role = Role.createSystemGlobal(roleId, name, null, FIXED_CLOCK);
 
             // then
             assertThat(role.descriptionValue()).isEmpty();
@@ -86,16 +88,17 @@ class RoleTest {
         @DisplayName("새로운 커스텀 TENANT 역할을 생성한다")
         void shouldCreateCustomTenantRole() {
             // given
+            RoleId roleId = RoleId.of(UUID.randomUUID());
             TenantId tenantId = TenantId.of(UUID.randomUUID());
             RoleName name = RoleName.of("CUSTOM_ROLE");
             RoleDescription description = RoleDescription.of("Custom tenant role");
 
             // when
-            Role role = Role.createCustomTenant(tenantId, name, description, FIXED_CLOCK);
+            Role role = Role.createCustomTenant(roleId, tenantId, name, description, FIXED_CLOCK);
 
             // then
             assertThat(role).isNotNull();
-            assertThat(role.isNew()).isTrue();
+            assertThat(role.isNew()).isFalse();
             assertThat(role.nameValue()).isEqualTo("CUSTOM_ROLE");
             assertThat(role.getScope()).isEqualTo(RoleScope.TENANT);
             assertThat(role.getType()).isEqualTo(RoleType.CUSTOM);
@@ -108,11 +111,15 @@ class RoleTest {
         @DisplayName("tenantId가 null이면 예외 발생")
         void shouldThrowExceptionWhenTenantIdIsNull() {
             // given
+            RoleId roleId = RoleId.of(UUID.randomUUID());
             RoleName name = RoleName.of("CUSTOM_ROLE");
             RoleDescription description = RoleDescription.of("Description");
 
             // when/then
-            assertThatThrownBy(() -> Role.createCustomTenant(null, name, description, FIXED_CLOCK))
+            assertThatThrownBy(
+                            () ->
+                                    Role.createCustomTenant(
+                                            roleId, null, name, description, FIXED_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("TENANT 범위 역할은 tenantId가 필수입니다");
         }
@@ -126,16 +133,18 @@ class RoleTest {
         @DisplayName("새로운 커스텀 ORGANIZATION 역할을 생성한다")
         void shouldCreateCustomOrganizationRole() {
             // given
+            RoleId roleId = RoleId.of(UUID.randomUUID());
             TenantId tenantId = TenantId.of(UUID.randomUUID());
             RoleName name = RoleName.of("ORG_ROLE");
             RoleDescription description = RoleDescription.of("Organization role");
 
             // when
-            Role role = Role.createCustomOrganization(tenantId, name, description, FIXED_CLOCK);
+            Role role =
+                    Role.createCustomOrganization(roleId, tenantId, name, description, FIXED_CLOCK);
 
             // then
             assertThat(role).isNotNull();
-            assertThat(role.isNew()).isTrue();
+            assertThat(role.isNew()).isFalse();
             assertThat(role.nameValue()).isEqualTo("ORG_ROLE");
             assertThat(role.getScope()).isEqualTo(RoleScope.ORGANIZATION);
             assertThat(role.getType()).isEqualTo(RoleType.CUSTOM);
@@ -146,6 +155,7 @@ class RoleTest {
         @DisplayName("tenantId가 null이면 예외 발생")
         void shouldThrowExceptionWhenTenantIdIsNull() {
             // given
+            RoleId roleId = RoleId.of(UUID.randomUUID());
             RoleName name = RoleName.of("ORG_ROLE");
             RoleDescription description = RoleDescription.of("Description");
 
@@ -153,7 +163,7 @@ class RoleTest {
             assertThatThrownBy(
                             () ->
                                     Role.createCustomOrganization(
-                                            null, name, description, FIXED_CLOCK))
+                                            roleId, null, name, description, FIXED_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("ORGANIZATION 범위 역할은 tenantId가 필수입니다");
         }

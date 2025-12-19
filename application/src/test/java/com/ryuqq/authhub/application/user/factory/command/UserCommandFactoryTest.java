@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.authhub.application.user.dto.command.CreateUserCommand;
 import com.ryuqq.authhub.application.user.port.out.client.PasswordEncoderPort;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
@@ -31,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UserCommandFactoryTest {
 
     @Mock private PasswordEncoderPort passwordEncoderPort;
+    @Mock private UuidHolder uuidHolder;
 
     private UserCommandFactory factory;
     private Clock clock;
@@ -38,7 +40,7 @@ class UserCommandFactoryTest {
     @BeforeEach
     void setUp() {
         clock = UserFixture.fixedClock();
-        factory = new UserCommandFactory(clock, passwordEncoderPort);
+        factory = new UserCommandFactory(clock, uuidHolder, passwordEncoderPort);
     }
 
     @Nested
@@ -49,6 +51,8 @@ class UserCommandFactoryTest {
         @DisplayName("CreateUserCommand로 User를 생성한다")
         void shouldCreateUserFromCommand() {
             // given
+            UUID generatedUuid = UUID.randomUUID();
+            given(uuidHolder.random()).willReturn(generatedUuid);
             UUID tenantId = UserFixture.defaultTenantUUID();
             UUID orgId = UserFixture.defaultOrganizationUUID();
             String identifier = "newuser@example.com";
@@ -74,6 +78,7 @@ class UserCommandFactoryTest {
         @DisplayName("비밀번호가 해싱되어 저장된다")
         void shouldHashPassword() {
             // given
+            given(uuidHolder.random()).willReturn(UUID.randomUUID());
             String plainPassword = "myPassword!@#";
             String hashedPassword = "$2a$10$hashedPassword";
             CreateUserCommand command =
@@ -96,6 +101,7 @@ class UserCommandFactoryTest {
         @DisplayName("새 사용자는 ACTIVE 상태로 생성된다")
         void shouldCreateWithActiveStatus() {
             // given
+            given(uuidHolder.random()).willReturn(UUID.randomUUID());
             CreateUserCommand command =
                     new CreateUserCommand(
                             UserFixture.defaultTenantUUID(),
@@ -115,6 +121,8 @@ class UserCommandFactoryTest {
         @DisplayName("새 사용자에게 UUID가 할당된다")
         void shouldAssignUuidToNewUser() {
             // given
+            UUID generatedUuid = UUID.randomUUID();
+            given(uuidHolder.random()).willReturn(generatedUuid);
             CreateUserCommand command =
                     new CreateUserCommand(
                             UserFixture.defaultTenantUUID(),
@@ -127,7 +135,7 @@ class UserCommandFactoryTest {
             User result = factory.create(command);
 
             // then
-            assertThat(result.userIdValue()).isNotNull();
+            assertThat(result.userIdValue()).isEqualTo(generatedUuid);
         }
     }
 }

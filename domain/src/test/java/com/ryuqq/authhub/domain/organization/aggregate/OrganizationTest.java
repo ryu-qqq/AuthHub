@@ -42,18 +42,20 @@ class OrganizationTest {
         @DisplayName("새로운 Organization을 생성한다")
         void shouldCreateNewOrganization() {
             // given
+            OrganizationId organizationId = OrganizationId.forNew(UUID.randomUUID());
             TenantId tenantId = TenantId.of(UUID.randomUUID());
             OrganizationName name = OrganizationName.of("New Organization");
 
             // when
-            Organization organization = Organization.create(tenantId, name, FIXED_CLOCK);
+            Organization organization =
+                    Organization.create(organizationId, tenantId, name, FIXED_CLOCK);
 
             // then
             assertThat(organization).isNotNull();
-            assertThat(organization.isNew()).isTrue();
+            assertThat(organization.isNew()).isFalse();
             assertThat(organization.nameValue()).isEqualTo("New Organization");
             assertThat(organization.isActive()).isTrue();
-            assertThat(organization.organizationIdValue()).isNull();
+            assertThat(organization.organizationIdValue()).isNotNull();
             assertThat(organization.createdAt()).isEqualTo(FIXED_TIME);
             assertThat(organization.updatedAt()).isEqualTo(FIXED_TIME);
         }
@@ -62,15 +64,31 @@ class OrganizationTest {
         @DisplayName("생성된 Organization은 ACTIVE 상태이다")
         void shouldCreateWithActiveStatus() {
             // given
+            OrganizationId organizationId = OrganizationId.forNew(UUID.randomUUID());
             TenantId tenantId = TenantId.of(UUID.randomUUID());
             OrganizationName name = OrganizationName.of("Active Organization");
 
             // when
-            Organization organization = Organization.create(tenantId, name, FIXED_CLOCK);
+            Organization organization =
+                    Organization.create(organizationId, tenantId, name, FIXED_CLOCK);
 
             // then
             assertThat(organization.getStatus()).isEqualTo(OrganizationStatus.ACTIVE);
             assertThat(organization.statusValue()).isEqualTo("ACTIVE");
+        }
+
+        @Test
+        @DisplayName("organizationId가 null이면 예외 발생")
+        void shouldThrowExceptionWhenOrganizationIdIsNull() {
+            assertThatThrownBy(
+                            () ->
+                                    Organization.create(
+                                            null,
+                                            TenantId.of(UUID.randomUUID()),
+                                            OrganizationName.of("Test"),
+                                            FIXED_CLOCK))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("OrganizationId는 null일 수 없습니다");
         }
 
         @Test
@@ -79,7 +97,10 @@ class OrganizationTest {
             assertThatThrownBy(
                             () ->
                                     Organization.create(
-                                            null, OrganizationName.of("Test"), FIXED_CLOCK))
+                                            OrganizationId.forNew(UUID.randomUUID()),
+                                            null,
+                                            OrganizationName.of("Test"),
+                                            FIXED_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("TenantId는 null일 수 없습니다");
         }
@@ -90,7 +111,10 @@ class OrganizationTest {
             assertThatThrownBy(
                             () ->
                                     Organization.create(
-                                            TenantId.of(UUID.randomUUID()), null, FIXED_CLOCK))
+                                            OrganizationId.forNew(UUID.randomUUID()),
+                                            TenantId.of(UUID.randomUUID()),
+                                            null,
+                                            FIXED_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("OrganizationName은 null일 수 없습니다");
         }
@@ -428,14 +452,22 @@ class OrganizationTest {
         }
 
         @Test
-        @DisplayName("ID가 null인 Organization은 서로 다르다")
-        void shouldNotBeEqualWhenIdIsNull() {
+        @DisplayName("다른 ID로 생성된 Organization은 서로 다르다")
+        void shouldNotBeEqualWhenDifferentIdCreated() {
             // given
             TenantId tenantId = TenantId.of(UUID.randomUUID());
             Organization org1 =
-                    Organization.create(tenantId, OrganizationName.of("Org1"), FIXED_CLOCK);
+                    Organization.create(
+                            OrganizationId.forNew(UUID.randomUUID()),
+                            tenantId,
+                            OrganizationName.of("Org1"),
+                            FIXED_CLOCK);
             Organization org2 =
-                    Organization.create(tenantId, OrganizationName.of("Org2"), FIXED_CLOCK);
+                    Organization.create(
+                            OrganizationId.forNew(UUID.randomUUID()),
+                            tenantId,
+                            OrganizationName.of("Org2"),
+                            FIXED_CLOCK);
 
             // then
             assertThat(org1).isNotEqualTo(org2);

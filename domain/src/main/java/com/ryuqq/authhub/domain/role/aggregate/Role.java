@@ -103,34 +103,61 @@ public final class Role {
     /**
      * 새로운 시스템 역할 생성 (GLOBAL 범위)
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param roleId 역할 ID (UUIDv7)
      * @param name 역할 이름
      * @param description 역할 설명
      * @param clock 시간 제공자
      * @return 새로운 시스템 역할 인스턴스
+     * @throws IllegalArgumentException roleId가 null인 경우
      */
-    public static Role createSystemGlobal(RoleName name, RoleDescription description, Clock clock) {
+    public static Role createSystemGlobal(
+            RoleId roleId, RoleName name, RoleDescription description, Clock clock) {
+        if (roleId == null) {
+            throw new IllegalArgumentException("RoleId는 null일 수 없습니다");
+        }
         Instant now = clock.instant();
         return new Role(
-                null, null, name, description, RoleScope.GLOBAL, RoleType.SYSTEM, false, now, now);
+                roleId,
+                null,
+                name,
+                description,
+                RoleScope.GLOBAL,
+                RoleType.SYSTEM,
+                false,
+                now,
+                now);
     }
 
     /**
      * 새로운 커스텀 역할 생성 (TENANT 범위)
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param roleId 역할 ID (UUIDv7)
      * @param tenantId 테넌트 ID (TENANT 범위인 경우 필수)
      * @param name 역할 이름
      * @param description 역할 설명
      * @param clock 시간 제공자
      * @return 새로운 커스텀 역할 인스턴스
+     * @throws IllegalArgumentException roleId 또는 tenantId가 null인 경우
      */
     public static Role createCustomTenant(
-            TenantId tenantId, RoleName name, RoleDescription description, Clock clock) {
+            RoleId roleId,
+            TenantId tenantId,
+            RoleName name,
+            RoleDescription description,
+            Clock clock) {
+        if (roleId == null) {
+            throw new IllegalArgumentException("RoleId는 null일 수 없습니다");
+        }
         if (tenantId == null) {
             throw new IllegalArgumentException("TENANT 범위 역할은 tenantId가 필수입니다");
         }
         Instant now = clock.instant();
         return new Role(
-                null,
+                roleId,
                 tenantId,
                 name,
                 description,
@@ -144,20 +171,31 @@ public final class Role {
     /**
      * 새로운 커스텀 역할 생성 (ORGANIZATION 범위)
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param roleId 역할 ID (UUIDv7)
      * @param tenantId 테넌트 ID
      * @param name 역할 이름
      * @param description 역할 설명
      * @param clock 시간 제공자
      * @return 새로운 커스텀 역할 인스턴스
+     * @throws IllegalArgumentException roleId 또는 tenantId가 null인 경우
      */
     public static Role createCustomOrganization(
-            TenantId tenantId, RoleName name, RoleDescription description, Clock clock) {
+            RoleId roleId,
+            TenantId tenantId,
+            RoleName name,
+            RoleDescription description,
+            Clock clock) {
+        if (roleId == null) {
+            throw new IllegalArgumentException("RoleId는 null일 수 없습니다");
+        }
         if (tenantId == null) {
             throw new IllegalArgumentException("ORGANIZATION 범위 역할은 tenantId가 필수입니다");
         }
         Instant now = clock.instant();
         return new Role(
-                null,
+                roleId,
                 tenantId,
                 name,
                 description,

@@ -73,15 +73,22 @@ public final class Tenant {
     // ========== Factory Methods ==========
 
     /**
-     * 새로운 Tenant 생성 (ID 미할당)
+     * 새로운 Tenant 생성 (ID 할당)
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param tenantId 테넌트 ID (UUIDv7)
      * @param name 테넌트 이름
      * @param clock 시간 제공자
      * @return 새로운 Tenant 인스턴스
+     * @throws IllegalArgumentException tenantId가 null인 경우
      */
-    public static Tenant create(TenantName name, Clock clock) {
+    public static Tenant create(TenantId tenantId, TenantName name, Clock clock) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("TenantId는 null일 수 없습니다");
+        }
         Instant now = clock.instant();
-        return new Tenant(null, name, TenantStatus.ACTIVE, now, now);
+        return new Tenant(tenantId, name, TenantStatus.ACTIVE, now, now);
     }
 
     /**

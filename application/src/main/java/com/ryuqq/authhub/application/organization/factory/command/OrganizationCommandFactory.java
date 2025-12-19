@@ -1,7 +1,9 @@
 package com.ryuqq.authhub.application.organization.factory.command;
 
 import com.ryuqq.authhub.application.organization.dto.command.CreateOrganizationCommand;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.time.Clock;
@@ -30,19 +32,27 @@ import org.springframework.stereotype.Component;
 public class OrganizationCommandFactory {
 
     private final Clock clock;
+    private final UuidHolder uuidHolder;
 
-    public OrganizationCommandFactory(Clock clock) {
+    public OrganizationCommandFactory(Clock clock, UuidHolder uuidHolder) {
         this.clock = clock;
+        this.uuidHolder = uuidHolder;
     }
 
     /**
      * CreateOrganizationCommand → Organization 변환
      *
+     * <p>UUIDv7 기반 식별자를 생성하여 Organization을 생성합니다.
+     *
      * @param command 조직 생성 Command
-     * @return 새로운 Organization 인스턴스 (ID 미할당)
+     * @return 새로운 Organization 인스턴스 (UUIDv7 ID 할당)
      */
     public Organization create(CreateOrganizationCommand command) {
+        OrganizationId organizationId = OrganizationId.forNew(uuidHolder.random());
         return Organization.create(
-                TenantId.of(command.tenantId()), OrganizationName.of(command.name()), clock);
+                organizationId,
+                TenantId.of(command.tenantId()),
+                OrganizationName.of(command.name()),
+                clock);
     }
 }

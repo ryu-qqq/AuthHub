@@ -73,7 +73,7 @@ class TenantJpaEntityMapperTest {
         }
 
         @Test
-        @DisplayName("신규 Domain(ID 없음)도 Entity로 변환된다")
+        @DisplayName("신규 Domain(ID 있음)도 Entity로 변환된다")
         void shouldConvertNewDomainToEntity() {
             // given
             Tenant domain = TenantFixture.createNew();
@@ -83,7 +83,7 @@ class TenantJpaEntityMapperTest {
 
             // then
             assertThat(entity.getId()).isNull();
-            assertThat(entity.getTenantId()).isNull();
+            assertThat(entity.getTenantId()).isNotNull();
             assertThat(entity.getName()).isEqualTo("New Tenant");
             assertThat(entity.getStatus()).isEqualTo(TenantStatus.ACTIVE);
         }

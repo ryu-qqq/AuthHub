@@ -44,10 +44,11 @@ public final class TenantFixture {
                 FIXED_TIME);
     }
 
-    /** 새로운 Tenant 생성 (ID 미할당) */
+    /** 새로운 Tenant 생성 (ID 할당됨) */
     public static Tenant createNew() {
         ClockHolder clockHolder = () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
-        return Tenant.create(TenantName.of("New Tenant"), clockHolder.clock());
+        TenantId tenantId = TenantId.forNew(UUID.randomUUID());
+        return Tenant.create(tenantId, TenantName.of("New Tenant"), clockHolder.clock());
     }
 
     /** 지정된 상태로 Tenant 생성 */
