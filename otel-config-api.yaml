@@ -17,7 +17,7 @@ receivers:
         scrape_timeout: 10s
 
       scrape_configs:
-        - job_name: 'application-metrics'
+        - job_name: 'authhub-web-api-metrics'
           scrape_interval: 30s
           static_configs:
             - targets: ['localhost:8080']
