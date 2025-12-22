@@ -31,6 +31,7 @@ dependencies {
     // Application layer (use cases)
     api project(':application')
     api project(':domain')
+    api project(':common-auth')
 
     // Spring Web
     implementation libs.spring.boot.starter.web
@@ -123,4 +124,32 @@ tasks.register('copyDocs', Copy) {
     dependsOn asciidoctor
     from asciidoctor.outputDir
     into file('src/main/resources/static/docs')
+}
+
+// ========================================
+// Permission 스캔 (CI/CD용)
+// ========================================
+// 실행: ./gradlew :adapter-in:rest-api:scanPermissions
+// 출력: build/permissions/permissions.json
+//
+// CI/CD 파이프라인에서 이 파일을 S3/Artifact에 업로드하면
+// AuthHub Admin에서 자동완성 소스로 사용 가능
+tasks.register('scanPermissions', JavaExec) {
+    description = 'Scan @PreAuthorize annotations and output permissions to JSON'
+    group = 'verification'
+
+    dependsOn classes
+
+    mainClass = 'com.ryuqq.authhub.adapter.in.rest.architecture.PermissionScanner'
+    classpath = sourceSets.test.runtimeClasspath
+
+    args = [
+            '--output', "${buildDir}/permissions/permissions.json",
+            '--service', 'authhub',
+            '--package', 'com.ryuqq.authhub.adapter.in.rest'
+    ]
+
+    doFirst {
+        mkdir "${buildDir}/permissions"
+    }
 }

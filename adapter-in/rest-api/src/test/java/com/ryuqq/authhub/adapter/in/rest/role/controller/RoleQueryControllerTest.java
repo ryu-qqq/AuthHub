@@ -16,6 +16,7 @@ import com.ryuqq.authhub.application.role.dto.query.GetRoleQuery;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
 import com.ryuqq.authhub.application.role.port.in.query.GetRoleUseCase;
+import com.ryuqq.authhub.application.role.port.in.query.SearchRoleUsersUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesUseCase;
 import java.time.Instant;
 import java.util.List;
@@ -63,6 +64,8 @@ class RoleQueryControllerTest {
     @MockBean private GetRoleUseCase getRoleUseCase;
 
     @MockBean private SearchRolesUseCase searchRolesUseCase;
+
+    @MockBean private SearchRoleUsersUseCase searchRoleUsersUseCase;
 
     @MockBean private RoleApiMapper mapper;
 

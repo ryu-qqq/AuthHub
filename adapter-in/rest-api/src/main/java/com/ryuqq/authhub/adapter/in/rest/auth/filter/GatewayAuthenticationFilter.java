@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.auth.common.header.SecurityHeaders;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor.JwtClaims;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContext;
@@ -268,5 +269,19 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
         org.springframework.security.core.context.SecurityContextHolder.getContext()
                 .setAuthentication(authentication);
+    }
+
+    /**
+     * Service Token이 있는 경우 이 필터를 건너뜁니다.
+     *
+     * <p>Service Token 요청은 ServiceTokenFilter에서 처리됩니다.
+     *
+     * @param request HTTP 요청
+     * @return Service Token이 있으면 true (필터 건너뜀)
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String serviceToken = request.getHeader(SecurityHeaders.SERVICE_TOKEN);
+        return StringUtils.hasText(serviceToken);
     }
 }

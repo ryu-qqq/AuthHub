@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.config;
 
 import com.ryuqq.authhub.adapter.in.rest.auth.filter.GatewayAuthenticationFilter;
+import com.ryuqq.authhub.adapter.in.rest.auth.filter.ServiceTokenFilter;
 import com.ryuqq.authhub.adapter.in.rest.auth.handler.SecurityExceptionHandler;
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.SecurityPaths;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * Gateway (JWT 검증) → X-* 헤더 → GatewayAuthenticationFilter → SecurityContext
  *                                                              ↓
  *                                              @PreAuthorize (권한 기반 접근 제어)
+ *
+ * Service Token → X-Service-Token → ServiceTokenFilter → SecurityContext (serviceAccount=true)
  * </pre>
  *
  * <p>엔드포인트 권한 분류 (SecurityPaths 참조):
@@ -56,15 +59,18 @@ public class SecurityConfig {
 
     private final CorsProperties corsProperties;
     private final GatewayAuthenticationFilter gatewayAuthenticationFilter;
+    private final ServiceTokenFilter serviceTokenFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
 
     @Autowired
     public SecurityConfig(
             CorsProperties corsProperties,
             GatewayAuthenticationFilter gatewayAuthenticationFilter,
+            ServiceTokenFilter serviceTokenFilter,
             SecurityExceptionHandler securityExceptionHandler) {
         this.corsProperties = corsProperties;
         this.gatewayAuthenticationFilter = gatewayAuthenticationFilter;
+        this.serviceTokenFilter = serviceTokenFilter;
         this.securityExceptionHandler = securityExceptionHandler;
     }
 
@@ -86,9 +92,10 @@ public class SecurityConfig {
                                         .accessDeniedHandler(securityExceptionHandler))
                 // 엔드포인트 권한 설정
                 .authorizeHttpRequests(this::configureAuthorization)
+                // Service Token 필터 추가 (서버간 통신, X-Service-Token 기반)
+                .addFilterBefore(serviceTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 // Gateway 인증 필터 추가 (X-* 헤더 기반)
-                .addFilterBefore(
-                        gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterAfter(gatewayAuthenticationFilter, ServiceTokenFilter.class);
 
         return http.build();
     }

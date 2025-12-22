@@ -49,6 +49,15 @@ public final class SecurityContext {
     private final Set<String> permissions;
     private final String traceId;
 
+    /** 서비스 계정 여부 (서버간 통신) */
+    private final boolean serviceAccount;
+
+    /** 호출 서비스명 (서비스 계정인 경우) */
+    private final String requestSource;
+
+    /** 분산 추적 ID (OpenTelemetry 호환) */
+    private final String correlationId;
+
     private SecurityContext(Builder builder) {
         this.userId = builder.userId;
         this.tenantId = builder.tenantId;
@@ -56,6 +65,9 @@ public final class SecurityContext {
         this.roles = builder.roles != null ? Set.copyOf(builder.roles) : Set.of();
         this.permissions = builder.permissions != null ? Set.copyOf(builder.permissions) : Set.of();
         this.traceId = builder.traceId;
+        this.serviceAccount = builder.serviceAccount;
+        this.requestSource = builder.requestSource;
+        this.correlationId = builder.correlationId;
     }
 
     /**
@@ -128,6 +140,37 @@ public final class SecurityContext {
      */
     public String getTraceId() {
         return traceId;
+    }
+
+    /**
+     * 서비스 계정 여부 반환
+     *
+     * <p>서버간 통신(Service Token 인증)인 경우 true
+     *
+     * @return 서비스 계정이면 true
+     */
+    public boolean isServiceAccount() {
+        return serviceAccount;
+    }
+
+    /**
+     * 호출 서비스명 반환
+     *
+     * <p>서비스 계정인 경우, 호출한 서비스의 이름을 반환합니다.
+     *
+     * @return 호출 서비스명 (없으면 null)
+     */
+    public String getRequestSource() {
+        return requestSource;
+    }
+
+    /**
+     * 분산 추적 ID 반환 (OpenTelemetry 호환)
+     *
+     * @return Correlation ID (없으면 null)
+     */
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     /**
@@ -261,17 +304,29 @@ public final class SecurityContext {
             return false;
         }
         SecurityContext that = (SecurityContext) o;
-        return Objects.equals(userId, that.userId)
+        return serviceAccount == that.serviceAccount
+                && Objects.equals(userId, that.userId)
                 && Objects.equals(tenantId, that.tenantId)
                 && Objects.equals(organizationId, that.organizationId)
                 && Objects.equals(roles, that.roles)
                 && Objects.equals(permissions, that.permissions)
-                && Objects.equals(traceId, that.traceId);
+                && Objects.equals(traceId, that.traceId)
+                && Objects.equals(requestSource, that.requestSource)
+                && Objects.equals(correlationId, that.correlationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, tenantId, organizationId, roles, permissions, traceId);
+        return Objects.hash(
+                userId,
+                tenantId,
+                organizationId,
+                roles,
+                permissions,
+                traceId,
+                serviceAccount,
+                requestSource,
+                correlationId);
     }
 
     @Override
@@ -291,6 +346,14 @@ public final class SecurityContext {
                 + ", traceId='"
                 + traceId
                 + '\''
+                + ", serviceAccount="
+                + serviceAccount
+                + ", requestSource='"
+                + requestSource
+                + '\''
+                + ", correlationId='"
+                + correlationId
+                + '\''
                 + '}';
     }
 
@@ -303,6 +366,9 @@ public final class SecurityContext {
         private Set<String> roles;
         private Set<String> permissions;
         private String traceId;
+        private boolean serviceAccount;
+        private String requestSource;
+        private String correlationId;
 
         private Builder() {}
 
@@ -333,6 +399,39 @@ public final class SecurityContext {
 
         public Builder traceId(String traceId) {
             this.traceId = traceId;
+            return this;
+        }
+
+        /**
+         * 서비스 계정 여부 설정
+         *
+         * @param serviceAccount 서비스 계정 여부
+         * @return this Builder
+         */
+        public Builder serviceAccount(boolean serviceAccount) {
+            this.serviceAccount = serviceAccount;
+            return this;
+        }
+
+        /**
+         * 호출 서비스명 설정
+         *
+         * @param requestSource 호출 서비스명
+         * @return this Builder
+         */
+        public Builder requestSource(String requestSource) {
+            this.requestSource = requestSource;
+            return this;
+        }
+
+        /**
+         * 분산 추적 ID 설정 (OpenTelemetry 호환)
+         *
+         * @param correlationId Correlation ID
+         * @return this Builder
+         */
+        public Builder correlationId(String correlationId) {
+            this.correlationId = correlationId;
             return this;
         }
 

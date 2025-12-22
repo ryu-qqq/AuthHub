@@ -4,9 +4,13 @@ import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.query.SearchRolesApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleUserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.mapper.RoleApiMapper;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
+import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
 import com.ryuqq.authhub.application.role.port.in.query.GetRoleUseCase;
+import com.ryuqq.authhub.application.role.port.in.query.SearchRoleUsersUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -48,14 +52,17 @@ public class RoleQueryController {
 
     private final GetRoleUseCase getRoleUseCase;
     private final SearchRolesUseCase searchRolesUseCase;
+    private final SearchRoleUsersUseCase searchRoleUsersUseCase;
     private final RoleApiMapper mapper;
 
     public RoleQueryController(
             GetRoleUseCase getRoleUseCase,
             SearchRolesUseCase searchRolesUseCase,
+            SearchRoleUsersUseCase searchRoleUsersUseCase,
             RoleApiMapper mapper) {
         this.getRoleUseCase = getRoleUseCase;
         this.searchRolesUseCase = searchRolesUseCase;
+        this.searchRoleUsersUseCase = searchRoleUsersUseCase;
         this.mapper = mapper;
     }
 
@@ -135,5 +142,43 @@ public class RoleQueryController {
         List<RoleResponse> responses = searchRolesUseCase.execute(mapper.toQuery(request));
         List<RoleApiResponse> apiResponses = mapper.toApiResponseList(responses);
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponses));
+    }
+
+    /**
+     * 역할별 사용자 목록 조회
+     *
+     * <p>GET /api/v1/auth/roles/{roleId}/users
+     *
+     * @param roleId 역할 ID
+     * @param page 페이지 번호 (기본값: 0)
+     * @param size 페이지 크기 (기본값: 20)
+     * @return 200 OK + 사용자 목록
+     */
+    @Operation(
+            summary = "역할별 사용자 목록 조회",
+            description =
+                    """
+                    특정 역할이 할당된 사용자 목록을 조회합니다.
+
+                    **필요 권한**: `ROLE_SUPER_ADMIN` 또는 `ROLE_TENANT_ADMIN`
+                    """)
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "역할을 찾을 수 없음")
+    })
+    @PreAuthorize("@access.superAdmin() or @access.tenantAdmin()")
+    @GetMapping(ApiPaths.Roles.USERS)
+    public ResponseEntity<ApiResponse<PageResponse<RoleUserApiResponse>>> getRoleUsers(
+            @Parameter(description = "역할 ID", required = true) @PathVariable String roleId,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") Integer page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size) {
+        PageResponse<RoleUserResponse> response =
+                searchRoleUsersUseCase.execute(mapper.toRoleUsersQuery(roleId, page, size));
+        PageResponse<RoleUserApiResponse> apiResponse = mapper.toRoleUserApiPageResponse(response);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

@@ -5,10 +5,13 @@ import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.query.SearchOrganizationsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationUserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.mapper.OrganizationApiMapper;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
+import com.ryuqq.authhub.application.organization.dto.response.OrganizationUserResponse;
 import com.ryuqq.authhub.application.organization.port.in.query.GetOrganizationUseCase;
+import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationUsersUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,14 +52,17 @@ public class OrganizationQueryController {
 
     private final GetOrganizationUseCase getOrganizationUseCase;
     private final SearchOrganizationsUseCase searchOrganizationsUseCase;
+    private final SearchOrganizationUsersUseCase searchOrganizationUsersUseCase;
     private final OrganizationApiMapper mapper;
 
     public OrganizationQueryController(
             GetOrganizationUseCase getOrganizationUseCase,
             SearchOrganizationsUseCase searchOrganizationsUseCase,
+            SearchOrganizationUsersUseCase searchOrganizationUsersUseCase,
             OrganizationApiMapper mapper) {
         this.getOrganizationUseCase = getOrganizationUseCase;
         this.searchOrganizationsUseCase = searchOrganizationsUseCase;
+        this.searchOrganizationUsersUseCase = searchOrganizationUsersUseCase;
         this.mapper = mapper;
     }
 
@@ -140,5 +146,49 @@ public class OrganizationQueryController {
         PageApiResponse<OrganizationApiResponse> pagedResponse =
                 PageApiResponse.from(response, mapper::toApiResponse);
         return ResponseEntity.ok(ApiResponse.ofSuccess(pagedResponse));
+    }
+
+    /**
+     * 조직별 사용자 목록 조회
+     *
+     * <p>GET /api/v1/auth/organizations/{organizationId}/users
+     *
+     * @param organizationId 조직 ID
+     * @param page 페이지 번호 (기본값: 0)
+     * @param size 페이지 크기 (기본값: 20)
+     * @return 200 OK + 사용자 목록
+     */
+    @Operation(
+            summary = "조직별 사용자 목록 조회",
+            description =
+                    """
+                    특정 조직에 소속된 사용자 목록을 조회합니다.
+
+                    **필요 권한**: `ROLE_SUPER_ADMIN` 또는 `ROLE_TENANT_ADMIN`
+                    """)
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "조직을 찾을 수 없음")
+    })
+    @PreAuthorize("@access.superAdmin() or @access.tenantAdmin()")
+    @GetMapping(ApiPaths.Organizations.USERS)
+    public ResponseEntity<ApiResponse<PageResponse<OrganizationUserApiResponse>>>
+            getOrganizationUsers(
+                    @Parameter(description = "조직 ID", required = true) @PathVariable
+                            String organizationId,
+                    @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0")
+                            Integer page,
+                    @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20")
+                            Integer size) {
+        PageResponse<OrganizationUserResponse> response =
+                searchOrganizationUsersUseCase.execute(
+                        mapper.toOrganizationUsersQuery(organizationId, page, size));
+        PageResponse<OrganizationUserApiResponse> apiResponse =
+                mapper.toOrganizationUserApiPageResponse(response);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }
