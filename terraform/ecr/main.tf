@@ -30,8 +30,8 @@ module "ecr_web_api" {
   image_tag_mutability = "IMMUTABLE"
   scan_on_push         = true
 
-  # KMS encryption (null = use AES-256 default encryption)
-  kms_key_arn = null
+  # KMS encryption for ECR images
+  kms_key_arn = "arn:aws:kms:ap-northeast-2:646886795421:key/086b1677-614f-46ba-863e-23c215fb5010"
 
   # Lifecycle Policy
   enable_lifecycle_policy    = true
