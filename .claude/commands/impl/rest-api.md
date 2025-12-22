@@ -194,21 +194,30 @@ public class OrderRestMapper {
 ### 5. API Response Wrapper
 
 ```java
-// adapter-in/rest-api/src/main/java/{basePackage}/adapter/in/rest/common/
+// adapter-in/rest-api/src/main/java/{basePackage}/adapter/in/rest/common/dto/
+/**
+ * ApiResponse - 표준 API 성공 응답 래퍼
+ *
+ * 성공 응답: ApiResponse<T> 사용
+ * 실패 응답: RFC 7807 ProblemDetail 사용 (GlobalExceptionHandler에서 처리)
+ */
 public record ApiResponse<T>(
     boolean success,
     T data,
-    ErrorInfo error
+    LocalDateTime timestamp,
+    String requestId
 ) {
-    public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, data, null);
+    public static <T> ApiResponse<T> ofSuccess(T data) {
+        return new ApiResponse<>(true, data, LocalDateTime.now(), generateRequestId());
     }
 
-    public static <T> ApiResponse<T> error(String code, String message) {
-        return new ApiResponse<>(false, null, new ErrorInfo(code, message));
+    public static <T> ApiResponse<T> ofSuccess() {
+        return ofSuccess(null);
     }
 
-    public record ErrorInfo(String code, String message) {}
+    private static String generateRequestId() {
+        return "req-" + System.currentTimeMillis();
+    }
 }
 ```
 

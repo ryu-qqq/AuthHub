@@ -7,15 +7,20 @@ import com.ryuqq.authhub.adapter.in.rest.role.dto.query.SearchRolesApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.CreateRoleApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RolePermissionApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleUserApiResponse;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.role.dto.command.CreateRoleCommand;
 import com.ryuqq.authhub.application.role.dto.command.DeleteRoleCommand;
 import com.ryuqq.authhub.application.role.dto.command.GrantRolePermissionCommand;
 import com.ryuqq.authhub.application.role.dto.command.RevokeRolePermissionCommand;
 import com.ryuqq.authhub.application.role.dto.command.UpdateRoleCommand;
 import com.ryuqq.authhub.application.role.dto.query.GetRoleQuery;
+import com.ryuqq.authhub.application.role.dto.query.SearchRoleUsersQuery;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RolePermissionResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
+import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
+import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import java.util.List;
@@ -222,5 +227,57 @@ public class RoleApiMapper {
     public List<RolePermissionApiResponse> toRolePermissionApiResponseList(
             List<RolePermissionResponse> responses) {
         return responses.stream().map(this::toRolePermissionApiResponse).toList();
+    }
+
+    // ===== RoleUser 관련 변환 메서드 =====
+
+    /**
+     * roleId + 페이징 정보 → SearchRoleUsersQuery 변환
+     *
+     * @param roleId 역할 ID (PathVariable)
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return Application Query DTO
+     */
+    public SearchRoleUsersQuery toRoleUsersQuery(String roleId, Integer page, Integer size) {
+        RoleId id = RoleId.of(UUID.fromString(roleId));
+        int pageNum = page != null ? page : 0;
+        int pageSize = size != null ? size : 20;
+        return SearchRoleUsersQuery.of(id, pageNum, pageSize);
+    }
+
+    /**
+     * RoleUserResponse → RoleUserApiResponse 변환
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public RoleUserApiResponse toRoleUserApiResponse(RoleUserResponse response) {
+        return RoleUserApiResponse.of(
+                response.userId(),
+                response.email(),
+                response.tenantId(),
+                response.organizationId(),
+                response.assignedAt());
+    }
+
+    /**
+     * PageResponse<RoleUserResponse> → PageResponse<RoleUserApiResponse> 변환
+     *
+     * @param pageResponse Application Page Response
+     * @return API Page Response
+     */
+    public PageResponse<RoleUserApiResponse> toRoleUserApiPageResponse(
+            PageResponse<RoleUserResponse> pageResponse) {
+        List<RoleUserApiResponse> content =
+                pageResponse.content().stream().map(this::toRoleUserApiResponse).toList();
+        return PageResponse.of(
+                content,
+                pageResponse.page(),
+                pageResponse.size(),
+                pageResponse.totalElements(),
+                pageResponse.totalPages(),
+                pageResponse.first(),
+                pageResponse.last());
     }
 }

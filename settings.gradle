@@ -1,6 +1,11 @@
 rootProject.name = 'AuthHub'
 
 // ========================================
+// Common Library (Shared across services)
+// ========================================
+include 'common-auth'
+
+// ========================================
 // Core Modules (Hexagonal Architecture)
 // ========================================
 include 'domain'
@@ -25,6 +30,8 @@ include 'bootstrap:bootstrap-web-api'
 // ========================================
 // Project Structure
 // ========================================
+project(':common-auth').projectDir = file('common-auth')
+
 project(':domain').projectDir = file('domain')
 project(':application').projectDir = file('application')
 

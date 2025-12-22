@@ -6,13 +6,18 @@ import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.UpdateOrganiza
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.query.SearchOrganizationsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.CreateOrganizationApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationUserApiResponse;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.organization.dto.command.CreateOrganizationCommand;
 import com.ryuqq.authhub.application.organization.dto.command.DeleteOrganizationCommand;
 import com.ryuqq.authhub.application.organization.dto.command.UpdateOrganizationCommand;
 import com.ryuqq.authhub.application.organization.dto.command.UpdateOrganizationStatusCommand;
 import com.ryuqq.authhub.application.organization.dto.query.GetOrganizationQuery;
+import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationUsersQuery;
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
+import com.ryuqq.authhub.application.organization.dto.response.OrganizationUserResponse;
+import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -141,5 +146,55 @@ public class OrganizationApiMapper {
      */
     public List<OrganizationApiResponse> toApiResponseList(List<OrganizationResponse> responses) {
         return responses.stream().map(this::toApiResponse).toList();
+    }
+
+    // ===== OrganizationUser 관련 변환 메서드 =====
+
+    /**
+     * organizationId + 페이징 정보 → SearchOrganizationUsersQuery 변환
+     *
+     * @param organizationId 조직 ID (PathVariable)
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return Application Query DTO
+     */
+    public SearchOrganizationUsersQuery toOrganizationUsersQuery(
+            String organizationId, Integer page, Integer size) {
+        OrganizationId id = OrganizationId.of(UUID.fromString(organizationId));
+        int pageNum = page != null ? page : 0;
+        int pageSize = size != null ? size : 20;
+        return SearchOrganizationUsersQuery.of(id, pageNum, pageSize);
+    }
+
+    /**
+     * OrganizationUserResponse → OrganizationUserApiResponse 변환
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public OrganizationUserApiResponse toOrganizationUserApiResponse(
+            OrganizationUserResponse response) {
+        return OrganizationUserApiResponse.of(
+                response.userId(), response.email(), response.tenantId(), response.createdAt());
+    }
+
+    /**
+     * PageResponse<OrganizationUserResponse> → PageResponse<OrganizationUserApiResponse> 변환
+     *
+     * @param pageResponse Application Page Response
+     * @return API Page Response
+     */
+    public PageResponse<OrganizationUserApiResponse> toOrganizationUserApiPageResponse(
+            PageResponse<OrganizationUserResponse> pageResponse) {
+        List<OrganizationUserApiResponse> content =
+                pageResponse.content().stream().map(this::toOrganizationUserApiResponse).toList();
+        return PageResponse.of(
+                content,
+                pageResponse.page(),
+                pageResponse.size(),
+                pageResponse.totalElements(),
+                pageResponse.totalPages(),
+                pageResponse.first(),
+                pageResponse.last());
     }
 }

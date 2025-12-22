@@ -1,0 +1,73 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+description = 'AuthHub Common Auth Library - 권한/역할 상수 및 유틸리티 공유 라이브러리'
+
+// ========================================
+// JitPack Publishing Configuration
+// ========================================
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            groupId = 'com.github.ryu-qqq'
+            artifactId = 'authhub-common-auth'
+            version = project.version
+
+            pom {
+                name = 'AuthHub Common Auth'
+                description = 'Shared authentication/authorization library for AuthHub ecosystem'
+                url = 'https://github.com/ryu-qqq/AuthHub'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'ryu-qqq'
+                        name = 'Sangwon Ryu'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/ryu-qqq/AuthHub.git'
+                    developerConnection = 'scm:git:ssh://github.com:ryu-qqq/AuthHub.git'
+                    url = 'https://github.com/ryu-qqq/AuthHub'
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    // 최소한의 의존성만 포함
+    // 다른 서비스들이 쉽게 사용할 수 있도록 경량 모듈로 유지
+
+    // 테스트
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    testImplementation "org.assertj:assertj-core:${assertjVersion}"
+}
+
+// JAR 설정
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': project.name,
+            'Implementation-Version': project.version,
+            'Automatic-Module-Name': 'com.ryuqq.auth.common'
+        )
+    }
+}
+
+// 소스 JAR 생성 (다른 서비스에서 소스 참조 가능하도록)
+java {
+    withSourcesJar()
+    withJavadocJar()
+}

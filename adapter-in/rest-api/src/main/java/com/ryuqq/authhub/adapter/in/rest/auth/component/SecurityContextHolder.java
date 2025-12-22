@@ -166,4 +166,33 @@ public final class SecurityContextHolder {
     public static boolean hasAllPermissions(String... permissions) {
         return getContext().hasAllPermissions(permissions);
     }
+
+    /**
+     * 서비스 계정 여부 확인
+     *
+     * <p>서버간 통신(Service Token 인증)인 경우 true
+     *
+     * @return 서비스 계정이면 true
+     */
+    public static boolean isServiceAccount() {
+        return getContext().isServiceAccount();
+    }
+
+    /**
+     * 호출 서비스명 반환
+     *
+     * @return 호출 서비스명 (없으면 null)
+     */
+    public static String getRequestSource() {
+        return getContext().getRequestSource();
+    }
+
+    /**
+     * 분산 추적 ID 반환
+     *
+     * @return Correlation ID (없으면 null)
+     */
+    public static String getCorrelationId() {
+        return getContext().getCorrelationId();
+    }
 }

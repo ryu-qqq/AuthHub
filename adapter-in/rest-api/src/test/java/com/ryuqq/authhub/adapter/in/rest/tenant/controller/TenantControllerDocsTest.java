@@ -127,7 +127,6 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("success").description("요청 성공 여부"),
                                         fieldWithPath("data").description("응답 데이터"),
                                         fieldWithPath("data.tenantId").description("생성된 테넌트 ID"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -178,7 +177,6 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.status").description("테넌트 상태"),
                                         fieldWithPath("data.createdAt").description("생성 일시"),
                                         fieldWithPath("data.updatedAt").description("수정 일시"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -229,7 +227,6 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.status").description("변경된 테넌트 상태"),
                                         fieldWithPath("data.createdAt").description("생성 일시"),
                                         fieldWithPath("data.updatedAt").description("수정 일시"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -287,7 +284,6 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.status").description("테넌트 상태"),
                                         fieldWithPath("data.createdAt").description("생성 일시"),
                                         fieldWithPath("data.updatedAt").description("수정 일시"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }

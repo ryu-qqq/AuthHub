@@ -147,7 +147,6 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                                             fieldWithPath("data").description("응답 데이터"),
                                             fieldWithPath("data.permissionId")
                                                     .description("생성된 권한 ID"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -189,7 +188,6 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                                     responseFields(
                                             fieldWithPath("success").description("성공 여부"),
                                             fieldWithPath("data").description("응답 데이터 (null)"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -280,7 +278,6 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                                                     .description("권한 유형 (SYSTEM/CUSTOM)"),
                                             fieldWithPath("data.createdAt").description("생성 일시"),
                                             fieldWithPath("data.updatedAt").description("수정 일시"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -369,7 +366,6 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                                                     .description("권한 유형 (SYSTEM/CUSTOM)"),
                                             fieldWithPath("data[].createdAt").description("생성 일시"),
                                             fieldWithPath("data[].updatedAt").description("수정 일시"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -416,7 +412,6 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                                             fieldWithPath("data.roles").description("역할 목록"),
                                             fieldWithPath("data.permissions")
                                                     .description("권한 키 목록"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }

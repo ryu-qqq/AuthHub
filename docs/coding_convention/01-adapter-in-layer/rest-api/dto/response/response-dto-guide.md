@@ -16,7 +16,7 @@
 * **Lombok 금지**: `@Data`, `@Builder` 등 모든 Lombok 어노테이션 금지
 * **Jackson 어노테이션 금지**: `@JsonFormat`, `@JsonProperty` 금지
 * **페이징 전용 DTO**: `SliceApiResponse` (Cursor), `PageApiResponse` (Offset)
-* **표준 래퍼**: `ApiResponse<T>` 사용 (success, data, error, timestamp)
+* **표준 래퍼**: `ApiResponse<T>` 사용 (성공 응답), RFC 7807 ProblemDetail 사용 (실패 응답)
 
 ### 금지사항
 
@@ -176,8 +176,8 @@ public record OrderSummaryApiResponse(
     "hasNext": true,
     "nextCursor": "xyz123"
   },
-  "error": null,
-  "timestamp": "2025-11-13T10:30:00"
+  "timestamp": "2025-11-13T10:30:00",
+  "requestId": "req-123456"
 }
 ```
 
@@ -223,8 +223,8 @@ public ApiResponse<PageApiResponse<OrderApiResponse>> getOrdersForAdmin(
     "first": true,
     "last": false
   },
-  "error": null,
-  "timestamp": "2025-11-13T10:30:00"
+  "timestamp": "2025-11-13T10:30:00",
+  "requestId": "req-123456"
 }
 ```
 
@@ -454,15 +454,28 @@ public ResponseEntity<ApiResponse<Void>> createOrder(...) {
 }
 ```
 
-### 에러 응답
+### 에러 응답 (RFC 7807 ProblemDetail)
+
+에러 응답은 `ApiResponse`가 아닌 **RFC 7807 ProblemDetail** 형식을 사용합니다.
+GlobalExceptionHandler에서 자동으로 처리되므로 Controller에서 직접 에러 응답을 생성하지 않습니다.
 
 ```java
-@ExceptionHandler(OrderNotFoundException.class)
-public ResponseEntity<ApiResponse<Void>> handleOrderNotFound(OrderNotFoundException ex) {
-    ErrorInfo error = new ErrorInfo("ORDER_NOT_FOUND", ex.getMessage());
-    return ResponseEntity
-        .status(HttpStatus.NOT_FOUND)
-        .body(ApiResponse.ofFailure(error));
+// ❌ Controller에서 직접 에러 응답 생성 금지
+// ✅ GlobalExceptionHandler가 RFC 7807 형식으로 자동 변환
+// 자세한 내용은 error/error-guide.md 참고
+```
+
+**에러 응답 형식 (RFC 7807)**:
+```json
+{
+  "type": "about:blank",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "주문을 찾을 수 없습니다",
+  "instance": "/api/orders/12345",
+  "code": "ORDER_NOT_FOUND",
+  "timestamp": "2025-11-13T10:30:00.000Z",
+  "traceId": "abc123def456"
 }
 ```
 

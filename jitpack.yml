@@ -1,0 +1,14 @@
+# JitPack Build Configuration
+# https://jitpack.io/docs/BUILDING/
+
+# Java 21 required for this project
+jdk:
+  - openjdk21
+
+# Build only common-auth module for publishing
+install:
+  - ./gradlew :common-auth:publishToMavenLocal -x test -x check
+
+# Skip unnecessary tasks for faster builds
+before_install:
+  - chmod +x gradlew

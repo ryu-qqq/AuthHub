@@ -70,6 +70,7 @@ public final class ApiPaths {
         public static final String BASE = AUTH_SERVICE_BASE + "/organizations";
         public static final String BY_ID = "/{organizationId}";
         public static final String BY_TENANT = "/tenants/{tenantId}/organizations";
+        public static final String USERS = "/{organizationId}/users";
 
         private Organizations() {}
     }
@@ -83,6 +84,7 @@ public final class ApiPaths {
         public static final String BASE = AUTH_SERVICE_BASE + "/roles";
         public static final String BY_ID = "/{roleId}";
         public static final String PERMISSIONS = "/{roleId}/permissions";
+        public static final String USERS = "/{roleId}/users";
 
         private Roles() {}
     }

@@ -41,6 +41,7 @@ import com.ryuqq.authhub.application.role.port.in.command.GrantRolePermissionUse
 import com.ryuqq.authhub.application.role.port.in.command.RevokeRolePermissionUseCase;
 import com.ryuqq.authhub.application.role.port.in.command.UpdateRoleUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.GetRoleUseCase;
+import com.ryuqq.authhub.application.role.port.in.query.SearchRoleUsersUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesUseCase;
 import java.time.Instant;
 import java.util.List;
@@ -90,6 +91,8 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
     @MockBean private GetRoleUseCase getRoleUseCase;
 
     @MockBean private SearchRolesUseCase searchRolesUseCase;
+
+    @MockBean private SearchRoleUsersUseCase searchRoleUsersUseCase;
 
     @MockBean private GrantRolePermissionUseCase grantRolePermissionUseCase;
 
@@ -166,7 +169,6 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                             fieldWithPath("success").description("성공 여부"),
                                             fieldWithPath("data").description("응답 데이터"),
                                             fieldWithPath("data.roleId").description("생성된 역할 ID"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -212,7 +214,6 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                     responseFields(
                                             fieldWithPath("success").description("성공 여부"),
                                             fieldWithPath("data").description("응답 데이터 (null)"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -302,7 +303,6 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                                     .description("역할 유형 (SYSTEM/CUSTOM)"),
                                             fieldWithPath("data.createdAt").description("생성 일시"),
                                             fieldWithPath("data.updatedAt").description("수정 일시"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -397,7 +397,6 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                                     .description("역할 유형 (SYSTEM/CUSTOM)"),
                                             fieldWithPath("data[].createdAt").description("생성 일시"),
                                             fieldWithPath("data[].updatedAt").description("수정 일시"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -452,7 +451,6 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                             fieldWithPath("data.roleId").description("역할 ID"),
                                             fieldWithPath("data.permissionId").description("권한 ID"),
                                             fieldWithPath("data.grantedAt").description("권한 부여 일시"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }

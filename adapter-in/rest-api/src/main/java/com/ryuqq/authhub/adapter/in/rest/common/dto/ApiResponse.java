@@ -4,19 +4,25 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
 /**
- * ApiResponse - 표준 API 응답 래퍼
+ * ApiResponse - 표준 API 성공 응답 래퍼
  *
- * <p>모든 REST API 응답의 일관된 형식을 제공합니다.
+ * <p>모든 REST API 성공 응답의 일관된 형식을 제공합니다.
+ *
+ * <p><strong>응답 전략:</strong>
+ *
+ * <ul>
+ *   <li>성공 응답: ApiResponse&lt;T&gt; 사용
+ *   <li>실패 응답: RFC 7807 ProblemDetail 사용 (GlobalExceptionHandler에서 처리)
+ * </ul>
  *
  * <p><strong>사용 예시:</strong>
  *
  * <pre>{@code
  * // 성공 응답
- * ApiResponse<UserDto> response = ApiResponse.success(userDto);
+ * ApiResponse<UserDto> response = ApiResponse.ofSuccess(userDto);
  *
- * // 에러 응답
- * ErrorInfo error = new ErrorInfo("USER_NOT_FOUND", "사용자를 찾을 수 없습니다");
- * ApiResponse<Void> response = ApiResponse.failure(error);
+ * // 데이터 없는 성공 응답
+ * ApiResponse<Void> response = ApiResponse.ofSuccess();
  * }</pre>
  *
  * <p><strong>응답 형식:</strong>
@@ -25,7 +31,6 @@ import java.time.LocalDateTime;
  * {
  *   "success": true,
  *   "data": { ... },
- *   "error": null,
  *   "timestamp": "2025-10-23T10:30:00",
  *   "requestId": "req-123456"
  * }
@@ -35,11 +40,10 @@ import java.time.LocalDateTime;
  * @author ryu-qqq
  * @since 2025-10-23
  */
-@Schema(description = "표준 API 응답 래퍼")
+@Schema(description = "표준 API 성공 응답 래퍼")
 public record ApiResponse<T>(
         @Schema(description = "요청 성공 여부") boolean success,
         @Schema(description = "응답 데이터") T data,
-        @Schema(description = "에러 정보") ErrorInfo error,
         @Schema(description = "응답 시간") LocalDateTime timestamp,
         @Schema(description = "요청 ID") String requestId) {
 
@@ -53,7 +57,7 @@ public record ApiResponse<T>(
      * @since 2025-10-23
      */
     public static <T> ApiResponse<T> ofSuccess(T data) {
-        return new ApiResponse<>(true, data, null, LocalDateTime.now(), generateRequestId());
+        return new ApiResponse<>(true, data, LocalDateTime.now(), generateRequestId());
     }
 
     /**
@@ -66,33 +70,6 @@ public record ApiResponse<T>(
      */
     public static <T> ApiResponse<T> ofSuccess() {
         return ofSuccess(null);
-    }
-
-    /**
-     * 실패 응답 생성
-     *
-     * @param error 에러 정보
-     * @param <T> 데이터 타입
-     * @return 실패 ApiResponse
-     * @author ryu-qqq
-     * @since 2025-10-23
-     */
-    public static <T> ApiResponse<T> ofFailure(ErrorInfo error) {
-        return new ApiResponse<>(false, null, error, LocalDateTime.now(), generateRequestId());
-    }
-
-    /**
-     * 실패 응답 생성 (간편 버전)
-     *
-     * @param errorCode 에러 코드
-     * @param message 에러 메시지
-     * @param <T> 데이터 타입
-     * @return 실패 ApiResponse
-     * @author ryu-qqq
-     * @since 2025-10-23
-     */
-    public static <T> ApiResponse<T> ofFailure(String errorCode, String message) {
-        return ofFailure(new ErrorInfo(errorCode, message));
     }
 
     /**
