@@ -1,6 +1,6 @@
 package com.ryuqq.authhub.adapter.out.persistence.organization.adapter;
 
-import com.ryuqq.authhub.adapter.out.persistence.organization.dto.OrganizationUserProjection;
+import com.ryuqq.authhub.adapter.out.persistence.organization.mapper.OrganizationUserMapper;
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationUserQueryDslRepository;
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationUsersQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationUserResponse;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * <p><strong>1:1 매핑 원칙:</strong>
  *
  * <ul>
- *   <li>OrganizationUserQueryDslRepository (1개)
+ *   <li>OrganizationUserQueryDslRepository (1개) + OrganizationUserMapper (1개)
  *   <li>Persistence DTO → Application DTO 변환
  * </ul>
  *
@@ -35,36 +35,27 @@ import org.springframework.stereotype.Component;
 public class OrganizationUserQueryAdapter implements OrganizationUserQueryPort {
 
     private final OrganizationUserQueryDslRepository repository;
+    private final OrganizationUserMapper mapper;
 
-    public OrganizationUserQueryAdapter(OrganizationUserQueryDslRepository repository) {
+    public OrganizationUserQueryAdapter(
+            OrganizationUserQueryDslRepository repository, OrganizationUserMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     @Override
     public List<OrganizationUserResponse> searchUsersByOrganizationId(
             SearchOrganizationUsersQuery query) {
-        List<OrganizationUserProjection> projections =
-                repository.searchUsersByOrganizationId(
-                        query.organizationId().value(), query.offset(), query.size());
-        return projections.stream().map(this::toResponse).toList();
+        return repository
+                .searchUsersByOrganizationId(
+                        query.organizationId().value(), query.offset(), query.size())
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     @Override
     public long countUsersByOrganizationId(SearchOrganizationUsersQuery query) {
         return repository.countUsersByOrganizationId(query.organizationId().value());
-    }
-
-    /**
-     * Persistence DTO → Application DTO 변환
-     *
-     * @param projection Persistence DTO
-     * @return Application DTO
-     */
-    private OrganizationUserResponse toResponse(OrganizationUserProjection projection) {
-        return new OrganizationUserResponse(
-                projection.userId() != null ? projection.userId().toString() : null,
-                projection.email(),
-                projection.tenantId() != null ? projection.tenantId().toString() : null,
-                projection.createdAt());
     }
 }

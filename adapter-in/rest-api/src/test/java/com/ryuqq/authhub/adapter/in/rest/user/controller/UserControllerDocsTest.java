@@ -158,7 +158,6 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("success").description("API 성공 여부"),
                                         fieldWithPath("data").description("응답 데이터"),
                                         fieldWithPath("data.userId").description("생성된 사용자 ID"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -194,7 +193,6 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                 responseFields(
                                         fieldWithPath("success").description("API 성공 여부"),
                                         fieldWithPath("data").description("응답 데이터 (수정 시 null)"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -231,7 +229,6 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                 responseFields(
                                         fieldWithPath("success").description("API 성공 여부"),
                                         fieldWithPath("data").description("응답 데이터 (수정 시 null)"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -272,7 +269,6 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                 responseFields(
                                         fieldWithPath("success").description("API 성공 여부"),
                                         fieldWithPath("data").description("응답 데이터 (수정 시 null)"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -346,7 +342,6 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                             fieldWithPath("data.status").description("사용자 상태"),
                                             fieldWithPath("data.createdAt").description("생성 일시"),
                                             fieldWithPath("data.updatedAt").description("수정 일시"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -399,7 +394,6 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.status").description("사용자 상태"),
                                         fieldWithPath("data.createdAt").description("생성 일시"),
                                         fieldWithPath("data.updatedAt").description("수정 일시"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -478,7 +472,6 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data[].status").description("사용자 상태"),
                                         fieldWithPath("data[].createdAt").description("생성 일시"),
                                         fieldWithPath("data[].updatedAt").description("수정 일시"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -522,7 +515,6 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.userId").description("사용자 ID"),
                                         fieldWithPath("data.roleId").description("역할 ID"),
                                         fieldWithPath("data.assignedAt").description("할당 일시"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }

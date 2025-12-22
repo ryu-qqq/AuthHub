@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.role.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
 /**
@@ -15,8 +16,16 @@ import java.time.Instant;
  * @author development-team
  * @since 1.0.0
  */
+@Schema(description = "역할에 할당된 사용자 API 응답")
 public record RoleUserApiResponse(
-        String userId, String email, String tenantId, String organizationId, Instant assignedAt) {
+        @Schema(description = "사용자 ID (UUID)", example = "550e8400-e29b-41d4-a716-446655440000")
+                String userId,
+        @Schema(description = "사용자 이메일", example = "user@example.com") String email,
+        @Schema(description = "테넌트 ID", example = "550e8400-e29b-41d4-a716-446655440001")
+                String tenantId,
+        @Schema(description = "조직 ID", example = "550e8400-e29b-41d4-a716-446655440002")
+                String organizationId,
+        @Schema(description = "역할 할당 일시") Instant assignedAt) {
 
     /**
      * 정적 팩토리 메서드

@@ -1,6 +1,6 @@
 package com.ryuqq.authhub.adapter.out.persistence.role.adapter;
 
-import com.ryuqq.authhub.adapter.out.persistence.role.dto.RoleUserProjection;
+import com.ryuqq.authhub.adapter.out.persistence.role.mapper.RoleUserMapper;
 import com.ryuqq.authhub.adapter.out.persistence.role.repository.RoleUserQueryDslRepository;
 import com.ryuqq.authhub.application.role.dto.query.SearchRoleUsersQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * <p><strong>1:1 매핑 원칙:</strong>
  *
  * <ul>
- *   <li>RoleUserQueryDslRepository (1개)
+ *   <li>RoleUserQueryDslRepository (1개) + RoleUserMapper (1개)
  *   <li>Persistence DTO → Application DTO 변환
  * </ul>
  *
@@ -35,36 +35,24 @@ import org.springframework.stereotype.Component;
 public class RoleUserQueryAdapter implements RoleUserQueryPort {
 
     private final RoleUserQueryDslRepository repository;
+    private final RoleUserMapper mapper;
 
-    public RoleUserQueryAdapter(RoleUserQueryDslRepository repository) {
+    public RoleUserQueryAdapter(RoleUserQueryDslRepository repository, RoleUserMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     @Override
     public List<RoleUserResponse> searchUsersByRoleId(SearchRoleUsersQuery query) {
-        List<RoleUserProjection> projections =
-                repository.searchUsersByRoleId(
-                        query.roleId().value(), query.offset(), query.size());
-        return projections.stream().map(this::toResponse).toList();
+        return repository
+                .searchUsersByRoleId(query.roleId().value(), query.offset(), query.size())
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     @Override
     public long countUsersByRoleId(SearchRoleUsersQuery query) {
         return repository.countUsersByRoleId(query.roleId().value());
-    }
-
-    /**
-     * Persistence DTO → Application DTO 변환
-     *
-     * @param projection Persistence DTO
-     * @return Application DTO
-     */
-    private RoleUserResponse toResponse(RoleUserProjection projection) {
-        return new RoleUserResponse(
-                projection.userId() != null ? projection.userId().toString() : null,
-                projection.email(),
-                projection.tenantId() != null ? projection.tenantId().toString() : null,
-                projection.organizationId() != null ? projection.organizationId().toString() : null,
-                projection.assignedAt());
     }
 }

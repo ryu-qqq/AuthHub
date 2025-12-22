@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.organization.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
 /**
@@ -14,8 +15,14 @@ import java.time.Instant;
  * @author development-team
  * @since 1.0.0
  */
+@Schema(description = "조직 소속 사용자 API 응답")
 public record OrganizationUserApiResponse(
-        String userId, String email, String tenantId, Instant createdAt) {
+        @Schema(description = "사용자 ID (UUID)", example = "550e8400-e29b-41d4-a716-446655440000")
+                String userId,
+        @Schema(description = "사용자 이메일", example = "user@example.com") String email,
+        @Schema(description = "테넌트 ID", example = "550e8400-e29b-41d4-a716-446655440001")
+                String tenantId,
+        @Schema(description = "사용자 생성 일시") Instant createdAt) {
 
     /**
      * 정적 팩토리 메서드

@@ -39,6 +39,7 @@ import com.ryuqq.authhub.application.organization.port.in.command.DeleteOrganiza
 import com.ryuqq.authhub.application.organization.port.in.command.UpdateOrganizationStatusUseCase;
 import com.ryuqq.authhub.application.organization.port.in.command.UpdateOrganizationUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.GetOrganizationUseCase;
+import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationUsersUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsUseCase;
 import java.time.Instant;
 import java.util.List;
@@ -84,6 +85,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
     @MockBean private DeleteOrganizationUseCase deleteOrganizationUseCase;
     @MockBean private GetOrganizationUseCase getOrganizationUseCase;
     @MockBean private SearchOrganizationsUseCase searchOrganizationsUseCase;
+    @MockBean private SearchOrganizationUsersUseCase searchOrganizationUsersUseCase;
     @MockBean private OrganizationApiMapper mapper;
     @MockBean private ErrorMapperRegistry errorMapperRegistry;
 
@@ -129,7 +131,6 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data").description("응답 데이터"),
                                         fieldWithPath("data.organizationId")
                                                 .description("생성된 조직 ID"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -165,7 +166,6 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                                 responseFields(
                                         fieldWithPath("success").description("성공 여부"),
                                         fieldWithPath("data").description("응답 데이터 (수정 시 null)"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -227,7 +227,6 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.status").description("조직 상태"),
                                         fieldWithPath("data.createdAt").description("생성 시각"),
                                         fieldWithPath("data.updatedAt").description("수정 시각"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -296,7 +295,6 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.status").description("조직 상태"),
                                         fieldWithPath("data.createdAt").description("생성 시각"),
                                         fieldWithPath("data.updatedAt").description("수정 시각"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -368,7 +366,6 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.totalPages").description("전체 페이지 수"),
                                         fieldWithPath("data.first").description("첫 페이지 여부"),
                                         fieldWithPath("data.last").description("마지막 페이지 여부"),
-                                        fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }

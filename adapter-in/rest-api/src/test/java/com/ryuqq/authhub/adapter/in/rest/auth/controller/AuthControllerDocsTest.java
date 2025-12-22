@@ -126,7 +126,6 @@ class AuthControllerDocsTest extends RestDocsTestSupport {
                                                     .description("액세스 토큰 만료 시간 (초)"),
                                             fieldWithPath("data.tokenType")
                                                     .description("토큰 타입 (Bearer)"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp")
                                                     .description("응답 시간 (ISO-8601 형식)"),
                                             fieldWithPath("requestId").description("요청 ID"))));
@@ -188,7 +187,6 @@ class AuthControllerDocsTest extends RestDocsTestSupport {
                                                     .description("리프레시 토큰 만료 시간 (초)"),
                                             fieldWithPath("data.tokenType")
                                                     .description("토큰 타입 (Bearer)"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp")
                                                     .description("응답 시간 (ISO-8601 형식)"),
                                             fieldWithPath("requestId").description("요청 ID"))));
@@ -224,7 +222,6 @@ class AuthControllerDocsTest extends RestDocsTestSupport {
                                     responseFields(
                                             fieldWithPath("success").description("성공 여부"),
                                             fieldWithPath("data").description("응답 데이터 (성공 시 null)"),
-                                            fieldWithPath("error").description("에러 정보 (성공 시 null)"),
                                             fieldWithPath("timestamp")
                                                     .description("응답 시간 (ISO-8601 형식)"),
                                             fieldWithPath("requestId").description("요청 ID"))));
