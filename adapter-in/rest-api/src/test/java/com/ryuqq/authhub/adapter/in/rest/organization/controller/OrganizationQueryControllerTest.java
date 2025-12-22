@@ -11,11 +11,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationUserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.mapper.OrganizationApiMapper;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.organization.dto.query.GetOrganizationQuery;
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
+import com.ryuqq.authhub.application.organization.dto.response.OrganizationUserResponse;
 import com.ryuqq.authhub.application.organization.port.in.query.GetOrganizationUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationUsersUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsUseCase;
@@ -335,6 +337,121 @@ class OrganizationQueryControllerTest {
         void searchOrganizations_withoutTenantId_returns400BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(get("/api/v1/auth/organizations")).andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/v1/organizations/{organizationId}/users - 조직별 사용자 목록 조회")
+    class GetOrganizationUsersTest {
+
+        @Test
+        @DisplayName("[성공] 유효한 조직 ID로 사용자 목록 조회 시 200 OK 반환")
+        void getOrganizationUsers_withValidOrganizationId_returns200Ok() throws Exception {
+            // Given
+            UUID organizationId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            UUID tenantId = UUID.randomUUID();
+            Instant now = Instant.now();
+
+            OrganizationUserResponse useCaseResponse =
+                    new OrganizationUserResponse(
+                            userId.toString(), "user@example.com", tenantId.toString(), now);
+            PageResponse<OrganizationUserResponse> pageResponse =
+                    PageResponse.of(List.of(useCaseResponse), 0, 20, 1L, 1, true, true);
+
+            OrganizationUserApiResponse apiResponse =
+                    new OrganizationUserApiResponse(
+                            userId.toString(), "user@example.com", tenantId.toString(), now);
+            PageResponse<OrganizationUserApiResponse> apiPageResponse =
+                    PageResponse.of(List.of(apiResponse), 0, 20, 1L, 1, true, true);
+
+            given(searchOrganizationUsersUseCase.execute(any())).willReturn(pageResponse);
+            given(mapper.toOrganizationUserApiPageResponse(any())).willReturn(apiPageResponse);
+
+            // When & Then
+            mockMvc.perform(
+                            get(
+                                    "/api/v1/auth/organizations/{organizationId}/users",
+                                    organizationId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].userId").value(userId.toString()))
+                    .andExpect(jsonPath("$.data.content[0].email").value("user@example.com"))
+                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.size").value(20))
+                    .andExpect(jsonPath("$.data.totalElements").value(1));
+
+            verify(searchOrganizationUsersUseCase).execute(any());
+        }
+
+        @Test
+        @DisplayName("[성공] 빈 사용자 목록 조회 시 빈 배열 반환")
+        void getOrganizationUsers_withNoUsers_returnsEmptyArray() throws Exception {
+            // Given
+            UUID organizationId = UUID.randomUUID();
+
+            PageResponse<OrganizationUserResponse> emptyPageResponse =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+            PageResponse<OrganizationUserApiResponse> emptyApiPageResponse =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+
+            given(searchOrganizationUsersUseCase.execute(any())).willReturn(emptyPageResponse);
+            given(mapper.toOrganizationUserApiPageResponse(any())).willReturn(emptyApiPageResponse);
+
+            // When & Then
+            mockMvc.perform(
+                            get(
+                                    "/api/v1/auth/organizations/{organizationId}/users",
+                                    organizationId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0));
+
+            verify(searchOrganizationUsersUseCase).execute(any());
+        }
+
+        @Test
+        @DisplayName("[성공] 페이지네이션 파라미터로 조회 시 200 OK 반환")
+        void getOrganizationUsers_withPagination_returns200Ok() throws Exception {
+            // Given
+            UUID organizationId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            UUID tenantId = UUID.randomUUID();
+            Instant now = Instant.now();
+
+            OrganizationUserResponse useCaseResponse =
+                    new OrganizationUserResponse(
+                            userId.toString(), "user@example.com", tenantId.toString(), now);
+            PageResponse<OrganizationUserResponse> pageResponse =
+                    PageResponse.of(List.of(useCaseResponse), 1, 10, 25L, 3, false, false);
+
+            OrganizationUserApiResponse apiResponse =
+                    new OrganizationUserApiResponse(
+                            userId.toString(), "user@example.com", tenantId.toString(), now);
+            PageResponse<OrganizationUserApiResponse> apiPageResponse =
+                    PageResponse.of(List.of(apiResponse), 1, 10, 25L, 3, false, false);
+
+            given(searchOrganizationUsersUseCase.execute(any())).willReturn(pageResponse);
+            given(mapper.toOrganizationUserApiPageResponse(any())).willReturn(apiPageResponse);
+
+            // When & Then
+            mockMvc.perform(
+                            get("/api/v1/auth/organizations/{organizationId}/users", organizationId)
+                                    .param("page", "1")
+                                    .param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.page").value(1))
+                    .andExpect(jsonPath("$.data.size").value(10))
+                    .andExpect(jsonPath("$.data.totalElements").value(25))
+                    .andExpect(jsonPath("$.data.totalPages").value(3))
+                    .andExpect(jsonPath("$.data.first").value(false))
+                    .andExpect(jsonPath("$.data.last").value(false));
+
+            verify(searchOrganizationUsersUseCase).execute(any());
         }
     }
 }

@@ -11,10 +11,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleUserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.mapper.RoleApiMapper;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.role.dto.query.GetRoleQuery;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
+import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
 import com.ryuqq.authhub.application.role.port.in.query.GetRoleUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRoleUsersUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesUseCase;
@@ -461,6 +464,124 @@ class RoleQueryControllerTest {
                     .andExpect(jsonPath("$.data").isEmpty());
 
             verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/v1/roles/{roleId}/users - 역할별 사용자 목록 조회")
+    class GetRoleUsersTest {
+
+        @Test
+        @DisplayName("[성공] 유효한 역할 ID로 사용자 목록 조회 시 200 OK 반환")
+        void getRoleUsers_withValidRoleId_returns200Ok() throws Exception {
+            // Given
+            UUID roleId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            UUID tenantId = UUID.randomUUID();
+            UUID organizationId = UUID.randomUUID();
+            Instant now = Instant.now();
+
+            RoleUserResponse useCaseResponse =
+                    new RoleUserResponse(
+                            userId.toString(),
+                            "user@example.com",
+                            tenantId.toString(),
+                            organizationId.toString(),
+                            now);
+            PageResponse<RoleUserResponse> pageResponse =
+                    PageResponse.of(List.of(useCaseResponse), 0, 20, 1L, 1, true, true);
+
+            RoleUserApiResponse apiResponse =
+                    new RoleUserApiResponse(
+                            userId.toString(),
+                            "user@example.com",
+                            tenantId.toString(),
+                            organizationId.toString(),
+                            now);
+            PageResponse<RoleUserApiResponse> apiPageResponse =
+                    PageResponse.of(List.of(apiResponse), 0, 20, 1L, 1, true, true);
+
+            given(searchRoleUsersUseCase.execute(any())).willReturn(pageResponse);
+            given(mapper.toRoleUserApiPageResponse(any())).willReturn(apiPageResponse);
+
+            // When & Then
+            mockMvc.perform(get("/api/v1/auth/roles/{roleId}/users", roleId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].userId").value(userId.toString()))
+                    .andExpect(jsonPath("$.data.content[0].email").value("user@example.com"))
+                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.size").value(20))
+                    .andExpect(jsonPath("$.data.totalElements").value(1));
+
+            verify(searchRoleUsersUseCase).execute(any());
+        }
+
+        @Test
+        @DisplayName("[성공] 빈 사용자 목록 조회 시 빈 배열 반환")
+        void getRoleUsers_withNoUsers_returnsEmptyArray() throws Exception {
+            // Given
+            UUID roleId = UUID.randomUUID();
+
+            PageResponse<RoleUserResponse> emptyPageResponse =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+            PageResponse<RoleUserApiResponse> emptyApiPageResponse =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+
+            given(searchRoleUsersUseCase.execute(any())).willReturn(emptyPageResponse);
+            given(mapper.toRoleUserApiPageResponse(any())).willReturn(emptyApiPageResponse);
+
+            // When & Then
+            mockMvc.perform(get("/api/v1/auth/roles/{roleId}/users", roleId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0));
+
+            verify(searchRoleUsersUseCase).execute(any());
+        }
+
+        @Test
+        @DisplayName("[성공] 페이지네이션 파라미터로 조회 시 200 OK 반환")
+        void getRoleUsers_withPagination_returns200Ok() throws Exception {
+            // Given
+            UUID roleId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            UUID tenantId = UUID.randomUUID();
+            Instant now = Instant.now();
+
+            RoleUserResponse useCaseResponse =
+                    new RoleUserResponse(
+                            userId.toString(), "user@example.com", tenantId.toString(), null, now);
+            PageResponse<RoleUserResponse> pageResponse =
+                    PageResponse.of(List.of(useCaseResponse), 1, 10, 25L, 3, false, false);
+
+            RoleUserApiResponse apiResponse =
+                    new RoleUserApiResponse(
+                            userId.toString(), "user@example.com", tenantId.toString(), null, now);
+            PageResponse<RoleUserApiResponse> apiPageResponse =
+                    PageResponse.of(List.of(apiResponse), 1, 10, 25L, 3, false, false);
+
+            given(searchRoleUsersUseCase.execute(any())).willReturn(pageResponse);
+            given(mapper.toRoleUserApiPageResponse(any())).willReturn(apiPageResponse);
+
+            // When & Then
+            mockMvc.perform(
+                            get("/api/v1/auth/roles/{roleId}/users", roleId)
+                                    .param("page", "1")
+                                    .param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.page").value(1))
+                    .andExpect(jsonPath("$.data.size").value(10))
+                    .andExpect(jsonPath("$.data.totalElements").value(25))
+                    .andExpect(jsonPath("$.data.totalPages").value(3))
+                    .andExpect(jsonPath("$.data.first").value(false))
+                    .andExpect(jsonPath("$.data.last").value(false));
+
+            verify(searchRoleUsersUseCase).execute(any());
         }
     }
 }

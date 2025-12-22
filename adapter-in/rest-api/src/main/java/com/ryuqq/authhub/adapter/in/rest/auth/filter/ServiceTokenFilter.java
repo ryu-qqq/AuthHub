@@ -10,6 +10,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +102,13 @@ public class ServiceTokenFilter extends OncePerRequestFilter {
 
     private boolean isValidServiceToken(String token) {
         String configuredSecret = serviceTokenProperties.getSecret();
-        return StringUtils.hasText(configuredSecret) && configuredSecret.equals(token);
+        if (!StringUtils.hasText(configuredSecret) || !StringUtils.hasText(token)) {
+            return false;
+        }
+        // 타이밍 공격 방지를 위한 상수 시간 비교
+        return MessageDigest.isEqual(
+                configuredSecret.getBytes(StandardCharsets.UTF_8),
+                token.getBytes(StandardCharsets.UTF_8));
     }
 
     private SecurityContext buildServiceSecurityContext(HttpServletRequest request) {
@@ -141,8 +149,10 @@ public class ServiceTokenFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
-        org.springframework.security.core.context.SecurityContextHolder.getContext()
-                .setAuthentication(authentication);
+        // Law of Demeter 준수: getter 체이닝 대신 로컬 변수 사용
+        org.springframework.security.core.context.SecurityContext securityContext =
+                org.springframework.security.core.context.SecurityContextHolder.getContext();
+        securityContext.setAuthentication(authentication);
     }
 
     @Override

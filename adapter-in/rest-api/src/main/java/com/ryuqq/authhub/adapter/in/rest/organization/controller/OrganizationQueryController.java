@@ -17,6 +17,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,7 +96,7 @@ public class OrganizationQueryController {
     @PreAuthorize("@access.organization(#organizationId, 'read')")
     @GetMapping("/{organizationId}")
     public ResponseEntity<ApiResponse<OrganizationApiResponse>> getOrganization(
-            @Parameter(description = "조직 ID", required = true) @PathVariable
+            @Parameter(description = "조직 ID", required = true) @PathVariable @NotBlank
                     String organizationId) {
         OrganizationResponse response =
                 getOrganizationUseCase.execute(mapper.toGetQuery(organizationId));
@@ -136,8 +139,12 @@ public class OrganizationQueryController {
                             String name,
                     @Parameter(description = "조직 상태 필터") @RequestParam(required = false)
                             String status,
-                    @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
-                    @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20")
+                    @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") @Min(0)
+                            int page,
+                    @Parameter(description = "페이지 크기")
+                            @RequestParam(defaultValue = "20")
+                            @Min(1)
+                            @Max(100)
                             int size) {
         SearchOrganizationsApiRequest request =
                 new SearchOrganizationsApiRequest(tenantId, name, status, page, size);
@@ -178,11 +185,14 @@ public class OrganizationQueryController {
     @GetMapping(ApiPaths.Organizations.USERS)
     public ResponseEntity<ApiResponse<PageResponse<OrganizationUserApiResponse>>>
             getOrganizationUsers(
-                    @Parameter(description = "조직 ID", required = true) @PathVariable
+                    @Parameter(description = "조직 ID", required = true) @PathVariable @NotBlank
                             String organizationId,
-                    @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0")
+                    @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") @Min(0)
                             Integer page,
-                    @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20")
+                    @Parameter(description = "페이지 크기")
+                            @RequestParam(defaultValue = "20")
+                            @Min(1)
+                            @Max(100)
                             Integer size) {
         PageResponse<OrganizationUserResponse> response =
                 searchOrganizationUsersUseCase.execute(

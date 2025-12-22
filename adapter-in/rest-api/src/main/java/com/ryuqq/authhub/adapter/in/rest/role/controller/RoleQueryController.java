@@ -16,6 +16,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -93,7 +96,8 @@ public class RoleQueryController {
     @PreAuthorize("@access.hasPermission('role:read')")
     @GetMapping("/{roleId}")
     public ResponseEntity<ApiResponse<RoleApiResponse>> getRole(
-            @Parameter(description = "역할 ID", required = true) @PathVariable String roleId) {
+            @Parameter(description = "역할 ID", required = true) @PathVariable @NotBlank
+                    String roleId) {
         RoleResponse response = getRoleUseCase.execute(mapper.toGetQuery(roleId));
         RoleApiResponse apiResponse = mapper.toApiResponse(response);
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
@@ -135,8 +139,10 @@ public class RoleQueryController {
                     String scope,
             @Parameter(description = "역할 유형 필터 (SYSTEM/CUSTOM)") @RequestParam(required = false)
                     String type,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") Integer page,
-            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size) {
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") @Min(0)
+                    Integer page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") @Min(1) @Max(100)
+                    Integer size) {
         SearchRolesApiRequest request =
                 new SearchRolesApiRequest(tenantId, name, scope, type, page, size);
         List<RoleResponse> responses = searchRolesUseCase.execute(mapper.toQuery(request));
@@ -173,9 +179,12 @@ public class RoleQueryController {
     @PreAuthorize("@access.superAdmin() or @access.tenantAdmin()")
     @GetMapping(ApiPaths.Roles.USERS)
     public ResponseEntity<ApiResponse<PageResponse<RoleUserApiResponse>>> getRoleUsers(
-            @Parameter(description = "역할 ID", required = true) @PathVariable String roleId,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") Integer page,
-            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size) {
+            @Parameter(description = "역할 ID", required = true) @PathVariable @NotBlank
+                    String roleId,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") @Min(0)
+                    Integer page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") @Min(1) @Max(100)
+                    Integer size) {
         PageResponse<RoleUserResponse> response =
                 searchRoleUsersUseCase.execute(mapper.toRoleUsersQuery(roleId, page, size));
         PageResponse<RoleUserApiResponse> apiResponse = mapper.toRoleUserApiPageResponse(response);
