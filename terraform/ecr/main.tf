@@ -30,6 +30,9 @@ module "ecr_web_api" {
   image_tag_mutability = "IMMUTABLE"
   scan_on_push         = true
 
+  # KMS encryption (null = use AES-256 default encryption)
+  kms_key_arn = null
+
   # Lifecycle Policy
   enable_lifecycle_policy    = true
   max_image_count            = 30
