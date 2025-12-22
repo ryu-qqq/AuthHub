@@ -36,10 +36,9 @@
 adapter-in/rest-api/
 ├── common/
 │   ├── controller/
-│   │   └── GlobalExceptionHandler.java   # 전역 예외 처리
+│   │   └── GlobalExceptionHandler.java   # 전역 예외 처리 (RFC 7807 ProblemDetail)
 │   ├── dto/
-│   │   ├── ApiResponse.java              # 성공 응답 래퍼
-│   │   └── ErrorInfo.java                # (선택) 에러 정보 DTO
+│   │   └── ApiResponse.java              # 성공 응답 래퍼 (실패 응답은 ProblemDetail 사용)
 │   ├── error/
 │   │   └── ErrorMapperRegistry.java      # ErrorMapper 레지스트리
 │   └── mapper/

@@ -37,8 +37,7 @@ adapter-in/rest-api/
 │
 ├─ common/
 │  ├─ dto/
-│  │  ├─ ApiResponse.java          # 성공 응답 Wrapper
-│  │  ├─ ErrorInfo.java             # 에러 응답 상세
+│  │  ├─ ApiResponse.java          # 성공 응답 Wrapper (실패 응답은 RFC 7807 ProblemDetail)
 │  │  ├─ SliceApiResponse.java      # Slice 페이징 응답
 │  │  └─ PageApiResponse.java       # Page 페이징 응답
 │  ├─ controller/

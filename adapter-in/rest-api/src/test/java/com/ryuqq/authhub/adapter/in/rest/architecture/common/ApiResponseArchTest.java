@@ -19,17 +19,23 @@ import org.junit.jupiter.api.Test;
  *
  * <p>Common API Response 패턴을 검증합니다.
  *
+ * <p><strong>응답 전략:</strong>
+ *
+ * <ul>
+ *   <li>성공 응답: ApiResponse&lt;T&gt; 사용
+ *   <li>실패 응답: RFC 7807 ProblemDetail 사용 (GlobalExceptionHandler에서 처리)
+ * </ul>
+ *
  * <p><strong>검증 규칙:</strong>
  *
  * <ul>
  *   <li>규칙 1: Common Response DTOs는 common.dto 패키지에 위치
  *   <li>규칙 2: Common Response DTOs는 Record 타입이어야 함
- *   <li>규칙 3: ApiResponse는 static factory method 패턴 사용
+ *   <li>규칙 3: ApiResponse는 ofSuccess static factory method 패턴 사용
  *   <li>규칙 4: PageApiResponse는 from() 메서드 필수
- *   <li>규칙 5: ErrorInfo는 validation 필수
- *   <li>규칙 6: Common Response DTOs는 Lombok 금지
- *   <li>규칙 7: Common Response DTOs는 public이어야 함
- *   <li>규칙 8: Common Response DTOs는 final이어야 함 (Record 특성)
+ *   <li>규칙 5: Common Response DTOs는 Lombok 금지
+ *   <li>규칙 6: Common Response DTOs는 public이어야 함
+ *   <li>규칙 7: Common Response DTOs는 final이어야 함 (Record 특성)
  * </ul>
  *
  * <p><strong>참고 문서:</strong>
@@ -60,15 +66,17 @@ class ApiResponseArchTest {
     /**
      * 규칙 1: Common Response DTOs는 common.dto 패키지에 위치
      *
-     * <p>Note: ApiResponse, PageApiResponse, SliceApiResponse, ErrorInfo 등 공통 Response 래퍼만
-     * common.dto에 있어야 합니다. 도메인별 Response DTO(예: TenantApiResponse, UserApiResponse)는 해당 도메인 패키지의
-     * dto.response에 위치합니다.
+     * <p>Note: ApiResponse, PageApiResponse, SliceApiResponse 등 공통 Response 래퍼만 common.dto에 있어야
+     * 합니다. 도메인별 Response DTO(예: TenantApiResponse, UserApiResponse)는 해당 도메인 패키지의 dto.response에
+     * 위치합니다.
+     *
+     * <p>Note: 실패 응답은 RFC 7807 ProblemDetail을 사용하므로 ErrorInfo 클래스는 사용하지 않습니다.
      */
     @Test
     @DisplayName("[필수] Common Response DTOs는 common.dto 패키지에 위치해야 한다")
     void commonResponseDtos_MustBeInCommonDtoPackage() {
         // Common Response 래퍼 클래스만 체크 (도메인별 Response DTO 제외)
-        // ApiResponse, PageApiResponse, SliceApiResponse, ErrorInfo만 체크
+        // ApiResponse, PageApiResponse, SliceApiResponse만 체크
         ArchRule rule =
                 classes()
                         .that()
@@ -77,13 +85,11 @@ class ApiResponseArchTest {
                         .haveSimpleName("PageApiResponse")
                         .or()
                         .haveSimpleName("SliceApiResponse")
-                        .or()
-                        .haveSimpleName("ErrorInfo")
                         .should()
                         .resideInAPackage("..common.dto..")
                         .because(
-                                "Common Response 래퍼(ApiResponse, PageApiResponse, SliceApiResponse,"
-                                        + " ErrorInfo)는 common.dto 패키지에 위치해야 합니다");
+                                "Common Response 래퍼(ApiResponse, PageApiResponse,"
+                                        + " SliceApiResponse)는 common.dto 패키지에 위치해야 합니다");
 
         rule.allowEmptyShould(true).check(classes);
     }
@@ -95,7 +101,7 @@ class ApiResponseArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .haveNameMatching(".*ApiResponse|.*ErrorInfo")
+                        .haveNameMatching(".*ApiResponse")
                         .and()
                         .resideInAPackage("..common.dto..")
                         .and()
@@ -107,9 +113,13 @@ class ApiResponseArchTest {
         rule.allowEmptyShould(true).check(classes);
     }
 
-    /** 규칙 3: ApiResponse는 static factory method 패턴 사용 */
+    /**
+     * 규칙 3: ApiResponse는 ofSuccess static factory method 패턴 사용
+     *
+     * <p>Note: 실패 응답은 GlobalExceptionHandler에서 RFC 7807 ProblemDetail로 처리합니다.
+     */
     @Test
-    @DisplayName("[필수] ApiResponse는 ofSuccess/ofFailure static factory methods를 가져야 한다")
+    @DisplayName("[필수] ApiResponse는 ofSuccess static factory method를 가져야 한다")
     void apiResponse_MustHaveStaticFactoryMethods() {
         ArchRule successRule =
                 methods()
@@ -124,21 +134,7 @@ class ApiResponseArchTest {
                         .beStatic()
                         .because("ApiResponse는 ofSuccess() static factory method가 필수입니다");
 
-        ArchRule failureRule =
-                methods()
-                        .that()
-                        .areDeclaredInClassesThat()
-                        .haveSimpleName("ApiResponse")
-                        .and()
-                        .haveName("ofFailure")
-                        .should()
-                        .bePublic()
-                        .andShould()
-                        .beStatic()
-                        .because("ApiResponse는 ofFailure() static factory method가 필수입니다");
-
         successRule.allowEmptyShould(true).check(classes);
-        failureRule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 4: PageApiResponse는 from() 메서드 필수 */
@@ -163,33 +159,14 @@ class ApiResponseArchTest {
         rule.allowEmptyShould(true).check(classes);
     }
 
-    /** 규칙 5: ErrorInfo는 validation 필수 */
-    @Test
-    @DisplayName("[권장] ErrorInfo는 compact constructor에서 validation을 수행해야 한다")
-    void errorInfo_ShouldHaveValidation() {
-        // Note: ArchUnit으로 compact constructor 내부 로직 검증은 어려우므로
-        // 대신 ErrorInfo가 Record이고 필수 필드를 가지는지 검증
-        ArchRule rule =
-                classes()
-                        .that()
-                        .haveSimpleName("ErrorInfo")
-                        .should()
-                        .beRecords()
-                        .because(
-                                "ErrorInfo는 Record로 정의되어 compact constructor에서 validation을 수행해야"
-                                        + " 합니다");
-
-        rule.allowEmptyShould(true).check(classes);
-    }
-
-    /** 규칙 6: Common Response DTOs는 Lombok 금지 */
+    /** 규칙 5: Common Response DTOs는 Lombok 금지 */
     @Test
     @DisplayName("[금지] Common Response DTOs는 Lombok을 사용하지 않아야 한다")
     void commonResponseDtos_MustNotUseLombok() {
         ArchRule rule =
                 noClasses()
                         .that()
-                        .haveNameMatching(".*ApiResponse|.*ErrorInfo")
+                        .haveNameMatching(".*ApiResponse")
                         .and()
                         .resideInAPackage("..common.dto..")
                         .should()
@@ -213,14 +190,14 @@ class ApiResponseArchTest {
         rule.allowEmptyShould(true).check(classes);
     }
 
-    /** 규칙 7: Common Response DTOs는 public이어야 함 */
+    /** 규칙 6: Common Response DTOs는 public이어야 함 */
     @Test
     @DisplayName("[필수] Common Response DTOs는 public이어야 한다")
     void commonResponseDtos_MustBePublic() {
         ArchRule rule =
                 classes()
                         .that()
-                        .haveNameMatching(".*ApiResponse|.*ErrorInfo")
+                        .haveNameMatching(".*ApiResponse")
                         .and()
                         .resideInAPackage("..common.dto..")
                         .and()
@@ -232,7 +209,7 @@ class ApiResponseArchTest {
         rule.allowEmptyShould(true).check(classes);
     }
 
-    /** 규칙 8: Common Response DTOs는 final이어야 함 (Record 특성) */
+    /** 규칙 7: Common Response DTOs는 final이어야 함 (Record 특성) */
     @Test
     @DisplayName("[권장] Common Response DTOs Record는 final 특성을 가진다")
     void commonResponseDtos_ShouldBeFinal() {
@@ -240,7 +217,7 @@ class ApiResponseArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .haveNameMatching(".*ApiResponse|.*ErrorInfo")
+                        .haveNameMatching(".*ApiResponse")
                         .and()
                         .resideInAPackage("..common.dto..")
                         .and()

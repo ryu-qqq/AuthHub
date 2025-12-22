@@ -539,8 +539,8 @@ public ResponseEntity<ApiResponse<OrderApiResponse>> createOrder(...) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.ofSuccess(apiResponse));
     } catch (DomainException e) {
-        return ResponseEntity.badRequest()
-            .body(ApiResponse.ofFailure(e.code(), e.getMessage()));
+        // ❌ 에러 응답 직접 생성 금지 - GlobalExceptionHandler가 RFC 7807 형식으로 처리
+        throw e;  // 예외를 다시 던져서 GlobalExceptionHandler에 위임
     }
 }
 

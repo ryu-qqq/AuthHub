@@ -20,7 +20,7 @@
 | **Request DTO** | JSON → DTO 역직렬화, Validation | `@Valid` 검증 |
 | **Response DTO** | DTO → JSON 직렬화, 구조 검증 | JsonPath |
 | **HTTP Status** | 201, 400, 404 등 올바른 상태 코드 | `.andExpect(status())` |
-| **Error Response** | RFC 7807 준수 에러 응답 | ErrorInfo 구조 |
+| **Error Response** | RFC 7807 준수 에러 응답 | ProblemDetail 구조 |
 | **UseCase 호출** | 올바른 파라미터로 호출했는지 | Mock 검증 |
 
 ### 검증하지 않는 것 (UseCase 책임)
