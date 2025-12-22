@@ -1,16 +1,16 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.component;
 
+import com.ryuqq.auth.common.constant.Roles;
+import com.ryuqq.auth.common.constant.Scopes;
 import com.ryuqq.authhub.application.auth.service.ScopeBasedAccessControl;
-import com.ryuqq.authhub.domain.auth.vo.Role;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import java.util.Objects;
 import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
- * RoleScope 기반 접근 제어 검증기
+ * Scope 기반 접근 제어 검증기
  *
- * <p>SecurityContext의 역할 정보를 기반으로 RoleScope를 결정하고, 대상 리소스에 대한 접근 권한을 검증합니다.
+ * <p>SecurityContext의 역할 정보를 기반으로 Scope를 결정하고, 대상 리소스에 대한 접근 권한을 검증합니다.
  *
  * <p><strong>역할-Scope 매핑:</strong>
  *
@@ -43,21 +43,19 @@ public class ScopeValidator implements ScopeBasedAccessControl {
             return false;
         }
 
-        RoleScope scope = getCurrentScope();
+        String scope = getCurrentScope();
         SecurityContext context = SecurityContextHolder.getContext();
 
-        switch (scope) {
-            case GLOBAL:
-                return true;
-
-            case TENANT:
-            case ORGANIZATION:
-                String currentTenantId = context.getTenantId();
-                return currentTenantId != null && Objects.equals(currentTenantId, targetTenantId);
-
-            default:
-                return false;
+        if (Scopes.GLOBAL.equals(scope)) {
+            return true;
         }
+
+        if (Scopes.TENANT.equals(scope) || Scopes.ORGANIZATION.equals(scope)) {
+            String currentTenantId = context.getTenantId();
+            return currentTenantId != null && Objects.equals(currentTenantId, targetTenantId);
+        }
+
+        return false;
     }
 
     @Override
@@ -66,40 +64,40 @@ public class ScopeValidator implements ScopeBasedAccessControl {
             return false;
         }
 
-        RoleScope scope = getCurrentScope();
+        String scope = getCurrentScope();
         SecurityContext context = SecurityContextHolder.getContext();
 
-        switch (scope) {
-            case GLOBAL:
-                return true;
-
-            case TENANT:
-                String currentTenantId = context.getTenantId();
-                return currentTenantId != null && Objects.equals(currentTenantId, targetTenantId);
-
-            case ORGANIZATION:
-                String currentOrgId = context.getOrganizationId();
-                return currentOrgId != null && Objects.equals(currentOrgId, targetOrganizationId);
-
-            default:
-                return false;
+        if (Scopes.GLOBAL.equals(scope)) {
+            return true;
         }
+
+        if (Scopes.TENANT.equals(scope)) {
+            String currentTenantId = context.getTenantId();
+            return currentTenantId != null && Objects.equals(currentTenantId, targetTenantId);
+        }
+
+        if (Scopes.ORGANIZATION.equals(scope)) {
+            String currentOrgId = context.getOrganizationId();
+            return currentOrgId != null && Objects.equals(currentOrgId, targetOrganizationId);
+        }
+
+        return false;
     }
 
     @Override
     public boolean canAccessGlobal() {
-        return getCurrentScope() == RoleScope.GLOBAL;
+        return Scopes.GLOBAL.equals(getCurrentScope());
     }
 
     @Override
-    public RoleScope getCurrentScope() {
+    public String getCurrentScope() {
         SecurityContext context = SecurityContextHolder.getContext();
         Set<String> roles = context.getRoles();
         return determineScope(roles);
     }
 
     /**
-     * 사용자의 역할 집합에서 가장 높은 RoleScope를 결정
+     * 사용자의 역할 집합에서 가장 높은 Scope를 결정
      *
      * <p>역할 계층 (높은 순):
      *
@@ -110,22 +108,22 @@ public class ScopeValidator implements ScopeBasedAccessControl {
      * </ol>
      *
      * @param roles 사용자 역할 집합
-     * @return 가장 높은 RoleScope (기본값: ORGANIZATION)
+     * @return 가장 높은 Scope (기본값: ORGANIZATION)
      */
-    private RoleScope determineScope(Set<String> roles) {
+    private String determineScope(Set<String> roles) {
         if (roles == null || roles.isEmpty()) {
-            return RoleScope.ORGANIZATION;
+            return Scopes.ORGANIZATION;
         }
 
-        if (roles.contains(Role.SUPER_ADMIN)) {
-            return RoleScope.GLOBAL;
+        if (roles.contains(Roles.SUPER_ADMIN)) {
+            return Scopes.GLOBAL;
         }
 
-        if (roles.contains(Role.TENANT_ADMIN)) {
-            return RoleScope.TENANT;
+        if (roles.contains(Roles.TENANT_ADMIN)) {
+            return Scopes.TENANT;
         }
 
-        return RoleScope.ORGANIZATION;
+        return Scopes.ORGANIZATION;
     }
 
     /**

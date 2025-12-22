@@ -1,13 +1,11 @@
 package com.ryuqq.authhub.application.auth.service;
 
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-
 /**
  * Scope 기반 접근 제어 인터페이스
  *
- * <p>역할 범위(RoleScope)에 따른 데이터 접근 제어를 담당합니다.
+ * <p>역할 범위(Scope)에 따른 데이터 접근 제어를 담당합니다.
  *
- * <p><strong>RoleScope 계층:</strong>
+ * <p><strong>Scope 계층:</strong>
  *
  * <ul>
  *   <li>GLOBAL: 전체 시스템 접근 (SUPER_ADMIN)
@@ -71,11 +69,12 @@ public interface ScopeBasedAccessControl {
     boolean canAccessGlobal();
 
     /**
-     * 현재 사용자의 RoleScope 반환
+     * 현재 사용자의 Scope 문자열 반환
      *
      * <p>사용자가 보유한 역할 중 가장 높은 scope를 반환합니다.
      *
-     * @return 현재 RoleScope
+     * @return 현재 Scope (GLOBAL, TENANT, ORGANIZATION 중 하나)
+     * @see com.ryuqq.auth.common.constant.Scopes
      */
-    RoleScope getCurrentScope();
+    String getCurrentScope();
 }
