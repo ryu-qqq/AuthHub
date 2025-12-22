@@ -66,7 +66,7 @@ jobs:
 
       - name: Terraform Init - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
-        run: terraform init -reconfigure
+        run: terraform init -upgrade
 
       - name: Check and Import Existing Resources - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
