@@ -157,4 +157,18 @@ public final class ApiPaths {
 
         private Health() {}
     }
+
+    /**
+     * Internal API 경로 (서비스간 통신)
+     *
+     * <p>X-Service-Token 인증을 사용하는 내부 API입니다.
+     */
+    public static final class Internal {
+        public static final String BASE = AUTH_SERVICE_BASE + "/internal";
+        public static final String PERMISSIONS = "/permissions";
+        public static final String VALIDATE = "/validate";
+        public static final String USAGES = "/usages";
+
+        private Internal() {}
+    }
 }

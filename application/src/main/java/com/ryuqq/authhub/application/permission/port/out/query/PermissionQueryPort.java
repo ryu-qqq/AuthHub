@@ -72,4 +72,14 @@ public interface PermissionQueryPort {
      * @return Permission 목록
      */
     List<Permission> findAllByIds(java.util.Set<PermissionId> permissionIds);
+
+    /**
+     * 여러 권한 키로 권한 목록 조회 (Bulk 조회)
+     *
+     * <p>CI/CD 권한 검증에서 사용됩니다.
+     *
+     * @param keys 권한 키 Set
+     * @return Permission 목록 (존재하는 권한만)
+     */
+    List<Permission> findAllByKeys(java.util.Set<PermissionKey> keys);
 }

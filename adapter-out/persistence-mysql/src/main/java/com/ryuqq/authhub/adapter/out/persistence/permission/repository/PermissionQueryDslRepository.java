@@ -211,4 +211,24 @@ public class PermissionQueryDslRepository {
                         permissionJpaEntity.deleted.eq(false))
                 .fetch();
     }
+
+    /**
+     * 여러 권한 키로 권한 목록 조회 (Bulk 조회)
+     *
+     * <p>CI/CD 권한 검증에서 사용됩니다.
+     *
+     * @param keys 권한 키 컬렉션 ("{resource}:{action}" 형식)
+     * @return PermissionJpaEntity 목록 (존재하는 권한만)
+     */
+    public List<PermissionJpaEntity> findAllByKeys(Collection<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return List.of();
+        }
+        return queryFactory
+                .selectFrom(permissionJpaEntity)
+                .where(
+                        permissionJpaEntity.permissionKey.in(keys),
+                        permissionJpaEntity.deleted.eq(false))
+                .fetch();
+    }
 }
