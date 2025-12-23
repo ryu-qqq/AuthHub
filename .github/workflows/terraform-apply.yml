@@ -150,6 +150,40 @@ jobs:
 
           rm -f plan_output.txt
 
+      - name: Pre-delete ECR if replacement needed - ${{ matrix.module.name }}
+        if: matrix.module.name == 'ecr'
+        working-directory: ${{ matrix.module.dir }}
+        run: |
+          echo "🔍 Checking if ECR replacement is needed..."
+
+          # Plan을 확인하여 ECR 교체가 필요한지 확인
+          terraform plan -out=check.tfplan 2>&1 | tee plan_check.txt
+
+          if grep -q "must be replaced" plan_check.txt; then
+            echo "⚠️ ECR replacement detected! Pre-deleting with AWS CLI..."
+
+            # ECR 이름 추출 (authhub-web-api-prod)
+            ECR_NAME="authhub-web-api-prod"
+
+            if aws ecr describe-repositories --repository-names $ECR_NAME --region ap-northeast-2 >/dev/null 2>&1; then
+              echo "🗑️ Deleting ECR repository: $ECR_NAME (with all images)"
+              aws ecr delete-repository --repository-name $ECR_NAME --force --region ap-northeast-2
+              echo "✅ ECR deleted successfully"
+
+              # Terraform state에서도 제거
+              echo "🔄 Removing from Terraform state..."
+              terraform state rm module.ecr_web_api.aws_ecr_repository.this || true
+              terraform state rm module.ecr_web_api.aws_ecr_lifecycle_policy.this[0] || true
+              terraform state rm module.ecr_web_api.aws_ecr_repository_policy.default[0] || true
+            else
+              echo "ℹ️ ECR not found, skipping deletion"
+            fi
+          else
+            echo "✅ No ECR replacement needed"
+          fi
+
+          rm -f plan_check.txt check.tfplan
+
       - name: Terraform Apply - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
         run: |
