@@ -154,4 +154,22 @@ public class PermissionQueryAdapter implements PermissionQueryPort {
                 permissionIds.stream().map(PermissionId::value).collect(Collectors.toSet());
         return repository.findAllByIds(uuids).stream().map(mapper::toDomain).toList();
     }
+
+    /**
+     * 여러 권한 키로 권한 목록 조회 (Bulk 조회)
+     *
+     * <p>CI/CD 권한 검증에서 사용됩니다.
+     *
+     * @param keys 권한 키 Set
+     * @return Permission 목록 (존재하는 권한만)
+     */
+    @Override
+    public List<Permission> findAllByKeys(Set<PermissionKey> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return List.of();
+        }
+        Set<String> keyStrings =
+                keys.stream().map(PermissionKey::value).collect(Collectors.toSet());
+        return repository.findAllByKeys(keyStrings).stream().map(mapper::toDomain).toList();
+    }
 }
