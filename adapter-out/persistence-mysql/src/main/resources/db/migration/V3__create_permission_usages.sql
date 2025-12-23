@@ -8,7 +8,7 @@ CREATE TABLE permission_usages (
     usage_id            BINARY(16) NOT NULL COMMENT '사용 이력 UUID (UUIDv7)',
     permission_key      VARCHAR(100) NOT NULL COMMENT '권한 키 (예: product:read)',
     service_name        VARCHAR(100) NOT NULL COMMENT '서비스명 (예: product-service)',
-    locations           TEXT COMMENT '코드 위치 목록 (JSON 배열)',
+    locations           JSON COMMENT '코드 위치 목록 (JSON 배열)',
     last_scanned_at     DATETIME(6) NOT NULL COMMENT '마지막 스캔 시간',
     created_at          DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) COMMENT '생성 일시',
     updated_at          DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정 일시',
@@ -21,6 +21,6 @@ CREATE TABLE permission_usages (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='권한 사용 이력';
 
 -- 조회 성능을 위한 인덱스
-CREATE INDEX idx_permission_usages_key ON permission_usages (permission_key);
+-- Note: permission_key 인덱스는 uk_permission_usages_key_service 복합 인덱스가 커버
 CREATE INDEX idx_permission_usages_service ON permission_usages (service_name);
 CREATE INDEX idx_permission_usages_scanned ON permission_usages (last_scanned_at);
