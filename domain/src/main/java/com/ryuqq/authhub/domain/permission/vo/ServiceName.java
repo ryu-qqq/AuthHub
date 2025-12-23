@@ -52,7 +52,8 @@ public final class ServiceName {
             throw new IllegalArgumentException(
                     String.format("ServiceName은 %d자를 초과할 수 없습니다: %s", MAX_LENGTH, value));
         }
-        if (!SERVICE_NAME_PATTERN.matcher(value).matches()) {
+        java.util.regex.Matcher matcher = SERVICE_NAME_PATTERN.matcher(value);
+        if (!matcher.matches()) {
             throw new IllegalArgumentException(
                     String.format("ServiceName은 소문자로 시작하고 소문자, 숫자, 하이픈만 포함해야 합니다: %s", value));
         }

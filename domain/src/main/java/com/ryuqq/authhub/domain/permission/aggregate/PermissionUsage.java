@@ -189,7 +189,8 @@ public final class PermissionUsage {
         if (lastScannedAt == null) {
             return true;
         }
-        Instant threshold = clock.instant().minusSeconds(days * 24L * 60 * 60);
+        Instant now = clock.instant();
+        Instant threshold = now.minusSeconds(days * 24L * 60 * 60);
         return lastScannedAt.isBefore(threshold);
     }
 

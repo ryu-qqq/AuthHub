@@ -73,9 +73,7 @@ public class ValidatePermissionsService implements ValidatePermissionsUseCase {
 
         // 3. 존재하는 권한 키 Set
         Set<String> existingKeySet =
-                existingPermissions.stream()
-                        .map(p -> p.getKey().value())
-                        .collect(Collectors.toSet());
+                existingPermissions.stream().map(Permission::keyValue).collect(Collectors.toSet());
 
         // 4. 요청된 권한과 비교하여 분류
         List<String> existing = new ArrayList<>();

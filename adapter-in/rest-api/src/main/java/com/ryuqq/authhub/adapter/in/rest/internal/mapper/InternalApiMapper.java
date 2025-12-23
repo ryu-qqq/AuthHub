@@ -44,9 +44,8 @@ public class InternalApiMapper {
                                 entry ->
                                         new ValidatePermissionsCommand.PermissionEntry(
                                                 entry.key(),
-                                                entry.locations() != null
-                                                        ? entry.locations()
-                                                        : List.of()))
+                                                java.util.Optional.ofNullable(entry.locations())
+                                                        .orElse(List.of())))
                         .toList();
 
         return new ValidatePermissionsCommand(request.serviceName(), entries);
@@ -82,7 +81,7 @@ public class InternalApiMapper {
         return new RegisterPermissionUsageCommand(
                 permissionKey,
                 request.serviceName(),
-                request.locations() != null ? request.locations() : List.of());
+                java.util.Optional.ofNullable(request.locations()).orElse(List.of()));
     }
 
     /**

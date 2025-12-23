@@ -11,12 +11,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
+import com.ryuqq.authhub.adapter.in.rest.internal.dto.command.RegisterPermissionUsageApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.command.ValidatePermissionsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.internal.mapper.InternalApiMapper;
+import com.ryuqq.authhub.application.permission.dto.response.PermissionUsageResponse;
 import com.ryuqq.authhub.application.permission.dto.response.ValidatePermissionsResult;
 import com.ryuqq.authhub.application.permission.port.in.command.RegisterPermissionUsageUseCase;
 import com.ryuqq.authhub.application.permission.port.in.command.ValidatePermissionsUseCase;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -47,6 +51,12 @@ class InternalPermissionControllerTest {
 
     private static final String VALIDATE_URL =
             ApiPaths.Internal.BASE + ApiPaths.Internal.PERMISSIONS + ApiPaths.Internal.VALIDATE;
+
+    private static final String USAGES_URL_TEMPLATE =
+            ApiPaths.Internal.BASE
+                    + ApiPaths.Internal.PERMISSIONS
+                    + "/%s"
+                    + ApiPaths.Internal.USAGES;
 
     @Nested
     @DisplayName("POST /validate 엔드포인트는")
@@ -166,6 +176,124 @@ class InternalPermissionControllerTest {
                             post(VALIDATE_URL)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requestBody))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /{permissionKey}/usages 엔드포인트는")
+    class RegisterUsageEndpoint {
+
+        @Test
+        @DisplayName("ROLE_SERVICE 권한으로 사용 이력 등록에 성공하면 200을 반환한다")
+        @WithMockUser(roles = "SERVICE")
+        void shouldReturnOkWhenUsageRegisteredSuccessfully() throws Exception {
+            // given
+            String permissionKey = "product:read";
+            RegisterPermissionUsageApiRequest request =
+                    new RegisterPermissionUsageApiRequest(
+                            "product-service",
+                            List.of("ProductController.java:45", "OrderService.java:123"));
+
+            UUID usageId = UUID.randomUUID();
+            Instant now = Instant.now();
+            PermissionUsageResponse result =
+                    new PermissionUsageResponse(
+                            usageId,
+                            permissionKey,
+                            "product-service",
+                            List.of("ProductController.java:45", "OrderService.java:123"),
+                            now,
+                            now);
+
+            when(registerPermissionUsageUseCase.execute(any())).thenReturn(result);
+
+            String url = String.format(USAGES_URL_TEMPLATE, permissionKey);
+
+            // when & then
+            mockMvc.perform(
+                            post(url)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.usageId").value(usageId.toString()))
+                    .andExpect(jsonPath("$.data.permissionKey").value(permissionKey))
+                    .andExpect(jsonPath("$.data.serviceName").value("product-service"))
+                    .andExpect(jsonPath("$.data.locations").isArray())
+                    .andExpect(jsonPath("$.data.locations[0]").value("ProductController.java:45"));
+        }
+
+        @Test
+        @DisplayName("ROLE_SERVICE 권한으로 locations 없이도 등록에 성공한다")
+        @WithMockUser(roles = "SERVICE")
+        void shouldReturnOkWhenLocationsEmpty() throws Exception {
+            // given
+            String permissionKey = "product:write";
+            RegisterPermissionUsageApiRequest request =
+                    new RegisterPermissionUsageApiRequest("product-service", List.of());
+
+            UUID usageId = UUID.randomUUID();
+            Instant now = Instant.now();
+            PermissionUsageResponse result =
+                    new PermissionUsageResponse(
+                            usageId, permissionKey, "product-service", List.of(), now, now);
+
+            when(registerPermissionUsageUseCase.execute(any())).thenReturn(result);
+
+            String url = String.format(USAGES_URL_TEMPLATE, permissionKey);
+
+            // when & then
+            mockMvc.perform(
+                            post(url)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.usageId").value(usageId.toString()))
+                    .andExpect(jsonPath("$.data.locations").isEmpty());
+        }
+
+        @Test
+        @DisplayName("serviceName이 없으면 400을 반환한다")
+        @WithMockUser(roles = "SERVICE")
+        void shouldReturn400WhenServiceNameMissing() throws Exception {
+            // given - serviceName 누락
+            String permissionKey = "product:read";
+            String requestBody =
+                    """
+                    {
+                        "locations": ["ProductController.java:45"]
+                    }
+                    """;
+
+            String url = String.format(USAGES_URL_TEMPLATE, permissionKey);
+
+            // when & then
+            mockMvc.perform(post(url).contentType(MediaType.APPLICATION_JSON).content(requestBody))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("serviceName 형식이 잘못되면 400을 반환한다")
+        @WithMockUser(roles = "SERVICE")
+        void shouldReturn400WhenServiceNameFormatInvalid() throws Exception {
+            // given - 대문자 포함 (소문자만 허용)
+            String permissionKey = "product:read";
+            String requestBody =
+                    """
+                    {
+                        "serviceName": "ProductService",
+                        "locations": []
+                    }
+                    """;
+
+            String url = String.format(USAGES_URL_TEMPLATE, permissionKey);
+
+            // when & then
+            mockMvc.perform(post(url).contentType(MediaType.APPLICATION_JSON).content(requestBody))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
         }

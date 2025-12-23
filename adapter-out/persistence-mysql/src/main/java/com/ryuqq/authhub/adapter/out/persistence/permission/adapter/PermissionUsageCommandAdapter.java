@@ -57,7 +57,7 @@ public class PermissionUsageCommandAdapter implements PermissionUsagePersistence
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>기존 이력 조회 (permissionKey + serviceName)
+     *   <li>기존 이력 조회 (permissionKey + serviceName) - 단 1회만 수행
      *   <li>존재하면 업데이트, 없으면 신규 생성
      *   <li>Entity 저장
      *   <li>Entity → Domain 변환
@@ -68,40 +68,30 @@ public class PermissionUsageCommandAdapter implements PermissionUsagePersistence
      */
     @Override
     public PermissionUsage persist(PermissionUsage usage) {
+        // 기존 이력 조회 - 단 1회만 수행 (중복 조회 제거)
+        Optional<PermissionUsageJpaEntity> existing =
+                queryRepository.findByKeyAndService(
+                        usage.permissionKeyValue(), usage.serviceNameValue());
+
         PermissionUsageJpaEntity entity;
-
-        if (usage.isNew()) {
-            // 신규 생성 또는 UPSERT - 기존 이력 확인
-            Optional<PermissionUsageJpaEntity> existing =
-                    queryRepository.findByKeyAndService(
-                            usage.permissionKeyValue(), usage.serviceNameValue());
-
-            if (existing.isPresent()) {
-                // 기존 이력 업데이트
-                entity = mapper.toEntityForUpdate(usage, existing.get().getId());
-            } else {
-                // 신규 생성 - UUID 발급
-                PermissionUsage usageWithId =
-                        PermissionUsage.reconstitute(
-                                com.ryuqq.authhub.domain.permission.identifier.PermissionUsageId.of(
-                                        uuidHolder.random()),
-                                usage.getPermissionKey(),
-                                usage.getServiceName(),
-                                usage.getLocations(),
-                                usage.getLastScannedAt(),
-                                usage.createdAt(),
-                                usage.updatedAt());
-                entity = mapper.toEntity(usageWithId);
-            }
+        if (existing.isPresent()) {
+            // 기존 이력 업데이트
+            entity = mapper.toEntityForUpdate(usage, existing.get().getId());
         } else {
-            // ID가 있는 업데이트 케이스
-            Optional<PermissionUsageJpaEntity> existing =
-                    queryRepository.findByKeyAndService(
-                            usage.permissionKeyValue(), usage.serviceNameValue());
-
-            entity =
-                    existing.map(e -> mapper.toEntityForUpdate(usage, e.getId()))
-                            .orElseGet(() -> mapper.toEntity(usage));
+            // 신규 생성 - ID가 없으면 UUID 발급
+            PermissionUsage usageWithId =
+                    usage.isNew()
+                            ? PermissionUsage.reconstitute(
+                                    com.ryuqq.authhub.domain.permission.identifier.PermissionUsageId
+                                            .of(uuidHolder.random()),
+                                    usage.getPermissionKey(),
+                                    usage.getServiceName(),
+                                    usage.getLocations(),
+                                    usage.getLastScannedAt(),
+                                    usage.createdAt(),
+                                    usage.updatedAt())
+                            : usage;
+            entity = mapper.toEntity(usageWithId);
         }
 
         PermissionUsageJpaEntity savedEntity = repository.save(entity);

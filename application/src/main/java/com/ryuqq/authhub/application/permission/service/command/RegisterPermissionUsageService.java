@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.application.permission.service.command;
 
+import com.ryuqq.authhub.application.permission.assembler.PermissionUsageAssembler;
 import com.ryuqq.authhub.application.permission.dto.command.RegisterPermissionUsageCommand;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionUsageResponse;
 import com.ryuqq.authhub.application.permission.manager.command.PermissionUsageTransactionManager;
@@ -42,14 +43,17 @@ public class RegisterPermissionUsageService implements RegisterPermissionUsageUs
 
     private final PermissionUsageReadManager readManager;
     private final PermissionUsageTransactionManager transactionManager;
+    private final PermissionUsageAssembler assembler;
     private final Clock clock;
 
     public RegisterPermissionUsageService(
             PermissionUsageReadManager readManager,
             PermissionUsageTransactionManager transactionManager,
+            PermissionUsageAssembler assembler,
             Clock clock) {
         this.readManager = readManager;
         this.transactionManager = transactionManager;
+        this.assembler = assembler;
         this.clock = clock;
     }
 
@@ -57,7 +61,7 @@ public class RegisterPermissionUsageService implements RegisterPermissionUsageUs
     public PermissionUsageResponse execute(RegisterPermissionUsageCommand command) {
         PermissionKey permissionKey = PermissionKey.of(command.permissionKey());
         ServiceName serviceName = ServiceName.of(command.serviceName());
-        List<CodeLocation> locations = toCodeLocations(command.locations());
+        List<CodeLocation> locations = assembler.toCodeLocations(command.locations());
 
         log.info(
                 "[PERMISSION-USAGE] Registering usage for permission={}, service={}",
@@ -85,23 +89,6 @@ public class RegisterPermissionUsageService implements RegisterPermissionUsageUs
 
         PermissionUsage savedUsage = transactionManager.persist(usage);
 
-        return toResponse(savedUsage);
-    }
-
-    private List<CodeLocation> toCodeLocations(List<String> locations) {
-        if (locations == null || locations.isEmpty()) {
-            return List.of();
-        }
-        return locations.stream().map(CodeLocation::of).toList();
-    }
-
-    private PermissionUsageResponse toResponse(PermissionUsage usage) {
-        return new PermissionUsageResponse(
-                usage.usageIdValue(),
-                usage.permissionKeyValue(),
-                usage.serviceNameValue(),
-                usage.locationValues(),
-                usage.getLastScannedAt(),
-                usage.createdAt());
+        return assembler.toResponse(savedUsage);
     }
 }
