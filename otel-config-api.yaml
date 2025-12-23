@@ -72,6 +72,16 @@ processors:
         value: web-api
         action: upsert
 
+  metricstransform:
+    transforms:
+      - include: .*
+        match_type: regexp
+        action: update
+        operations:
+          - action: add_label
+            new_label: platform
+            new_value: ecs
+
 exporters:
   awsxray:
     region: ${AWS_REGION}
