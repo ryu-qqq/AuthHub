@@ -205,13 +205,17 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ $env.AUTHHUB_URL }}/api/v1/auth/internal/permissions/validate",
+        "url": "https://api.set-of.com/api/v1/auth/internal/permissions/validate",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "X-Service-Token",
-              "value": "={{ $env.SERVICE_TOKEN }}"
+              "value": "8de54dfbc288673edf8ef5e88c5c1cf15afb513f6e41e0b67fa5f82c06112c29"
+            },
+            {
+              "name": "X-Service-Name",
+              "value": "authhub"
             },
             {
               "name": "Content-Type",
@@ -249,13 +253,17 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.AUTHHUB_URL }}/api/v1/auth/internal/permissions/{{ $json.permissionKey }}/usages",
+        "url": "=https://api.set-of.com/api/v1/auth/internal/permissions/{{ $json.permissionKey }}/usages",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "X-Service-Token",
-              "value": "={{ $env.SERVICE_TOKEN }}"
+              "value": "8de54dfbc288673edf8ef5e88c5c1cf15afb513f6e41e0b67fa5f82c06112c29"
+            },
+            {
+              "name": "X-Service-Name",
+              "value": "authhub"
             },
             {
               "name": "Content-Type",
