@@ -372,7 +372,9 @@ module "ecs_service" {
     { name = "SECURITY_JWT_RSA_ENABLED", value = "true" },
     { name = "SECURITY_JWT_RSA_KEY_ID", value = "authhub-key-1" },
     # Swagger/OpenAPI (authenticated access only via SecurityConfig)
-    { name = "SWAGGER_ENABLED", value = "true" }
+    { name = "SWAGGER_ENABLED", value = "true" },
+    # Service Token Configuration (for n8n/CI-CD internal API)
+    { name = "SERVICE_TOKEN_ENABLED", value = "true" }
   ]
 
   # Container Secrets
@@ -381,7 +383,9 @@ module "ecs_service" {
     { name = "JWT_SECRET", valueFrom = "${data.aws_secretsmanager_secret.jwt.arn}:secret::" },
     # RS256 RSA Keys (loaded from Secrets Manager)
     { name = "SECURITY_JWT_RSA_PRIVATE_KEY_CONTENT", valueFrom = "${data.aws_secretsmanager_secret.jwt_rsa.arn}:private_key::" },
-    { name = "SECURITY_JWT_RSA_PUBLIC_KEY_CONTENT", valueFrom = "${data.aws_secretsmanager_secret.jwt_rsa.arn}:public_key::" }
+    { name = "SECURITY_JWT_RSA_PUBLIC_KEY_CONTENT", valueFrom = "${data.aws_secretsmanager_secret.jwt_rsa.arn}:public_key::" },
+    # Service Token Secret (for n8n/CI-CD internal API)
+    { name = "SERVICE_TOKEN_SECRET", valueFrom = data.aws_ssm_parameter.service_token_secret.arn }
   ]
 
   # Health Check

@@ -143,6 +143,13 @@ data "aws_ssm_parameter" "redis_port" {
 }
 
 # ========================================
+# Service Token Configuration (for n8n/CI-CD internal API)
+# ========================================
+data "aws_ssm_parameter" "service_token_secret" {
+  name = "/${var.project_name}/security/service-token-secret"
+}
+
+# ========================================
 # Locals
 # ========================================
 locals {
