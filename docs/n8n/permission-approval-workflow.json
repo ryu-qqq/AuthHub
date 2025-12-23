@@ -205,13 +205,13 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.set-of.com/api/v1/auth/internal/permissions/validate",
+        "url": "={{ $env.AUTHHUB_API_URL }}/api/v1/auth/internal/permissions/validate",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "X-Service-Token",
-              "value": "8de54dfbc288673edf8ef5e88c5c1cf15afb513f6e41e0b67fa5f82c06112c29"
+              "value": "={{ $env.SERVICE_TOKEN_SECRET }}"
             },
             {
               "name": "X-Service-Name",
@@ -253,13 +253,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://api.set-of.com/api/v1/auth/internal/permissions/{{ $json.permissionKey }}/usages",
+        "url": "={{ $env.AUTHHUB_API_URL }}/api/v1/auth/internal/permissions/{{ $json.permissionKey }}/usages",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "X-Service-Token",
-              "value": "8de54dfbc288673edf8ef5e88c5c1cf15afb513f6e41e0b67fa5f82c06112c29"
+              "value": "={{ $env.SERVICE_TOKEN_SECRET }}"
             },
             {
               "name": "X-Service-Name",
