@@ -17,10 +17,16 @@ import java.util.Set;
  *   <li>Builder 패턴으로 생성
  * </ul>
  *
+ * <p><strong>SecurityContext 구현:</strong>
+ *
+ * <p>이 클래스는 {@link SecurityContext} 인터페이스를 구현하여 권한 검사 기능과 호환됩니다. 다른 프로젝트에서는 자체 UserContext를 만들고
+ * SecurityContext만 구현하면 됩니다.
+ *
  * @author development-team
  * @since 1.0.0
+ * @see SecurityContext
  */
-public final class UserContext {
+public final class UserContext implements SecurityContext {
 
     private final String userId;
     private final String tenantId;

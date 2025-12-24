@@ -1,7 +1,7 @@
 package com.ryuqq.auth.common.util;
 
 import com.ryuqq.auth.common.constant.Permissions;
-import com.ryuqq.auth.common.context.UserContext;
+import com.ryuqq.auth.common.context.SecurityContext;
 import java.util.Collection;
 import java.util.Set;
 
@@ -34,15 +34,16 @@ public final class PermissionMatcher {
     /**
      * 사용자가 특정 권한을 가지고 있는지 확인
      *
-     * @param userContext 사용자 컨텍스트
+     * @param securityContext 보안 컨텍스트 (SecurityContext 구현체)
      * @param requiredPermission 필요한 권한
      * @return 권한 보유 여부
      */
-    public static boolean hasPermission(UserContext userContext, String requiredPermission) {
-        if (userContext == null || requiredPermission == null) {
+    public static boolean hasPermission(
+            SecurityContext securityContext, String requiredPermission) {
+        if (securityContext == null || requiredPermission == null) {
             return false;
         }
-        return hasPermission(userContext.getPermissions(), requiredPermission);
+        return hasPermission(securityContext.getPermissions(), requiredPermission);
     }
 
     /**
@@ -80,18 +81,18 @@ public final class PermissionMatcher {
     /**
      * 사용자가 모든 필요 권한을 가지고 있는지 확인 (AND 조건)
      *
-     * @param userContext 사용자 컨텍스트
+     * @param securityContext 보안 컨텍스트 (SecurityContext 구현체)
      * @param requiredPermissions 필요한 권한 목록
      * @return 모든 권한 보유 여부
      */
     public static boolean hasAllPermissions(
-            UserContext userContext, Collection<String> requiredPermissions) {
-        if (userContext == null || requiredPermissions == null) {
+            SecurityContext securityContext, Collection<String> requiredPermissions) {
+        if (securityContext == null || requiredPermissions == null) {
             return false;
         }
 
         for (String permission : requiredPermissions) {
-            if (!hasPermission(userContext, permission)) {
+            if (!hasPermission(securityContext, permission)) {
                 return false;
             }
         }
@@ -101,18 +102,20 @@ public final class PermissionMatcher {
     /**
      * 사용자가 필요 권한 중 하나라도 가지고 있는지 확인 (OR 조건)
      *
-     * @param userContext 사용자 컨텍스트
+     * @param securityContext 보안 컨텍스트 (SecurityContext 구현체)
      * @param requiredPermissions 필요한 권한 목록
      * @return 하나 이상의 권한 보유 여부
      */
     public static boolean hasAnyPermission(
-            UserContext userContext, Collection<String> requiredPermissions) {
-        if (userContext == null || requiredPermissions == null || requiredPermissions.isEmpty()) {
+            SecurityContext securityContext, Collection<String> requiredPermissions) {
+        if (securityContext == null
+                || requiredPermissions == null
+                || requiredPermissions.isEmpty()) {
             return false;
         }
 
         for (String permission : requiredPermissions) {
-            if (hasPermission(userContext, permission)) {
+            if (hasPermission(securityContext, permission)) {
                 return true;
             }
         }
@@ -122,16 +125,16 @@ public final class PermissionMatcher {
     /**
      * 사용자가 특정 도메인에 대한 권한을 가지고 있는지 확인
      *
-     * @param userContext 사용자 컨텍스트
+     * @param securityContext 보안 컨텍스트 (SecurityContext 구현체)
      * @param domain 도메인 (예: "user", "role", "organization")
      * @return 도메인에 대한 권한 보유 여부
      */
-    public static boolean hasDomainPermission(UserContext userContext, String domain) {
-        if (userContext == null || domain == null) {
+    public static boolean hasDomainPermission(SecurityContext securityContext, String domain) {
+        if (securityContext == null || domain == null) {
             return false;
         }
 
-        Set<String> permissions = userContext.getPermissions();
+        Set<String> permissions = securityContext.getPermissions();
         if (permissions == null || permissions.isEmpty()) {
             return false;
         }
@@ -152,16 +155,16 @@ public final class PermissionMatcher {
     /**
      * 사용자가 특정 액션에 대한 권한을 가지고 있는지 확인
      *
-     * @param userContext 사용자 컨텍스트
+     * @param securityContext 보안 컨텍스트 (SecurityContext 구현체)
      * @param action 액션 (예: "read", "write", "delete")
      * @return 액션에 대한 권한 보유 여부
      */
-    public static boolean hasActionPermission(UserContext userContext, String action) {
-        if (userContext == null || action == null) {
+    public static boolean hasActionPermission(SecurityContext securityContext, String action) {
+        if (securityContext == null || action == null) {
             return false;
         }
 
-        Set<String> permissions = userContext.getPermissions();
+        Set<String> permissions = securityContext.getPermissions();
         if (permissions == null || permissions.isEmpty()) {
             return false;
         }

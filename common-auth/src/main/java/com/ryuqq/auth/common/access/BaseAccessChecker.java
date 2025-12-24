@@ -1,7 +1,7 @@
 package com.ryuqq.auth.common.access;
 
 import com.ryuqq.auth.common.constant.Roles;
-import com.ryuqq.auth.common.context.UserContext;
+import com.ryuqq.auth.common.context.SecurityContext;
 import com.ryuqq.auth.common.context.UserContextHolder;
 import com.ryuqq.auth.common.util.PermissionMatcher;
 import java.util.Arrays;
@@ -29,8 +29,25 @@ import java.util.Objects;
  * }
  * }</pre>
  *
+ * <p><strong>프로젝트별 SecurityContext 사용:</strong>
+ *
+ * <p>프로젝트에서 자체 UserContext를 사용하는 경우 {@link #getSecurityContext()}를 오버라이드하세요.
+ *
+ * <pre>{@code
+ * @Component("access")
+ * public class ResourceAccessChecker extends BaseAccessChecker {
+ *
+ *     @Override
+ *     protected SecurityContext getSecurityContext() {
+ *         // 프로젝트 자체 UserContextHolder에서 조회
+ *         return MyUserContextHolder.getContext();
+ *     }
+ * }
+ * }</pre>
+ *
  * @author development-team
  * @since 1.0.0
+ * @see SecurityContext
  */
 public abstract class BaseAccessChecker implements AccessChecker {
 
@@ -38,7 +55,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
 
     @Override
     public boolean authenticated() {
-        return getUserContext().isAuthenticated();
+        return getSecurityContext().isAuthenticated();
     }
 
     // ===== 역할 검사 =====
@@ -50,7 +67,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
 
     @Override
     public boolean admin() {
-        UserContext context = getUserContext();
+        SecurityContext context = getSecurityContext();
         return context.hasRole(Roles.SUPER_ADMIN)
                 || context.hasRole(Roles.TENANT_ADMIN)
                 || context.hasRole(Roles.ORG_ADMIN);
@@ -58,7 +75,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
 
     @Override
     public boolean hasRole(String role) {
-        return getUserContext().hasRole(role);
+        return getSecurityContext().hasRole(role);
     }
 
     @Override
@@ -66,7 +83,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
         if (roles == null || roles.length == 0) {
             return false;
         }
-        UserContext context = getUserContext();
+        SecurityContext context = getSecurityContext();
         return Arrays.stream(roles).anyMatch(context::hasRole);
     }
 
@@ -77,7 +94,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
         if (superAdmin()) {
             return true;
         }
-        return PermissionMatcher.hasPermission(getUserContext(), permission);
+        return PermissionMatcher.hasPermission(getSecurityContext(), permission);
     }
 
     @Override
@@ -88,7 +105,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
         if (superAdmin()) {
             return true;
         }
-        UserContext context = getUserContext();
+        SecurityContext context = getSecurityContext();
         return Arrays.stream(permissions)
                 .anyMatch(p -> PermissionMatcher.hasPermission(context, p));
     }
@@ -101,7 +118,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
         if (superAdmin()) {
             return true;
         }
-        UserContext context = getUserContext();
+        SecurityContext context = getSecurityContext();
         return Arrays.stream(permissions)
                 .allMatch(p -> PermissionMatcher.hasPermission(context, p));
     }
@@ -116,7 +133,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
         if (superAdmin()) {
             return true;
         }
-        UserContext context = getUserContext();
+        SecurityContext context = getSecurityContext();
         return Objects.equals(context.getTenantId(), tenantId);
     }
 
@@ -125,7 +142,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
         if (organizationId == null) {
             return false;
         }
-        UserContext context = getUserContext();
+        SecurityContext context = getSecurityContext();
         if (context.hasRole(Roles.SUPER_ADMIN) || context.hasRole(Roles.TENANT_ADMIN)) {
             return true;
         }
@@ -137,7 +154,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
         if (userId == null) {
             return false;
         }
-        UserContext context = getUserContext();
+        SecurityContext context = getSecurityContext();
         return Objects.equals(context.getUserId(), userId);
     }
 
@@ -150,19 +167,29 @@ public abstract class BaseAccessChecker implements AccessChecker {
 
     @Override
     public boolean serviceAccount() {
-        return getUserContext().isServiceAccount();
+        return getSecurityContext().isServiceAccount();
     }
 
     // ===== 헬퍼 메서드 =====
 
     /**
-     * 현재 스레드의 UserContext를 반환합니다.
+     * 현재 스레드의 SecurityContext를 반환합니다.
      *
-     * <p>서브클래스에서 확장 메서드 구현 시 사용합니다.
+     * <p>서브클래스에서 프로젝트별 UserContext를 사용하려면 이 메서드를 오버라이드하세요. 프로젝트의 UserContext가 {@link
+     * SecurityContext}를 구현하면 됩니다.
      *
-     * @return UserContext (미인증 시 anonymous 컨텍스트)
+     * <p><strong>오버라이드 예시:</strong>
+     *
+     * <pre>{@code
+     * @Override
+     * protected SecurityContext getSecurityContext() {
+     *     return MyProjectUserContextHolder.getContext();
+     * }
+     * }</pre>
+     *
+     * @return SecurityContext (미인증 시 anonymous 컨텍스트)
      */
-    protected UserContext getUserContext() {
+    protected SecurityContext getSecurityContext() {
         return UserContextHolder.getContext();
     }
 
@@ -172,7 +199,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
      * @return 사용자 ID (미인증 시 null)
      */
     protected String getCurrentUserId() {
-        return getUserContext().getUserId();
+        return getSecurityContext().getUserId();
     }
 
     /**
@@ -181,7 +208,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
      * @return 테넌트 ID (없으면 null)
      */
     protected String getCurrentTenantId() {
-        return getUserContext().getTenantId();
+        return getSecurityContext().getTenantId();
     }
 
     /**
@@ -190,6 +217,6 @@ public abstract class BaseAccessChecker implements AccessChecker {
      * @return 조직 ID (없으면 null)
      */
     protected String getCurrentOrganizationId() {
-        return getUserContext().getOrganizationId();
+        return getSecurityContext().getOrganizationId();
     }
 }
