@@ -42,7 +42,7 @@ import java.util.Set;
  * @author development-team
  * @since 1.1.0
  * @see UserContext
- * @see SecurityContextHolder
+ * @see UserContextHolder
  */
 public interface SecurityContext {
 
