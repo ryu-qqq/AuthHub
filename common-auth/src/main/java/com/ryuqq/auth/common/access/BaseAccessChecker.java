@@ -199,7 +199,8 @@ public abstract class BaseAccessChecker implements AccessChecker {
      * @return 사용자 ID (미인증 시 null)
      */
     protected String getCurrentUserId() {
-        return getSecurityContext().getUserId();
+        SecurityContext context = getSecurityContext();
+        return context.getUserId();
     }
 
     /**
@@ -208,7 +209,8 @@ public abstract class BaseAccessChecker implements AccessChecker {
      * @return 테넌트 ID (없으면 null)
      */
     protected String getCurrentTenantId() {
-        return getSecurityContext().getTenantId();
+        SecurityContext context = getSecurityContext();
+        return context.getTenantId();
     }
 
     /**
@@ -217,6 +219,7 @@ public abstract class BaseAccessChecker implements AccessChecker {
      * @return 조직 ID (없으면 null)
      */
     protected String getCurrentOrganizationId() {
-        return getSecurityContext().getOrganizationId();
+        SecurityContext context = getSecurityContext();
+        return context.getOrganizationId();
     }
 }

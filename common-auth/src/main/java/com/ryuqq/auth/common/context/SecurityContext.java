@@ -107,12 +107,28 @@ public interface SecurityContext {
     }
 
     /**
-     * 특정 권한 보유 여부 확인 (기본 구현 - 와일드카드 미지원)
+     * 특정 권한 보유 여부 확인 (기본 구현)
      *
-     * <p>와일드카드 패턴이 필요한 경우 {@link com.ryuqq.auth.common.util.PermissionMatcher}를 사용하세요.
+     * <p><strong>지원 범위:</strong>
      *
-     * @param permission 권한 이름
+     * <ul>
+     *   <li>정확한 일치: "file:read" → 보유 권한에 "file:read" 있으면 true
+     *   <li>전역 와일드카드: "*:*" → 모든 권한 허용
+     * </ul>
+     *
+     * <p><strong>미지원 패턴:</strong>
+     *
+     * <ul>
+     *   <li>도메인 와일드카드: "file:*" (PermissionMatcher 필요)
+     *   <li>액션 와일드카드: "*:read" (PermissionMatcher 필요)
+     *   <li>복합 와일드카드: "file-*:read" (PermissionMatcher 필요)
+     * </ul>
+     *
+     * <p>고급 와일드카드 패턴이 필요한 경우 {@link com.ryuqq.auth.common.util.PermissionMatcher}를 사용하세요.
+     *
+     * @param permission 권한 이름 (예: "file:read", "user:write")
      * @return 권한 보유 여부
+     * @see com.ryuqq.auth.common.util.PermissionMatcher#hasPermission(SecurityContext, String)
      */
     default boolean hasPermission(String permission) {
         Set<String> permissions = getPermissions();
