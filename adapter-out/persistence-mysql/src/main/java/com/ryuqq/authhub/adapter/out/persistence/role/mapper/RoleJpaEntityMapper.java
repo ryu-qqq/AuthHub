@@ -89,7 +89,7 @@ public class RoleJpaEntityMapper {
                 domain.getScope(),
                 domain.getType(),
                 domain.isDeleted(),
-                toLocalDateTime(domain.createdAt()),
+                existing.getCreatedAt(),
                 toLocalDateTime(domain.updatedAt()));
     }
 

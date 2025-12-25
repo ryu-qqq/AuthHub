@@ -92,7 +92,7 @@ public class OrganizationJpaEntityMapper {
                 domain.tenantIdValue(),
                 domain.nameValue(),
                 domain.getStatus(),
-                toLocalDateTime(domain.createdAt()),
+                existing.getCreatedAt(),
                 toLocalDateTime(domain.updatedAt()));
     }
 

@@ -86,7 +86,7 @@ public class UserJpaEntityMapper {
                 domain.getIdentifier(),
                 domain.getHashedPassword(),
                 domain.getUserStatus(),
-                toLocalDateTime(domain.getCreatedAt()),
+                existing.getCreatedAt(),
                 toLocalDateTime(domain.getUpdatedAt()));
     }
 

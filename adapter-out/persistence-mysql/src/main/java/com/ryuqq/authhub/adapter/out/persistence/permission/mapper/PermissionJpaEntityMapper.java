@@ -125,7 +125,7 @@ public class PermissionJpaEntityMapper {
                 domain.descriptionValue(),
                 domain.getType(),
                 domain.isDeleted(),
-                toLocalDateTime(domain.createdAt()),
+                existing.getCreatedAt(),
                 toLocalDateTime(domain.updatedAt()));
     }
 
