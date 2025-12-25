@@ -44,21 +44,42 @@ import org.springframework.stereotype.Component;
 public class UserJpaEntityMapper {
 
     /**
-     * Domain → Entity 변환
+     * Domain → Entity 변환 (신규 생성용)
      *
      * <p><strong>사용 시나리오:</strong>
      *
      * <ul>
      *   <li>신규 User 저장 (ID가 null)
-     *   <li>기존 User 수정 (ID가 있음)
      * </ul>
      *
      * @param domain User 도메인
-     * @return UserJpaEntity
+     * @return UserJpaEntity (JPA internal ID = null)
      */
     public UserJpaEntity toEntity(User domain) {
         return UserJpaEntity.of(
                 null,
+                domain.userIdValue(),
+                domain.tenantIdValue(),
+                domain.organizationIdValue(),
+                domain.getIdentifier(),
+                domain.getHashedPassword(),
+                domain.getUserStatus(),
+                toLocalDateTime(domain.getCreatedAt()),
+                toLocalDateTime(domain.getUpdatedAt()));
+    }
+
+    /**
+     * 기존 Entity 업데이트 (UPDATE용)
+     *
+     * <p>기존 Entity의 JPA internal ID를 유지하면서 Domain 값으로 업데이트합니다.
+     *
+     * @param existing 기존 JPA Entity (ID 유지용)
+     * @param domain 업데이트할 User 도메인
+     * @return UserJpaEntity (기존 JPA internal ID 유지)
+     */
+    public UserJpaEntity updateEntity(UserJpaEntity existing, User domain) {
+        return UserJpaEntity.of(
+                existing.getId(),
                 domain.userIdValue(),
                 domain.tenantIdValue(),
                 domain.organizationIdValue(),

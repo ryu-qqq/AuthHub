@@ -41,17 +41,19 @@ class PermissionTest {
         @DisplayName("Resource와 Action으로 시스템 권한을 생성한다")
         void shouldCreateSystemPermission() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             Resource resource = Resource.of("user");
             Action action = Action.of("read");
             PermissionDescription description = PermissionDescription.of("사용자 조회 권한");
 
             // when
             Permission permission =
-                    Permission.createSystem(resource, action, description, FIXED_CLOCK);
+                    Permission.createSystem(
+                            permissionId, resource, action, description, FIXED_CLOCK);
 
             // then
             assertThat(permission).isNotNull();
-            assertThat(permission.isNew()).isTrue();
+            assertThat(permission.permissionIdValue()).isNotNull();
             assertThat(permission.keyValue()).isEqualTo("user:read");
             assertThat(permission.resourceValue()).isEqualTo("user");
             assertThat(permission.actionValue()).isEqualTo("read");
@@ -65,11 +67,13 @@ class PermissionTest {
         @DisplayName("PermissionKey로 시스템 권한을 생성한다")
         void shouldCreateSystemPermissionWithKey() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             PermissionKey key = PermissionKey.of("organization:manage");
             PermissionDescription description = PermissionDescription.of("조직 관리 권한");
 
             // when
-            Permission permission = Permission.createSystemWithKey(key, description, FIXED_CLOCK);
+            Permission permission =
+                    Permission.createSystemWithKey(permissionId, key, description, FIXED_CLOCK);
 
             // then
             assertThat(permission).isNotNull();
@@ -81,11 +85,13 @@ class PermissionTest {
         @DisplayName("설명 없이 시스템 권한을 생성하면 빈 설명이 된다")
         void shouldCreateSystemPermissionWithoutDescription() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             Resource resource = Resource.of("tenant");
             Action action = Action.of("admin");
 
             // when
-            Permission permission = Permission.createSystem(resource, action, null, FIXED_CLOCK);
+            Permission permission =
+                    Permission.createSystem(permissionId, resource, action, null, FIXED_CLOCK);
 
             // then
             assertThat(permission.descriptionValue()).isEmpty();
@@ -100,17 +106,19 @@ class PermissionTest {
         @DisplayName("Resource와 Action으로 커스텀 권한을 생성한다")
         void shouldCreateCustomPermission() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             Resource resource = Resource.of("report");
             Action action = Action.of("export");
             PermissionDescription description = PermissionDescription.of("리포트 내보내기 권한");
 
             // when
             Permission permission =
-                    Permission.createCustom(resource, action, description, FIXED_CLOCK);
+                    Permission.createCustom(
+                            permissionId, resource, action, description, FIXED_CLOCK);
 
             // then
             assertThat(permission).isNotNull();
-            assertThat(permission.isNew()).isTrue();
+            assertThat(permission.permissionIdValue()).isNotNull();
             assertThat(permission.keyValue()).isEqualTo("report:export");
             assertThat(permission.isCustom()).isTrue();
             assertThat(permission.isSystem()).isFalse();
@@ -120,11 +128,13 @@ class PermissionTest {
         @DisplayName("PermissionKey로 커스텀 권한을 생성한다")
         void shouldCreateCustomPermissionWithKey() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             PermissionKey key = PermissionKey.of("dashboard:view");
             PermissionDescription description = PermissionDescription.of("대시보드 조회 권한");
 
             // when
-            Permission permission = Permission.createCustomWithKey(key, description, FIXED_CLOCK);
+            Permission permission =
+                    Permission.createCustomWithKey(permissionId, key, description, FIXED_CLOCK);
 
             // then
             assertThat(permission).isNotNull();
@@ -197,8 +207,10 @@ class PermissionTest {
         @DisplayName("커스텀 권한의 설명을 변경한다")
         void shouldChangeDescriptionForCustomPermission() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             Permission permission =
                     Permission.createCustom(
+                            permissionId,
                             Resource.of("report"),
                             Action.of("export"),
                             PermissionDescription.of("기존 설명"),
@@ -218,8 +230,10 @@ class PermissionTest {
         @DisplayName("시스템 권한의 설명 변경 시 예외 발생")
         void shouldThrowExceptionWhenChangingSystemPermissionDescription() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             Permission permission =
                     Permission.createSystem(
+                            permissionId,
                             Resource.of("user"),
                             Action.of("read"),
                             PermissionDescription.of("설명"),
@@ -240,9 +254,14 @@ class PermissionTest {
         @DisplayName("커스텀 권한을 삭제한다")
         void shouldDeleteCustomPermission() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             Permission permission =
                     Permission.createCustom(
-                            Resource.of("report"), Action.of("export"), null, FIXED_CLOCK);
+                            permissionId,
+                            Resource.of("report"),
+                            Action.of("export"),
+                            null,
+                            FIXED_CLOCK);
             Clock laterClock = Clock.fixed(Instant.parse("2025-01-02T00:00:00Z"), ZoneId.of("UTC"));
 
             // when
@@ -257,9 +276,14 @@ class PermissionTest {
         @DisplayName("시스템 권한 삭제 시 예외 발생")
         void shouldThrowExceptionWhenDeletingSystemPermission() {
             // given
+            PermissionId permissionId = PermissionId.forNew(UUID.randomUUID());
             Permission permission =
                     Permission.createSystem(
-                            Resource.of("user"), Action.of("read"), null, FIXED_CLOCK);
+                            permissionId,
+                            Resource.of("user"),
+                            Action.of("read"),
+                            null,
+                            FIXED_CLOCK);
 
             // when & then
             assertThatThrownBy(() -> permission.delete(FIXED_CLOCK))
@@ -272,15 +296,21 @@ class PermissionTest {
     class HelperMethodsTest {
 
         @Test
-        @DisplayName("permissionIdValue - 새 권한은 null 반환")
-        void shouldReturnNullForNewPermission() {
+        @DisplayName("permissionIdValue - 생성된 권한은 UUID 반환")
+        void shouldReturnUuidForCreatedPermission() {
             // given
+            UUID uuid = UUID.randomUUID();
+            PermissionId permissionId = PermissionId.forNew(uuid);
             Permission permission =
                     Permission.createCustom(
-                            Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
+                            permissionId,
+                            Resource.of("test"),
+                            Action.of("action"),
+                            null,
+                            FIXED_CLOCK);
 
             // then
-            assertThat(permission.permissionIdValue()).isNull();
+            assertThat(permission.permissionIdValue()).isEqualTo(uuid);
         }
 
         @Test
@@ -366,15 +396,23 @@ class PermissionTest {
         }
 
         @Test
-        @DisplayName("새 권한(ID null)은 서로 다르다")
-        void shouldNotBeEqualWhenBothNew() {
+        @DisplayName("다른 ID로 생성된 권한은 서로 다르다")
+        void shouldNotBeEqualWhenDifferentIds() {
             // given
             Permission permission1 =
                     Permission.createCustom(
-                            Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
+                            PermissionId.forNew(UUID.randomUUID()),
+                            Resource.of("test"),
+                            Action.of("action"),
+                            null,
+                            FIXED_CLOCK);
             Permission permission2 =
                     Permission.createCustom(
-                            Resource.of("test"), Action.of("action"), null, FIXED_CLOCK);
+                            PermissionId.forNew(UUID.randomUUID()),
+                            Resource.of("test"),
+                            Action.of("action"),
+                            null,
+                            FIXED_CLOCK);
 
             // then
             assertThat(permission1).isNotEqualTo(permission2);

@@ -1,0 +1,147 @@
+# ============================================================
+# Integration Test Configuration
+# ============================================================
+# H2 PostgreSQL 호환 모드 사용 (UUID 네이티브 지원)
+# Hibernate ddl-auto: create-drop (매 테스트마다 스키마 재생성)
+# ============================================================
+
+spring:
+  application:
+    name: authhub-integration-test
+
+  # ============================================================
+  # DataSource (H2 PostgreSQL 호환 모드 - UUID 네이티브 지원)
+  # ============================================================
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    username: sa
+    password:
+
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      pool-name: IntegrationTestPool
+
+  # ============================================================
+  # JPA/Hibernate
+  # ============================================================
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop    # 매 테스트마다 스키마 재생성
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        dialect: org.hibernate.dialect.H2Dialect
+        # H2 호환성 (globally_quoted_identifiers 제거 - BINARY(16) 호환성 문제)
+        globally_quoted_identifiers: false
+    show-sql: true
+
+  # ============================================================
+  # Flyway 비활성화 (H2는 ddl-auto 사용)
+  # ============================================================
+  flyway:
+    enabled: false
+
+  # ============================================================
+  # Redis 비활성화 (통합 테스트에서는 Mock 사용)
+  # ============================================================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # ============================================================
+  # Jackson
+  # ============================================================
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+    time-zone: Asia/Seoul
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+      FAIL_ON_EMPTY_BEANS: false
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    default-property-inclusion: non_null
+
+# ============================================================
+# Security Configuration (테스트 환경)
+# ============================================================
+security:
+  service-token:
+    enabled: false
+    secret: test-service-token-secret-key-for-integration-test
+
+  jwt:
+    secret: test-jwt-secret-key-minimum-32-bytes-long-for-integration-test
+    access-token-expiration: 3600
+    refresh-token-expiration: 604800
+    issuer: authhub-test
+    rsa:
+      enabled: false
+      key-id: authhub-test-key-1
+      public-key-path:
+      private-key-path:
+
+  gateway:
+    enabled: false
+    user-id-header: X-User-Id
+    user-roles-header: X-User-Roles
+    tenant-id-header: X-Tenant-Id
+
+  cookie:
+    secure: false
+    http-only: true
+    same-site: lax
+    domain: localhost
+    path: /
+
+# ============================================================
+# API Configuration
+# ============================================================
+api:
+  error:
+    base-url: about:blank
+    use-about-blank: true
+
+  cors:
+    allowed-origins:
+      - http://localhost:8080
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    exposed-headers:
+      - Authorization
+      - Set-Cookie
+      - X-Request-Id
+    allow-credentials: true
+
+# ============================================================
+# SpringDoc 비활성화 (테스트에서 불필요)
+# ============================================================
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# ============================================================
+# Logging
+# ============================================================
+logging:
+  level:
+    root: INFO
+    com.ryuqq.authhub: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG

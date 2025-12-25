@@ -42,13 +42,12 @@ import org.springframework.stereotype.Component;
 public class TenantJpaEntityMapper {
 
     /**
-     * Domain → Entity 변환
+     * Domain → Entity 변환 (신규 생성용)
      *
      * <p><strong>사용 시나리오:</strong>
      *
      * <ul>
      *   <li>신규 Tenant 저장 (ID가 null)
-     *   <li>기존 Tenant 수정 (ID가 있음)
      * </ul>
      *
      * <p><strong>변환 규칙:</strong>
@@ -62,11 +61,36 @@ public class TenantJpaEntityMapper {
      * </ul>
      *
      * @param domain Tenant 도메인
-     * @return TenantJpaEntity
+     * @return TenantJpaEntity (JPA internal ID = null)
      */
     public TenantJpaEntity toEntity(Tenant domain) {
         return TenantJpaEntity.of(
                 null,
+                domain.tenantIdValue(),
+                domain.nameValue(),
+                domain.getStatus(),
+                toLocalDateTime(domain.createdAt()),
+                toLocalDateTime(domain.updatedAt()));
+    }
+
+    /**
+     * 기존 Entity 업데이트 (UPDATE용)
+     *
+     * <p>기존 Entity의 JPA internal ID를 유지하면서 Domain 값으로 업데이트합니다.
+     *
+     * <p><strong>사용 시나리오:</strong>
+     *
+     * <ul>
+     *   <li>기존 Tenant 수정 (ID가 있음)
+     * </ul>
+     *
+     * @param existing 기존 JPA Entity (ID 유지용)
+     * @param domain 업데이트할 Tenant 도메인
+     * @return TenantJpaEntity (기존 JPA internal ID 유지)
+     */
+    public TenantJpaEntity updateEntity(TenantJpaEntity existing, Tenant domain) {
+        return TenantJpaEntity.of(
+                existing.getId(),
                 domain.tenantIdValue(),
                 domain.nameValue(),
                 domain.getStatus(),
