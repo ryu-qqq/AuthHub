@@ -5,6 +5,8 @@ import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserJpaRepository;
 import com.ryuqq.authhub.application.user.port.out.persistence.UserPersistencePort;
 import com.ryuqq.authhub.domain.user.aggregate.User;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,7 +56,9 @@ public class UserCommandAdapter implements UserPersistencePort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>Domain → Entity 변환 (Mapper)
+     *   <li>기존 Entity 조회 (UUID로 조회)
+     *   <li>기존 Entity 존재 시: 기존 ID 유지하며 업데이트
+     *   <li>기존 Entity 없음 시: 신규 Entity 생성
      *   <li>Entity 저장 (JpaRepository)
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
@@ -64,7 +68,18 @@ public class UserCommandAdapter implements UserPersistencePort {
      */
     @Override
     public User persist(User user) {
-        UserJpaEntity entity = mapper.toEntity(user);
+        UUID userIdValue = user.userIdValue();
+        Optional<UserJpaEntity> existing = repository.findByUserId(userIdValue);
+
+        UserJpaEntity entity;
+        if (existing.isPresent()) {
+            // UPDATE: 기존 Entity의 JPA internal ID 유지
+            entity = mapper.updateEntity(existing.get(), user);
+        } else {
+            // INSERT: 신규 Entity 생성
+            entity = mapper.toEntity(user);
+        }
+
         UserJpaEntity savedEntity = repository.save(entity);
         return mapper.toDomain(savedEntity);
     }

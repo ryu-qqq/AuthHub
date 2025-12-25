@@ -5,6 +5,8 @@ import com.ryuqq.authhub.adapter.out.persistence.tenant.mapper.TenantJpaEntityMa
 import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantJpaRepository;
 import com.ryuqq.authhub.application.tenant.port.out.command.TenantPersistencePort;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,17 +55,38 @@ public class TenantCommandAdapter implements TenantPersistencePort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>Domain → Entity 변환 (Mapper)
+     *   <li>기존 Entity 조회 (UUID로 조회)
+     *   <li>기존 Entity 존재 시: 기존 ID 유지하며 업데이트
+     *   <li>기존 Entity 없음 시: 신규 Entity 생성
      *   <li>Entity 저장 (JpaRepository)
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
+     *
+     * <p><strong>UPDATE vs INSERT 판단 기준:</strong>
+     *
+     * <ul>
+     *   <li>tenantId(UUID)로 기존 Entity 조회
+     *   <li>기존 Entity 존재 → UPDATE (JPA internal ID 유지)
+     *   <li>기존 Entity 없음 → INSERT (신규 Entity 생성)
+     * </ul>
      *
      * @param tenant 저장할 테넌트 도메인
      * @return 저장된 테넌트 도메인 (ID 할당됨)
      */
     @Override
     public Tenant persist(Tenant tenant) {
-        TenantJpaEntity entity = mapper.toEntity(tenant);
+        UUID tenantIdValue = tenant.tenantIdValue();
+        Optional<TenantJpaEntity> existing = repository.findByTenantId(tenantIdValue);
+
+        TenantJpaEntity entity;
+        if (existing.isPresent()) {
+            // UPDATE: 기존 Entity의 JPA internal ID 유지
+            entity = mapper.updateEntity(existing.get(), tenant);
+        } else {
+            // INSERT: 신규 Entity 생성
+            entity = mapper.toEntity(tenant);
+        }
+
         TenantJpaEntity savedEntity = repository.save(entity);
         return mapper.toDomain(savedEntity);
     }

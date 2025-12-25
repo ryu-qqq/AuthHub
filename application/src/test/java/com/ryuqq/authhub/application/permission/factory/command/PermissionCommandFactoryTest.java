@@ -3,9 +3,11 @@ package com.ryuqq.authhub.application.permission.factory.command;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionCommand;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import java.time.Clock;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,11 +26,13 @@ class PermissionCommandFactoryTest {
 
     private PermissionCommandFactory factory;
     private Clock clock;
+    private UuidHolder uuidHolder;
 
     @BeforeEach
     void setUp() {
         clock = PermissionFixture.fixedClock();
-        factory = new PermissionCommandFactory(clock);
+        uuidHolder = UUID::randomUUID;
+        factory = new PermissionCommandFactory(clock, uuidHolder);
     }
 
     @Nested

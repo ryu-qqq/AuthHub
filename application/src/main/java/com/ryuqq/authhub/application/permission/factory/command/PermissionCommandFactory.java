@@ -1,7 +1,9 @@
 package com.ryuqq.authhub.application.permission.factory.command;
 
 import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionCommand;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
+import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
 import com.ryuqq.authhub.domain.permission.vo.Action;
 import com.ryuqq.authhub.domain.permission.vo.PermissionDescription;
 import com.ryuqq.authhub.domain.permission.vo.Resource;
@@ -31,18 +33,23 @@ import org.springframework.stereotype.Component;
 public class PermissionCommandFactory {
 
     private final Clock clock;
+    private final UuidHolder uuidHolder;
 
-    public PermissionCommandFactory(Clock clock) {
+    public PermissionCommandFactory(Clock clock, UuidHolder uuidHolder) {
         this.clock = clock;
+        this.uuidHolder = uuidHolder;
     }
 
     /**
      * CreatePermissionCommand → Permission 변환
      *
+     * <p>UUIDv7 기반 식별자를 생성하여 Permission을 생성합니다.
+     *
      * @param command 권한 생성 Command
-     * @return 새로운 Permission 인스턴스 (ID 미할당)
+     * @return 새로운 Permission 인스턴스 (UUIDv7 ID 할당)
      */
     public Permission create(CreatePermissionCommand command) {
+        PermissionId permissionId = PermissionId.forNew(uuidHolder.random());
         Resource resource = Resource.of(command.resource());
         Action action = Action.of(command.action());
         PermissionDescription description =
@@ -51,9 +58,9 @@ public class PermissionCommandFactory {
                         : null;
 
         if (command.isSystem()) {
-            return Permission.createSystem(resource, action, description, clock);
+            return Permission.createSystem(permissionId, resource, action, description, clock);
         } else {
-            return Permission.createCustom(resource, action, description, clock);
+            return Permission.createCustom(permissionId, resource, action, description, clock);
         }
     }
 }

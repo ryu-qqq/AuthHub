@@ -95,6 +95,9 @@ public final class Permission {
     /**
      * 새로운 시스템 권한 생성
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param permissionId 권한 ID (UUIDv7)
      * @param resource 리소스
      * @param action 행위
      * @param description 권한 설명
@@ -102,15 +105,26 @@ public final class Permission {
      * @return 새로운 시스템 권한 인스턴스
      */
     public static Permission createSystem(
-            Resource resource, Action action, PermissionDescription description, Clock clock) {
+            PermissionId permissionId,
+            Resource resource,
+            Action action,
+            PermissionDescription description,
+            Clock clock) {
+        if (permissionId == null) {
+            throw new IllegalArgumentException("PermissionId는 null일 수 없습니다");
+        }
         Instant now = clock.instant();
         PermissionKey key = PermissionKey.of(resource, action);
-        return new Permission(null, key, description, PermissionType.SYSTEM, false, now, now);
+        return new Permission(
+                permissionId, key, description, PermissionType.SYSTEM, false, now, now);
     }
 
     /**
      * 새로운 커스텀 권한 생성
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param permissionId 권한 ID (UUIDv7)
      * @param resource 리소스
      * @param action 행위
      * @param description 권한 설명
@@ -118,38 +132,66 @@ public final class Permission {
      * @return 새로운 커스텀 권한 인스턴스
      */
     public static Permission createCustom(
-            Resource resource, Action action, PermissionDescription description, Clock clock) {
+            PermissionId permissionId,
+            Resource resource,
+            Action action,
+            PermissionDescription description,
+            Clock clock) {
+        if (permissionId == null) {
+            throw new IllegalArgumentException("PermissionId는 null일 수 없습니다");
+        }
         Instant now = clock.instant();
         PermissionKey key = PermissionKey.of(resource, action);
-        return new Permission(null, key, description, PermissionType.CUSTOM, false, now, now);
+        return new Permission(
+                permissionId, key, description, PermissionType.CUSTOM, false, now, now);
     }
 
     /**
      * PermissionKey로 새로운 시스템 권한 생성
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param permissionId 권한 ID (UUIDv7)
      * @param key 권한 키
      * @param description 권한 설명
      * @param clock 시간 제공자
      * @return 새로운 시스템 권한 인스턴스
      */
     public static Permission createSystemWithKey(
-            PermissionKey key, PermissionDescription description, Clock clock) {
+            PermissionId permissionId,
+            PermissionKey key,
+            PermissionDescription description,
+            Clock clock) {
+        if (permissionId == null) {
+            throw new IllegalArgumentException("PermissionId는 null일 수 없습니다");
+        }
         Instant now = clock.instant();
-        return new Permission(null, key, description, PermissionType.SYSTEM, false, now, now);
+        return new Permission(
+                permissionId, key, description, PermissionType.SYSTEM, false, now, now);
     }
 
     /**
      * PermissionKey로 새로운 커스텀 권한 생성
      *
+     * <p>Application Layer의 Factory에서 UUIDv7을 생성하여 전달합니다.
+     *
+     * @param permissionId 권한 ID (UUIDv7)
      * @param key 권한 키
      * @param description 권한 설명
      * @param clock 시간 제공자
      * @return 새로운 커스텀 권한 인스턴스
      */
     public static Permission createCustomWithKey(
-            PermissionKey key, PermissionDescription description, Clock clock) {
+            PermissionId permissionId,
+            PermissionKey key,
+            PermissionDescription description,
+            Clock clock) {
+        if (permissionId == null) {
+            throw new IllegalArgumentException("PermissionId는 null일 수 없습니다");
+        }
         Instant now = clock.instant();
-        return new Permission(null, key, description, PermissionType.CUSTOM, false, now, now);
+        return new Permission(
+                permissionId, key, description, PermissionType.CUSTOM, false, now, now);
     }
 
     /**

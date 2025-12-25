@@ -32,6 +32,7 @@ public final class PermissionFixture {
     /** 기본 커스텀 권한 생성 (user:read) */
     public static Permission create() {
         return Permission.createCustom(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of("user"),
                 Action.of("read"),
                 PermissionDescription.of("사용자 조회 권한"),
@@ -41,6 +42,7 @@ public final class PermissionFixture {
     /** 지정된 resource와 action으로 커스텀 권한 생성 */
     public static Permission create(String resource, String action) {
         return Permission.createCustom(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of(resource),
                 Action.of(action),
                 PermissionDescription.empty(),
@@ -50,7 +52,10 @@ public final class PermissionFixture {
     /** 지정된 key로 커스텀 권한 생성 */
     public static Permission createWithKey(String key) {
         return Permission.createCustomWithKey(
-                PermissionKey.of(key), PermissionDescription.empty(), FIXED_CLOCK);
+                PermissionId.forNew(UUID.randomUUID()),
+                PermissionKey.of(key),
+                PermissionDescription.empty(),
+                FIXED_CLOCK);
     }
 
     // ========== 시스템 권한 ==========
@@ -58,6 +63,7 @@ public final class PermissionFixture {
     /** 시스템 권한 생성 (user:read) */
     public static Permission createSystem() {
         return Permission.createSystem(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of("user"),
                 Action.of("read"),
                 PermissionDescription.of("사용자 조회 권한 (시스템)"),
@@ -67,6 +73,7 @@ public final class PermissionFixture {
     /** 지정된 resource와 action으로 시스템 권한 생성 */
     public static Permission createSystem(String resource, String action) {
         return Permission.createSystem(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of(resource),
                 Action.of(action),
                 PermissionDescription.empty(),
@@ -76,6 +83,7 @@ public final class PermissionFixture {
     /** 시스템 권한 생성 - user:create */
     public static Permission createSystemUserCreate() {
         return Permission.createSystem(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of("user"),
                 Action.of("create"),
                 PermissionDescription.of("사용자 생성 권한"),
@@ -85,6 +93,7 @@ public final class PermissionFixture {
     /** 시스템 권한 생성 - user:delete */
     public static Permission createSystemUserDelete() {
         return Permission.createSystem(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of("user"),
                 Action.of("delete"),
                 PermissionDescription.of("사용자 삭제 권한"),
@@ -94,6 +103,7 @@ public final class PermissionFixture {
     /** 시스템 권한 생성 - organization:manage */
     public static Permission createSystemOrganizationManage() {
         return Permission.createSystem(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of("organization"),
                 Action.of("manage"),
                 PermissionDescription.of("조직 관리 권한"),
@@ -103,6 +113,7 @@ public final class PermissionFixture {
     /** 시스템 권한 생성 - tenant:admin */
     public static Permission createSystemTenantAdmin() {
         return Permission.createSystem(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of("tenant"),
                 Action.of("admin"),
                 PermissionDescription.of("테넌트 관리자 권한"),
@@ -114,6 +125,7 @@ public final class PermissionFixture {
     /** 커스텀 권한 생성 - report:export */
     public static Permission createCustomReportExport() {
         return Permission.createCustom(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of("report"),
                 Action.of("export"),
                 PermissionDescription.of("리포트 내보내기 권한"),
@@ -123,6 +135,7 @@ public final class PermissionFixture {
     /** 커스텀 권한 생성 - dashboard:view */
     public static Permission createCustomDashboardView() {
         return Permission.createCustom(
+                PermissionId.forNew(UUID.randomUUID()),
                 Resource.of("dashboard"),
                 Action.of("view"),
                 PermissionDescription.of("대시보드 조회 권한"),
