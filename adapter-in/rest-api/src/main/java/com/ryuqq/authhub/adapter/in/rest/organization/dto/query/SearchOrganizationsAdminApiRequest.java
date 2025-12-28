@@ -1,6 +1,9 @@
 package com.ryuqq.authhub.adapter.in.rest.organization.dto.query;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import java.time.Instant;
 
 /**
@@ -42,13 +45,22 @@ import java.time.Instant;
 public record SearchOrganizationsAdminApiRequest(
         @Schema(description = "테넌트 ID 필터") String tenantId,
         @Schema(description = "조직 이름 필터") String name,
-        @Schema(description = "조직 상태 필터 (ACTIVE/INACTIVE/SUSPENDED)") String status,
+        @Schema(description = "조직 상태 필터 (ACTIVE/INACTIVE/SUSPENDED)")
+                @Pattern(regexp = "ACTIVE|INACTIVE|SUSPENDED", message = "유효하지 않은 상태입니다")
+                String status,
         @Schema(description = "생성일시 시작") Instant createdFrom,
         @Schema(description = "생성일시 종료") Instant createdTo,
         @Schema(
                         description = "정렬 기준 (name, status, createdAt, updatedAt)",
                         defaultValue = "createdAt")
                 String sortBy,
-        @Schema(description = "정렬 방향 (ASC/DESC)", defaultValue = "DESC") String sortDirection,
-        @Schema(description = "페이지 번호", defaultValue = "0") Integer page,
-        @Schema(description = "페이지 크기", defaultValue = "20") Integer size) {}
+        @Schema(description = "정렬 방향 (ASC/DESC)", defaultValue = "DESC")
+                @Pattern(regexp = "ASC|DESC", message = "정렬 방향은 ASC 또는 DESC여야 합니다")
+                String sortDirection,
+        @Schema(description = "페이지 번호", defaultValue = "0")
+                @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다")
+                Integer page,
+        @Schema(description = "페이지 크기", defaultValue = "20")
+                @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다")
+                @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다")
+                Integer size) {}

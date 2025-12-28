@@ -226,11 +226,13 @@ public class UserQueryController {
     })
     @PreAuthorize("@access.hasPermission('user:read')")
     @GetMapping("/admin/search")
-    public ResponseEntity<PageApiResponse<UserSummaryApiResponse>> searchUsersAdmin(
+    public ResponseEntity<ApiResponse<PageApiResponse<UserSummaryApiResponse>>> searchUsersAdmin(
             @Valid @ModelAttribute SearchUsersAdminApiRequest request) {
         PageResponse<UserSummaryResponse> pageResponse =
                 searchUsersAdminUseCase.execute(mapper.toAdminQuery(request));
-        return ResponseEntity.ok(PageApiResponse.from(pageResponse, mapper::toSummaryApiResponse));
+        PageApiResponse<UserSummaryApiResponse> pagedResponse =
+                PageApiResponse.from(pageResponse, mapper::toSummaryApiResponse);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(pagedResponse));
     }
 
     /**

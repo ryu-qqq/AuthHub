@@ -53,9 +53,9 @@ public record PageApiResponse<T>(
         @Schema(description = "첫 페이지 여부") boolean first,
         @Schema(description = "마지막 페이지 여부") boolean last) {
 
-    /** Compact Constructor - Defensive Copy */
+    /** Compact Constructor - Defensive Copy with Null Safety */
     public PageApiResponse {
-        content = List.copyOf(content); // Immutability 보장
+        content = content != null ? List.copyOf(content) : List.of();
     }
 
     /**

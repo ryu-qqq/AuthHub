@@ -244,11 +244,13 @@ public class RoleQueryController {
     })
     @PreAuthorize("@access.hasPermission('role:read')")
     @GetMapping("/admin/search")
-    public ResponseEntity<PageApiResponse<RoleSummaryApiResponse>> searchRolesAdmin(
+    public ResponseEntity<ApiResponse<PageApiResponse<RoleSummaryApiResponse>>> searchRolesAdmin(
             @Valid @ModelAttribute SearchRolesAdminApiRequest request) {
         PageResponse<RoleSummaryResponse> pageResponse =
                 searchRolesAdminUseCase.execute(mapper.toAdminQuery(request));
-        return ResponseEntity.ok(PageApiResponse.from(pageResponse, mapper::toSummaryApiResponse));
+        PageApiResponse<RoleSummaryApiResponse> pagedResponse =
+                PageApiResponse.from(pageResponse, mapper::toSummaryApiResponse);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(pagedResponse));
     }
 
     /**

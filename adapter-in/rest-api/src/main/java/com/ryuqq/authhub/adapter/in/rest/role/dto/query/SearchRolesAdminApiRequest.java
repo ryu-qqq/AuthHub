@@ -1,6 +1,9 @@
 package com.ryuqq.authhub.adapter.in.rest.role.dto.query;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import java.time.Instant;
 
 /**
@@ -36,10 +39,12 @@ public record SearchRolesAdminApiRequest(
         @Schema(
                         description = "역할 범위 필터",
                         allowableValues = {"TENANT", "ORGANIZATION", "SYSTEM"})
+                @Pattern(regexp = "TENANT|ORGANIZATION|SYSTEM", message = "유효하지 않은 역할 범위입니다")
                 String scope,
         @Schema(
                         description = "역할 유형 필터",
                         allowableValues = {"SYSTEM", "CUSTOM"})
+                @Pattern(regexp = "SYSTEM|CUSTOM", message = "유효하지 않은 역할 유형입니다")
                 String type,
         @Schema(description = "생성일 시작 (inclusive)") Instant createdFrom,
         @Schema(description = "생성일 종료 (inclusive)") Instant createdTo,
@@ -52,7 +57,12 @@ public record SearchRolesAdminApiRequest(
                         description = "정렬 방향",
                         allowableValues = {"ASC", "DESC"},
                         defaultValue = "DESC")
+                @Pattern(regexp = "ASC|DESC", message = "정렬 방향은 ASC 또는 DESC여야 합니다")
                 String sortDirection,
-        @Schema(description = "페이지 번호", minimum = "0", defaultValue = "0") Integer page,
+        @Schema(description = "페이지 번호", minimum = "0", defaultValue = "0")
+                @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다")
+                Integer page,
         @Schema(description = "페이지 크기", minimum = "1", maximum = "100", defaultValue = "20")
+                @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다")
+                @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다")
                 Integer size) {}

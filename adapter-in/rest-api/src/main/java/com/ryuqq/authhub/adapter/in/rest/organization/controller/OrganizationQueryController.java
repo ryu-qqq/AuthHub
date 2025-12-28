@@ -24,12 +24,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -265,38 +267,7 @@ public class OrganizationQueryController {
     @GetMapping("/admin/search")
     public ResponseEntity<ApiResponse<PageApiResponse<OrganizationSummaryApiResponse>>>
             searchOrganizationsAdmin(
-                    @Parameter(description = "테넌트 ID 필터") @RequestParam(required = false)
-                            String tenantId,
-                    @Parameter(description = "조직 이름 필터") @RequestParam(required = false)
-                            String name,
-                    @Parameter(description = "조직 상태 필터") @RequestParam(required = false)
-                            String status,
-                    @Parameter(description = "생성일시 시작") @RequestParam(required = false)
-                            java.time.Instant createdFrom,
-                    @Parameter(description = "생성일시 종료") @RequestParam(required = false)
-                            java.time.Instant createdTo,
-                    @Parameter(description = "정렬 기준") @RequestParam(defaultValue = "createdAt")
-                            String sortBy,
-                    @Parameter(description = "정렬 방향") @RequestParam(defaultValue = "DESC")
-                            String sortDirection,
-                    @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") @Min(0)
-                            Integer page,
-                    @Parameter(description = "페이지 크기")
-                            @RequestParam(defaultValue = "20")
-                            @Min(1)
-                            @Max(100)
-                            Integer size) {
-        SearchOrganizationsAdminApiRequest request =
-                new SearchOrganizationsAdminApiRequest(
-                        tenantId,
-                        name,
-                        status,
-                        createdFrom,
-                        createdTo,
-                        sortBy,
-                        sortDirection,
-                        page,
-                        size);
+                    @Valid @ModelAttribute SearchOrganizationsAdminApiRequest request) {
         PageResponse<OrganizationSummaryResponse> response =
                 searchOrganizationsAdminUseCase.execute(mapper.toAdminQuery(request));
         PageApiResponse<OrganizationSummaryApiResponse> pagedResponse =

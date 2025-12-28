@@ -113,7 +113,7 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
         @DisplayName("TC-AQ-001: 사용자 Admin 검색 - 성공")
         void searchUsersAdmin_success() {
             // when
-            ResponseEntity<PageApiResponse<UserSummaryApiResponse>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<UserSummaryApiResponse>>> response =
                     restTemplate.exchange(
                             usersUrl() + "/admin/search?page=0&size=20",
                             HttpMethod.GET,
@@ -123,14 +123,15 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().content()).isNotNull();
+            assertThat(response.getBody().data()).isNotNull();
+            assertThat(response.getBody().data().content()).isNotNull();
         }
 
         @Test
         @DisplayName("TC-AQ-002: 사용자 Admin 검색 - 테넌트 필터 적용")
         void searchUsersAdmin_withTenantFilter() {
             // when
-            ResponseEntity<PageApiResponse<UserSummaryApiResponse>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<UserSummaryApiResponse>>> response =
                     restTemplate.exchange(
                             usersUrl() + "/admin/search?tenantId=" + tenantId + "&page=0&size=20",
                             HttpMethod.GET,
@@ -140,7 +141,8 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().content()).isNotEmpty();
+            assertThat(response.getBody().data()).isNotNull();
+            assertThat(response.getBody().data().content()).isNotEmpty();
         }
 
         @Test
@@ -190,7 +192,7 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
         @DisplayName("TC-AQ-005: 역할 Admin 검색 - 성공")
         void searchRolesAdmin_success() {
             // when
-            ResponseEntity<PageApiResponse<RoleSummaryApiResponse>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<RoleSummaryApiResponse>>> response =
                     restTemplate.exchange(
                             rolesUrl() + "/admin/search?page=0&size=20",
                             HttpMethod.GET,
@@ -200,14 +202,14 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().content()).isNotNull();
+            assertThat(response.getBody().data().content()).isNotNull();
         }
 
         @Test
         @DisplayName("TC-AQ-006: 역할 Admin 검색 - 테넌트 필터 적용")
         void searchRolesAdmin_withTenantFilter() {
             // when
-            ResponseEntity<PageApiResponse<RoleSummaryApiResponse>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<RoleSummaryApiResponse>>> response =
                     restTemplate.exchange(
                             rolesUrl() + "/admin/search?tenantId=" + tenantId + "&page=0&size=20",
                             HttpMethod.GET,
@@ -217,7 +219,7 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().content()).isNotEmpty();
+            assertThat(response.getBody().data().content()).isNotEmpty();
         }
 
         @Test

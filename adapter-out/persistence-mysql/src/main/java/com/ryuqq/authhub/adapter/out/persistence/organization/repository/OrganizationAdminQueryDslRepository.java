@@ -59,6 +59,59 @@ public class OrganizationAdminQueryDslRepository {
     }
 
     /**
+     * QueryDSL Projection용 내부 DTO (Admin용)
+     *
+     * <p>JPA Entity의 LocalDateTime과 Integer 타입을 그대로 받기 위한 중간 DTO입니다. Application
+     * DTO(OrganizationSummaryResponse)로 변환 시 Instant와 int로 변환합니다.
+     */
+    public record OrganizationAdminSummaryProjection(
+            UUID organizationId,
+            UUID tenantId,
+            String tenantName,
+            String name,
+            String status,
+            Integer userCount,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
+
+        /**
+         * Application DTO로 변환
+         *
+         * @return OrganizationSummaryResponse
+         */
+        OrganizationSummaryResponse toResponse() {
+            return new OrganizationSummaryResponse(
+                    organizationId,
+                    tenantId,
+                    tenantName,
+                    name,
+                    status,
+                    userCount != null ? userCount : 0,
+                    createdAt != null ? createdAt.toInstant(ZoneOffset.UTC) : null,
+                    updatedAt != null ? updatedAt.toInstant(ZoneOffset.UTC) : null);
+        }
+    }
+
+    /**
+     * QueryDSL Projection용 내부 DTO (Admin UserSummary)
+     *
+     * <p>JPA Entity의 LocalDateTime 타입을 그대로 받기 위한 중간 DTO입니다.
+     */
+    public record OrganizationAdminUserProjection(
+            UUID userId, String email, LocalDateTime createdAt) {
+
+        /**
+         * Application DTO로 변환
+         *
+         * @return OrganizationUserSummary
+         */
+        OrganizationUserSummary toResponse() {
+            return new OrganizationUserSummary(
+                    userId, email, createdAt != null ? createdAt.toInstant(ZoneOffset.UTC) : null);
+        }
+    }
+
+    /**
      * Admin 목록 검색 (DTO Projection)
      *
      * <p>tenantName, userCount를 포함한 Summary DTO를 직접 반환합니다.
@@ -75,7 +128,7 @@ public class OrganizationAdminQueryDslRepository {
         return queryFactory
                 .select(
                         Projections.constructor(
-                                OrganizationSummaryResponse.class,
+                                OrganizationAdminSummaryProjection.class,
                                 organizationJpaEntity.organizationId,
                                 organizationJpaEntity.tenantId,
                                 tenantJpaEntity.name,
@@ -97,7 +150,7 @@ public class OrganizationAdminQueryDslRepository {
                 .limit(query.size())
                 .fetch()
                 .stream()
-                .map(this::toInstantResponse)
+                .map(OrganizationAdminSummaryProjection::toResponse)
                 .toList();
     }
 
@@ -129,11 +182,11 @@ public class OrganizationAdminQueryDslRepository {
      */
     public Optional<OrganizationDetailResponse> findOrganizationDetail(UUID organizationId) {
         // 기본 정보 조회 (tenant join)
-        OrganizationSummaryResponse summary =
+        OrganizationAdminSummaryProjection projection =
                 queryFactory
                         .select(
                                 Projections.constructor(
-                                        OrganizationSummaryResponse.class,
+                                        OrganizationAdminSummaryProjection.class,
                                         organizationJpaEntity.organizationId,
                                         organizationJpaEntity.tenantId,
                                         tenantJpaEntity.name,
@@ -153,26 +206,26 @@ public class OrganizationAdminQueryDslRepository {
                         .where(organizationJpaEntity.organizationId.eq(organizationId))
                         .fetchOne();
 
-        if (summary == null) {
+        if (projection == null) {
             return Optional.empty();
         }
 
         // 소속 사용자 목록 조회 (최근 N명)
         List<OrganizationUserSummary> users = findOrganizationUsers(organizationId);
 
-        OrganizationSummaryResponse instantSummary = toInstantResponse(summary);
+        OrganizationSummaryResponse summary = projection.toResponse();
 
         return Optional.of(
                 new OrganizationDetailResponse(
-                        instantSummary.organizationId(),
-                        instantSummary.tenantId(),
-                        instantSummary.tenantName(),
-                        instantSummary.name(),
-                        instantSummary.status(),
+                        summary.organizationId(),
+                        summary.tenantId(),
+                        summary.tenantName(),
+                        summary.name(),
+                        summary.status(),
                         users,
-                        instantSummary.userCount(),
-                        instantSummary.createdAt(),
-                        instantSummary.updatedAt()));
+                        summary.userCount(),
+                        summary.createdAt(),
+                        summary.updatedAt()));
     }
 
     /**
@@ -185,7 +238,7 @@ public class OrganizationAdminQueryDslRepository {
         return queryFactory
                 .select(
                         Projections.constructor(
-                                OrganizationUserSummary.class,
+                                OrganizationAdminUserProjection.class,
                                 userJpaEntity.userId,
                                 userJpaEntity.identifier,
                                 userJpaEntity.createdAt))
@@ -195,7 +248,7 @@ public class OrganizationAdminQueryDslRepository {
                 .limit(DEFAULT_USERS_LIMIT)
                 .fetch()
                 .stream()
-                .map(this::toInstantUserSummary)
+                .map(OrganizationAdminUserProjection::toResponse)
                 .toList();
     }
 
@@ -279,33 +332,5 @@ public class OrganizationAdminQueryDslRepository {
         } catch (IllegalArgumentException e) {
             return null;
         }
-    }
-
-    /**
-     * LocalDateTime → Instant 변환 (Summary)
-     *
-     * @param summary 원본 Summary (LocalDateTime 기반)
-     * @return Instant 기반 Summary
-     */
-    private OrganizationSummaryResponse toInstantResponse(OrganizationSummaryResponse summary) {
-        return new OrganizationSummaryResponse(
-                summary.organizationId(),
-                summary.tenantId(),
-                summary.tenantName(),
-                summary.name(),
-                summary.status(),
-                summary.userCount(),
-                summary.createdAt(),
-                summary.updatedAt());
-    }
-
-    /**
-     * LocalDateTime → Instant 변환 (UserSummary)
-     *
-     * @param summary 원본 UserSummary (LocalDateTime 기반)
-     * @return Instant 기반 UserSummary
-     */
-    private OrganizationUserSummary toInstantUserSummary(OrganizationUserSummary summary) {
-        return new OrganizationUserSummary(summary.userId(), summary.email(), summary.createdAt());
     }
 }

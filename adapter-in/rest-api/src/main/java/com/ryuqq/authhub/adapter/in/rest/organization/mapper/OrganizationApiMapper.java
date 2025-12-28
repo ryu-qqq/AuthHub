@@ -294,14 +294,7 @@ public class OrganizationApiMapper {
      */
     public OrganizationDetailApiResponse toDetailApiResponse(OrganizationDetailResponse response) {
         List<OrganizationUserSummaryApiResponse> users =
-                response.users().stream()
-                        .map(
-                                user ->
-                                        new OrganizationUserSummaryApiResponse(
-                                                user.userId().toString(),
-                                                user.email(),
-                                                user.createdAt()))
-                        .toList();
+                response.users().stream().map(this::toUserSummaryApiResponse).toList();
 
         return new OrganizationDetailApiResponse(
                 response.organizationId().toString(),
@@ -313,5 +306,17 @@ public class OrganizationApiMapper {
                 response.userCount(),
                 response.createdAt(),
                 response.updatedAt());
+    }
+
+    /**
+     * OrganizationUserSummary → OrganizationUserSummaryApiResponse 변환
+     *
+     * @param user 조직 사용자 Summary
+     * @return API 사용자 Summary Response
+     */
+    private OrganizationUserSummaryApiResponse toUserSummaryApiResponse(
+            OrganizationDetailResponse.OrganizationUserSummary user) {
+        return new OrganizationUserSummaryApiResponse(
+                user.userId().toString(), user.email(), user.createdAt());
     }
 }

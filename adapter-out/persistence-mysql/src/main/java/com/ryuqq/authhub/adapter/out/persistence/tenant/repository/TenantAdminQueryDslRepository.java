@@ -15,6 +15,7 @@ import com.ryuqq.authhub.application.tenant.dto.response.TenantSummaryResponse;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -66,6 +67,58 @@ public class TenantAdminQueryDslRepository {
     }
 
     /**
+     * QueryDSL Projection용 내부 DTO (Admin Summary용)
+     *
+     * <p>JPA Entity의 LocalDateTime과 Integer 타입을 그대로 받기 위한 중간 DTO입니다. Application
+     * DTO(TenantSummaryResponse)로 변환 시 Instant와 int로 변환합니다.
+     */
+    public record TenantAdminSummaryProjection(
+            UUID tenantId,
+            String name,
+            String status,
+            Integer organizationCount,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
+
+        /**
+         * Application DTO로 변환
+         *
+         * @return TenantSummaryResponse
+         */
+        TenantSummaryResponse toResponse() {
+            return new TenantSummaryResponse(
+                    tenantId,
+                    name,
+                    status,
+                    organizationCount != null ? organizationCount : 0,
+                    createdAt != null ? createdAt.toInstant(ZoneOffset.UTC) : null,
+                    updatedAt != null ? updatedAt.toInstant(ZoneOffset.UTC) : null);
+        }
+    }
+
+    /**
+     * QueryDSL Projection용 내부 DTO (Admin Organization Summary용)
+     *
+     * <p>JPA Entity의 LocalDateTime 타입을 그대로 받기 위한 중간 DTO입니다.
+     */
+    public record TenantAdminOrganizationProjection(
+            UUID organizationId, String name, String status, LocalDateTime createdAt) {
+
+        /**
+         * Application DTO로 변환
+         *
+         * @return TenantOrganizationSummary
+         */
+        TenantOrganizationSummary toResponse() {
+            return new TenantOrganizationSummary(
+                    organizationId,
+                    name,
+                    status,
+                    createdAt != null ? createdAt.toInstant(ZoneOffset.UTC) : null);
+        }
+    }
+
+    /**
      * Admin 테넌트 목록 검색 (확장 필터 + organizationCount)
      *
      * <p>organizationCount 서브쿼리를 포함한 Summary DTO를 직접 조회합니다.
@@ -80,7 +133,7 @@ public class TenantAdminQueryDslRepository {
         return queryFactory
                 .select(
                         Projections.constructor(
-                                TenantSummaryResponse.class,
+                                TenantAdminSummaryProjection.class,
                                 tenantJpaEntity.tenantId,
                                 tenantJpaEntity.name,
                                 tenantJpaEntity.status.stringValue(),
@@ -98,7 +151,7 @@ public class TenantAdminQueryDslRepository {
                 .limit(query.size())
                 .fetch()
                 .stream()
-                .map(this::convertToInstant)
+                .map(TenantAdminSummaryProjection::toResponse)
                 .toList();
     }
 
@@ -130,11 +183,11 @@ public class TenantAdminQueryDslRepository {
      */
     public Optional<TenantDetailResponse> findTenantDetail(UUID tenantId) {
         // 1. 테넌트 기본 정보 조회
-        TenantSummaryResponse summary =
+        TenantAdminSummaryProjection summaryProjection =
                 queryFactory
                         .select(
                                 Projections.constructor(
-                                        TenantSummaryResponse.class,
+                                        TenantAdminSummaryProjection.class,
                                         tenantJpaEntity.tenantId,
                                         tenantJpaEntity.name,
                                         tenantJpaEntity.status.stringValue(),
@@ -150,7 +203,7 @@ public class TenantAdminQueryDslRepository {
                         .where(tenantJpaEntity.tenantId.eq(tenantId))
                         .fetchOne();
 
-        if (summary == null) {
+        if (summaryProjection == null) {
             return Optional.empty();
         }
 
@@ -159,7 +212,7 @@ public class TenantAdminQueryDslRepository {
                 queryFactory
                         .select(
                                 Projections.constructor(
-                                        TenantOrganizationSummary.class,
+                                        TenantAdminOrganizationProjection.class,
                                         organizationJpaEntity.organizationId,
                                         organizationJpaEntity.name,
                                         organizationJpaEntity.status.stringValue(),
@@ -170,20 +223,20 @@ public class TenantAdminQueryDslRepository {
                         .limit(MAX_ORGANIZATIONS_IN_DETAIL)
                         .fetch()
                         .stream()
-                        .map(this::convertOrganizationToInstant)
+                        .map(TenantAdminOrganizationProjection::toResponse)
                         .toList();
 
         // 3. Detail DTO 조합
-        TenantSummaryResponse converted = convertToInstant(summary);
+        TenantSummaryResponse summary = summaryProjection.toResponse();
         return Optional.of(
                 new TenantDetailResponse(
-                        converted.tenantId(),
-                        converted.name(),
-                        converted.status(),
+                        summary.tenantId(),
+                        summary.name(),
+                        summary.status(),
                         organizations,
-                        converted.organizationCount(),
-                        converted.createdAt(),
-                        converted.updatedAt()));
+                        summary.organizationCount(),
+                        summary.createdAt(),
+                        summary.updatedAt()));
     }
 
     /**
@@ -249,23 +302,5 @@ public class TenantAdminQueryDslRepository {
         } catch (IllegalArgumentException e) {
             return null;
         }
-    }
-
-    /** LocalDateTime → Instant 변환 (Summary) */
-    private TenantSummaryResponse convertToInstant(TenantSummaryResponse response) {
-        return new TenantSummaryResponse(
-                response.tenantId(),
-                response.name(),
-                response.status(),
-                response.organizationCount(),
-                response.createdAt(),
-                response.updatedAt());
-    }
-
-    /** LocalDateTime → Instant 변환 (Organization Summary) */
-    private TenantOrganizationSummary convertOrganizationToInstant(
-            TenantOrganizationSummary summary) {
-        return new TenantOrganizationSummary(
-                summary.organizationId(), summary.name(), summary.status(), summary.createdAt());
     }
 }

@@ -9,7 +9,7 @@ import static com.ryuqq.authhub.adapter.out.persistence.user.entity.QUserRoleJpa
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.dto.response.UserDetailResponse;
@@ -19,6 +19,7 @@ import com.ryuqq.authhub.domain.user.vo.UserStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,6 +60,44 @@ public class UserAdminQueryDslRepository {
     }
 
     /**
+     * QueryDSL Projection용 내부 DTO (Admin용)
+     *
+     * <p>JPA Entity의 LocalDateTime과 Long 타입을 그대로 받기 위한 중간 DTO입니다. Application
+     * DTO(UserSummaryResponse)로 변환 시 Instant와 int로 변환합니다.
+     */
+    public record UserAdminSummaryProjection(
+            UUID userId,
+            UUID tenantId,
+            String tenantName,
+            UUID organizationId,
+            String organizationName,
+            String identifier,
+            String status,
+            Long roleCount,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
+
+        /**
+         * Application DTO로 변환
+         *
+         * @return UserSummaryResponse
+         */
+        UserSummaryResponse toResponse() {
+            return new UserSummaryResponse(
+                    userId,
+                    tenantId,
+                    tenantName,
+                    organizationId,
+                    organizationName,
+                    identifier,
+                    status,
+                    roleCount != null ? roleCount.intValue() : 0,
+                    createdAt != null ? createdAt.toInstant(ZoneOffset.UTC) : null,
+                    updatedAt != null ? updatedAt.toInstant(ZoneOffset.UTC) : null);
+        }
+    }
+
+    /**
      * 사용자 목록 검색 (Admin용 - Summary Projection)
      *
      * <p>Tenant, Organization 조인 및 roleCount 서브쿼리를 포함합니다.
@@ -74,7 +113,7 @@ public class UserAdminQueryDslRepository {
         return queryFactory
                 .select(
                         Projections.constructor(
-                                UserSummaryResponse.class,
+                                UserAdminSummaryProjection.class,
                                 userJpaEntity.userId,
                                 userJpaEntity.tenantId,
                                 tenantJpaEntity.name,
@@ -82,13 +121,9 @@ public class UserAdminQueryDslRepository {
                                 organizationJpaEntity.name,
                                 userJpaEntity.identifier,
                                 userJpaEntity.status.stringValue(),
-                                Expressions.asNumber(
-                                        queryFactory
-                                                .select(userRoleJpaEntity.count())
-                                                .from(userRoleJpaEntity)
-                                                .where(
-                                                        userRoleJpaEntity.userId.eq(
-                                                                userJpaEntity.userId))),
+                                JPAExpressions.select(userRoleJpaEntity.count())
+                                        .from(userRoleJpaEntity)
+                                        .where(userRoleJpaEntity.userId.eq(userJpaEntity.userId)),
                                 userJpaEntity.createdAt,
                                 userJpaEntity.updatedAt))
                 .from(userJpaEntity)
@@ -100,7 +135,10 @@ public class UserAdminQueryDslRepository {
                 .orderBy(orderSpecifier)
                 .offset((long) query.page() * query.size())
                 .limit(query.size())
-                .fetch();
+                .fetch()
+                .stream()
+                .map(UserAdminSummaryProjection::toResponse)
+                .toList();
     }
 
     /**
@@ -135,7 +173,7 @@ public class UserAdminQueryDslRepository {
                 queryFactory
                         .select(
                                 Projections.fields(
-                                        UserBasicInfo.class,
+                                        UserAdminBasicInfo.class,
                                         userJpaEntity.userId.as("userId"),
                                         userJpaEntity.tenantId.as("tenantId"),
                                         tenantJpaEntity.name.as("tenantName"),
@@ -252,15 +290,15 @@ public class UserAdminQueryDslRepository {
     }
 
     /** 기본 정보 내부 클래스 (Projection용) */
-    private static class UserBasicInfo {
-        UUID userId;
-        UUID tenantId;
-        String tenantName;
-        UUID organizationId;
-        String organizationName;
-        String identifier;
-        String status;
-        LocalDateTime createdAt;
-        LocalDateTime updatedAt;
+    public static class UserAdminBasicInfo {
+        public UUID userId;
+        public UUID tenantId;
+        public String tenantName;
+        public UUID organizationId;
+        public String organizationName;
+        public String identifier;
+        public String status;
+        public LocalDateTime createdAt;
+        public LocalDateTime updatedAt;
     }
 }

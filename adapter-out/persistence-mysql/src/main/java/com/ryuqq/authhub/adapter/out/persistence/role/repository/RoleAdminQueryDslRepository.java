@@ -9,7 +9,7 @@ import static com.ryuqq.authhub.adapter.out.persistence.user.entity.QUserRoleJpa
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleDetailResponse;
@@ -18,6 +18,7 @@ import com.ryuqq.authhub.application.role.dto.response.RoleSummaryResponse;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,6 +59,46 @@ public class RoleAdminQueryDslRepository {
     }
 
     /**
+     * QueryDSL Projection용 내부 DTO (Admin용)
+     *
+     * <p>JPA Entity의 LocalDateTime과 Long 타입을 그대로 받기 위한 중간 DTO입니다. Application
+     * DTO(RoleSummaryResponse)로 변환 시 Instant와 int로 변환합니다.
+     */
+    public record RoleAdminSummaryProjection(
+            UUID roleId,
+            UUID tenantId,
+            String tenantName,
+            String name,
+            String description,
+            String scope,
+            String type,
+            Long permissionCount,
+            Long userCount,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
+
+        /**
+         * Application DTO로 변환
+         *
+         * @return RoleSummaryResponse
+         */
+        RoleSummaryResponse toResponse() {
+            return new RoleSummaryResponse(
+                    roleId,
+                    tenantId,
+                    tenantName,
+                    name,
+                    description,
+                    scope,
+                    type,
+                    permissionCount != null ? permissionCount.intValue() : 0,
+                    userCount != null ? userCount.intValue() : 0,
+                    createdAt != null ? createdAt.toInstant(ZoneOffset.UTC) : null,
+                    updatedAt != null ? updatedAt.toInstant(ZoneOffset.UTC) : null);
+        }
+    }
+
+    /**
      * 역할 목록 검색 (Admin용 - Summary Projection)
      *
      * <p>Tenant 조인 및 permissionCount, userCount 서브쿼리를 포함합니다.
@@ -73,7 +114,7 @@ public class RoleAdminQueryDslRepository {
         return queryFactory
                 .select(
                         Projections.constructor(
-                                RoleSummaryResponse.class,
+                                RoleAdminSummaryProjection.class,
                                 roleJpaEntity.roleId,
                                 roleJpaEntity.tenantId,
                                 tenantJpaEntity.name,
@@ -81,20 +122,14 @@ public class RoleAdminQueryDslRepository {
                                 roleJpaEntity.description,
                                 roleJpaEntity.scope.stringValue(),
                                 roleJpaEntity.type.stringValue(),
-                                Expressions.asNumber(
-                                        queryFactory
-                                                .select(rolePermissionJpaEntity.count())
-                                                .from(rolePermissionJpaEntity)
-                                                .where(
-                                                        rolePermissionJpaEntity.roleId.eq(
-                                                                roleJpaEntity.roleId))),
-                                Expressions.asNumber(
-                                        queryFactory
-                                                .select(userRoleJpaEntity.count())
-                                                .from(userRoleJpaEntity)
-                                                .where(
-                                                        userRoleJpaEntity.roleId.eq(
-                                                                roleJpaEntity.roleId))),
+                                JPAExpressions.select(rolePermissionJpaEntity.count())
+                                        .from(rolePermissionJpaEntity)
+                                        .where(
+                                                rolePermissionJpaEntity.roleId.eq(
+                                                        roleJpaEntity.roleId)),
+                                JPAExpressions.select(userRoleJpaEntity.count())
+                                        .from(userRoleJpaEntity)
+                                        .where(userRoleJpaEntity.roleId.eq(roleJpaEntity.roleId)),
                                 roleJpaEntity.createdAt,
                                 roleJpaEntity.updatedAt))
                 .from(roleJpaEntity)
@@ -104,7 +139,10 @@ public class RoleAdminQueryDslRepository {
                 .orderBy(orderSpecifier)
                 .offset((long) query.page() * query.size())
                 .limit(query.size())
-                .fetch();
+                .fetch()
+                .stream()
+                .map(RoleAdminSummaryProjection::toResponse)
+                .toList();
     }
 
     /**
@@ -139,7 +177,7 @@ public class RoleAdminQueryDslRepository {
                 queryFactory
                         .select(
                                 Projections.fields(
-                                        RoleBasicInfo.class,
+                                        RoleAdminBasicInfo.class,
                                         roleJpaEntity.roleId.as("roleId"),
                                         roleJpaEntity.tenantId.as("tenantId"),
                                         tenantJpaEntity.name.as("tenantName"),
@@ -261,15 +299,15 @@ public class RoleAdminQueryDslRepository {
     }
 
     /** 기본 정보 내부 클래스 (Projection용) */
-    private static class RoleBasicInfo {
-        UUID roleId;
-        UUID tenantId;
-        String tenantName;
-        String name;
-        String description;
-        String scope;
-        String type;
-        LocalDateTime createdAt;
-        LocalDateTime updatedAt;
+    public static class RoleAdminBasicInfo {
+        public UUID roleId;
+        public UUID tenantId;
+        public String tenantName;
+        public String name;
+        public String description;
+        public String scope;
+        public String type;
+        public LocalDateTime createdAt;
+        public LocalDateTime updatedAt;
     }
 }

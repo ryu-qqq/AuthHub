@@ -625,31 +625,41 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                                     .description("페이지 크기 (기본값: 20, 최대: 100)")
                                                     .optional()),
                                     responseFields(
-                                            fieldWithPath("content").description("역할 목록"),
-                                            fieldWithPath("content[].roleId").description("역할 ID"),
-                                            fieldWithPath("content[].tenantId")
+                                            fieldWithPath("success").description("성공 여부"),
+                                            fieldWithPath("data").description("페이징된 역할 목록"),
+                                            fieldWithPath("data.content").description("역할 목록"),
+                                            fieldWithPath("data.content[].roleId")
+                                                    .description("역할 ID"),
+                                            fieldWithPath("data.content[].tenantId")
                                                     .description("테넌트 ID"),
-                                            fieldWithPath("content[].tenantName")
+                                            fieldWithPath("data.content[].tenantName")
                                                     .description("테넌트 이름"),
-                                            fieldWithPath("content[].name").description("역할 이름"),
-                                            fieldWithPath("content[].description")
+                                            fieldWithPath("data.content[].name")
+                                                    .description("역할 이름"),
+                                            fieldWithPath("data.content[].description")
                                                     .description("역할 설명"),
-                                            fieldWithPath("content[].scope").description("역할 범위"),
-                                            fieldWithPath("content[].type").description("역할 유형"),
-                                            fieldWithPath("content[].permissionCount")
+                                            fieldWithPath("data.content[].scope")
+                                                    .description("역할 범위"),
+                                            fieldWithPath("data.content[].type")
+                                                    .description("역할 유형"),
+                                            fieldWithPath("data.content[].permissionCount")
                                                     .description("할당된 권한 수"),
-                                            fieldWithPath("content[].userCount")
+                                            fieldWithPath("data.content[].userCount")
                                                     .description("역할이 할당된 사용자 수"),
-                                            fieldWithPath("content[].createdAt")
+                                            fieldWithPath("data.content[].createdAt")
                                                     .description("생성 일시"),
-                                            fieldWithPath("content[].updatedAt")
+                                            fieldWithPath("data.content[].updatedAt")
                                                     .description("수정 일시"),
-                                            fieldWithPath("page").description("현재 페이지 번호"),
-                                            fieldWithPath("size").description("페이지 크기"),
-                                            fieldWithPath("totalElements").description("전체 데이터 개수"),
-                                            fieldWithPath("totalPages").description("전체 페이지 수"),
-                                            fieldWithPath("first").description("첫 페이지 여부"),
-                                            fieldWithPath("last").description("마지막 페이지 여부"))));
+                                            fieldWithPath("data.page").description("현재 페이지 번호"),
+                                            fieldWithPath("data.size").description("페이지 크기"),
+                                            fieldWithPath("data.totalElements")
+                                                    .description("전체 데이터 개수"),
+                                            fieldWithPath("data.totalPages")
+                                                    .description("전체 페이지 수"),
+                                            fieldWithPath("data.first").description("첫 페이지 여부"),
+                                            fieldWithPath("data.last").description("마지막 페이지 여부"),
+                                            fieldWithPath("timestamp").description("응답 시간"),
+                                            fieldWithPath("requestId").description("요청 ID"))));
         }
     }
 
