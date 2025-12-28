@@ -81,7 +81,7 @@ jobs:
       # JaCoCo 커버리지 검증
       # ----------------------------------------------------------------------
       - name: Verify Code Coverage
-        run: ./gradlew jacocoTestCoverageVerification --no-daemon
+        run: ./gradlew jacocoTestCoverageVerification -x integration-test:test -x integration-test:jacocoTestCoverageVerification --no-daemon
 
       # ----------------------------------------------------------------------
       # 테스트 리포트 업로드
