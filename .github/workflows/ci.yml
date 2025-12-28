@@ -71,15 +71,17 @@ jobs:
 
       # ----------------------------------------------------------------------
       # 테스트 실행 (단위 + ArchUnit)
+      # 통합 테스트는 외부 의존성(Redis, DB 등) 필요하므로 CI에서 제외
+      # 통합 테스트는 로컬 또는 별도 파이프라인에서 실행
       # ----------------------------------------------------------------------
       - name: Run Tests
-        run: ./gradlew test --no-daemon
+        run: ./gradlew test -x integration-test:test --no-daemon
 
       # ----------------------------------------------------------------------
       # JaCoCo 커버리지 검증
       # ----------------------------------------------------------------------
       - name: Verify Code Coverage
-        run: ./gradlew jacocoTestCoverageVerification --no-daemon
+        run: ./gradlew jacocoTestCoverageVerification -x integration-test:test -x integration-test:jacocoTestCoverageVerification --no-daemon
 
       # ----------------------------------------------------------------------
       # 테스트 리포트 업로드

@@ -45,17 +45,16 @@ import org.springframework.stereotype.Component;
 public class RoleJpaEntityMapper {
 
     /**
-     * Domain → Entity 변환
+     * Domain → Entity 변환 (신규 생성용)
      *
      * <p><strong>사용 시나리오:</strong>
      *
      * <ul>
      *   <li>신규 Role 저장 (ID가 null)
-     *   <li>기존 Role 수정 (ID가 있음)
      * </ul>
      *
      * @param domain Role 도메인
-     * @return RoleJpaEntity
+     * @return RoleJpaEntity (JPA internal ID = null)
      */
     public RoleJpaEntity toEntity(Role domain) {
         return RoleJpaEntity.of(
@@ -68,6 +67,29 @@ public class RoleJpaEntityMapper {
                 domain.getType(),
                 domain.isDeleted(),
                 toLocalDateTime(domain.createdAt()),
+                toLocalDateTime(domain.updatedAt()));
+    }
+
+    /**
+     * 기존 Entity 업데이트 (UPDATE용)
+     *
+     * <p>기존 Entity의 JPA internal ID를 유지하면서 Domain 값으로 업데이트합니다.
+     *
+     * @param existing 기존 JPA Entity (ID 유지용)
+     * @param domain 업데이트할 Role 도메인
+     * @return RoleJpaEntity (기존 JPA internal ID 유지)
+     */
+    public RoleJpaEntity updateEntity(RoleJpaEntity existing, Role domain) {
+        return RoleJpaEntity.of(
+                existing.getId(),
+                domain.roleIdValue(),
+                domain.tenantIdValue(),
+                domain.nameValue(),
+                domain.descriptionValue(),
+                domain.getScope(),
+                domain.getType(),
+                domain.isDeleted(),
+                existing.getCreatedAt(),
                 toLocalDateTime(domain.updatedAt()));
     }
 

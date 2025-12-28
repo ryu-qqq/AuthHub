@@ -41,3 +41,9 @@ project(':adapter-out:persistence-redis').projectDir = file('adapter-out/persist
 project(':adapter-out:security').projectDir = file('adapter-out/security')
 
 project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')
+
+// ========================================
+// Integration Test Module
+// ========================================
+include 'integration-test'
+project(':integration-test').projectDir = file('integration-test')

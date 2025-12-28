@@ -46,13 +46,12 @@ import org.springframework.stereotype.Component;
 public class PermissionJpaEntityMapper {
 
     /**
-     * Domain → Entity 변환
+     * Domain → Entity 변환 (신규 생성용)
      *
      * <p><strong>사용 시나리오:</strong>
      *
      * <ul>
      *   <li>신규 Permission 저장 (ID가 null)
-     *   <li>기존 Permission 수정 (ID가 있음)
      * </ul>
      *
      * <p><strong>변환 규칙:</strong>
@@ -70,7 +69,7 @@ public class PermissionJpaEntityMapper {
      * </ul>
      *
      * @param domain Permission 도메인
-     * @return PermissionJpaEntity
+     * @return PermissionJpaEntity (JPA internal ID = null)
      */
     public PermissionJpaEntity toEntity(Permission domain) {
         return PermissionJpaEntity.of(
@@ -83,6 +82,50 @@ public class PermissionJpaEntityMapper {
                 domain.getType(),
                 domain.isDeleted(),
                 toLocalDateTime(domain.createdAt()),
+                toLocalDateTime(domain.updatedAt()));
+    }
+
+    /**
+     * 기존 Entity 업데이트 (UPDATE용)
+     *
+     * <p>기존 Entity의 JPA internal ID를 유지하면서 Domain 값으로 업데이트합니다.
+     *
+     * <p><strong>사용 시나리오:</strong>
+     *
+     * <ul>
+     *   <li>기존 Permission 수정 (ID가 있음)
+     * </ul>
+     *
+     * <p><strong>변환 규칙:</strong>
+     *
+     * <ul>
+     *   <li>id: 기존 Entity ID 유지 (JPA internal ID)
+     *   <li>permissionId: Domain.permissionIdValue() → Entity.permissionId (UUID)
+     *   <li>permissionKey: Domain.keyValue() → Entity.permissionKey
+     *   <li>resource: Domain.resourceValue() → Entity.resource
+     *   <li>action: Domain.actionValue() → Entity.action
+     *   <li>description: Domain.descriptionValue() → Entity.description
+     *   <li>type: Domain.getType() → Entity.type
+     *   <li>deleted: Domain.isDeleted() → Entity.deleted
+     *   <li>createdAt: Instant → LocalDateTime (UTC)
+     *   <li>updatedAt: Instant → LocalDateTime (UTC)
+     * </ul>
+     *
+     * @param existing 기존 JPA Entity (ID 유지용)
+     * @param domain 업데이트할 Permission 도메인
+     * @return PermissionJpaEntity (기존 JPA internal ID 유지)
+     */
+    public PermissionJpaEntity updateEntity(PermissionJpaEntity existing, Permission domain) {
+        return PermissionJpaEntity.of(
+                existing.getId(),
+                domain.permissionIdValue(),
+                domain.keyValue(),
+                domain.resourceValue(),
+                domain.actionValue(),
+                domain.descriptionValue(),
+                domain.getType(),
+                domain.isDeleted(),
+                existing.getCreatedAt(),
                 toLocalDateTime(domain.updatedAt()));
     }
 
