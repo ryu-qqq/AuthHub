@@ -56,6 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "User", description = "사용자 관리 API (Admin)")
 @RestController
 @RequestMapping(ApiPaths.Users.BASE)
+@SuppressWarnings("PMD.ExcessiveImports")
 public class UserQueryController {
 
     private final GetUserUseCase getUserUseCase;

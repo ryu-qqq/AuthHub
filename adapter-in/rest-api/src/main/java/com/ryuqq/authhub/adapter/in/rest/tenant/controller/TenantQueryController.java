@@ -55,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Tenant", description = "테넌트 관리 API (Admin)")
 @RestController
 @RequestMapping(ApiPaths.Tenants.BASE)
+@SuppressWarnings("PMD.ExcessiveImports")
 public class TenantQueryController {
 
     private final GetTenantUseCase getTenantUseCase;
@@ -131,11 +132,13 @@ public class TenantQueryController {
     })
     @PreAuthorize("@access.superAdmin()")
     @GetMapping
-    public ResponseEntity<PageApiResponse<TenantApiResponse>> getTenants(
+    public ResponseEntity<ApiResponse<PageApiResponse<TenantApiResponse>>> getTenants(
             @Valid @ModelAttribute SearchTenantsApiRequest request) {
         PageResponse<TenantResponse> pageResponse =
                 searchTenantsUseCase.execute(mapper.toQuery(request));
-        return ResponseEntity.ok(PageApiResponse.from(pageResponse, mapper::toApiResponse));
+        PageApiResponse<TenantApiResponse> pagedResponse =
+                PageApiResponse.from(pageResponse, mapper::toApiResponse);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(pagedResponse));
     }
 
     // ==================== Admin Query 엔드포인트 ====================

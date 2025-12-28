@@ -78,7 +78,9 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
         ResponseEntity<ApiResponse<CreateTenantApiResponse>> tenantResponse =
                 postForApiResponse(
                         tenantsUrl(), tenantRequest, new ParameterizedTypeReference<>() {});
-        this.tenantId = tenantResponse.getBody().data().tenantId();
+        ApiResponse<CreateTenantApiResponse> tenantBody = tenantResponse.getBody();
+        CreateTenantApiResponse tenantData = tenantBody.data();
+        this.tenantId = tenantData.tenantId();
 
         // 테스트용 조직 생성
         var orgRequest =
@@ -87,14 +89,18 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
         ResponseEntity<ApiResponse<CreateOrganizationApiResponse>> orgResponse =
                 postForApiResponse(
                         organizationsUrl(), orgRequest, new ParameterizedTypeReference<>() {});
-        this.organizationId = orgResponse.getBody().data().organizationId();
+        ApiResponse<CreateOrganizationApiResponse> orgBody = orgResponse.getBody();
+        CreateOrganizationApiResponse orgData = orgBody.data();
+        this.organizationId = orgData.organizationId();
 
         // 테스트용 역할 생성
         var roleRequest =
                 RoleIntegrationTestFixture.createTenantRoleRequestWithUniqueName(tenantId);
         ResponseEntity<ApiResponse<CreateRoleApiResponse>> roleResponse =
                 postForApiResponse(rolesUrl(), roleRequest, new ParameterizedTypeReference<>() {});
-        this.roleId = roleResponse.getBody().data().roleId();
+        ApiResponse<CreateRoleApiResponse> roleBody = roleResponse.getBody();
+        CreateRoleApiResponse roleData = roleBody.data();
+        this.roleId = roleData.roleId();
 
         // 테스트용 사용자 생성
         var userRequest =
@@ -102,7 +108,9 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
                         tenantId, organizationId);
         ResponseEntity<ApiResponse<CreateUserApiResponse>> userResponse =
                 postForApiResponse(usersUrl(), userRequest, new ParameterizedTypeReference<>() {});
-        this.userId = userResponse.getBody().data().userId();
+        ApiResponse<CreateUserApiResponse> userBody = userResponse.getBody();
+        CreateUserApiResponse userData = userBody.data();
+        this.userId = userData.userId();
     }
 
     @Nested

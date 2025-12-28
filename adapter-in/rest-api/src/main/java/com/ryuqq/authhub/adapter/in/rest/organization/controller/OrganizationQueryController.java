@@ -60,6 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Organization", description = "조직 관리 API (Admin)")
 @RestController
 @RequestMapping(ApiPaths.Organizations.BASE)
+@SuppressWarnings("PMD.ExcessiveImports")
 public class OrganizationQueryController {
 
     private final GetOrganizationUseCase getOrganizationUseCase;

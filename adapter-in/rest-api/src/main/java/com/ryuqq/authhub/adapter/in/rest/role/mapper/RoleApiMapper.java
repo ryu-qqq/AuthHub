@@ -52,6 +52,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0.0
  */
 @Component
+@SuppressWarnings("PMD.ExcessiveImports")
 public class RoleApiMapper {
 
     /**

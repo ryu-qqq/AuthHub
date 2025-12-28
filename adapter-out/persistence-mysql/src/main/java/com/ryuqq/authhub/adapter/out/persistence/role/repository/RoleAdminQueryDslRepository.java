@@ -17,7 +17,6 @@ import com.ryuqq.authhub.application.role.dto.response.RoleDetailResponse.RolePe
 import com.ryuqq.authhub.application.role.dto.response.RoleSummaryResponse;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -287,7 +286,7 @@ public class RoleAdminQueryDslRepository {
         if (localDateTime == null) {
             return null;
         }
-        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+        return localDateTime.toInstant(ZoneOffset.UTC);
     }
 
     /** Instant → LocalDateTime 변환 */
@@ -295,10 +294,11 @@ public class RoleAdminQueryDslRepository {
         if (instant == null) {
             return null;
         }
-        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 
     /** 기본 정보 내부 클래스 (Projection용) */
+    @SuppressWarnings({"PMD.DataClass", "PMD.TooManyFields"})
     public static class RoleAdminBasicInfo {
         public UUID roleId;
         public UUID tenantId;

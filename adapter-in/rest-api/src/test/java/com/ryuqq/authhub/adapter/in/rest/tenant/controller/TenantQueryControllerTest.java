@@ -183,11 +183,11 @@ class TenantQueryControllerTest {
             given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            // PageApiResponse는 직접 content, totalElements 등 필드를 반환 (success/data 래핑 없음)
+            // ApiResponse<PageApiResponse<T>> 형식으로 래핑
             mockMvc.perform(get("/api/v1/auth/tenants").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content").isArray())
-                    .andExpect(jsonPath("$.totalElements").value(1));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.totalElements").value(1));
 
             verify(searchTenantsUseCase).execute(any(SearchTenantsQuery.class));
         }
@@ -223,9 +223,9 @@ class TenantQueryControllerTest {
                                     .param("size", "10")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content").isArray())
-                    .andExpect(jsonPath("$.page").value(0))
-                    .andExpect(jsonPath("$.size").value(10));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.size").value(10));
 
             verify(searchTenantsUseCase).execute(any(SearchTenantsQuery.class));
         }
@@ -247,7 +247,7 @@ class TenantQueryControllerTest {
                                     .param("status", "ACTIVE")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray());
 
             verify(searchTenantsUseCase).execute(any(SearchTenantsQuery.class));
         }

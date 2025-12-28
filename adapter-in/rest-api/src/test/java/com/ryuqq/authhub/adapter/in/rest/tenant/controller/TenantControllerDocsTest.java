@@ -345,18 +345,29 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                                                 .description("페이지 크기 (1-100, 기본값: 20)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("content[]").description("현재 페이지 데이터 목록"),
-                                        fieldWithPath("content[].tenantId").description("테넌트 ID"),
-                                        fieldWithPath("content[].name").description("테넌트 이름"),
-                                        fieldWithPath("content[].status").description("테넌트 상태"),
-                                        fieldWithPath("content[].createdAt").description("생성 일시"),
-                                        fieldWithPath("content[].updatedAt").description("수정 일시"),
-                                        fieldWithPath("page").description("현재 페이지 번호 (0부터 시작)"),
-                                        fieldWithPath("size").description("페이지 크기"),
-                                        fieldWithPath("totalElements").description("전체 데이터 개수"),
-                                        fieldWithPath("totalPages").description("전체 페이지 수"),
-                                        fieldWithPath("first").description("첫 페이지 여부"),
-                                        fieldWithPath("last").description("마지막 페이지 여부"))));
+                                        fieldWithPath("success").description("요청 성공 여부"),
+                                        fieldWithPath("data").description("응답 데이터"),
+                                        fieldWithPath("data.content[]")
+                                                .description("현재 페이지 데이터 목록"),
+                                        fieldWithPath("data.content[].tenantId")
+                                                .description("테넌트 ID"),
+                                        fieldWithPath("data.content[].name").description("테넌트 이름"),
+                                        fieldWithPath("data.content[].status")
+                                                .description("테넌트 상태"),
+                                        fieldWithPath("data.content[].createdAt")
+                                                .description("생성 일시"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .description("수정 일시"),
+                                        fieldWithPath("data.page")
+                                                .description("현재 페이지 번호 (0부터 시작)"),
+                                        fieldWithPath("data.size").description("페이지 크기"),
+                                        fieldWithPath("data.totalElements")
+                                                .description("전체 데이터 개수"),
+                                        fieldWithPath("data.totalPages").description("전체 페이지 수"),
+                                        fieldWithPath("data.first").description("첫 페이지 여부"),
+                                        fieldWithPath("data.last").description("마지막 페이지 여부"),
+                                        fieldWithPath("timestamp").description("응답 시간"),
+                                        fieldWithPath("requestId").description("요청 ID"))));
     }
 
     @Test

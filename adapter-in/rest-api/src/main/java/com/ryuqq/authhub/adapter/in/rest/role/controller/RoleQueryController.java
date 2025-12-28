@@ -61,6 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Role", description = "역할 관리 API (Admin)")
 @RestController
 @RequestMapping(ApiPaths.Roles.BASE)
+@SuppressWarnings("PMD.ExcessiveImports")
 public class RoleQueryController {
 
     private final GetRoleUseCase getRoleUseCase;
