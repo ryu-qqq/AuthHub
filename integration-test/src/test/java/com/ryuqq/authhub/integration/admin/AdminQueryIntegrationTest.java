@@ -90,7 +90,8 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
         this.organizationId = orgResponse.getBody().data().organizationId();
 
         // 테스트용 역할 생성
-        var roleRequest = RoleIntegrationTestFixture.createTenantRoleRequestWithUniqueName(tenantId);
+        var roleRequest =
+                RoleIntegrationTestFixture.createTenantRoleRequestWithUniqueName(tenantId);
         ResponseEntity<ApiResponse<CreateRoleApiResponse>> roleResponse =
                 postForApiResponse(rolesUrl(), roleRequest, new ParameterizedTypeReference<>() {});
         this.roleId = roleResponse.getBody().data().roleId();
