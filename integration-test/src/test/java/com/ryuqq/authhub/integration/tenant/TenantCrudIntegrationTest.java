@@ -275,7 +275,7 @@ class TenantCrudIntegrationTest extends BaseIntegrationTest {
             postForApiResponse(tenantsUrl(), request2, new ParameterizedTypeReference<>() {});
 
             // when - 목록 조회
-            ResponseEntity<PageApiResponse<TenantApiResponse>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<TenantApiResponse>>> response =
                     restTemplate.exchange(
                             tenantsUrl() + "?page=0&size=20",
                             HttpMethod.GET,
@@ -285,9 +285,10 @@ class TenantCrudIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().content()).isNotEmpty();
+            PageApiResponse<TenantApiResponse> pageData = response.getBody().data();
+            assertThat(pageData.content()).isNotEmpty();
             // 목록 조회 API가 정상 동작하는지 확인
-            assertThat(response.getBody().totalElements()).isGreaterThanOrEqualTo(1);
+            assertThat(pageData.totalElements()).isGreaterThanOrEqualTo(1);
         }
 
         @Test
@@ -300,7 +301,7 @@ class TenantCrudIntegrationTest extends BaseIntegrationTest {
             }
 
             // when - 페이지 크기 2로 조회
-            ResponseEntity<PageApiResponse<TenantApiResponse>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<TenantApiResponse>>> response =
                     restTemplate.exchange(
                             tenantsUrl() + "?page=0&size=2",
                             HttpMethod.GET,
@@ -310,9 +311,10 @@ class TenantCrudIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().content().size()).isLessThanOrEqualTo(2);
-            assertThat(response.getBody().size()).isEqualTo(2);
-            assertThat(response.getBody().page()).isEqualTo(0);
+            PageApiResponse<TenantApiResponse> pageData = response.getBody().data();
+            assertThat(pageData.content().size()).isLessThanOrEqualTo(2);
+            assertThat(pageData.size()).isEqualTo(2);
+            assertThat(pageData.page()).isEqualTo(0);
         }
     }
 }

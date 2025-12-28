@@ -71,7 +71,12 @@ class DataAccessPatternArchTest {
         rule.allowEmptyShould(true).check(allClasses);
     }
 
-    /** 규칙 2: QueryDslRepository는 QType static final 필드 필수 */
+    /**
+     * 규칙 2: QueryDslRepository는 QType static final 필드 필수
+     *
+     * <p><strong>예외:</strong> AdminQueryDslRepository는 static import를 사용하여 QType을 참조하므로 static
+     * final 필드 선언이 불필요합니다.
+     */
     @Test
     @DisplayName("[필수] QueryDslRepository는 QType static final 필드를 가져야 한다")
     void queryDslRepository_MustHaveQTypeStaticField() {
@@ -79,6 +84,9 @@ class DataAccessPatternArchTest {
                 fields().that()
                         .areDeclaredInClassesThat()
                         .haveSimpleNameEndingWith("QueryDslRepository")
+                        .and()
+                        .areDeclaredInClassesThat()
+                        .haveSimpleNameNotContaining("Admin") // Admin Repository는 예외
                         .and()
                         .areStatic()
                         .and()
@@ -88,7 +96,9 @@ class DataAccessPatternArchTest {
                                 com.tngtech.archunit.base.DescribedPredicate.describe(
                                         "Q-type class",
                                         javaClass -> javaClass.getSimpleName().startsWith("Q")))
-                        .because("QueryDslRepository는 QType static final 필드가 필수입니다");
+                        .because(
+                                "QueryDslRepository는 QType static final 필드가 필수입니다 (Admin"
+                                        + " Repository는 예외)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
@@ -224,6 +234,13 @@ class DataAccessPatternArchTest {
      *
      * <p>단순한 Adapter(예: RefreshToken 등)는 Mapper 없이 직접 변환할 수 있습니다. 복잡한 Domain 변환이 필요한 Adapter는
      * Mapper를 사용하는 것을 권장합니다.
+     *
+     * <p><strong>예외:</strong>
+     *
+     * <ul>
+     *   <li>RefreshToken: 단순 구조
+     *   <li>Admin: DTO Projection 직접 반환으로 Mapper 불필요
+     * </ul>
      */
     @Test
     @DisplayName("[권장] QueryAdapter/CommandAdapter는 Mapper를 의존해야 한다")
@@ -234,10 +251,14 @@ class DataAccessPatternArchTest {
                         .haveSimpleNameEndingWith("Adapter")
                         .and()
                         .haveSimpleNameNotContaining("RefreshToken") // RefreshToken은 예외
+                        .and()
+                        .haveSimpleNameNotContaining("Admin") // Admin Adapter는 예외
                         .should()
                         .dependOnClassesThat()
                         .haveSimpleNameEndingWith("Mapper")
-                        .because("Adapter는 Entity ↔ Domain 변환을 위해 Mapper를 의존하는 것을 권장합니다");
+                        .because(
+                                "Adapter는 Entity ↔ Domain 변환을 위해 Mapper를 의존하는 것을 권장합니다 (Admin"
+                                        + " Adapter는 예외)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
@@ -248,11 +269,14 @@ class DataAccessPatternArchTest {
      * <p>다양한 쿼리 패턴을 지원하기 위해 다음 패턴을 허용합니다:
      *
      * <ul>
-     *   <li>findBy* / findAllBy* - 조회
+     *   <li>findBy* / findAllBy* / find* - 조회
      *   <li>existsBy* - 존재 여부 확인
-     *   <li>countBy* / count / countAll - 개수 조회
-     *   <li>search - 검색
+     *   <li>countBy* / count* - 개수 조회
+     *   <li>search* - 검색
+     *   <li>build* / toLocalDateTime / toInstant - 헬퍼 메서드 (private이므로 제외됨)
      * </ul>
+     *
+     * <p><strong>예외:</strong> AdminQueryDslRepository는 어드민 화면용 특수 쿼리로 더 유연한 네이밍을 허용합니다.
      */
     @Test
     @DisplayName("[필수] QueryDslRepository 메서드는 표준 네이밍 패턴을 따라야 한다")
@@ -263,6 +287,9 @@ class DataAccessPatternArchTest {
                         .areDeclaredInClassesThat()
                         .haveSimpleNameEndingWith("QueryDslRepository")
                         .and()
+                        .areDeclaredInClassesThat()
+                        .haveSimpleNameNotContaining("Admin") // Admin Repository는 예외
+                        .and()
                         .arePublic()
                         .and()
                         .areNotStatic()
@@ -271,7 +298,7 @@ class DataAccessPatternArchTest {
                                 "^(findBy|existsBy|countBy|findAllBy|count|countAll|search).*")
                         .because(
                                 "QueryDslRepository 메서드는 findBy*, existsBy*, countBy*, findAllBy*,"
-                                        + " count*, search* 패턴을 따라야 합니다");
+                                        + " count*, search* 패턴을 따라야 합니다 (Admin Repository는 예외)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }

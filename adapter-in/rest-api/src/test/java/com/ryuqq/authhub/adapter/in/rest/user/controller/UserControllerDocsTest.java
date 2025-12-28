@@ -18,16 +18,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContextHolder;
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.AssignUserRoleApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.CreateUserApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.UpdateUserApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.UpdateUserPasswordApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.UpdateUserStatusApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.query.SearchUsersAdminApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.CreateUserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserDetailApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserRoleApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserRoleSummaryApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserSummaryApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.mapper.UserApiMapper;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.user.dto.command.AssignUserRoleCommand;
 import com.ryuqq.authhub.application.user.dto.command.CreateUserCommand;
 import com.ryuqq.authhub.application.user.dto.command.DeleteUserCommand;
@@ -37,8 +43,10 @@ import com.ryuqq.authhub.application.user.dto.command.UpdateUserPasswordCommand;
 import com.ryuqq.authhub.application.user.dto.command.UpdateUserStatusCommand;
 import com.ryuqq.authhub.application.user.dto.query.GetUserQuery;
 import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
+import com.ryuqq.authhub.application.user.dto.response.UserDetailResponse;
 import com.ryuqq.authhub.application.user.dto.response.UserResponse;
 import com.ryuqq.authhub.application.user.dto.response.UserRoleResponse;
+import com.ryuqq.authhub.application.user.dto.response.UserSummaryResponse;
 import com.ryuqq.authhub.application.user.port.in.command.AssignUserRoleUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.CreateUserUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.DeleteUserUseCase;
@@ -46,7 +54,9 @@ import com.ryuqq.authhub.application.user.port.in.command.RevokeUserRoleUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.UpdateUserPasswordUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.UpdateUserStatusUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.UpdateUserUseCase;
+import com.ryuqq.authhub.application.user.port.in.query.GetUserDetailUseCase;
 import com.ryuqq.authhub.application.user.port.in.query.GetUserUseCase;
+import com.ryuqq.authhub.application.user.port.in.query.SearchUsersAdminUseCase;
 import com.ryuqq.authhub.application.user.port.in.query.SearchUsersUseCase;
 import java.time.Instant;
 import java.util.List;
@@ -80,6 +90,8 @@ import org.springframework.http.MediaType;
  *   <li>GET /api/v1/auth/users - 사용자 목록 검색
  *   <li>POST /api/v1/auth/users/{userId}/roles - 사용자 역할 할당
  *   <li>PATCH /api/v1/auth/users/{userId}/roles/{roleId}/revoke - 사용자 역할 해제
+ *   <li>GET /api/v1/auth/users/admin/search - 사용자 목록 검색 (Admin)
+ *   <li>GET /api/v1/auth/users/{userId}/admin/detail - 사용자 상세 조회 (Admin)
  * </ul>
  *
  * @author development-team
@@ -98,7 +110,9 @@ class UserControllerDocsTest extends RestDocsTestSupport {
     @MockBean private UpdateUserPasswordUseCase updateUserPasswordUseCase;
     @MockBean private DeleteUserUseCase deleteUserUseCase;
     @MockBean private GetUserUseCase getUserUseCase;
+    @MockBean private GetUserDetailUseCase getUserDetailUseCase;
     @MockBean private SearchUsersUseCase searchUsersUseCase;
+    @MockBean private SearchUsersAdminUseCase searchUsersAdminUseCase;
     @MockBean private AssignUserRoleUseCase assignUserRoleUseCase;
     @MockBean private RevokeUserRoleUseCase revokeUserRoleUseCase;
     @MockBean private UserApiMapper mapper;
@@ -422,7 +436,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         given(mapper.toQuery(any()))
                 .willReturn(
-                        new SearchUsersQuery(
+                        SearchUsersQuery.of(
                                 tenantId, organizationId, "test@example.com", "ACTIVE", 0, 20));
         given(searchUsersUseCase.execute(any(SearchUsersQuery.class)))
                 .willReturn(List.of(response));
@@ -544,5 +558,244 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("userId").description("사용자 ID (UUID 형식)"),
                                         parameterWithName("roleId")
                                                 .description("해제할 역할 ID (UUID 형식)"))));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/admin/search - 사용자 목록 검색 (Admin)")
+    void searchUsersAdmin() throws Exception {
+        // given
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        UUID organizationId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        UserSummaryResponse summaryResponse =
+                new UserSummaryResponse(
+                        userId,
+                        tenantId,
+                        "테넌트A",
+                        organizationId,
+                        "조직A",
+                        "admin@example.com",
+                        "ACTIVE",
+                        2,
+                        now,
+                        now);
+
+        PageResponse<UserSummaryResponse> pageResponse =
+                new PageResponse<>(List.of(summaryResponse), 0, 20, 1L, 1, true, true);
+
+        UserSummaryApiResponse apiResponse =
+                new UserSummaryApiResponse(
+                        userId.toString(),
+                        tenantId.toString(),
+                        "테넌트A",
+                        organizationId.toString(),
+                        "조직A",
+                        "admin@example.com",
+                        "ACTIVE",
+                        2,
+                        now,
+                        now);
+
+        PageApiResponse<UserSummaryApiResponse> pageApiResponse =
+                new PageApiResponse<>(List.of(apiResponse), 0, 20, 1L, 1, true, true);
+
+        SearchUsersQuery query =
+                new SearchUsersQuery(
+                        tenantId,
+                        organizationId,
+                        "admin",
+                        "ACTIVE",
+                        roleId,
+                        null,
+                        null,
+                        "createdAt",
+                        "DESC",
+                        0,
+                        20);
+
+        given(mapper.toAdminQuery(any(SearchUsersAdminApiRequest.class))).willReturn(query);
+        given(searchUsersAdminUseCase.execute(any(SearchUsersQuery.class)))
+                .willReturn(pageResponse);
+        given(mapper.toSummaryApiResponse(any(UserSummaryResponse.class))).willReturn(apiResponse);
+
+        // when & then
+        mockMvc.perform(
+                        get("/api/v1/auth/users/admin/search")
+                                .param("tenantId", tenantId.toString())
+                                .param("organizationId", organizationId.toString())
+                                .param("identifier", "admin")
+                                .param("status", "ACTIVE")
+                                .param("roleId", roleId.toString())
+                                .param("createdFrom", "2024-01-01T00:00:00Z")
+                                .param("createdTo", "2024-12-31T23:59:59Z")
+                                .param("sortBy", "createdAt")
+                                .param("sortDirection", "DESC")
+                                .param("page", "0")
+                                .param("size", "20")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(
+                        document(
+                                "user-admin-search",
+                                queryParameters(
+                                        parameterWithName("tenantId")
+                                                .description("테넌트 ID 필터 (선택)")
+                                                .optional(),
+                                        parameterWithName("organizationId")
+                                                .description("조직 ID 필터 (선택)")
+                                                .optional(),
+                                        parameterWithName("identifier")
+                                                .description("사용자 식별자 필터 (부분 일치, 선택)")
+                                                .optional(),
+                                        parameterWithName("status")
+                                                .description(
+                                                        "상태 필터 (ACTIVE/INACTIVE/LOCKED/WITHDRAWN,"
+                                                                + " 선택)")
+                                                .optional(),
+                                        parameterWithName("roleId")
+                                                .description("역할 ID 필터 - 해당 역할이 할당된 사용자만 (선택)")
+                                                .optional(),
+                                        parameterWithName("createdFrom")
+                                                .description("생성일 시작 (ISO 8601 형식, 선택)")
+                                                .optional(),
+                                        parameterWithName("createdTo")
+                                                .description("생성일 종료 (ISO 8601 형식, 선택)")
+                                                .optional(),
+                                        parameterWithName("sortBy")
+                                                .description(
+                                                        "정렬 기준 (createdAt/updatedAt/identifier,"
+                                                                + " 기본값: createdAt)")
+                                                .optional(),
+                                        parameterWithName("sortDirection")
+                                                .description("정렬 방향 (ASC/DESC, 기본값: DESC)")
+                                                .optional(),
+                                        parameterWithName("page")
+                                                .description("페이지 번호 (기본값: 0)")
+                                                .optional(),
+                                        parameterWithName("size")
+                                                .description("페이지 크기 (기본값: 20, 최대: 100)")
+                                                .optional()),
+                                responseFields(
+                                        fieldWithPath("success").description("성공 여부"),
+                                        fieldWithPath("data").description("페이징된 사용자 목록"),
+                                        fieldWithPath("data.content").description("사용자 목록"),
+                                        fieldWithPath("data.content[].userId")
+                                                .description("사용자 ID"),
+                                        fieldWithPath("data.content[].tenantId")
+                                                .description("테넌트 ID"),
+                                        fieldWithPath("data.content[].tenantName")
+                                                .description("테넌트 이름"),
+                                        fieldWithPath("data.content[].organizationId")
+                                                .description("조직 ID"),
+                                        fieldWithPath("data.content[].organizationName")
+                                                .description("조직 이름"),
+                                        fieldWithPath("data.content[].identifier")
+                                                .description("사용자 식별자"),
+                                        fieldWithPath("data.content[].status")
+                                                .description("사용자 상태"),
+                                        fieldWithPath("data.content[].roleCount")
+                                                .description("할당된 역할 수"),
+                                        fieldWithPath("data.content[].createdAt")
+                                                .description("생성 일시"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .description("수정 일시"),
+                                        fieldWithPath("data.page").description("현재 페이지 번호"),
+                                        fieldWithPath("data.size").description("페이지 크기"),
+                                        fieldWithPath("data.totalElements")
+                                                .description("전체 데이터 개수"),
+                                        fieldWithPath("data.totalPages").description("전체 페이지 수"),
+                                        fieldWithPath("data.first").description("첫 페이지 여부"),
+                                        fieldWithPath("data.last").description("마지막 페이지 여부"),
+                                        fieldWithPath("timestamp").description("응답 시간"),
+                                        fieldWithPath("requestId").description("요청 ID"))));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/{userId}/admin/detail - 사용자 상세 조회 (Admin)")
+    void getUserDetail() throws Exception {
+        // given
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        UUID organizationId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        UserDetailResponse.UserRoleSummary roleSummary =
+                new UserDetailResponse.UserRoleSummary(
+                        roleId, "관리자", "시스템 관리자 역할", "GLOBAL", "SYSTEM");
+
+        UserDetailResponse detailResponse =
+                new UserDetailResponse(
+                        userId,
+                        tenantId,
+                        "테넌트A",
+                        organizationId,
+                        "조직A",
+                        "admin@example.com",
+                        "ACTIVE",
+                        List.of(roleSummary),
+                        now,
+                        now);
+
+        UserRoleSummaryApiResponse roleApiResponse =
+                new UserRoleSummaryApiResponse(
+                        roleId.toString(), "관리자", "시스템 관리자 역할", "GLOBAL", "SYSTEM");
+
+        UserDetailApiResponse apiResponse =
+                new UserDetailApiResponse(
+                        userId.toString(),
+                        tenantId.toString(),
+                        "테넌트A",
+                        organizationId.toString(),
+                        "조직A",
+                        "admin@example.com",
+                        "ACTIVE",
+                        List.of(roleApiResponse),
+                        now,
+                        now);
+
+        GetUserQuery query = new GetUserQuery(userId);
+
+        given(mapper.toGetQuery(any(String.class))).willReturn(query);
+        given(getUserDetailUseCase.execute(any(GetUserQuery.class))).willReturn(detailResponse);
+        given(mapper.toDetailApiResponse(any(UserDetailResponse.class))).willReturn(apiResponse);
+
+        // when & then
+        mockMvc.perform(
+                        get("/api/v1/auth/users/{userId}/admin/detail", userId.toString())
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(
+                        document(
+                                "user-admin-detail",
+                                pathParameters(
+                                        parameterWithName("userId")
+                                                .description("사용자 ID (UUID 형식)")),
+                                responseFields(
+                                        fieldWithPath("success").description("API 성공 여부"),
+                                        fieldWithPath("data").description("응답 데이터"),
+                                        fieldWithPath("data.userId").description("사용자 ID"),
+                                        fieldWithPath("data.tenantId").description("테넌트 ID"),
+                                        fieldWithPath("data.tenantName").description("테넌트 이름"),
+                                        fieldWithPath("data.organizationId").description("조직 ID"),
+                                        fieldWithPath("data.organizationName").description("조직 이름"),
+                                        fieldWithPath("data.identifier").description("사용자 식별자"),
+                                        fieldWithPath("data.status").description("사용자 상태"),
+                                        fieldWithPath("data.roles").description("할당된 역할 목록"),
+                                        fieldWithPath("data.roles[].roleId").description("역할 ID"),
+                                        fieldWithPath("data.roles[].name").description("역할 이름"),
+                                        fieldWithPath("data.roles[].description")
+                                                .description("역할 설명"),
+                                        fieldWithPath("data.roles[].scope")
+                                                .description("역할 범위 (GLOBAL/TENANT/ORGANIZATION)"),
+                                        fieldWithPath("data.roles[].type")
+                                                .description("역할 유형 (SYSTEM/CUSTOM)"),
+                                        fieldWithPath("data.createdAt").description("생성 일시"),
+                                        fieldWithPath("data.updatedAt").description("수정 일시"),
+                                        fieldWithPath("timestamp").description("응답 시간"),
+                                        fieldWithPath("requestId").description("요청 ID"))));
     }
 }

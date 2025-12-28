@@ -5,10 +5,14 @@ import com.ryuqq.authhub.adapter.in.rest.user.dto.command.CreateUserApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.UpdateUserApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.UpdateUserPasswordApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.command.UpdateUserStatusApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.query.SearchUsersAdminApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.query.SearchUsersApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.CreateUserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserDetailApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserRoleApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserRoleSummaryApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserSummaryApiResponse;
 import com.ryuqq.authhub.application.user.dto.command.AssignUserRoleCommand;
 import com.ryuqq.authhub.application.user.dto.command.CreateUserCommand;
 import com.ryuqq.authhub.application.user.dto.command.DeleteUserCommand;
@@ -18,8 +22,10 @@ import com.ryuqq.authhub.application.user.dto.command.UpdateUserPasswordCommand;
 import com.ryuqq.authhub.application.user.dto.command.UpdateUserStatusCommand;
 import com.ryuqq.authhub.application.user.dto.query.GetUserQuery;
 import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
+import com.ryuqq.authhub.application.user.dto.response.UserDetailResponse;
 import com.ryuqq.authhub.application.user.dto.response.UserResponse;
 import com.ryuqq.authhub.application.user.dto.response.UserRoleResponse;
+import com.ryuqq.authhub.application.user.dto.response.UserSummaryResponse;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -126,7 +132,7 @@ public class UserApiMapper {
                 request.organizationId() != null ? UUID.fromString(request.organizationId()) : null;
         int page = request.page() != null ? request.page() : 0;
         int size = request.size() != null ? request.size() : 20;
-        return new SearchUsersQuery(
+        return SearchUsersQuery.of(
                 tenantId, organizationId, request.identifier(), request.status(), page, size);
     }
 
@@ -210,5 +216,101 @@ public class UserApiMapper {
      */
     public List<UserRoleApiResponse> toUserRoleApiResponseList(List<UserRoleResponse> responses) {
         return responses.stream().map(this::toUserRoleApiResponse).toList();
+    }
+
+    // ===== Admin 전용 변환 메서드 =====
+
+    /**
+     * SearchUsersAdminApiRequest → SearchUsersQuery 변환 (Admin용)
+     *
+     * @param request Admin용 API 요청 DTO
+     * @return Application Query DTO (확장 필터 포함)
+     */
+    public SearchUsersQuery toAdminQuery(SearchUsersAdminApiRequest request) {
+        UUID tenantId = request.tenantId() != null ? UUID.fromString(request.tenantId()) : null;
+        UUID organizationId =
+                request.organizationId() != null ? UUID.fromString(request.organizationId()) : null;
+        UUID roleId = request.roleId() != null ? UUID.fromString(request.roleId()) : null;
+
+        int page = request.page() != null ? request.page() : 0;
+        int size = request.size() != null ? request.size() : SearchUsersQuery.DEFAULT_PAGE_SIZE;
+        String sortBy =
+                request.sortBy() != null ? request.sortBy() : SearchUsersQuery.DEFAULT_SORT_BY;
+        String sortDirection =
+                request.sortDirection() != null
+                        ? request.sortDirection()
+                        : SearchUsersQuery.DEFAULT_SORT_DIRECTION;
+
+        return new SearchUsersQuery(
+                tenantId,
+                organizationId,
+                request.identifier(),
+                request.status(),
+                roleId,
+                request.createdFrom(),
+                request.createdTo(),
+                sortBy,
+                sortDirection,
+                page,
+                size);
+    }
+
+    /**
+     * UserSummaryResponse → UserSummaryApiResponse 변환 (Admin 목록용)
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public UserSummaryApiResponse toSummaryApiResponse(UserSummaryResponse response) {
+        return new UserSummaryApiResponse(
+                response.userId().toString(),
+                response.tenantId().toString(),
+                response.tenantName(),
+                response.organizationId() != null ? response.organizationId().toString() : null,
+                response.organizationName(),
+                response.identifier(),
+                response.status(),
+                response.roleCount(),
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * UserDetailResponse → UserDetailApiResponse 변환 (Admin 상세용)
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public UserDetailApiResponse toDetailApiResponse(UserDetailResponse response) {
+        List<UserRoleSummaryApiResponse> roles =
+                response.roles().stream().map(this::toRoleSummaryApiResponse).toList();
+
+        return new UserDetailApiResponse(
+                response.userId().toString(),
+                response.tenantId().toString(),
+                response.tenantName(),
+                response.organizationId() != null ? response.organizationId().toString() : null,
+                response.organizationName(),
+                response.identifier(),
+                response.status(),
+                roles,
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * UserDetailResponse.UserRoleSummary → UserRoleSummaryApiResponse 변환
+     *
+     * @param roleSummary Application 역할 요약 DTO
+     * @return API 역할 요약 DTO
+     */
+    private UserRoleSummaryApiResponse toRoleSummaryApiResponse(
+            UserDetailResponse.UserRoleSummary roleSummary) {
+        return new UserRoleSummaryApiResponse(
+                roleSummary.roleId().toString(),
+                roleSummary.name(),
+                roleSummary.description(),
+                roleSummary.scope(),
+                roleSummary.type());
     }
 }

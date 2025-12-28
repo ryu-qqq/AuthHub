@@ -55,7 +55,7 @@ class SearchUsersServiceTest {
             List<User> users = List.of(user1, user2);
 
             SearchUsersQuery query =
-                    new SearchUsersQuery(UserFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    SearchUsersQuery.of(UserFixture.defaultTenantUUID(), null, null, null, 0, 10);
 
             UserResponse response1 =
                     new UserResponse(
@@ -95,7 +95,7 @@ class SearchUsersServiceTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             SearchUsersQuery query =
-                    new SearchUsersQuery(
+                    SearchUsersQuery.of(
                             UserFixture.defaultTenantUUID(), null, "nonexistent", null, 0, 10);
             List<User> emptyList = List.of();
 

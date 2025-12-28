@@ -156,7 +156,7 @@ class RoleReadManagerTest {
         void shouldSearchRoles() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    SearchRolesQuery.of(RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
             List<Role> expectedRoles = List.of(RoleFixture.create());
             given(queryPort.search(query)).willReturn(expectedRoles);
 
@@ -178,7 +178,7 @@ class RoleReadManagerTest {
         void shouldCountRoles() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    SearchRolesQuery.of(RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
             given(queryPort.count(query)).willReturn(5L);
 
             // when

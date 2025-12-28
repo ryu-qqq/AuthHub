@@ -168,7 +168,7 @@ class UserReadManagerTest {
         void shouldSearchUsers() {
             // given
             SearchUsersQuery query =
-                    new SearchUsersQuery(
+                    SearchUsersQuery.of(
                             UserFixture.defaultTenantUUID(),
                             UserFixture.defaultOrganizationUUID(),
                             null,
@@ -191,7 +191,7 @@ class UserReadManagerTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             SearchUsersQuery query =
-                    new SearchUsersQuery(UserFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    SearchUsersQuery.of(UserFixture.defaultTenantUUID(), null, null, null, 0, 10);
             given(queryPort.search(query)).willReturn(List.of());
 
             // when

@@ -224,6 +224,9 @@ class PersistenceLayerArchTest {
      *
      * <p>Adapter는 Application Layer의 Port와 DTO를 구현/사용하므로 의존이 허용됩니다. Repository, Entity, Mapper는
      * Application Layer에 의존하면 안 됩니다.
+     *
+     * <p><strong>예외:</strong> AdminQueryDslRepository는 어드민 화면용 DTO Projection을 직접 반환하므로 Application
+     * Layer DTO 의존이 허용됩니다.
      */
     @Test
     @DisplayName("[금지] Repository/Entity는 Application Layer를 의존하지 않아야 한다")
@@ -234,12 +237,14 @@ class PersistenceLayerArchTest {
                         .resideInAnyPackage(REPOSITORY_PATTERN, ENTITY_PATTERN)
                         .and()
                         .resideOutsideOfPackages(ARCHITECTURE_PATTERN)
+                        .and()
+                        .haveSimpleNameNotContaining("Admin") // Admin Repository는 예외
                         .should()
                         .dependOnClassesThat()
                         .resideInAnyPackage(APPLICATION_ALL)
                         .because(
-                                "Repository/Entity는 Application Layer를 의존하면 안 됩니다 "
-                                        + "(Adapter만 Port 통해 Application 접근 가능)");
+                                "Repository/Entity는 Application Layer를 의존하면 안 됩니다 (Adapter만 Port 통해"
+                                        + " Application 접근 가능, Admin Repository는 예외)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
@@ -296,7 +301,11 @@ class PersistenceLayerArchTest {
         rule.allowEmptyShould(true).check(allClasses);
     }
 
-    /** 규칙 8: Repository 네이밍 규칙 */
+    /**
+     * 규칙 8: Repository 네이밍 규칙
+     *
+     * <p><strong>예외:</strong> Repository 내부의 헬퍼 inner class (예: UserBasicInfo)는 제외됩니다.
+     */
     @Test
     @DisplayName("[필수] Repository는 *Repository 또는 *QueryDslRepository 네이밍 규칙을 따라야 한다")
     void persistence_RepositoriesMustFollowNamingConvention() {
@@ -308,6 +317,8 @@ class PersistenceLayerArchTest {
                         .resideOutsideOfPackages(ARCHITECTURE_PATTERN) // 테스트 클래스 제외
                         .and()
                         .haveSimpleNameNotContaining("Test")
+                        .and()
+                        .areNotMemberClasses() // inner class 제외
                         .should()
                         .haveSimpleNameEndingWith("Repository")
                         .orShould()

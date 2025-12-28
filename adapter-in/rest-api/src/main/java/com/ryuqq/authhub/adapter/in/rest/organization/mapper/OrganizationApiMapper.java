@@ -3,10 +3,14 @@ package com.ryuqq.authhub.adapter.in.rest.organization.mapper;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.CreateOrganizationApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.UpdateOrganizationApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.UpdateOrganizationStatusApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.query.SearchOrganizationsAdminApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.query.SearchOrganizationsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.CreateOrganizationApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationDetailApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationSummaryApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationUserApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationUserSummaryApiResponse;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.organization.dto.command.CreateOrganizationCommand;
 import com.ryuqq.authhub.application.organization.dto.command.DeleteOrganizationCommand;
@@ -15,7 +19,9 @@ import com.ryuqq.authhub.application.organization.dto.command.UpdateOrganization
 import com.ryuqq.authhub.application.organization.dto.query.GetOrganizationQuery;
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationUsersQuery;
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
+import com.ryuqq.authhub.application.organization.dto.response.OrganizationDetailResponse;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
+import com.ryuqq.authhub.application.organization.dto.response.OrganizationSummaryResponse;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationUserResponse;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import java.util.List;
@@ -196,5 +202,121 @@ public class OrganizationApiMapper {
                 pageResponse.totalPages(),
                 pageResponse.first(),
                 pageResponse.last());
+    }
+
+    // ===== Admin Query 관련 변환 메서드 (확장 필터 + 연관 데이터) =====
+
+    /**
+     * SearchOrganizationsAdminApiRequest → SearchOrganizationsQuery 변환 (Admin용)
+     *
+     * <p>확장 필터(날짜 범위, 정렬)를 포함하여 변환합니다. tenantId는 선택적입니다.
+     *
+     * @param request Admin API 요청 DTO
+     * @return Application Query DTO (확장 필터 포함)
+     */
+    public SearchOrganizationsQuery toAdminQuery(SearchOrganizationsAdminApiRequest request) {
+        UUID tenantIdValue =
+                request.tenantId() != null ? UUID.fromString(request.tenantId()) : null;
+        int page = request.page() != null ? request.page() : 0;
+        int size =
+                request.size() != null
+                        ? request.size()
+                        : SearchOrganizationsQuery.DEFAULT_PAGE_SIZE;
+        String sortBy =
+                request.sortBy() != null
+                        ? request.sortBy()
+                        : SearchOrganizationsQuery.DEFAULT_SORT_BY;
+        String sortDirection =
+                request.sortDirection() != null
+                        ? request.sortDirection()
+                        : SearchOrganizationsQuery.DEFAULT_SORT_DIRECTION;
+
+        return new SearchOrganizationsQuery(
+                tenantIdValue,
+                request.name(),
+                request.status(),
+                request.createdFrom(),
+                request.createdTo(),
+                sortBy,
+                sortDirection,
+                page,
+                size);
+    }
+
+    /**
+     * OrganizationSummaryResponse → OrganizationSummaryApiResponse 변환
+     *
+     * <p>tenantName, userCount가 포함된 Admin용 Summary 응답으로 변환합니다.
+     *
+     * @param response Application Summary Response DTO
+     * @return API Summary Response DTO
+     */
+    public OrganizationSummaryApiResponse toSummaryApiResponse(
+            OrganizationSummaryResponse response) {
+        return new OrganizationSummaryApiResponse(
+                response.organizationId().toString(),
+                response.tenantId().toString(),
+                response.tenantName(),
+                response.name(),
+                response.status(),
+                response.userCount(),
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * PageResponse<OrganizationSummaryResponse> → PageResponse<OrganizationSummaryApiResponse> 변환
+     *
+     * @param pageResponse Application Page Response
+     * @return API Page Response
+     */
+    public PageResponse<OrganizationSummaryApiResponse> toSummaryApiPageResponse(
+            PageResponse<OrganizationSummaryResponse> pageResponse) {
+        List<OrganizationSummaryApiResponse> content =
+                pageResponse.content().stream().map(this::toSummaryApiResponse).toList();
+        return PageResponse.of(
+                content,
+                pageResponse.page(),
+                pageResponse.size(),
+                pageResponse.totalElements(),
+                pageResponse.totalPages(),
+                pageResponse.first(),
+                pageResponse.last());
+    }
+
+    /**
+     * OrganizationDetailResponse → OrganizationDetailApiResponse 변환
+     *
+     * <p>tenantName, users 목록, userCount가 포함된 Admin용 Detail 응답으로 변환합니다.
+     *
+     * @param response Application Detail Response DTO
+     * @return API Detail Response DTO
+     */
+    public OrganizationDetailApiResponse toDetailApiResponse(OrganizationDetailResponse response) {
+        List<OrganizationUserSummaryApiResponse> users =
+                response.users().stream().map(this::toUserSummaryApiResponse).toList();
+
+        return new OrganizationDetailApiResponse(
+                response.organizationId().toString(),
+                response.tenantId().toString(),
+                response.tenantName(),
+                response.name(),
+                response.status(),
+                users,
+                response.userCount(),
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * OrganizationUserSummary → OrganizationUserSummaryApiResponse 변환
+     *
+     * @param user 조직 사용자 Summary
+     * @return API 사용자 Summary Response
+     */
+    private OrganizationUserSummaryApiResponse toUserSummaryApiResponse(
+            OrganizationDetailResponse.OrganizationUserSummary user) {
+        return new OrganizationUserSummaryApiResponse(
+                user.userId().toString(), user.email(), user.createdAt());
     }
 }
