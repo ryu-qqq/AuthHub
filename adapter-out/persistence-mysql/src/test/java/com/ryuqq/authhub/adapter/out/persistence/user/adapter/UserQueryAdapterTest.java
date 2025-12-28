@@ -197,7 +197,7 @@ class UserQueryAdapterTest {
         @DisplayName("검색 조건으로 사용자 목록을 조회한다")
         void shouldSearchUsersSuccessfully() {
             // given
-            SearchUsersQuery query = new SearchUsersQuery(TENANT_UUID, ORG_UUID, null, null, 0, 20);
+            SearchUsersQuery query = SearchUsersQuery.of(TENANT_UUID, ORG_UUID, null, null, 0, 20);
             User user1 = UserFixture.create();
             User user2 = UserFixture.createWithIdentifier("user2@example.com");
             UserJpaEntity entity1 = createUserEntity();
@@ -226,7 +226,7 @@ class UserQueryAdapterTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             SearchUsersQuery query =
-                    new SearchUsersQuery(TENANT_UUID, ORG_UUID, "nonexistent", null, 0, 20);
+                    SearchUsersQuery.of(TENANT_UUID, ORG_UUID, "nonexistent", null, 0, 20);
 
             given(
                             repository.search(
@@ -250,7 +250,7 @@ class UserQueryAdapterTest {
         void shouldSearchUsersWithStatusFilter() {
             // given
             SearchUsersQuery query =
-                    new SearchUsersQuery(TENANT_UUID, ORG_UUID, null, "ACTIVE", 0, 20);
+                    SearchUsersQuery.of(TENANT_UUID, ORG_UUID, null, "ACTIVE", 0, 20);
             User user = UserFixture.create();
             UserJpaEntity entity = createUserEntity();
 

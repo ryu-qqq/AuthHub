@@ -41,9 +41,9 @@ public class SearchTenantsService implements SearchTenantsUseCase {
 
     @Override
     public PageResponse<TenantResponse> execute(SearchTenantsQuery query) {
-        // 1. 페이징 파라미터 계산
-        int page = query.page() != null ? query.page() : 0;
-        int size = query.size() != null ? query.size() : 20;
+        // 1. 페이징 파라미터 (Query에서 기본값 적용됨)
+        int page = query.page();
+        int size = query.size();
         int offset = page * size;
 
         // 2. ReadManager: 조회

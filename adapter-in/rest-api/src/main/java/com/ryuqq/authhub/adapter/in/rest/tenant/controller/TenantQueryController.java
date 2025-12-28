@@ -3,13 +3,20 @@ package com.ryuqq.authhub.adapter.in.rest.tenant.controller;
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.query.SearchTenantsAdminApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.query.SearchTenantsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantDetailApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantSummaryApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.tenant.mapper.TenantApiMapper;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.tenant.dto.query.GetTenantQuery;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantDetailResponse;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantSummaryResponse;
+import com.ryuqq.authhub.application.tenant.port.in.query.GetTenantDetailUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.query.GetTenantUseCase;
+import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsAdminUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -52,14 +59,20 @@ public class TenantQueryController {
 
     private final GetTenantUseCase getTenantUseCase;
     private final SearchTenantsUseCase searchTenantsUseCase;
+    private final SearchTenantsAdminUseCase searchTenantsAdminUseCase;
+    private final GetTenantDetailUseCase getTenantDetailUseCase;
     private final TenantApiMapper mapper;
 
     public TenantQueryController(
             GetTenantUseCase getTenantUseCase,
             SearchTenantsUseCase searchTenantsUseCase,
+            SearchTenantsAdminUseCase searchTenantsAdminUseCase,
+            GetTenantDetailUseCase getTenantDetailUseCase,
             TenantApiMapper mapper) {
         this.getTenantUseCase = getTenantUseCase;
         this.searchTenantsUseCase = searchTenantsUseCase;
+        this.searchTenantsAdminUseCase = searchTenantsAdminUseCase;
+        this.getTenantDetailUseCase = getTenantDetailUseCase;
         this.mapper = mapper;
     }
 
@@ -123,5 +136,76 @@ public class TenantQueryController {
         PageResponse<TenantResponse> pageResponse =
                 searchTenantsUseCase.execute(mapper.toQuery(request));
         return ResponseEntity.ok(PageApiResponse.from(pageResponse, mapper::toApiResponse));
+    }
+
+    // ==================== Admin Query 엔드포인트 ====================
+
+    /**
+     * Admin 테넌트 목록 검색 (확장 필터)
+     *
+     * <p>GET /api/v1/tenants/admin/search
+     *
+     * @param request 검색 조건 (확장 필터 포함)
+     * @return 200 OK + 테넌트 목록 (페이징, organizationCount 포함)
+     */
+    @Operation(
+            summary = "Admin 테넌트 목록 검색",
+            description =
+                    """
+                    확장 필터가 적용된 테넌트 목록을 검색합니다.
+                    organizationCount가 포함되어 프론트엔드에서 추가 조회 없이 표시 가능합니다.
+
+                    **필요 권한**: Super Admin 전용
+                    **확장 필터**: 날짜 범위 (createdFrom, createdTo), 정렬 (sortBy, sortDirection)
+                    """)
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "검색 성공")
+    })
+    @PreAuthorize("@access.superAdmin()")
+    @GetMapping("/admin/search")
+    public ResponseEntity<ApiResponse<PageApiResponse<TenantSummaryApiResponse>>>
+            searchTenantsAdmin(@Valid @ModelAttribute SearchTenantsAdminApiRequest request) {
+        PageResponse<TenantSummaryResponse> pageResponse =
+                searchTenantsAdminUseCase.execute(mapper.toAdminQuery(request));
+        PageResponse<TenantSummaryApiResponse> apiPageResponse =
+                mapper.toSummaryApiPageResponse(pageResponse);
+        return ResponseEntity.ok(
+                ApiResponse.ofSuccess(PageApiResponse.from(apiPageResponse, r -> r)));
+    }
+
+    /**
+     * Admin 테넌트 상세 조회 (조직 목록 포함)
+     *
+     * <p>GET /api/v1/tenants/{tenantId}/admin/detail
+     *
+     * @param tenantId 테넌트 ID
+     * @return 200 OK + 테넌트 상세 정보 (조직 목록 포함)
+     */
+    @Operation(
+            summary = "Admin 테넌트 상세 조회",
+            description =
+                    """
+                    테넌트 상세 정보와 소속 조직 목록을 함께 조회합니다.
+                    추가 API 호출 없이 상세 화면을 구성할 수 있습니다.
+
+                    **필요 권한**: Super Admin 전용
+                    **포함 정보**: organizations (최근 N개), organizationCount
+                    """)
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "테넌트를 찾을 수 없음")
+    })
+    @PreAuthorize("@access.superAdmin()")
+    @GetMapping("/{tenantId}/admin/detail")
+    public ResponseEntity<ApiResponse<TenantDetailApiResponse>> getTenantAdminDetail(
+            @Parameter(description = "테넌트 ID", required = true) @PathVariable UUID tenantId) {
+        TenantDetailResponse response = getTenantDetailUseCase.execute(GetTenantQuery.of(tenantId));
+        return ResponseEntity.ok(ApiResponse.ofSuccess(mapper.toDetailApiResponse(response)));
     }
 }

@@ -16,7 +16,9 @@ import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.tenant.dto.query.GetTenantQuery;
 import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
+import com.ryuqq.authhub.application.tenant.port.in.query.GetTenantDetailUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.query.GetTenantUseCase;
+import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsAdminUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsUseCase;
 import com.ryuqq.authhub.domain.tenant.exception.TenantNotFoundException;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
@@ -66,7 +68,11 @@ class TenantQueryControllerTest {
 
     @MockBean private GetTenantUseCase getTenantUseCase;
 
+    @MockBean private GetTenantDetailUseCase getTenantDetailUseCase;
+
     @MockBean private SearchTenantsUseCase searchTenantsUseCase;
+
+    @MockBean private SearchTenantsAdminUseCase searchTenantsAdminUseCase;
 
     @MockBean private TenantApiMapper mapper;
 

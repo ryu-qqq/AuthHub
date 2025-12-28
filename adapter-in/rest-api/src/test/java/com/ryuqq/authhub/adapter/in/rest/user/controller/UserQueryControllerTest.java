@@ -15,7 +15,9 @@ import com.ryuqq.authhub.adapter.in.rest.user.mapper.UserApiMapper;
 import com.ryuqq.authhub.application.user.dto.query.GetUserQuery;
 import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.dto.response.UserResponse;
+import com.ryuqq.authhub.application.user.port.in.query.GetUserDetailUseCase;
 import com.ryuqq.authhub.application.user.port.in.query.GetUserUseCase;
+import com.ryuqq.authhub.application.user.port.in.query.SearchUsersAdminUseCase;
 import com.ryuqq.authhub.application.user.port.in.query.SearchUsersUseCase;
 import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
@@ -66,7 +68,11 @@ class UserQueryControllerTest {
 
     @MockBean private GetUserUseCase getUserUseCase;
 
+    @MockBean private GetUserDetailUseCase getUserDetailUseCase;
+
     @MockBean private SearchUsersUseCase searchUsersUseCase;
+
+    @MockBean private SearchUsersAdminUseCase searchUsersAdminUseCase;
 
     @MockBean private UserApiMapper mapper;
 
@@ -206,7 +212,7 @@ class UserQueryControllerTest {
                             now);
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchUsersQuery(null, null, null, null, 0, 20));
+                    .willReturn(SearchUsersQuery.of(null, null, null, null, 0, 20));
             given(searchUsersUseCase.execute(any(SearchUsersQuery.class)))
                     .willReturn(List.of(response));
             given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
@@ -230,7 +236,7 @@ class UserQueryControllerTest {
             // Given
             UUID tenantId = UUID.randomUUID();
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchUsersQuery(tenantId, null, null, null, 0, 20));
+                    .willReturn(SearchUsersQuery.of(tenantId, null, null, null, 0, 20));
             given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
@@ -253,7 +259,7 @@ class UserQueryControllerTest {
             // Given
             UUID organizationId = UUID.randomUUID();
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchUsersQuery(null, organizationId, null, null, 0, 20));
+                    .willReturn(SearchUsersQuery.of(null, organizationId, null, null, 0, 20));
             given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
@@ -276,7 +282,7 @@ class UserQueryControllerTest {
             // Given
             String identifier = "test@example.com";
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchUsersQuery(null, null, identifier, null, 0, 20));
+                    .willReturn(SearchUsersQuery.of(null, null, identifier, null, 0, 20));
             given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
@@ -298,7 +304,7 @@ class UserQueryControllerTest {
         void searchUsers_withStatusFilter_returns200Ok() throws Exception {
             // Given
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchUsersQuery(null, null, null, "ACTIVE", 0, 20));
+                    .willReturn(SearchUsersQuery.of(null, null, null, "ACTIVE", 0, 20));
             given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
@@ -320,7 +326,7 @@ class UserQueryControllerTest {
         void searchUsers_withPagingParams_returns200Ok() throws Exception {
             // Given
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchUsersQuery(null, null, null, null, 1, 10));
+                    .willReturn(SearchUsersQuery.of(null, null, null, null, 1, 10));
             given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
@@ -348,7 +354,7 @@ class UserQueryControllerTest {
 
             given(mapper.toQuery(any()))
                     .willReturn(
-                            new SearchUsersQuery(
+                            SearchUsersQuery.of(
                                     tenantId, organizationId, identifier, "ACTIVE", 0, 20));
             given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
@@ -376,7 +382,7 @@ class UserQueryControllerTest {
         void searchUsers_withNoResults_returns200Ok() throws Exception {
             // Given
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchUsersQuery(null, null, null, null, 0, 20));
+                    .willReturn(SearchUsersQuery.of(null, null, null, null, 0, 20));
             given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 

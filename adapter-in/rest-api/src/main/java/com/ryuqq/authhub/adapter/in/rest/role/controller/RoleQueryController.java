@@ -2,20 +2,29 @@ package com.ryuqq.authhub.adapter.in.rest.role.controller;
 
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.query.SearchRolesAdminApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.query.SearchRolesApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleDetailApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleSummaryApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleUserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.mapper.RoleApiMapper;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
+import com.ryuqq.authhub.application.role.dto.response.RoleDetailResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
+import com.ryuqq.authhub.application.role.dto.response.RoleSummaryResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
+import com.ryuqq.authhub.application.role.port.in.query.GetRoleDetailUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.GetRoleUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRoleUsersUseCase;
+import com.ryuqq.authhub.application.role.port.in.query.SearchRolesAdminUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -23,6 +32,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -54,17 +64,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoleQueryController {
 
     private final GetRoleUseCase getRoleUseCase;
+    private final GetRoleDetailUseCase getRoleDetailUseCase;
     private final SearchRolesUseCase searchRolesUseCase;
+    private final SearchRolesAdminUseCase searchRolesAdminUseCase;
     private final SearchRoleUsersUseCase searchRoleUsersUseCase;
     private final RoleApiMapper mapper;
 
     public RoleQueryController(
             GetRoleUseCase getRoleUseCase,
+            GetRoleDetailUseCase getRoleDetailUseCase,
             SearchRolesUseCase searchRolesUseCase,
+            SearchRolesAdminUseCase searchRolesAdminUseCase,
             SearchRoleUsersUseCase searchRoleUsersUseCase,
             RoleApiMapper mapper) {
         this.getRoleUseCase = getRoleUseCase;
+        this.getRoleDetailUseCase = getRoleDetailUseCase;
         this.searchRolesUseCase = searchRolesUseCase;
+        this.searchRolesAdminUseCase = searchRolesAdminUseCase;
         this.searchRoleUsersUseCase = searchRoleUsersUseCase;
         this.mapper = mapper;
     }
@@ -188,6 +204,91 @@ public class RoleQueryController {
         PageResponse<RoleUserResponse> response =
                 searchRoleUsersUseCase.execute(mapper.toRoleUsersQuery(roleId, page, size));
         PageResponse<RoleUserApiResponse> apiResponse = mapper.toRoleUserApiPageResponse(response);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+    }
+
+    // ===== Admin 전용 API =====
+
+    /**
+     * 역할 목록 검색 (Admin용 - 확장 필터, 페이징)
+     *
+     * <p>GET /api/v1/roles/admin/search
+     *
+     * <p>확장된 필터와 페이징 정보를 포함한 응답을 반환합니다.
+     *
+     * @param request 검색 조건 (확장 필터 포함)
+     * @return 200 OK + 페이징된 역할 Summary 목록
+     */
+    @Operation(
+            summary = "역할 목록 검색 (Admin)",
+            description =
+                    """
+                    확장된 필터로 역할 목록을 검색합니다.
+
+                    **확장 필터:**
+                    - 날짜 범위 (createdFrom, createdTo)
+                    - 정렬 옵션 (sortBy, sortDirection)
+
+                    **응답 데이터:**
+                    - 테넌트명 포함
+                    - 할당된 권한 수 포함
+                    - 역할이 할당된 사용자 수 포함
+                    - 페이징 정보 포함
+
+                    **필요 권한**: `role:read`
+                    """)
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공")
+    })
+    @PreAuthorize("@access.hasPermission('role:read')")
+    @GetMapping("/admin/search")
+    public ResponseEntity<PageApiResponse<RoleSummaryApiResponse>> searchRolesAdmin(
+            @Valid @ModelAttribute SearchRolesAdminApiRequest request) {
+        PageResponse<RoleSummaryResponse> pageResponse =
+                searchRolesAdminUseCase.execute(mapper.toAdminQuery(request));
+        return ResponseEntity.ok(PageApiResponse.from(pageResponse, mapper::toSummaryApiResponse));
+    }
+
+    /**
+     * 역할 상세 조회 (Admin용 - 권한 목록 포함)
+     *
+     * <p>GET /api/v1/roles/{roleId}/admin/detail
+     *
+     * <p>할당된 권한 목록을 포함한 상세 정보를 반환합니다.
+     *
+     * @param roleId 역할 ID
+     * @return 200 OK + 역할 상세 정보 (권한 포함)
+     */
+    @Operation(
+            summary = "역할 상세 조회 (Admin)",
+            description =
+                    """
+                    역할의 상세 정보를 조회합니다.
+
+                    **응답 데이터:**
+                    - 테넌트명 포함
+                    - 할당된 권한 목록 포함 (권한키, 설명, 리소스, 액션)
+                    - 역할이 할당된 사용자 수 포함
+
+                    **필요 권한**: `role:read`
+                    """)
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "역할을 찾을 수 없음")
+    })
+    @PreAuthorize("@access.hasPermission('role:read')")
+    @GetMapping("/{roleId}/admin/detail")
+    public ResponseEntity<ApiResponse<RoleDetailApiResponse>> getRoleDetail(
+            @Parameter(description = "역할 ID", required = true) @PathVariable @NotBlank
+                    String roleId) {
+        RoleDetailResponse response = getRoleDetailUseCase.execute(mapper.toGetQuery(roleId));
+        RoleDetailApiResponse apiResponse = mapper.toDetailApiResponse(response);
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

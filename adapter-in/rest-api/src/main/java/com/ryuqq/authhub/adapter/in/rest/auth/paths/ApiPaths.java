@@ -171,4 +171,17 @@ public final class ApiPaths {
 
         private Internal() {}
     }
+
+    /**
+     * System API 경로 (서비스간 통신 - 입점/온보딩)
+     *
+     * <p>X-Service-Token 인증을 사용하는 시스템 레벨 API입니다.
+     */
+    public static final class System {
+        public static final String BASE = AUTH_SERVICE_BASE + "/system";
+        public static final String TENANTS = "/tenants";
+        public static final String ONBOARDING = "/onboarding";
+
+        private System() {}
+    }
 }

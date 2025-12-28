@@ -3,20 +3,31 @@ package com.ryuqq.authhub.adapter.in.rest.user.controller;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContextHolder;
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.query.SearchUsersAdminApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.query.SearchUsersApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserDetailApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserSummaryApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.mapper.UserApiMapper;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
+import com.ryuqq.authhub.application.user.dto.response.UserDetailResponse;
 import com.ryuqq.authhub.application.user.dto.response.UserResponse;
+import com.ryuqq.authhub.application.user.dto.response.UserSummaryResponse;
+import com.ryuqq.authhub.application.user.port.in.query.GetUserDetailUseCase;
 import com.ryuqq.authhub.application.user.port.in.query.GetUserUseCase;
+import com.ryuqq.authhub.application.user.port.in.query.SearchUsersAdminUseCase;
 import com.ryuqq.authhub.application.user.port.in.query.SearchUsersUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,15 +59,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserQueryController {
 
     private final GetUserUseCase getUserUseCase;
+    private final GetUserDetailUseCase getUserDetailUseCase;
     private final SearchUsersUseCase searchUsersUseCase;
+    private final SearchUsersAdminUseCase searchUsersAdminUseCase;
     private final UserApiMapper mapper;
 
     public UserQueryController(
             GetUserUseCase getUserUseCase,
+            GetUserDetailUseCase getUserDetailUseCase,
             SearchUsersUseCase searchUsersUseCase,
+            SearchUsersAdminUseCase searchUsersAdminUseCase,
             UserApiMapper mapper) {
         this.getUserUseCase = getUserUseCase;
+        this.getUserDetailUseCase = getUserDetailUseCase;
         this.searchUsersUseCase = searchUsersUseCase;
+        this.searchUsersAdminUseCase = searchUsersAdminUseCase;
         this.mapper = mapper;
     }
 
@@ -170,5 +187,88 @@ public class UserQueryController {
         List<UserResponse> responses = searchUsersUseCase.execute(mapper.toQuery(request));
         List<UserApiResponse> apiResponses = mapper.toApiResponseList(responses);
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponses));
+    }
+
+    // ===== Admin 전용 API =====
+
+    /**
+     * 사용자 목록 검색 (Admin용 - 확장 필터, 페이징)
+     *
+     * <p>GET /api/v1/users/admin/search
+     *
+     * <p>확장된 필터와 페이징 정보를 포함한 응답을 반환합니다.
+     *
+     * @param request 검색 조건 (확장 필터 포함)
+     * @return 200 OK + 페이징된 사용자 Summary 목록
+     */
+    @Operation(
+            summary = "사용자 목록 검색 (Admin)",
+            description =
+                    """
+                    확장된 필터로 사용자 목록을 검색합니다.
+
+                    **확장 필터:**
+                    - 날짜 범위 (createdFrom, createdTo)
+                    - 역할 필터 (roleId)
+                    - 정렬 옵션 (sortBy, sortDirection)
+
+                    **응답 데이터:**
+                    - 테넌트명, 조직명 포함
+                    - 할당된 역할 수 포함
+                    - 페이징 정보 포함
+
+                    **필요 권한**: `user:read`
+                    """)
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공")
+    })
+    @PreAuthorize("@access.hasPermission('user:read')")
+    @GetMapping("/admin/search")
+    public ResponseEntity<PageApiResponse<UserSummaryApiResponse>> searchUsersAdmin(
+            @Valid @ModelAttribute SearchUsersAdminApiRequest request) {
+        PageResponse<UserSummaryResponse> pageResponse =
+                searchUsersAdminUseCase.execute(mapper.toAdminQuery(request));
+        return ResponseEntity.ok(PageApiResponse.from(pageResponse, mapper::toSummaryApiResponse));
+    }
+
+    /**
+     * 사용자 상세 조회 (Admin용 - 역할 목록 포함)
+     *
+     * <p>GET /api/v1/users/{userId}/admin/detail
+     *
+     * <p>할당된 역할 목록을 포함한 상세 정보를 반환합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 200 OK + 사용자 상세 정보 (역할 포함)
+     */
+    @Operation(
+            summary = "사용자 상세 조회 (Admin)",
+            description =
+                    """
+                    사용자의 상세 정보를 조회합니다.
+
+                    **응답 데이터:**
+                    - 테넌트명, 조직명 포함
+                    - 할당된 역할 목록 포함 (이름, 설명, 범위, 유형)
+
+                    **필요 권한**: 본인 또는 `user:read` 권한 보유자
+                    """)
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "사용자를 찾을 수 없음")
+    })
+    @PreAuthorize("@access.user(#userId, 'read')")
+    @GetMapping("/{userId}/admin/detail")
+    public ResponseEntity<ApiResponse<UserDetailApiResponse>> getUserDetail(
+            @Parameter(description = "사용자 ID", required = true) @PathVariable String userId) {
+        UserDetailResponse response = getUserDetailUseCase.execute(mapper.toGetQuery(userId));
+        UserDetailApiResponse apiResponse = mapper.toDetailApiResponse(response);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

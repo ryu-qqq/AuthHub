@@ -3,10 +3,14 @@ package com.ryuqq.authhub.adapter.in.rest.role.mapper;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.command.CreateRoleApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.command.GrantRolePermissionApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.command.UpdateRoleApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.query.SearchRolesAdminApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.query.SearchRolesApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.CreateRoleApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleDetailApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RolePermissionApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RolePermissionSummaryApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleSummaryApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleUserApiResponse;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.role.dto.command.CreateRoleCommand;
@@ -17,8 +21,10 @@ import com.ryuqq.authhub.application.role.dto.command.UpdateRoleCommand;
 import com.ryuqq.authhub.application.role.dto.query.GetRoleQuery;
 import com.ryuqq.authhub.application.role.dto.query.SearchRoleUsersQuery;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
+import com.ryuqq.authhub.application.role.dto.response.RoleDetailResponse;
 import com.ryuqq.authhub.application.role.dto.response.RolePermissionResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
+import com.ryuqq.authhub.application.role.dto.response.RoleSummaryResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleScope;
@@ -105,7 +111,7 @@ public class RoleApiMapper {
         RoleType type = parseType(request.type());
         int page = request.page() != null ? request.page() : 0;
         int size = request.size() != null ? request.size() : 20;
-        return new SearchRolesQuery(tenantId, request.name(), scope, type, page, size);
+        return SearchRolesQuery.of(tenantId, request.name(), scope, type, page, size);
     }
 
     /**
@@ -279,5 +285,101 @@ public class RoleApiMapper {
                 pageResponse.totalPages(),
                 pageResponse.first(),
                 pageResponse.last());
+    }
+
+    // ===== Admin 전용 변환 메서드 =====
+
+    /**
+     * SearchRolesAdminApiRequest → SearchRolesQuery 변환 (Admin용)
+     *
+     * @param request Admin용 API 요청 DTO
+     * @return Application Query DTO (확장 필터 포함)
+     */
+    public SearchRolesQuery toAdminQuery(SearchRolesAdminApiRequest request) {
+        UUID tenantId = request.tenantId() != null ? UUID.fromString(request.tenantId()) : null;
+        RoleScope scope = parseScope(request.scope());
+        RoleType type = parseType(request.type());
+
+        int page = request.page() != null ? request.page() : 0;
+        int size = request.size() != null ? request.size() : SearchRolesQuery.DEFAULT_PAGE_SIZE;
+        String sortBy =
+                request.sortBy() != null ? request.sortBy() : SearchRolesQuery.DEFAULT_SORT_BY;
+        String sortDirection =
+                request.sortDirection() != null
+                        ? request.sortDirection()
+                        : SearchRolesQuery.DEFAULT_SORT_DIRECTION;
+
+        return new SearchRolesQuery(
+                tenantId,
+                request.name(),
+                scope,
+                type,
+                request.createdFrom(),
+                request.createdTo(),
+                sortBy,
+                sortDirection,
+                page,
+                size);
+    }
+
+    /**
+     * RoleSummaryResponse → RoleSummaryApiResponse 변환 (Admin 목록용)
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public RoleSummaryApiResponse toSummaryApiResponse(RoleSummaryResponse response) {
+        return new RoleSummaryApiResponse(
+                response.roleId().toString(),
+                response.tenantId() != null ? response.tenantId().toString() : null,
+                response.tenantName(),
+                response.name(),
+                response.description(),
+                response.scope(),
+                response.type(),
+                response.permissionCount(),
+                response.userCount(),
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * RoleDetailResponse → RoleDetailApiResponse 변환 (Admin 상세용)
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public RoleDetailApiResponse toDetailApiResponse(RoleDetailResponse response) {
+        List<RolePermissionSummaryApiResponse> permissions =
+                response.permissions().stream().map(this::toPermissionSummaryApiResponse).toList();
+
+        return new RoleDetailApiResponse(
+                response.roleId().toString(),
+                response.tenantId() != null ? response.tenantId().toString() : null,
+                response.tenantName(),
+                response.name(),
+                response.description(),
+                response.scope(),
+                response.type(),
+                permissions,
+                response.userCount(),
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * RoleDetailResponse.RolePermissionSummary → RolePermissionSummaryApiResponse 변환
+     *
+     * @param permissionSummary Application 권한 요약 DTO
+     * @return API 권한 요약 DTO
+     */
+    private RolePermissionSummaryApiResponse toPermissionSummaryApiResponse(
+            RoleDetailResponse.RolePermissionSummary permissionSummary) {
+        return new RolePermissionSummaryApiResponse(
+                permissionSummary.permissionId().toString(),
+                permissionSummary.name(),
+                permissionSummary.description(),
+                permissionSummary.resource(),
+                permissionSummary.action());
     }
 }

@@ -54,7 +54,7 @@ class SearchRolesServiceTest {
             Role role1 = RoleFixture.create();
             Role role2 = RoleFixture.createWithName("ANOTHER_ROLE");
             SearchRolesQuery query =
-                    new SearchRolesQuery(RoleFixture.defaultTenantUUID(), null, null, null, 0, 20);
+                    SearchRolesQuery.of(RoleFixture.defaultTenantUUID(), null, null, null, 0, 20);
 
             RoleResponse response1 =
                     new RoleResponse(
@@ -95,7 +95,7 @@ class SearchRolesServiceTest {
         void shouldReturnEmptyListWhenNoRolesFound() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(RoleFixture.defaultTenantUUID(), null, null, null, 0, 20);
+                    SearchRolesQuery.of(RoleFixture.defaultTenantUUID(), null, null, null, 0, 20);
 
             given(readManager.search(query)).willReturn(List.of());
 

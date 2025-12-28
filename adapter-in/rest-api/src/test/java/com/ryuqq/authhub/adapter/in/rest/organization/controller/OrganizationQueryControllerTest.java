@@ -18,8 +18,10 @@ import com.ryuqq.authhub.application.organization.dto.query.GetOrganizationQuery
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationUserResponse;
+import com.ryuqq.authhub.application.organization.port.in.query.GetOrganizationDetailUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.GetOrganizationUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationUsersUseCase;
+import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsAdminUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsUseCase;
 import java.time.Instant;
 import java.util.Collections;
@@ -67,7 +69,11 @@ class OrganizationQueryControllerTest {
 
     @MockBean private GetOrganizationUseCase getOrganizationUseCase;
 
+    @MockBean private GetOrganizationDetailUseCase getOrganizationDetailUseCase;
+
     @MockBean private SearchOrganizationsUseCase searchOrganizationsUseCase;
+
+    @MockBean private SearchOrganizationsAdminUseCase searchOrganizationsAdminUseCase;
 
     @MockBean private SearchOrganizationUsersUseCase searchOrganizationUsersUseCase;
 

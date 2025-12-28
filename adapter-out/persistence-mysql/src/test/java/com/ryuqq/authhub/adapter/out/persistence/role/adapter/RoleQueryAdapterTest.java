@@ -190,7 +190,7 @@ class RoleQueryAdapterTest {
         @DisplayName("검색 조건으로 역할 목록을 조회한다")
         void shouldSearchRolesSuccessfully() {
             // given
-            SearchRolesQuery query = new SearchRolesQuery(TENANT_UUID, null, null, null, 0, 20);
+            SearchRolesQuery query = SearchRolesQuery.of(TENANT_UUID, null, null, null, 0, 20);
             Role role1 = RoleFixture.create();
             Role role2 = RoleFixture.createWithName("ANOTHER_ROLE");
             RoleJpaEntity entity1 = createRoleEntity();
@@ -212,7 +212,7 @@ class RoleQueryAdapterTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(TENANT_UUID, "nonexistent", null, null, 0, 20);
+                    SearchRolesQuery.of(TENANT_UUID, "nonexistent", null, null, 0, 20);
 
             given(repository.search(eq(TENANT_UUID), any(), any(), any(), anyInt(), anyInt()))
                     .willReturn(List.of());
@@ -233,7 +233,7 @@ class RoleQueryAdapterTest {
         @DisplayName("검색 조건으로 역할 개수를 조회한다")
         void shouldCountRolesSuccessfully() {
             // given
-            SearchRolesQuery query = new SearchRolesQuery(TENANT_UUID, null, null, null, 0, 20);
+            SearchRolesQuery query = SearchRolesQuery.of(TENANT_UUID, null, null, null, 0, 20);
 
             given(repository.count(eq(TENANT_UUID), any(), any(), any())).willReturn(5L);
 

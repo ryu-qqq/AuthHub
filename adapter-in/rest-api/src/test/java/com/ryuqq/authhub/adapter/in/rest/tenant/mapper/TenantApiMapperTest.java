@@ -97,8 +97,8 @@ class TenantApiMapperTest {
             assertThat(result).isNotNull();
             assertThat(result.name()).isNull();
             assertThat(result.status()).isNull();
-            assertThat(result.page()).isNull();
-            assertThat(result.size()).isNull();
+            assertThat(result.page()).isEqualTo(0);
+            assertThat(result.size()).isEqualTo(SearchTenantsQuery.DEFAULT_PAGE_SIZE);
         }
     }
 

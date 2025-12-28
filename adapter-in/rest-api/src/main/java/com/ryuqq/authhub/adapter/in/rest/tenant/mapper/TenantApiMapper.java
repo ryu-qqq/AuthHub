@@ -3,15 +3,22 @@ package com.ryuqq.authhub.adapter.in.rest.tenant.mapper;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.CreateTenantApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.UpdateTenantNameApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.command.UpdateTenantStatusApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.query.SearchTenantsAdminApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.query.SearchTenantsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.CreateTenantApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantDetailApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantOrganizationSummaryApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantSummaryApiResponse;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
 import com.ryuqq.authhub.application.tenant.dto.command.DeleteTenantCommand;
 import com.ryuqq.authhub.application.tenant.dto.command.UpdateTenantNameCommand;
 import com.ryuqq.authhub.application.tenant.dto.command.UpdateTenantStatusCommand;
 import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantDetailResponse;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantSummaryResponse;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -123,5 +130,110 @@ public class TenantApiMapper {
      */
     public DeleteTenantCommand toDeleteCommand(UUID tenantId) {
         return new DeleteTenantCommand(tenantId);
+    }
+
+    // ==================== Admin Query 변환 ====================
+
+    /**
+     * SearchTenantsAdminApiRequest → SearchTenantsQuery 변환 (Admin용)
+     *
+     * <p>확장 필터(날짜 범위, 정렬)가 포함된 Query로 변환합니다.
+     *
+     * @param request Admin API 요청 DTO
+     * @return Application Query DTO
+     */
+    public SearchTenantsQuery toAdminQuery(SearchTenantsAdminApiRequest request) {
+        int page = request.page() != null ? request.page() : 0;
+        int size = request.size() != null ? request.size() : SearchTenantsQuery.DEFAULT_PAGE_SIZE;
+        String sortBy =
+                request.sortBy() != null ? request.sortBy() : SearchTenantsQuery.DEFAULT_SORT_BY;
+        String sortDirection =
+                request.sortDirection() != null
+                        ? request.sortDirection()
+                        : SearchTenantsQuery.DEFAULT_SORT_DIRECTION;
+
+        return new SearchTenantsQuery(
+                request.name(),
+                request.status(),
+                request.createdFrom(),
+                request.createdTo(),
+                sortBy,
+                sortDirection,
+                page,
+                size);
+    }
+
+    /**
+     * TenantSummaryResponse → TenantSummaryApiResponse 변환
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public TenantSummaryApiResponse toSummaryApiResponse(TenantSummaryResponse response) {
+        return new TenantSummaryApiResponse(
+                response.tenantId().toString(),
+                response.name(),
+                response.status(),
+                response.organizationCount(),
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * PageResponse<TenantSummaryResponse> → PageResponse<TenantSummaryApiResponse> 변환
+     *
+     * @param pageResponse Application PageResponse
+     * @return API PageResponse
+     */
+    public PageResponse<TenantSummaryApiResponse> toSummaryApiPageResponse(
+            PageResponse<TenantSummaryResponse> pageResponse) {
+        List<TenantSummaryApiResponse> content =
+                pageResponse.content().stream().map(this::toSummaryApiResponse).toList();
+
+        return PageResponse.of(
+                content,
+                pageResponse.page(),
+                pageResponse.size(),
+                pageResponse.totalElements(),
+                pageResponse.totalPages(),
+                pageResponse.first(),
+                pageResponse.last());
+    }
+
+    /**
+     * TenantDetailResponse → TenantDetailApiResponse 변환
+     *
+     * @param response Application Response DTO
+     * @return API 응답 DTO
+     */
+    public TenantDetailApiResponse toDetailApiResponse(TenantDetailResponse response) {
+        List<TenantOrganizationSummaryApiResponse> organizations =
+                response.organizations().stream()
+                        .map(this::toOrganizationSummaryApiResponse)
+                        .toList();
+
+        return new TenantDetailApiResponse(
+                response.tenantId().toString(),
+                response.name(),
+                response.status(),
+                organizations,
+                response.organizationCount(),
+                response.createdAt(),
+                response.updatedAt());
+    }
+
+    /**
+     * TenantOrganizationSummary → TenantOrganizationSummaryApiResponse 변환
+     *
+     * @param summary Application DTO
+     * @return API 응답 DTO
+     */
+    private TenantOrganizationSummaryApiResponse toOrganizationSummaryApiResponse(
+            TenantDetailResponse.TenantOrganizationSummary summary) {
+        return new TenantOrganizationSummaryApiResponse(
+                summary.organizationId().toString(),
+                summary.name(),
+                summary.status(),
+                summary.createdAt());
     }
 }

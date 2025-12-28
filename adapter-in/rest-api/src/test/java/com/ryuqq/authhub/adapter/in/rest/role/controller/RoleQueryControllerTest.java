@@ -18,8 +18,10 @@ import com.ryuqq.authhub.application.role.dto.query.GetRoleQuery;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
+import com.ryuqq.authhub.application.role.port.in.query.GetRoleDetailUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.GetRoleUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRoleUsersUseCase;
+import com.ryuqq.authhub.application.role.port.in.query.SearchRolesAdminUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesUseCase;
 import java.time.Instant;
 import java.util.List;
@@ -66,7 +68,11 @@ class RoleQueryControllerTest {
 
     @MockBean private GetRoleUseCase getRoleUseCase;
 
+    @MockBean private GetRoleDetailUseCase getRoleDetailUseCase;
+
     @MockBean private SearchRolesUseCase searchRolesUseCase;
+
+    @MockBean private SearchRolesAdminUseCase searchRolesAdminUseCase;
 
     @MockBean private SearchRoleUsersUseCase searchRoleUsersUseCase;
 
@@ -224,7 +230,7 @@ class RoleQueryControllerTest {
                                     now));
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchRolesQuery(null, null, null, null, 0, 20));
+                    .willReturn(SearchRolesQuery.of(null, null, null, null, 0, 20));
             given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
                     .willReturn(useCaseResponses);
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
@@ -273,7 +279,7 @@ class RoleQueryControllerTest {
                                     now));
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchRolesQuery(tenantId, null, null, null, 0, 20));
+                    .willReturn(SearchRolesQuery.of(tenantId, null, null, null, 0, 20));
             given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
                     .willReturn(useCaseResponses);
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
@@ -321,7 +327,7 @@ class RoleQueryControllerTest {
                                     now));
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchRolesQuery(null, "Admin", null, null, 0, 20));
+                    .willReturn(SearchRolesQuery.of(null, "Admin", null, null, 0, 20));
             given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
                     .willReturn(useCaseResponses);
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
@@ -368,7 +374,7 @@ class RoleQueryControllerTest {
                                     now));
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchRolesQuery(null, null, null, null, 0, 20));
+                    .willReturn(SearchRolesQuery.of(null, null, null, null, 0, 20));
             given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
                     .willReturn(useCaseResponses);
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
@@ -414,7 +420,7 @@ class RoleQueryControllerTest {
                                     now));
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchRolesQuery(null, null, null, null, 0, 20));
+                    .willReturn(SearchRolesQuery.of(null, null, null, null, 0, 20));
             given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
                     .willReturn(useCaseResponses);
             given(mapper.toApiResponseList(any())).willReturn(apiResponses);
@@ -434,7 +440,7 @@ class RoleQueryControllerTest {
         void searchRoles_withPagination_returnsPaged() throws Exception {
             // Given
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchRolesQuery(null, null, null, null, 1, 10));
+                    .willReturn(SearchRolesQuery.of(null, null, null, null, 1, 10));
             given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
@@ -452,7 +458,7 @@ class RoleQueryControllerTest {
         void searchRoles_withNoResults_returnsEmptyArray() throws Exception {
             // Given
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchRolesQuery(null, "nonexistent", null, null, 0, 20));
+                    .willReturn(SearchRolesQuery.of(null, "nonexistent", null, null, 0, 20));
             given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(List.of());
             given(mapper.toApiResponseList(any())).willReturn(List.of());
 
