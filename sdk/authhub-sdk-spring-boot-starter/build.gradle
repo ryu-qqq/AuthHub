@@ -41,6 +41,16 @@ publishing {
         maven(MavenPublication) {
             from components.java
 
+            // JitPack 배포를 위해 해결된 의존성 버전을 POM에 포함
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+
             pom {
                 name = 'AuthHub SDK Spring Boot Starter'
                 description = 'Spring Boot auto-configuration for AuthHub SDK'
