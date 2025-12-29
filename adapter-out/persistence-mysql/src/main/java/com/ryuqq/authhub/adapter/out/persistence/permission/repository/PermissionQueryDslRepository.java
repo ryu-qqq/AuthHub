@@ -4,14 +4,9 @@ import static com.ryuqq.authhub.adapter.out.persistence.permission.entity.QPermi
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.PermissionJpaEntity;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
-import com.ryuqq.authhub.domain.permission.vo.PermissionType;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -120,8 +115,9 @@ public class PermissionQueryDslRepository {
      * @return PermissionJpaEntity 목록
      */
     public List<PermissionJpaEntity> searchByQuery(SearchPermissionsQuery query) {
-        BooleanBuilder builder = buildSearchCondition(query);
-        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(query);
+        BooleanBuilder builder = PermissionSearchConditionBuilder.buildSearchCondition(query);
+        OrderSpecifier<?> orderSpecifier =
+                PermissionSearchConditionBuilder.buildOrderSpecifier(query);
         int offset = query.page() * query.size();
 
         return queryFactory
@@ -140,7 +136,7 @@ public class PermissionQueryDslRepository {
      * @return 조건에 맞는 권한 총 개수
      */
     public long countByQuery(SearchPermissionsQuery query) {
-        BooleanBuilder builder = buildSearchCondition(query);
+        BooleanBuilder builder = PermissionSearchConditionBuilder.buildSearchCondition(query);
 
         Long count =
                 queryFactory
@@ -187,140 +183,5 @@ public class PermissionQueryDslRepository {
                         permissionJpaEntity.permissionKey.in(keys),
                         permissionJpaEntity.deleted.eq(false))
                 .fetch();
-    }
-
-    /**
-     * 검색 조건 빌더 생성 (Query 기반)
-     *
-     * @param query 검색 조건
-     * @return BooleanBuilder
-     */
-    private BooleanBuilder buildSearchCondition(SearchPermissionsQuery query) {
-        BooleanBuilder builder = new BooleanBuilder();
-
-        // 삭제되지 않은 권한만 조회
-        builder.and(permissionJpaEntity.deleted.eq(false));
-
-        // 리소스 필터 (SearchType 기반)
-        if (query.resource() != null && !query.resource().isBlank()) {
-            builder.and(buildResourceCondition(query.resource(), query.searchType()));
-        }
-
-        // 액션 필터 (SearchType 기반)
-        if (query.action() != null && !query.action().isBlank()) {
-            builder.and(buildActionCondition(query.action(), query.searchType()));
-        }
-
-        // 다중 타입 필터
-        if (query.types() != null && !query.types().isEmpty()) {
-            List<PermissionType> typeEnums =
-                    query.types().stream().map(this::parseType).filter(t -> t != null).toList();
-            if (!typeEnums.isEmpty()) {
-                builder.and(permissionJpaEntity.type.in(typeEnums));
-            }
-        }
-
-        // 생성일시 범위 필터
-        if (query.createdFrom() != null) {
-            LocalDateTime from = toLocalDateTime(query.createdFrom());
-            builder.and(permissionJpaEntity.createdAt.goe(from));
-        }
-        if (query.createdTo() != null) {
-            LocalDateTime to = toLocalDateTime(query.createdTo());
-            builder.and(permissionJpaEntity.createdAt.loe(to));
-        }
-
-        return builder;
-    }
-
-    /**
-     * 리소스 검색 조건 생성 (SearchType 기반)
-     *
-     * @param resource 검색 리소스명
-     * @param searchType 검색 타입
-     * @return BooleanExpression
-     */
-    private BooleanExpression buildResourceCondition(String resource, String searchType) {
-        String type = searchType != null ? searchType : "CONTAINS_LIKE";
-
-        return switch (type) {
-            case "PREFIX_LIKE" -> permissionJpaEntity.resource.startsWithIgnoreCase(resource);
-            case "MATCH_AGAINST" -> permissionJpaEntity.resource.containsIgnoreCase(resource);
-            default -> permissionJpaEntity.resource.containsIgnoreCase(resource);
-        };
-    }
-
-    /**
-     * 액션 검색 조건 생성 (SearchType 기반)
-     *
-     * @param action 검색 액션명
-     * @param searchType 검색 타입
-     * @return BooleanExpression
-     */
-    private BooleanExpression buildActionCondition(String action, String searchType) {
-        String type = searchType != null ? searchType : "CONTAINS_LIKE";
-
-        return switch (type) {
-            case "PREFIX_LIKE" -> permissionJpaEntity.action.startsWithIgnoreCase(action);
-            case "MATCH_AGAINST" -> permissionJpaEntity.action.containsIgnoreCase(action);
-            default -> permissionJpaEntity.action.containsIgnoreCase(action);
-        };
-    }
-
-    /**
-     * 정렬 조건 생성 (Query 기반)
-     *
-     * @param query 검색 조건
-     * @return OrderSpecifier
-     */
-    private OrderSpecifier<?> buildOrderSpecifier(SearchPermissionsQuery query) {
-        String sortBy = query.sortBy() != null ? query.sortBy() : "createdAt";
-        String direction = query.sortDirection() != null ? query.sortDirection() : "DESC";
-        boolean isAsc = "ASC".equalsIgnoreCase(direction);
-
-        return switch (sortBy.toLowerCase()) {
-            case "resource" ->
-                    isAsc
-                            ? permissionJpaEntity.resource.asc()
-                            : permissionJpaEntity.resource.desc();
-            case "action" ->
-                    isAsc ? permissionJpaEntity.action.asc() : permissionJpaEntity.action.desc();
-            case "type" -> isAsc ? permissionJpaEntity.type.asc() : permissionJpaEntity.type.desc();
-            case "updatedat" ->
-                    isAsc
-                            ? permissionJpaEntity.updatedAt.asc()
-                            : permissionJpaEntity.updatedAt.desc();
-            default ->
-                    isAsc
-                            ? permissionJpaEntity.createdAt.asc()
-                            : permissionJpaEntity.createdAt.desc();
-        };
-    }
-
-    /**
-     * String을 PermissionType enum으로 변환
-     *
-     * @param type 타입 문자열
-     * @return PermissionType (null if invalid)
-     */
-    private PermissionType parseType(String type) {
-        if (type == null || type.isBlank()) {
-            return null;
-        }
-        try {
-            return PermissionType.valueOf(type.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Instant를 LocalDateTime으로 변환
-     *
-     * @param instant Instant
-     * @return LocalDateTime
-     */
-    private LocalDateTime toLocalDateTime(Instant instant) {
-        return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }

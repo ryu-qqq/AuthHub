@@ -4,15 +4,9 @@ import static com.ryuqq.authhub.adapter.out.persistence.role.entity.QRoleJpaEnti
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RoleJpaEntity;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -89,7 +83,7 @@ public class RoleQueryDslRepository {
                 queryFactory
                         .selectFrom(roleJpaEntity)
                         .where(
-                                buildTenantCondition(tenantId),
+                                RoleSearchConditionBuilder.buildTenantCondition(tenantId),
                                 roleJpaEntity.name.eq(name),
                                 roleJpaEntity.deleted.eq(false))
                         .fetchOne();
@@ -109,7 +103,7 @@ public class RoleQueryDslRepository {
                         .selectOne()
                         .from(roleJpaEntity)
                         .where(
-                                buildTenantCondition(tenantId),
+                                RoleSearchConditionBuilder.buildTenantCondition(tenantId),
                                 roleJpaEntity.name.eq(name),
                                 roleJpaEntity.deleted.eq(false))
                         .fetchFirst();
@@ -123,8 +117,8 @@ public class RoleQueryDslRepository {
      * @return RoleJpaEntity 목록
      */
     public List<RoleJpaEntity> searchByQuery(SearchRolesQuery query) {
-        BooleanBuilder builder = buildSearchCondition(query);
-        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(query);
+        BooleanBuilder builder = RoleSearchConditionBuilder.buildSearchCondition(query);
+        OrderSpecifier<?> orderSpecifier = RoleSearchConditionBuilder.buildOrderSpecifier(query);
         int offset = query.page() * query.size();
 
         return queryFactory
@@ -143,7 +137,7 @@ public class RoleQueryDslRepository {
      * @return 조건에 맞는 역할 총 개수
      */
     public long countByQuery(SearchRolesQuery query) {
-        BooleanBuilder builder = buildSearchCondition(query);
+        BooleanBuilder builder = RoleSearchConditionBuilder.buildSearchCondition(query);
 
         Long count =
                 queryFactory
@@ -152,22 +146,6 @@ public class RoleQueryDslRepository {
                         .where(builder)
                         .fetchOne();
         return count != null ? count : 0L;
-    }
-
-    /**
-     * 테넌트 조건 빌더 (null 체크 포함)
-     *
-     * @param tenantId 테넌트 UUID
-     * @return BooleanBuilder
-     */
-    private BooleanBuilder buildTenantCondition(UUID tenantId) {
-        BooleanBuilder builder = new BooleanBuilder();
-        if (tenantId != null) {
-            builder.and(roleJpaEntity.tenantId.eq(tenantId));
-        } else {
-            builder.and(roleJpaEntity.tenantId.isNull());
-        }
-        return builder;
     }
 
     /**
@@ -184,140 +162,5 @@ public class RoleQueryDslRepository {
                 .selectFrom(roleJpaEntity)
                 .where(roleJpaEntity.roleId.in(roleIds), roleJpaEntity.deleted.eq(false))
                 .fetch();
-    }
-
-    /**
-     * 검색 조건 빌더 생성 (Query 기반)
-     *
-     * @param query 검색 조건
-     * @return BooleanBuilder
-     */
-    private BooleanBuilder buildSearchCondition(SearchRolesQuery query) {
-        BooleanBuilder builder = new BooleanBuilder();
-
-        // 삭제되지 않은 역할만 조회
-        builder.and(roleJpaEntity.deleted.eq(false));
-
-        // 테넌트 ID 필터
-        if (query.tenantId() != null) {
-            builder.and(roleJpaEntity.tenantId.eq(query.tenantId()));
-        }
-
-        // 이름 필터 (SearchType 기반)
-        if (query.name() != null && !query.name().isBlank()) {
-            builder.and(buildNameCondition(query.name(), query.searchType()));
-        }
-
-        // 다중 스코프 필터
-        if (query.scopes() != null && !query.scopes().isEmpty()) {
-            List<RoleScope> scopeEnums =
-                    query.scopes().stream().map(this::parseScope).filter(s -> s != null).toList();
-            if (!scopeEnums.isEmpty()) {
-                builder.and(roleJpaEntity.scope.in(scopeEnums));
-            }
-        }
-
-        // 다중 타입 필터
-        if (query.types() != null && !query.types().isEmpty()) {
-            List<RoleType> typeEnums =
-                    query.types().stream().map(this::parseType).filter(t -> t != null).toList();
-            if (!typeEnums.isEmpty()) {
-                builder.and(roleJpaEntity.type.in(typeEnums));
-            }
-        }
-
-        // 생성일시 범위 필터
-        if (query.createdFrom() != null) {
-            LocalDateTime from = toLocalDateTime(query.createdFrom());
-            builder.and(roleJpaEntity.createdAt.goe(from));
-        }
-        if (query.createdTo() != null) {
-            LocalDateTime to = toLocalDateTime(query.createdTo());
-            builder.and(roleJpaEntity.createdAt.loe(to));
-        }
-
-        return builder;
-    }
-
-    /**
-     * 이름 검색 조건 생성 (SearchType 기반)
-     *
-     * @param name 검색 이름
-     * @param searchType 검색 타입
-     * @return BooleanExpression
-     */
-    private BooleanExpression buildNameCondition(String name, String searchType) {
-        String type = searchType != null ? searchType : "CONTAINS_LIKE";
-
-        return switch (type) {
-            case "PREFIX_LIKE" -> roleJpaEntity.name.startsWithIgnoreCase(name);
-            case "MATCH_AGAINST" -> roleJpaEntity.name.containsIgnoreCase(name);
-            default -> roleJpaEntity.name.containsIgnoreCase(name);
-        };
-    }
-
-    /**
-     * 정렬 조건 생성 (Query 기반)
-     *
-     * @param query 검색 조건
-     * @return OrderSpecifier
-     */
-    private OrderSpecifier<?> buildOrderSpecifier(SearchRolesQuery query) {
-        String sortBy = query.sortBy() != null ? query.sortBy() : "createdAt";
-        String direction = query.sortDirection() != null ? query.sortDirection() : "DESC";
-        boolean isAsc = "ASC".equalsIgnoreCase(direction);
-
-        return switch (sortBy.toLowerCase()) {
-            case "name" -> isAsc ? roleJpaEntity.name.asc() : roleJpaEntity.name.desc();
-            case "scope" -> isAsc ? roleJpaEntity.scope.asc() : roleJpaEntity.scope.desc();
-            case "type" -> isAsc ? roleJpaEntity.type.asc() : roleJpaEntity.type.desc();
-            case "updatedat" ->
-                    isAsc ? roleJpaEntity.updatedAt.asc() : roleJpaEntity.updatedAt.desc();
-            default -> isAsc ? roleJpaEntity.createdAt.asc() : roleJpaEntity.createdAt.desc();
-        };
-    }
-
-    /**
-     * String을 RoleScope enum으로 변환
-     *
-     * @param scope 스코프 문자열
-     * @return RoleScope (null if invalid)
-     */
-    private RoleScope parseScope(String scope) {
-        if (scope == null || scope.isBlank()) {
-            return null;
-        }
-        try {
-            return RoleScope.valueOf(scope.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    /**
-     * String을 RoleType enum으로 변환
-     *
-     * @param type 타입 문자열
-     * @return RoleType (null if invalid)
-     */
-    private RoleType parseType(String type) {
-        if (type == null || type.isBlank()) {
-            return null;
-        }
-        try {
-            return RoleType.valueOf(type.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Instant를 LocalDateTime으로 변환
-     *
-     * @param instant Instant
-     * @return LocalDateTime
-     */
-    private LocalDateTime toLocalDateTime(Instant instant) {
-        return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }

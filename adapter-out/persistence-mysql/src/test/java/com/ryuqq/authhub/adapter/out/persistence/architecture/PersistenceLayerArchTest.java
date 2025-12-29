@@ -341,8 +341,8 @@ class PersistenceLayerArchTest {
     /**
      * 규칙 8: Repository 네이밍 규칙
      *
-     * <p><strong>예외:</strong> Repository 내부의 헬퍼 inner class (예: UserBasicInfo) 및 anonymous inner
-     * class는 제외됩니다.
+     * <p><strong>예외:</strong> Repository 내부의 헬퍼 inner class (예: UserBasicInfo), anonymous inner
+     * class, SearchConditionBuilder (검색 조건 빌더 유틸리티)는 제외됩니다.
      */
     @Test
     @DisplayName("[필수] Repository는 *Repository 또는 *QueryDslRepository 네이밍 규칙을 따라야 한다")
@@ -355,6 +355,8 @@ class PersistenceLayerArchTest {
                         .resideOutsideOfPackages(ARCHITECTURE_PATTERN) // 테스트 클래스 제외
                         .and()
                         .haveSimpleNameNotContaining("Test")
+                        .and()
+                        .haveSimpleNameNotEndingWith("SearchConditionBuilder") // 검색 조건 빌더 제외
                         .and()
                         .areNotMemberClasses() // inner class 제외
                         .and()
