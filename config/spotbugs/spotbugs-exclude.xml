@@ -125,4 +125,25 @@
             <Bug pattern="EI_EXPOSE_REP2"/>
         </Or>
     </Match>
+
+    <!-- ========================================
+         SDK Client Classes
+         - SDK clients intentionally expose API instances
+         - This is standard SDK pattern (like RestTemplate, WebClient)
+         - API instances are immutable wrappers around HTTP client
+         ======================================== -->
+    <Match>
+        <Class name="~.*Client"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- ========================================
+         SDK AutoConfiguration
+         - Spring Boot AutoConfiguration stores properties for bean creation
+         - Properties are managed by Spring IoC container
+         ======================================== -->
+    <Match>
+        <Class name="~.*AutoConfiguration"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>

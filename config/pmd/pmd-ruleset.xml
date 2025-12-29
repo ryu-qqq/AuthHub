@@ -70,7 +70,9 @@
                              or ancestor::ClassDeclaration[contains(@SimpleName, 'ApiPaths')]
                              or ancestor::ClassDeclaration[contains(@SimpleName, 'SecurityPaths')]
                              or ancestor::ClassDeclaration[contains(@SimpleName, 'SecurityProperties')]
+                             or ancestor::ClassDeclaration[contains(@SimpleName, 'Properties')]
                              or ancestor::CompilationUnit/PackageDeclaration[contains(@Name, '.domain.') and contains(@Name, '.vo')]
+                             or ancestor::CompilationUnit/PackageDeclaration[contains(@Name, '.sdk.')]
                              ] | //RecordDeclaration"/>
         </properties>
     </rule>
