@@ -1,0 +1,59 @@
+{
+  "properties": [
+    {
+      "name": "authhub.base-url",
+      "type": "java.lang.String",
+      "description": "AuthHub 서버 기본 URL. 필수 설정입니다."
+    },
+    {
+      "name": "authhub.service-token",
+      "type": "java.lang.String",
+      "description": "서비스 토큰 (머신 간 통신용). ThreadLocal 토큰이 없을 경우 fallback으로 사용됩니다."
+    },
+    {
+      "name": "authhub.timeout.connect",
+      "type": "java.time.Duration",
+      "description": "연결 타임아웃. 기본값: 5s",
+      "defaultValue": "5s"
+    },
+    {
+      "name": "authhub.timeout.read",
+      "type": "java.time.Duration",
+      "description": "읽기 타임아웃. 기본값: 30s",
+      "defaultValue": "30s"
+    },
+    {
+      "name": "authhub.retry.enabled",
+      "type": "java.lang.Boolean",
+      "description": "재시도 활성화 여부. 기본값: true",
+      "defaultValue": true
+    },
+    {
+      "name": "authhub.retry.max-attempts",
+      "type": "java.lang.Integer",
+      "description": "최대 재시도 횟수. 기본값: 3",
+      "defaultValue": 3
+    },
+    {
+      "name": "authhub.retry.delay",
+      "type": "java.time.Duration",
+      "description": "재시도 대기 시간. 기본값: 1s",
+      "defaultValue": "1s"
+    }
+  ],
+  "hints": [
+    {
+      "name": "authhub.base-url",
+      "values": [
+        {
+          "value": "http://localhost:8080",
+          "description": "로컬 개발 환경"
+        },
+        {
+          "value": "https://auth.example.com",
+          "description": "운영 환경 예시"
+        }
+      ]
+    }
+  ]
+}
