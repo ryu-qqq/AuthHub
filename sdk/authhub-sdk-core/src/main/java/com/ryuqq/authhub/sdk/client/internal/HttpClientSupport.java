@@ -15,9 +15,11 @@ import com.ryuqq.authhub.sdk.exception.AuthHubServerException;
 import com.ryuqq.authhub.sdk.exception.AuthHubUnauthorizedException;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -247,8 +249,11 @@ class HttpClientSupport {
             return fromJson(response.body(), responseType);
         } catch (AuthHubException e) {
             throw e;
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new AuthHubServerException(
+                    500, "REQUEST_INTERRUPTED", "Request was interrupted", e);
+        } catch (IOException e) {
             throw new AuthHubServerException(
                     500, "CONNECTION_ERROR", "Failed to connect to AuthHub server", e);
         }
@@ -263,8 +268,11 @@ class HttpClientSupport {
             return fromJson(response.body(), typeReference);
         } catch (AuthHubException e) {
             throw e;
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new AuthHubServerException(
+                    500, "REQUEST_INTERRUPTED", "Request was interrupted", e);
+        } catch (IOException e) {
             throw new AuthHubServerException(
                     500, "CONNECTION_ERROR", "Failed to connect to AuthHub server", e);
         }
@@ -278,8 +286,11 @@ class HttpClientSupport {
             handleErrorResponse(response);
         } catch (AuthHubException e) {
             throw e;
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new AuthHubServerException(
+                    500, "REQUEST_INTERRUPTED", "Request was interrupted", e);
+        } catch (IOException e) {
             throw new AuthHubServerException(
                     500, "CONNECTION_ERROR", "Failed to connect to AuthHub server", e);
         }
@@ -328,7 +339,11 @@ class HttpClientSupport {
             queryParams.forEach(
                     (key, value) -> {
                         if (value != null) {
-                            url.append(key).append("=").append(value).append("&");
+                            String encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8);
+                            String encodedValue =
+                                    URLEncoder.encode(
+                                            String.valueOf(value), StandardCharsets.UTF_8);
+                            url.append(encodedKey).append("=").append(encodedValue).append("&");
                         }
                     });
             url.setLength(url.length() - 1);

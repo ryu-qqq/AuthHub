@@ -24,5 +24,8 @@ public record TenantOnboardingRequest(
         if (masterEmail.isBlank()) {
             throw new IllegalArgumentException("masterEmail must not be blank");
         }
+        if (masterPhoneNumber.isBlank()) {
+            throw new IllegalArgumentException("masterPhoneNumber must not be blank");
+        }
     }
 }

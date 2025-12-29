@@ -156,11 +156,19 @@ class PermissionModelTest {
         }
 
         @Test
-        @DisplayName("null description도 허용")
-        void shouldAllowNullDescription() {
-            UpdatePermissionRequest request = new UpdatePermissionRequest(null);
+        @DisplayName("description이 null이면 예외 발생")
+        void shouldThrowWhenDescriptionIsNull() {
+            assertThatThrownBy(() -> new UpdatePermissionRequest(null))
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessageContaining("description must not be null");
+        }
 
-            assertThat(request.description()).isNull();
+        @Test
+        @DisplayName("description이 빈 문자열이면 예외 발생")
+        void shouldThrowWhenDescriptionIsBlank() {
+            assertThatThrownBy(() -> new UpdatePermissionRequest("   "))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("description must not be blank");
         }
     }
 }
