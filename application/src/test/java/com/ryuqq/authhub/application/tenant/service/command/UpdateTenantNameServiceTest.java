@@ -4,14 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.application.tenant.assembler.TenantAssembler;
 import com.ryuqq.authhub.application.tenant.dto.command.UpdateTenantNameCommand;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
+import com.ryuqq.authhub.application.tenant.factory.command.TenantCommandFactory;
 import com.ryuqq.authhub.application.tenant.manager.command.TenantTransactionManager;
 import com.ryuqq.authhub.application.tenant.manager.query.TenantReadManager;
+import com.ryuqq.authhub.application.tenant.validator.TenantValidator;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.exception.DuplicateTenantNameException;
 import com.ryuqq.authhub.domain.tenant.exception.InvalidTenantStateException;
@@ -44,6 +45,10 @@ class UpdateTenantNameServiceTest {
 
     @Mock private TenantReadManager readManager;
 
+    @Mock private TenantValidator validator;
+
+    @Mock private TenantCommandFactory commandFactory;
+
     @Mock private TenantTransactionManager transactionManager;
 
     @Mock private TenantAssembler assembler;
@@ -55,7 +60,9 @@ class UpdateTenantNameServiceTest {
     @BeforeEach
     void setUp() {
         clock = Clock.fixed(Instant.parse("2025-01-02T00:00:00Z"), ZoneOffset.UTC);
-        service = new UpdateTenantNameService(readManager, transactionManager, assembler, clock);
+        service =
+                new UpdateTenantNameService(
+                        readManager, validator, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -70,7 +77,8 @@ class UpdateTenantNameServiceTest {
             UpdateTenantNameCommand command =
                     new UpdateTenantNameCommand(TenantFixture.defaultUUID(), "New Name");
 
-            Tenant updatedTenant = existingTenant.changeName(TenantName.of("New Name"), clock);
+            TenantName newName = TenantName.of("New Name");
+            Tenant updatedTenant = existingTenant.changeName(newName, clock);
             TenantResponse expectedResponse =
                     new TenantResponse(
                             updatedTenant.tenantIdValue(),
@@ -80,7 +88,10 @@ class UpdateTenantNameServiceTest {
                             updatedTenant.updatedAt());
 
             given(readManager.findById(any(TenantId.class))).willReturn(existingTenant);
-            given(readManager.existsByName(any(TenantName.class))).willReturn(false);
+            given(commandFactory.toName("New Name")).willReturn(newName);
+            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
+            given(commandFactory.applyNameChange(any(Tenant.class), any(TenantName.class)))
+                    .willReturn(updatedTenant);
             given(transactionManager.persist(any(Tenant.class))).willReturn(updatedTenant);
             given(assembler.toResponse(updatedTenant)).willReturn(expectedResponse);
 
@@ -90,19 +101,25 @@ class UpdateTenantNameServiceTest {
             // then
             assertThat(response.name()).isEqualTo("New Name");
             verify(readManager).findById(any(TenantId.class));
+            verify(commandFactory).toName("New Name");
+            verify(validator)
+                    .validateNameNotDuplicatedExcluding(
+                            any(TenantName.class), any(TenantName.class));
+            verify(commandFactory).applyNameChange(any(Tenant.class), any(TenantName.class));
             verify(transactionManager).persist(any(Tenant.class));
             verify(assembler).toResponse(any(Tenant.class));
         }
 
         @Test
-        @DisplayName("같은 이름으로 변경 시 중복 검사를 건너뛴다")
-        void shouldSkipDuplicateCheckWhenSameName() {
+        @DisplayName("같은 이름으로 변경 시에도 Validator가 호출된다")
+        void shouldCallValidatorEvenWhenSameName() {
             // given
             Tenant existingTenant = TenantFixture.createWithName("Same Name");
             UpdateTenantNameCommand command =
                     new UpdateTenantNameCommand(TenantFixture.defaultUUID(), "Same Name");
 
-            Tenant updatedTenant = existingTenant.changeName(TenantName.of("Same Name"), clock);
+            TenantName sameName = TenantName.of("Same Name");
+            Tenant updatedTenant = existingTenant.changeName(sameName, clock);
             TenantResponse expectedResponse =
                     new TenantResponse(
                             updatedTenant.tenantIdValue(),
@@ -112,6 +129,10 @@ class UpdateTenantNameServiceTest {
                             updatedTenant.updatedAt());
 
             given(readManager.findById(any(TenantId.class))).willReturn(existingTenant);
+            given(commandFactory.toName("Same Name")).willReturn(sameName);
+            // validator 내부에서 같은 이름이면 중복 검사를 건너뜀
+            given(commandFactory.applyNameChange(any(Tenant.class), any(TenantName.class)))
+                    .willReturn(updatedTenant);
             given(transactionManager.persist(any(Tenant.class))).willReturn(updatedTenant);
             given(assembler.toResponse(updatedTenant)).willReturn(expectedResponse);
 
@@ -120,7 +141,10 @@ class UpdateTenantNameServiceTest {
 
             // then
             assertThat(response.name()).isEqualTo("Same Name");
-            verify(readManager, never()).existsByName(any(TenantName.class));
+            verify(commandFactory).toName("Same Name");
+            verify(validator)
+                    .validateNameNotDuplicatedExcluding(
+                            any(TenantName.class), any(TenantName.class));
         }
 
         @Test
@@ -145,8 +169,14 @@ class UpdateTenantNameServiceTest {
             UpdateTenantNameCommand command =
                     new UpdateTenantNameCommand(TenantFixture.defaultUUID(), "Duplicate Name");
 
+            TenantName duplicateName = TenantName.of("Duplicate Name");
+
             given(readManager.findById(any(TenantId.class))).willReturn(existingTenant);
-            given(readManager.existsByName(any(TenantName.class))).willReturn(true);
+            given(commandFactory.toName("Duplicate Name")).willReturn(duplicateName);
+            org.mockito.Mockito.doThrow(new DuplicateTenantNameException(duplicateName))
+                    .when(validator)
+                    .validateNameNotDuplicatedExcluding(
+                            any(TenantName.class), any(TenantName.class));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
@@ -161,8 +191,15 @@ class UpdateTenantNameServiceTest {
             UpdateTenantNameCommand command =
                     new UpdateTenantNameCommand(TenantFixture.defaultUUID(), "New Name");
 
+            TenantName newName = TenantName.of("New Name");
+
             given(readManager.findById(any(TenantId.class))).willReturn(deletedTenant);
-            given(readManager.existsByName(any(TenantName.class))).willReturn(false);
+            given(commandFactory.toName("New Name")).willReturn(newName);
+            // validator는 통과, Factory에서 예외 발생
+            given(commandFactory.applyNameChange(any(Tenant.class), any(TenantName.class)))
+                    .willThrow(
+                            new InvalidTenantStateException(
+                                    deletedTenant.getStatus(), "cannot change name"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

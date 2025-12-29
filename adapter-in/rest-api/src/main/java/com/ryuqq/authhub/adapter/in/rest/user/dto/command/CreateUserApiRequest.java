@@ -40,6 +40,14 @@ public record CreateUserApiRequest(
                 @Size(min = 1, max = 255, message = "사용자 식별자는 1자 이상 255자 이하여야 합니다")
                 String identifier,
         @Schema(
+                        description = "핸드폰 번호 (한국 형식)",
+                        requiredMode = Schema.RequiredMode.REQUIRED,
+                        minLength = 10,
+                        maxLength = 20)
+                @NotBlank(message = "핸드폰 번호는 필수입니다")
+                @Size(min = 10, max = 20, message = "핸드폰 번호는 10자 이상 20자 이하여야 합니다")
+                String phoneNumber,
+        @Schema(
                         description = "비밀번호",
                         requiredMode = Schema.RequiredMode.REQUIRED,
                         minLength = 8,

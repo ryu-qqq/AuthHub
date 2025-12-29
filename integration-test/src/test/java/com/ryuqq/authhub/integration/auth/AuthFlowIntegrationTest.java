@@ -84,9 +84,10 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
         // 테스트용 사용자 생성
         this.testIdentifier = "authtest" + System.currentTimeMillis() + "@example.com";
+        String testPhoneNumber = "010-" + System.currentTimeMillis() % 10000000;
         var userRequest =
                 UserIntegrationTestFixture.createUserRequest(
-                        tenantId, organizationId, testIdentifier, TEST_PASSWORD);
+                        tenantId, organizationId, testIdentifier, testPhoneNumber, TEST_PASSWORD);
         postForApiResponse(
                 usersUrl(),
                 userRequest,

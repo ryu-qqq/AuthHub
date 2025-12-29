@@ -1,0 +1,73 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'com.ryuqq.authhub'
+version = '1.0.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+dependencies {
+    // JSON 처리
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // HTTP Client (Spring WebClient)
+    compileOnly 'org.springframework:spring-webflux'
+    compileOnly 'io.projectreactor.netty:reactor-netty-http'
+
+    // HTTP Client (Spring RestClient)
+    compileOnly 'org.springframework:spring-web'
+
+    // Logging
+    implementation 'org.slf4j:slf4j-api'
+
+    // Test
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Integration Test - MockWebServer
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'AuthHub SDK Core'
+                description = 'Core SDK library for AuthHub REST API integration'
+                url = 'https://github.com/ryu-qqq/AuthHub'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'ryuqq'
+                        name = 'Sangwon Ryu'
+                    }
+                }
+            }
+        }
+    }
+}

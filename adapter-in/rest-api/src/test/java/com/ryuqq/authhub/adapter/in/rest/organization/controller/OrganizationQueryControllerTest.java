@@ -24,6 +24,7 @@ import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizati
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsAdminUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsUseCase;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -62,6 +63,9 @@ import org.springframework.test.web.servlet.MockMvc;
 @Tag("adapter-rest")
 @Tag("controller")
 class OrganizationQueryControllerTest {
+
+    private static final Instant NOW = Instant.now();
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     @Autowired private MockMvc mockMvc;
 
@@ -162,7 +166,10 @@ class OrganizationQueryControllerTest {
                             now,
                             now);
 
-            given(mapper.toQuery(any())).willReturn(SearchOrganizationsQuery.of(tenantId));
+            given(mapper.toQuery(any()))
+                    .willReturn(
+                            SearchOrganizationsQuery.of(
+                                    tenantId, null, null, ONE_MONTH_AGO, NOW, 0, 20));
             given(searchOrganizationsUseCase.execute(any(SearchOrganizationsQuery.class)))
                     .willReturn(pageResponse);
             given(mapper.toApiResponse(any(OrganizationResponse.class))).willReturn(apiOrgResponse);
@@ -170,7 +177,9 @@ class OrganizationQueryControllerTest {
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/organizations")
-                                    .param("tenantId", tenantId.toString()))
+                                    .param("tenantId", tenantId.toString())
+                                    .param("createdFrom", ONE_MONTH_AGO.toString())
+                                    .param("createdTo", NOW.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
@@ -208,7 +217,9 @@ class OrganizationQueryControllerTest {
                             now);
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchOrganizationsQuery(tenantId, "Test", null, 0, 20));
+                    .willReturn(
+                            SearchOrganizationsQuery.of(
+                                    tenantId, "Test", null, ONE_MONTH_AGO, NOW, 0, 20));
             given(searchOrganizationsUseCase.execute(any(SearchOrganizationsQuery.class)))
                     .willReturn(pageResponse);
             given(mapper.toApiResponse(any(OrganizationResponse.class))).willReturn(apiOrgResponse);
@@ -217,7 +228,9 @@ class OrganizationQueryControllerTest {
             mockMvc.perform(
                             get("/api/v1/auth/organizations")
                                     .param("tenantId", tenantId.toString())
-                                    .param("name", "Test"))
+                                    .param("name", "Test")
+                                    .param("createdFrom", ONE_MONTH_AGO.toString())
+                                    .param("createdTo", NOW.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray());
@@ -249,7 +262,15 @@ class OrganizationQueryControllerTest {
                             now);
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchOrganizationsQuery(tenantId, null, "INACTIVE", 0, 20));
+                    .willReturn(
+                            SearchOrganizationsQuery.of(
+                                    tenantId,
+                                    null,
+                                    List.of("INACTIVE"),
+                                    ONE_MONTH_AGO,
+                                    NOW,
+                                    0,
+                                    20));
             given(searchOrganizationsUseCase.execute(any(SearchOrganizationsQuery.class)))
                     .willReturn(pageResponse);
             given(mapper.toApiResponse(any(OrganizationResponse.class))).willReturn(apiOrgResponse);
@@ -258,7 +279,9 @@ class OrganizationQueryControllerTest {
             mockMvc.perform(
                             get("/api/v1/auth/organizations")
                                     .param("tenantId", tenantId.toString())
-                                    .param("status", "INACTIVE"))
+                                    .param("statuses", "INACTIVE")
+                                    .param("createdFrom", ONE_MONTH_AGO.toString())
+                                    .param("createdTo", NOW.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content[0].status").value("INACTIVE"));
@@ -275,14 +298,19 @@ class OrganizationQueryControllerTest {
             PageResponse<OrganizationResponse> emptyPageResponse =
                     PageResponse.of(Collections.emptyList(), 0, 20, 0L, 0, true, true);
 
-            given(mapper.toQuery(any())).willReturn(SearchOrganizationsQuery.of(tenantId));
+            given(mapper.toQuery(any()))
+                    .willReturn(
+                            SearchOrganizationsQuery.of(
+                                    tenantId, null, null, ONE_MONTH_AGO, NOW, 0, 20));
             given(searchOrganizationsUseCase.execute(any(SearchOrganizationsQuery.class)))
                     .willReturn(emptyPageResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/organizations")
-                                    .param("tenantId", tenantId.toString()))
+                                    .param("tenantId", tenantId.toString())
+                                    .param("createdFrom", ONE_MONTH_AGO.toString())
+                                    .param("createdTo", NOW.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
@@ -315,7 +343,10 @@ class OrganizationQueryControllerTest {
                             now,
                             now);
 
-            given(mapper.toQuery(any())).willReturn(SearchOrganizationsQuery.of(tenantId, 1, 10));
+            given(mapper.toQuery(any()))
+                    .willReturn(
+                            SearchOrganizationsQuery.of(
+                                    tenantId, null, null, ONE_MONTH_AGO, NOW, 1, 10));
             given(searchOrganizationsUseCase.execute(any(SearchOrganizationsQuery.class)))
                     .willReturn(pageResponse);
             given(mapper.toApiResponse(any(OrganizationResponse.class))).willReturn(apiOrgResponse);
@@ -324,6 +355,8 @@ class OrganizationQueryControllerTest {
             mockMvc.perform(
                             get("/api/v1/auth/organizations")
                                     .param("tenantId", tenantId.toString())
+                                    .param("createdFrom", ONE_MONTH_AGO.toString())
+                                    .param("createdTo", NOW.toString())
                                     .param("page", "1")
                                     .param("size", "10"))
                     .andExpect(status().isOk())

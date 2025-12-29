@@ -187,6 +187,8 @@ class RoleQueryControllerTest {
             UUID roleId2 = UUID.randomUUID();
             UUID tenantId = UUID.randomUUID();
             Instant now = Instant.now();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
 
             List<RoleResponse> useCaseResponses =
                     List.of(
@@ -208,6 +210,9 @@ class RoleQueryControllerTest {
                                     "SYSTEM",
                                     now,
                                     now));
+            PageResponse<RoleResponse> pageResponse =
+                    PageResponse.of(useCaseResponses, 0, 20, 2L, 1, true, true);
+
             List<RoleApiResponse> apiResponses =
                     List.of(
                             new RoleApiResponse(
@@ -230,19 +235,28 @@ class RoleQueryControllerTest {
                                     now));
 
             given(mapper.toQuery(any()))
-                    .willReturn(SearchRolesQuery.of(null, null, null, null, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
-                    .willReturn(useCaseResponses);
-            given(mapper.toApiResponseList(any())).willReturn(apiResponses);
+                    .willReturn(
+                            SearchRolesQuery.of(
+                                    null, null, null, null, createdFrom, createdTo, 0, 20));
+            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
+            given(mapper.toApiResponse(any(RoleResponse.class)))
+                    .willReturn(apiResponses.get(0), apiResponses.get(1));
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles"))
+            mockMvc.perform(
+                            get("/api/v1/auth/roles")
+                                    .param("tenantId", tenantId.toString())
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(2))
-                    .andExpect(jsonPath("$.data[0].roleId").value(roleId1.toString()))
-                    .andExpect(jsonPath("$.data[1].roleId").value(roleId2.toString()));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(2))
+                    .andExpect(jsonPath("$.data.content[0].roleId").value(roleId1.toString()))
+                    .andExpect(jsonPath("$.data.content[1].roleId").value(roleId2.toString()))
+                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.size").value(20))
+                    .andExpect(jsonPath("$.data.totalElements").value(2));
 
             verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
         }
@@ -254,6 +268,8 @@ class RoleQueryControllerTest {
             UUID roleId = UUID.randomUUID();
             UUID tenantId = UUID.randomUUID();
             Instant now = Instant.now();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
 
             List<RoleResponse> useCaseResponses =
                     List.of(
@@ -266,31 +282,38 @@ class RoleQueryControllerTest {
                                     "CUSTOM",
                                     now,
                                     now));
-            List<RoleApiResponse> apiResponses =
-                    List.of(
-                            new RoleApiResponse(
-                                    roleId.toString(),
-                                    tenantId.toString(),
-                                    "TenantRole",
-                                    "Description",
-                                    "TENANT",
-                                    "CUSTOM",
-                                    now,
-                                    now));
+            PageResponse<RoleResponse> pageResponse =
+                    PageResponse.of(useCaseResponses, 0, 20, 1L, 1, true, true);
+
+            RoleApiResponse apiResponse =
+                    new RoleApiResponse(
+                            roleId.toString(),
+                            tenantId.toString(),
+                            "TenantRole",
+                            "Description",
+                            "TENANT",
+                            "CUSTOM",
+                            now,
+                            now);
 
             given(mapper.toQuery(any()))
-                    .willReturn(SearchRolesQuery.of(tenantId, null, null, null, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
-                    .willReturn(useCaseResponses);
-            given(mapper.toApiResponseList(any())).willReturn(apiResponses);
+                    .willReturn(
+                            SearchRolesQuery.of(
+                                    tenantId, null, null, null, createdFrom, createdTo, 0, 20));
+            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
+            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles").param("tenantId", tenantId.toString()))
+            mockMvc.perform(
+                            get("/api/v1/auth/roles")
+                                    .param("tenantId", tenantId.toString())
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(1))
-                    .andExpect(jsonPath("$.data[0].tenantId").value(tenantId.toString()));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(1))
+                    .andExpect(jsonPath("$.data.content[0].tenantId").value(tenantId.toString()));
 
             verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
         }
@@ -302,6 +325,8 @@ class RoleQueryControllerTest {
             UUID roleId = UUID.randomUUID();
             UUID tenantId = UUID.randomUUID();
             Instant now = Instant.now();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
 
             List<RoleResponse> useCaseResponses =
                     List.of(
@@ -314,31 +339,39 @@ class RoleQueryControllerTest {
                                     "CUSTOM",
                                     now,
                                     now));
-            List<RoleApiResponse> apiResponses =
-                    List.of(
-                            new RoleApiResponse(
-                                    roleId.toString(),
-                                    tenantId.toString(),
-                                    "AdminRole",
-                                    "Admin role",
-                                    "TENANT",
-                                    "CUSTOM",
-                                    now,
-                                    now));
+            PageResponse<RoleResponse> pageResponse =
+                    PageResponse.of(useCaseResponses, 0, 20, 1L, 1, true, true);
+
+            RoleApiResponse apiResponse =
+                    new RoleApiResponse(
+                            roleId.toString(),
+                            tenantId.toString(),
+                            "AdminRole",
+                            "Admin role",
+                            "TENANT",
+                            "CUSTOM",
+                            now,
+                            now);
 
             given(mapper.toQuery(any()))
-                    .willReturn(SearchRolesQuery.of(null, "Admin", null, null, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
-                    .willReturn(useCaseResponses);
-            given(mapper.toApiResponseList(any())).willReturn(apiResponses);
+                    .willReturn(
+                            SearchRolesQuery.of(
+                                    null, "Admin", null, null, createdFrom, createdTo, 0, 20));
+            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
+            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles").param("name", "Admin"))
+            mockMvc.perform(
+                            get("/api/v1/auth/roles")
+                                    .param("tenantId", tenantId.toString())
+                                    .param("name", "Admin")
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(1))
-                    .andExpect(jsonPath("$.data[0].name").value("AdminRole"));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(1))
+                    .andExpect(jsonPath("$.data.content[0].name").value("AdminRole"));
 
             verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
         }
@@ -348,7 +381,10 @@ class RoleQueryControllerTest {
         void searchRoles_withScopeFilter_returnsFiltered() throws Exception {
             // Given
             UUID roleId = UUID.randomUUID();
+            UUID tenantId = UUID.randomUUID();
             Instant now = Instant.now();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
 
             List<RoleResponse> useCaseResponses =
                     List.of(
@@ -361,30 +397,45 @@ class RoleQueryControllerTest {
                                     "SYSTEM",
                                     now,
                                     now));
-            List<RoleApiResponse> apiResponses =
-                    List.of(
-                            new RoleApiResponse(
-                                    roleId.toString(),
-                                    null,
-                                    "GlobalRole",
-                                    "Global role",
-                                    "GLOBAL",
-                                    "SYSTEM",
-                                    now,
-                                    now));
+            PageResponse<RoleResponse> pageResponse =
+                    PageResponse.of(useCaseResponses, 0, 20, 1L, 1, true, true);
+
+            RoleApiResponse apiResponse =
+                    new RoleApiResponse(
+                            roleId.toString(),
+                            null,
+                            "GlobalRole",
+                            "Global role",
+                            "GLOBAL",
+                            "SYSTEM",
+                            now,
+                            now);
 
             given(mapper.toQuery(any()))
-                    .willReturn(SearchRolesQuery.of(null, null, null, null, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
-                    .willReturn(useCaseResponses);
-            given(mapper.toApiResponseList(any())).willReturn(apiResponses);
+                    .willReturn(
+                            SearchRolesQuery.of(
+                                    null,
+                                    null,
+                                    List.of("GLOBAL"),
+                                    null,
+                                    createdFrom,
+                                    createdTo,
+                                    0,
+                                    20));
+            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
+            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles").param("scope", "GLOBAL"))
+            mockMvc.perform(
+                            get("/api/v1/auth/roles")
+                                    .param("tenantId", tenantId.toString())
+                                    .param("scopes", "GLOBAL")
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data[0].scope").value("GLOBAL"));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].scope").value("GLOBAL"));
 
             verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
         }
@@ -394,7 +445,10 @@ class RoleQueryControllerTest {
         void searchRoles_withTypeFilter_returnsFiltered() throws Exception {
             // Given
             UUID roleId = UUID.randomUUID();
+            UUID tenantId = UUID.randomUUID();
             Instant now = Instant.now();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
 
             List<RoleResponse> useCaseResponses =
                     List.of(
@@ -407,30 +461,45 @@ class RoleQueryControllerTest {
                                     "SYSTEM",
                                     now,
                                     now));
-            List<RoleApiResponse> apiResponses =
-                    List.of(
-                            new RoleApiResponse(
-                                    roleId.toString(),
-                                    null,
-                                    "SystemRole",
-                                    "System role",
-                                    "GLOBAL",
-                                    "SYSTEM",
-                                    now,
-                                    now));
+            PageResponse<RoleResponse> pageResponse =
+                    PageResponse.of(useCaseResponses, 0, 20, 1L, 1, true, true);
+
+            RoleApiResponse apiResponse =
+                    new RoleApiResponse(
+                            roleId.toString(),
+                            null,
+                            "SystemRole",
+                            "System role",
+                            "GLOBAL",
+                            "SYSTEM",
+                            now,
+                            now);
 
             given(mapper.toQuery(any()))
-                    .willReturn(SearchRolesQuery.of(null, null, null, null, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
-                    .willReturn(useCaseResponses);
-            given(mapper.toApiResponseList(any())).willReturn(apiResponses);
+                    .willReturn(
+                            SearchRolesQuery.of(
+                                    null,
+                                    null,
+                                    null,
+                                    List.of("SYSTEM"),
+                                    createdFrom,
+                                    createdTo,
+                                    0,
+                                    20));
+            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
+            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles").param("type", "SYSTEM"))
+            mockMvc.perform(
+                            get("/api/v1/auth/roles")
+                                    .param("tenantId", tenantId.toString())
+                                    .param("types", "SYSTEM")
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data[0].type").value("SYSTEM"));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].type").value("SYSTEM"));
 
             verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
         }
@@ -439,16 +508,33 @@ class RoleQueryControllerTest {
         @DisplayName("[성공] 페이징 파라미터 지원")
         void searchRoles_withPagination_returnsPaged() throws Exception {
             // Given
+            UUID tenantId = UUID.randomUUID();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
+
+            PageResponse<RoleResponse> emptyPageResponse =
+                    PageResponse.of(List.of(), 1, 10, 0L, 0, false, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchRolesQuery.of(null, null, null, null, 1, 10));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                    .willReturn(
+                            SearchRolesQuery.of(
+                                    tenantId, null, null, null, createdFrom, createdTo, 1, 10));
+            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
+                    .willReturn(emptyPageResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles").param("page", "1").param("size", "10"))
+            mockMvc.perform(
+                            get("/api/v1/auth/roles")
+                                    .param("tenantId", tenantId.toString())
+                                    .param("page", "1")
+                                    .param("size", "10")
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.page").value(1))
+                    .andExpect(jsonPath("$.data.size").value(10));
 
             verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
         }
@@ -457,17 +543,39 @@ class RoleQueryControllerTest {
         @DisplayName("[성공] 결과가 없으면 빈 배열 반환")
         void searchRoles_withNoResults_returnsEmptyArray() throws Exception {
             // Given
+            UUID tenantId = UUID.randomUUID();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
+
+            PageResponse<RoleResponse> emptyPageResponse =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchRolesQuery.of(null, "nonexistent", null, null, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                    .willReturn(
+                            SearchRolesQuery.of(
+                                    tenantId,
+                                    "nonexistent",
+                                    null,
+                                    null,
+                                    createdFrom,
+                                    createdTo,
+                                    0,
+                                    20));
+            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
+                    .willReturn(emptyPageResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles").param("name", "nonexistent"))
+            mockMvc.perform(
+                            get("/api/v1/auth/roles")
+                                    .param("tenantId", tenantId.toString())
+                                    .param("name", "nonexistent")
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data").isEmpty());
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0));
 
             verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
         }

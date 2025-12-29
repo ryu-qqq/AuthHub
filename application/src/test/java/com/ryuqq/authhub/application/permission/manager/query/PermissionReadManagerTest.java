@@ -11,6 +11,7 @@ import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
 import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -146,11 +147,15 @@ class PermissionReadManagerTest {
     @DisplayName("search 메서드")
     class SearchTest {
 
+        private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
+
         @Test
         @DisplayName("검색 조건에 맞는 권한 목록을 반환한다")
         void shouldSearchPermissions() {
             // given
-            SearchPermissionsQuery query = new SearchPermissionsQuery("user", null, null, 0, 10);
+            SearchPermissionsQuery query =
+                    SearchPermissionsQuery.of("user", null, null, CREATED_FROM, CREATED_TO, 0, 10);
             List<Permission> expectedPermissions = List.of(PermissionFixture.createReconstituted());
             given(queryPort.search(query)).willReturn(expectedPermissions);
 
@@ -167,7 +172,8 @@ class PermissionReadManagerTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             SearchPermissionsQuery query =
-                    new SearchPermissionsQuery("nonexistent", null, null, 0, 10);
+                    SearchPermissionsQuery.of(
+                            "nonexistent", null, null, CREATED_FROM, CREATED_TO, 0, 10);
             given(queryPort.search(query)).willReturn(List.of());
 
             // when

@@ -3,8 +3,10 @@ package com.ryuqq.authhub.application.tenant.service.query;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantSummaryResponse;
+import com.ryuqq.authhub.application.tenant.factory.query.TenantQueryFactory;
 import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsAdminUseCase;
 import com.ryuqq.authhub.application.tenant.port.out.query.TenantAdminQueryPort;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,7 +19,7 @@ import org.springframework.stereotype.Service;
  * <ul>
  *   <li>{@code @Service} 어노테이션 필수
  *   <li>{@code @Transactional} 금지 (Manager/Facade에서 관리)
- *   <li>비즈니스 로직 금지 (단순 위임만)
+ *   <li>QueryFactory → Port 흐름
  *   <li>Lombok 금지
  * </ul>
  *
@@ -28,9 +30,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class SearchTenantsAdminService implements SearchTenantsAdminUseCase {
 
+    private final TenantQueryFactory queryFactory;
     private final TenantAdminQueryPort adminQueryPort;
 
-    public SearchTenantsAdminService(TenantAdminQueryPort adminQueryPort) {
+    public SearchTenantsAdminService(
+            TenantQueryFactory queryFactory, TenantAdminQueryPort adminQueryPort) {
+        this.queryFactory = queryFactory;
         this.adminQueryPort = adminQueryPort;
     }
 
@@ -44,6 +49,7 @@ public class SearchTenantsAdminService implements SearchTenantsAdminUseCase {
      */
     @Override
     public PageResponse<TenantSummaryResponse> execute(SearchTenantsQuery query) {
-        return adminQueryPort.searchTenants(query);
+        TenantCriteria criteria = queryFactory.toCriteria(query);
+        return adminQueryPort.searchTenants(criteria);
     }
 }

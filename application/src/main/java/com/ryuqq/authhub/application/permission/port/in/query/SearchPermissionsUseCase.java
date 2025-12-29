@@ -1,8 +1,8 @@
 package com.ryuqq.authhub.application.permission.port.in.query;
 
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
-import java.util.List;
 
 /**
  * SearchPermissionsUseCase - 권한 검색 UseCase (Port-In)
@@ -26,7 +26,7 @@ public interface SearchPermissionsUseCase {
      * 권한 검색 실행
      *
      * @param query 권한 검색 Query
-     * @return 권한 Response 목록
+     * @return 권한 페이지 응답
      */
-    List<PermissionResponse> execute(SearchPermissionsQuery query);
+    PageResponse<PermissionResponse> execute(SearchPermissionsQuery query);
 }

@@ -12,7 +12,7 @@ import com.ryuqq.authhub.application.role.dto.command.CreateRoleCommand;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
 import com.ryuqq.authhub.application.role.factory.command.RoleCommandFactory;
 import com.ryuqq.authhub.application.role.manager.command.RoleTransactionManager;
-import com.ryuqq.authhub.application.role.manager.query.RoleReadManager;
+import com.ryuqq.authhub.application.role.validator.RoleValidator;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.exception.DuplicateRoleNameException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -38,11 +39,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CreateRoleService 단위 테스트")
 class CreateRoleServiceTest {
 
+    @Mock private RoleValidator validator;
+
     @Mock private RoleCommandFactory commandFactory;
 
     @Mock private RoleTransactionManager transactionManager;
-
-    @Mock private RoleReadManager readManager;
 
     @Mock private RoleAssembler assembler;
 
@@ -50,7 +51,7 @@ class CreateRoleServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new CreateRoleService(commandFactory, transactionManager, readManager, assembler);
+        service = new CreateRoleService(validator, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -80,8 +81,7 @@ class CreateRoleServiceTest {
                             role.createdAt(),
                             role.updatedAt());
 
-            given(readManager.existsByTenantIdAndName(any(TenantId.class), any(RoleName.class)))
-                    .willReturn(false);
+            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
             given(commandFactory.create(command)).willReturn(role);
             given(transactionManager.persist(role)).willReturn(role);
             given(assembler.toResponse(role)).willReturn(expectedResponse);
@@ -92,6 +92,7 @@ class CreateRoleServiceTest {
             // then
             assertThat(response).isEqualTo(expectedResponse);
             assertThat(response.name()).isEqualTo("TEST_ROLE");
+            verify(validator).validateNameNotDuplicated(any(TenantId.class), any(RoleName.class));
             verify(commandFactory).create(command);
             verify(transactionManager).persist(role);
             verify(assembler).toResponse(role);
@@ -109,8 +110,11 @@ class CreateRoleServiceTest {
                             "ORGANIZATION",
                             false);
 
-            given(readManager.existsByTenantIdAndName(any(TenantId.class), any(RoleName.class)))
-                    .willReturn(true);
+            Mockito.doThrow(
+                            new DuplicateRoleNameException(
+                                    RoleFixture.defaultTenantUUID(), "DUPLICATE_ROLE"))
+                    .when(validator)
+                    .validateNameNotDuplicated(any(TenantId.class), any(RoleName.class));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
@@ -127,8 +131,9 @@ class CreateRoleServiceTest {
             CreateRoleCommand command =
                     new CreateRoleCommand(null, "GLOBAL_ROLE", "Description", "GLOBAL", true);
 
-            given(readManager.existsByTenantIdAndName(null, RoleName.of("GLOBAL_ROLE")))
-                    .willReturn(true);
+            Mockito.doThrow(new DuplicateRoleNameException("GLOBAL_ROLE"))
+                    .when(validator)
+                    .validateNameNotDuplicated(null, RoleName.of("GLOBAL_ROLE"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

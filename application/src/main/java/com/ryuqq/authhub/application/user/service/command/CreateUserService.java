@@ -11,6 +11,7 @@ import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.exception.DuplicateUserIdentifierException;
+import com.ryuqq.authhub.domain.user.exception.DuplicateUserPhoneNumberException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -62,13 +63,18 @@ public class CreateUserService implements CreateUserUseCase {
                     command.tenantId(), command.organizationId(), command.identifier());
         }
 
-        // 2. Factory: Command → Domain
+        // 2. 중복 핸드폰 번호 검사
+        if (readManager.existsByTenantIdAndPhoneNumber(tenantId, command.phoneNumber())) {
+            throw new DuplicateUserPhoneNumberException(command.tenantId(), command.phoneNumber());
+        }
+
+        // 3. Factory: Command → Domain
         User user = commandFactory.create(command);
 
-        // 3. Manager: 영속화
+        // 4. Manager: 영속화
         User saved = transactionManager.persist(user);
 
-        // 4. Assembler: Response 변환
+        // 5. Assembler: Response 변환
         return assembler.toResponse(saved);
     }
 }

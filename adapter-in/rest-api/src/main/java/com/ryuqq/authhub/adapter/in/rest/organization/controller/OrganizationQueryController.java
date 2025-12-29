@@ -125,11 +125,7 @@ public class OrganizationQueryController {
      *
      * <p>GET /api/v1/organizations
      *
-     * @param tenantId 테넌트 ID (필수)
-     * @param name 조직 이름 필터 (선택)
-     * @param status 조직 상태 필터 (선택)
-     * @param page 페이지 번호 (기본값: 0)
-     * @param size 페이지 크기 (기본값: 20)
+     * @param request 검색 조건 (tenantId 필수, name/statuses/createdFrom/createdTo/page/size 선택)
      * @return 200 OK + 조직 목록 (페이징)
      */
     @Operation(
@@ -138,6 +134,17 @@ public class OrganizationQueryController {
                     """
                     조건에 맞는 조직 목록을 페이징하여 조회합니다.
 
+                    **필수 파라미터:**
+                    - tenantId: 테넌트 ID
+                    - createdFrom: 생성일시 시작
+                    - createdTo: 생성일시 종료
+
+                    **선택 파라미터:**
+                    - name: 조직 이름 필터
+                    - statuses: 상태 필터 (다중 선택 가능)
+                    - page: 페이지 번호 (기본값: 0)
+                    - size: 페이지 크기 (기본값: 20)
+
                     **필요 권한**: Super Admin 또는 해당 테넌트 소속 사용자
                     """)
     @ApiResponses({
@@ -145,25 +152,10 @@ public class OrganizationQueryController {
                 responseCode = "200",
                 description = "조회 성공")
     })
-    @PreAuthorize("@access.superAdmin() or @access.sameTenant(#tenantId)")
+    @PreAuthorize("@access.superAdmin() or @access.sameTenant(#request.tenantId)")
     @GetMapping
     public ResponseEntity<ApiResponse<PageApiResponse<OrganizationApiResponse>>>
-            searchOrganizations(
-                    @Parameter(description = "테넌트 ID", required = true) @RequestParam
-                            String tenantId,
-                    @Parameter(description = "조직 이름 필터") @RequestParam(required = false)
-                            String name,
-                    @Parameter(description = "조직 상태 필터") @RequestParam(required = false)
-                            String status,
-                    @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") @Min(0)
-                            int page,
-                    @Parameter(description = "페이지 크기")
-                            @RequestParam(defaultValue = "20")
-                            @Min(1)
-                            @Max(100)
-                            int size) {
-        SearchOrganizationsApiRequest request =
-                new SearchOrganizationsApiRequest(tenantId, name, status, page, size);
+            searchOrganizations(@Valid @ModelAttribute SearchOrganizationsApiRequest request) {
         PageResponse<OrganizationResponse> response =
                 searchOrganizationsUseCase.execute(mapper.toQuery(request));
         PageApiResponse<OrganizationApiResponse> pagedResponse =

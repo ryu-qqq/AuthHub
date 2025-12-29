@@ -50,4 +50,13 @@ public record TenantOnboardingApiRequest(
                         requiredMode = Schema.RequiredMode.REQUIRED)
                 @NotBlank(message = "마스터 이메일은 필수입니다")
                 @Email(message = "올바른 이메일 형식이 아닙니다")
-                String masterEmail) {}
+                String masterEmail,
+        @Schema(
+                        description = "마스터 관리자 핸드폰 번호 (한국 형식)",
+                        example = "010-1234-5678",
+                        requiredMode = Schema.RequiredMode.REQUIRED,
+                        minLength = 10,
+                        maxLength = 20)
+                @NotBlank(message = "마스터 핸드폰 번호는 필수입니다")
+                @Size(min = 10, max = 20, message = "핸드폰 번호는 10자 이상 20자 이하여야 합니다")
+                String masterPhoneNumber) {}

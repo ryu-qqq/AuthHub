@@ -1,10 +1,6 @@
 package com.ryuqq.authhub.application.organization.service.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -12,9 +8,12 @@ import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.organization.assembler.OrganizationAssembler;
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
+import com.ryuqq.authhub.application.organization.factory.query.OrganizationQueryFactory;
 import com.ryuqq.authhub.application.organization.manager.query.OrganizationReadManager;
+import com.ryuqq.authhub.domain.common.vo.PageRequest;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +37,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchOrganizationsService 단위 테스트")
 class SearchOrganizationsServiceTest {
 
+    @Mock private OrganizationQueryFactory queryFactory;
+
     @Mock private OrganizationReadManager readManager;
 
     @Mock private OrganizationAssembler assembler;
@@ -46,7 +47,7 @@ class SearchOrganizationsServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new SearchOrganizationsService(readManager, assembler);
+        service = new SearchOrganizationsService(queryFactory, readManager, assembler);
     }
 
     @Nested
@@ -62,6 +63,17 @@ class SearchOrganizationsServiceTest {
             SearchOrganizationsQuery query =
                     SearchOrganizationsQuery.of(OrganizationFixture.defaultTenantUUID(), 0, 20);
 
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(OrganizationFixture.defaultTenantUUID()),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
+
             OrganizationResponse orgResponse =
                     new OrganizationResponse(
                             organization.organizationIdValue(),
@@ -71,12 +83,9 @@ class SearchOrganizationsServiceTest {
                             organization.createdAt(),
                             organization.updatedAt());
 
-            given(
-                            readManager.findAllByTenantIdAndCriteria(
-                                    any(TenantId.class), isNull(), isNull(), anyInt(), anyInt()))
-                    .willReturn(organizations);
-            given(readManager.countByTenantIdAndCriteria(any(TenantId.class), isNull(), isNull()))
-                    .willReturn(1L);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(readManager.findAllByCriteria(criteria)).willReturn(organizations);
+            given(readManager.countByCriteria(criteria)).willReturn(1L);
             given(assembler.toResponseList(organizations)).willReturn(List.of(orgResponse));
 
             // when
@@ -89,9 +98,9 @@ class SearchOrganizationsServiceTest {
             assertThat(result.size()).isEqualTo(20);
             assertThat(result.first()).isTrue();
             assertThat(result.last()).isTrue();
-            verify(readManager)
-                    .findAllByTenantIdAndCriteria(
-                            any(TenantId.class), isNull(), isNull(), eq(0), eq(20));
+            verify(queryFactory).toCriteria(query);
+            verify(readManager).findAllByCriteria(criteria);
+            verify(readManager).countByCriteria(criteria);
         }
 
         @Test
@@ -104,6 +113,17 @@ class SearchOrganizationsServiceTest {
                     new SearchOrganizationsQuery(
                             OrganizationFixture.defaultTenantUUID(), "Test", null, 0, 20);
 
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(OrganizationFixture.defaultTenantUUID()),
+                            "Test",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
+
             OrganizationResponse orgResponse =
                     new OrganizationResponse(
                             organization.organizationIdValue(),
@@ -113,12 +133,9 @@ class SearchOrganizationsServiceTest {
                             organization.createdAt(),
                             organization.updatedAt());
 
-            given(
-                            readManager.findAllByTenantIdAndCriteria(
-                                    any(TenantId.class), eq("Test"), isNull(), anyInt(), anyInt()))
-                    .willReturn(organizations);
-            given(readManager.countByTenantIdAndCriteria(any(TenantId.class), eq("Test"), isNull()))
-                    .willReturn(1L);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(readManager.findAllByCriteria(criteria)).willReturn(organizations);
+            given(readManager.countByCriteria(criteria)).willReturn(1L);
             given(assembler.toResponseList(organizations)).willReturn(List.of(orgResponse));
 
             // when
@@ -139,6 +156,17 @@ class SearchOrganizationsServiceTest {
                     new SearchOrganizationsQuery(
                             OrganizationFixture.defaultTenantUUID(), null, "INACTIVE", 0, 20);
 
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(OrganizationFixture.defaultTenantUUID()),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
+
             OrganizationResponse orgResponse =
                     new OrganizationResponse(
                             inactiveOrganization.organizationIdValue(),
@@ -148,18 +176,9 @@ class SearchOrganizationsServiceTest {
                             inactiveOrganization.createdAt(),
                             inactiveOrganization.updatedAt());
 
-            given(
-                            readManager.findAllByTenantIdAndCriteria(
-                                    any(TenantId.class),
-                                    isNull(),
-                                    eq("INACTIVE"),
-                                    anyInt(),
-                                    anyInt()))
-                    .willReturn(organizations);
-            given(
-                            readManager.countByTenantIdAndCriteria(
-                                    any(TenantId.class), isNull(), eq("INACTIVE")))
-                    .willReturn(1L);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(readManager.findAllByCriteria(criteria)).willReturn(organizations);
+            given(readManager.countByCriteria(criteria)).willReturn(1L);
             given(assembler.toResponseList(organizations)).willReturn(List.of(orgResponse));
 
             // when
@@ -177,12 +196,20 @@ class SearchOrganizationsServiceTest {
             SearchOrganizationsQuery query =
                     SearchOrganizationsQuery.of(OrganizationFixture.defaultTenantUUID());
 
-            given(
-                            readManager.findAllByTenantIdAndCriteria(
-                                    any(TenantId.class), isNull(), isNull(), anyInt(), anyInt()))
-                    .willReturn(Collections.emptyList());
-            given(readManager.countByTenantIdAndCriteria(any(TenantId.class), isNull(), isNull()))
-                    .willReturn(0L);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(OrganizationFixture.defaultTenantUUID()),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
+
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(readManager.findAllByCriteria(criteria)).willReturn(Collections.emptyList());
+            given(readManager.countByCriteria(criteria)).willReturn(0L);
             given(assembler.toResponseList(Collections.emptyList()))
                     .willReturn(Collections.emptyList());
 
@@ -200,7 +227,6 @@ class SearchOrganizationsServiceTest {
         @DisplayName("페이지네이션이 정확하게 동작한다")
         void shouldPaginateCorrectly() {
             // given
-            // 페이지 크기만큼 데이터가 있어야 isLast가 false가 됨
             List<Organization> organizations = new java.util.ArrayList<>();
             List<OrganizationResponse> orgResponses = new java.util.ArrayList<>();
             for (int i = 0; i < 10; i++) {
@@ -219,12 +245,20 @@ class SearchOrganizationsServiceTest {
                     new SearchOrganizationsQuery(
                             OrganizationFixture.defaultTenantUUID(), null, null, 1, 10);
 
-            given(
-                            readManager.findAllByTenantIdAndCriteria(
-                                    any(TenantId.class), isNull(), isNull(), eq(10), eq(10)))
-                    .willReturn(organizations);
-            given(readManager.countByTenantIdAndCriteria(any(TenantId.class), isNull(), isNull()))
-                    .willReturn(25L);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(OrganizationFixture.defaultTenantUUID()),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(1, 10));
+
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(readManager.findAllByCriteria(criteria)).willReturn(organizations);
+            given(readManager.countByCriteria(criteria)).willReturn(25L);
             given(assembler.toResponseList(organizations)).willReturn(orgResponses);
 
             // when
@@ -249,6 +283,17 @@ class SearchOrganizationsServiceTest {
                     new SearchOrganizationsQuery(
                             OrganizationFixture.defaultTenantUUID(), null, null, 2, 10);
 
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(OrganizationFixture.defaultTenantUUID()),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(2, 10));
+
             OrganizationResponse orgResponse =
                     new OrganizationResponse(
                             organization.organizationIdValue(),
@@ -258,12 +303,9 @@ class SearchOrganizationsServiceTest {
                             organization.createdAt(),
                             organization.updatedAt());
 
-            given(
-                            readManager.findAllByTenantIdAndCriteria(
-                                    any(TenantId.class), isNull(), isNull(), eq(20), eq(10)))
-                    .willReturn(organizations);
-            given(readManager.countByTenantIdAndCriteria(any(TenantId.class), isNull(), isNull()))
-                    .willReturn(25L);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(readManager.findAllByCriteria(criteria)).willReturn(organizations);
+            given(readManager.countByCriteria(criteria)).willReturn(25L);
             given(assembler.toResponseList(organizations)).willReturn(List.of(orgResponse));
 
             // when

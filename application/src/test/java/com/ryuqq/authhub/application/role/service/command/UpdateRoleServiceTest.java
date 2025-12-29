@@ -10,13 +10,13 @@ import static org.mockito.Mockito.verify;
 import com.ryuqq.authhub.application.role.assembler.RoleAssembler;
 import com.ryuqq.authhub.application.role.dto.command.UpdateRoleCommand;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
+import com.ryuqq.authhub.application.role.factory.command.RoleCommandFactory;
 import com.ryuqq.authhub.application.role.manager.command.RoleTransactionManager;
 import com.ryuqq.authhub.application.role.manager.query.RoleReadManager;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.exception.SystemRoleNotModifiableException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
-import java.time.Clock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -37,19 +37,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UpdateRoleService 단위 테스트")
 class UpdateRoleServiceTest {
 
-    @Mock private RoleTransactionManager transactionManager;
-
     @Mock private RoleReadManager readManager;
+
+    @Mock private RoleCommandFactory commandFactory;
+
+    @Mock private RoleTransactionManager transactionManager;
 
     @Mock private RoleAssembler assembler;
 
-    private Clock clock;
     private UpdateRoleService service;
 
     @BeforeEach
     void setUp() {
-        clock = RoleFixture.fixedClock();
-        service = new UpdateRoleService(transactionManager, readManager, assembler, clock);
+        service = new UpdateRoleService(readManager, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -76,6 +76,8 @@ class UpdateRoleServiceTest {
                             updatedRole.updatedAt());
 
             given(readManager.getById(RoleId.of(command.roleId()))).willReturn(existingRole);
+            given(commandFactory.applyUpdate(any(Role.class), any(UpdateRoleCommand.class)))
+                    .willReturn(updatedRole);
             given(transactionManager.persist(any(Role.class))).willReturn(updatedRole);
             given(assembler.toResponse(updatedRole)).willReturn(expectedResponse);
 
@@ -86,6 +88,7 @@ class UpdateRoleServiceTest {
             assertThat(response).isEqualTo(expectedResponse);
             assertThat(response.name()).isEqualTo("UPDATED_ROLE");
             verify(readManager).getById(RoleId.of(command.roleId()));
+            verify(commandFactory).applyUpdate(any(Role.class), any(UpdateRoleCommand.class));
             verify(transactionManager).persist(any(Role.class));
         }
 
@@ -94,6 +97,7 @@ class UpdateRoleServiceTest {
         void shouldUpdateDescriptionSuccessfully() {
             // given
             Role existingRole = RoleFixture.create();
+            Role updatedRole = RoleFixture.create(); // Factory mock에서 반환될 Role
             UpdateRoleCommand command =
                     new UpdateRoleCommand(existingRole.roleIdValue(), null, "Updated description");
             RoleResponse expectedResponse =
@@ -108,7 +112,9 @@ class UpdateRoleServiceTest {
                             existingRole.updatedAt());
 
             given(readManager.getById(RoleId.of(command.roleId()))).willReturn(existingRole);
-            given(transactionManager.persist(any(Role.class))).willReturn(existingRole);
+            given(commandFactory.applyUpdate(any(Role.class), any(UpdateRoleCommand.class)))
+                    .willReturn(updatedRole);
+            given(transactionManager.persist(any(Role.class))).willReturn(updatedRole);
             given(assembler.toResponse(any(Role.class))).willReturn(expectedResponse);
 
             // when
@@ -116,6 +122,7 @@ class UpdateRoleServiceTest {
 
             // then
             assertThat(response.description()).isEqualTo("Updated description");
+            verify(commandFactory).applyUpdate(any(Role.class), any(UpdateRoleCommand.class));
             verify(transactionManager).persist(any(Role.class));
         }
 
@@ -128,6 +135,8 @@ class UpdateRoleServiceTest {
                     new UpdateRoleCommand(systemRole.roleIdValue(), "NEW_NAME", null);
 
             given(readManager.getById(RoleId.of(command.roleId()))).willReturn(systemRole);
+            given(commandFactory.applyUpdate(any(Role.class), any(UpdateRoleCommand.class)))
+                    .willThrow(new SystemRoleNotModifiableException(systemRole.getRoleId()));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

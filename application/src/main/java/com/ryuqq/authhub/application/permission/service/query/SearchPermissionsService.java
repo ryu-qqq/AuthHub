@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.application.permission.service.query;
 
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.permission.assembler.PermissionAssembler;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
@@ -40,11 +41,22 @@ public class SearchPermissionsService implements SearchPermissionsUseCase {
     }
 
     @Override
-    public List<PermissionResponse> execute(SearchPermissionsQuery query) {
+    public PageResponse<PermissionResponse> execute(SearchPermissionsQuery query) {
         // 1. Permission 검색
         List<Permission> permissions = readManager.search(query);
 
-        // 2. Assembler: Response 변환
-        return permissions.stream().map(assembler::toResponse).toList();
+        // 2. 총 개수 조회
+        long totalElements = readManager.count(query);
+
+        // 3. Assembler: Response 변환
+        List<PermissionResponse> content = permissions.stream().map(assembler::toResponse).toList();
+
+        // 4. PageResponse 생성
+        int totalPages = (int) Math.ceil((double) totalElements / query.size());
+        boolean isFirst = query.page() == 0;
+        boolean isLast = query.page() >= totalPages - 1 || totalPages == 0;
+
+        return PageResponse.of(
+                content, query.page(), query.size(), totalElements, totalPages, isFirst, isLast);
     }
 }

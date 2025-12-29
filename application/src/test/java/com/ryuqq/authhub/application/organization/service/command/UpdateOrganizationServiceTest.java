@@ -9,8 +9,10 @@ import static org.mockito.Mockito.verify;
 import com.ryuqq.authhub.application.organization.assembler.OrganizationAssembler;
 import com.ryuqq.authhub.application.organization.dto.command.UpdateOrganizationCommand;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
+import com.ryuqq.authhub.application.organization.factory.command.OrganizationCommandFactory;
 import com.ryuqq.authhub.application.organization.manager.command.OrganizationTransactionManager;
 import com.ryuqq.authhub.application.organization.manager.query.OrganizationReadManager;
+import com.ryuqq.authhub.application.organization.validator.OrganizationValidator;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.exception.DuplicateOrganizationNameException;
 import com.ryuqq.authhub.domain.organization.exception.InvalidOrganizationStateException;
@@ -42,9 +44,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UpdateOrganizationService 단위 테스트")
 class UpdateOrganizationServiceTest {
 
-    @Mock private OrganizationTransactionManager transactionManager;
-
     @Mock private OrganizationReadManager readManager;
+
+    @Mock private OrganizationValidator validator;
+
+    @Mock private OrganizationCommandFactory commandFactory;
+
+    @Mock private OrganizationTransactionManager transactionManager;
 
     @Mock private OrganizationAssembler assembler;
 
@@ -55,7 +61,9 @@ class UpdateOrganizationServiceTest {
     @BeforeEach
     void setUp() {
         clock = Clock.fixed(Instant.parse("2025-01-02T00:00:00Z"), ZoneOffset.UTC);
-        service = new UpdateOrganizationService(transactionManager, readManager, assembler, clock);
+        service =
+                new UpdateOrganizationService(
+                        readManager, validator, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -71,8 +79,8 @@ class UpdateOrganizationServiceTest {
                     new UpdateOrganizationCommand(
                             OrganizationFixture.defaultUUID(), "Updated Name");
 
-            Organization updatedOrganization =
-                    organization.changeName(OrganizationName.of("Updated Name"), clock);
+            OrganizationName newName = OrganizationName.of("Updated Name");
+            Organization updatedOrganization = organization.changeName(newName, clock);
             OrganizationResponse expectedResponse =
                     new OrganizationResponse(
                             updatedOrganization.organizationIdValue(),
@@ -83,10 +91,12 @@ class UpdateOrganizationServiceTest {
                             updatedOrganization.updatedAt());
 
             given(readManager.findById(any(OrganizationId.class))).willReturn(organization);
+            given(commandFactory.toName("Updated Name")).willReturn(newName);
+            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
             given(
-                            readManager.existsByTenantIdAndName(
-                                    any(TenantId.class), any(OrganizationName.class)))
-                    .willReturn(false);
+                            commandFactory.applyNameChange(
+                                    any(Organization.class), any(OrganizationName.class)))
+                    .willReturn(updatedOrganization);
             given(transactionManager.persist(any(Organization.class)))
                     .willReturn(updatedOrganization);
             given(assembler.toResponse(updatedOrganization)).willReturn(expectedResponse);
@@ -97,36 +107,55 @@ class UpdateOrganizationServiceTest {
             // then
             assertThat(response.name()).isEqualTo("Updated Name");
             verify(readManager).findById(any(OrganizationId.class));
+            verify(validator)
+                    .validateNameNotDuplicatedExcluding(
+                            any(TenantId.class),
+                            any(OrganizationName.class),
+                            any(OrganizationName.class));
             verify(transactionManager).persist(any(Organization.class));
             verify(assembler).toResponse(any(Organization.class));
         }
 
         @Test
-        @DisplayName("동일한 이름으로 변경 시 중복 검사를 하지 않는다")
-        void shouldSkipDuplicateCheckWhenSameName() {
+        @DisplayName("동일한 이름으로 변경 시에도 Validator가 호출된다")
+        void shouldCallValidatorEvenWhenSameName() {
             // given
             Organization organization = OrganizationFixture.createWithName("Same Name");
             UpdateOrganizationCommand command =
                     new UpdateOrganizationCommand(OrganizationFixture.defaultUUID(), "Same Name");
 
+            OrganizationName sameName = OrganizationName.of("Same Name");
+            Organization updatedOrganization = organization.changeName(sameName, clock);
             OrganizationResponse expectedResponse =
                     new OrganizationResponse(
-                            organization.organizationIdValue(),
-                            organization.tenantIdValue(),
-                            organization.nameValue(),
-                            organization.statusValue(),
-                            organization.createdAt(),
-                            organization.updatedAt());
+                            updatedOrganization.organizationIdValue(),
+                            updatedOrganization.tenantIdValue(),
+                            updatedOrganization.nameValue(),
+                            updatedOrganization.statusValue(),
+                            updatedOrganization.createdAt(),
+                            updatedOrganization.updatedAt());
 
             given(readManager.findById(any(OrganizationId.class))).willReturn(organization);
-            given(transactionManager.persist(any(Organization.class))).willReturn(organization);
-            given(assembler.toResponse(organization)).willReturn(expectedResponse);
+            given(commandFactory.toName("Same Name")).willReturn(sameName);
+            // validator 내부에서 같은 이름이면 중복 검사를 건너뜀
+            given(
+                            commandFactory.applyNameChange(
+                                    any(Organization.class), any(OrganizationName.class)))
+                    .willReturn(updatedOrganization);
+            given(transactionManager.persist(any(Organization.class)))
+                    .willReturn(updatedOrganization);
+            given(assembler.toResponse(updatedOrganization)).willReturn(expectedResponse);
 
             // when
             OrganizationResponse response = service.execute(command);
 
             // then
-            assertThat(response).isNotNull();
+            assertThat(response.name()).isEqualTo("Same Name");
+            verify(validator)
+                    .validateNameNotDuplicatedExcluding(
+                            any(TenantId.class),
+                            any(OrganizationName.class),
+                            any(OrganizationName.class));
         }
 
         @Test
@@ -152,11 +181,18 @@ class UpdateOrganizationServiceTest {
                     new UpdateOrganizationCommand(
                             OrganizationFixture.defaultUUID(), "Duplicate Name");
 
+            OrganizationName duplicateName = OrganizationName.of("Duplicate Name");
+
             given(readManager.findById(any(OrganizationId.class))).willReturn(organization);
-            given(
-                            readManager.existsByTenantIdAndName(
-                                    any(TenantId.class), any(OrganizationName.class)))
-                    .willReturn(true);
+            given(commandFactory.toName("Duplicate Name")).willReturn(duplicateName);
+            org.mockito.Mockito.doThrow(
+                            new DuplicateOrganizationNameException(
+                                    organization.getTenantId(), duplicateName))
+                    .when(validator)
+                    .validateNameNotDuplicatedExcluding(
+                            any(TenantId.class),
+                            any(OrganizationName.class),
+                            any(OrganizationName.class));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
@@ -171,7 +207,17 @@ class UpdateOrganizationServiceTest {
             UpdateOrganizationCommand command =
                     new UpdateOrganizationCommand(OrganizationFixture.defaultUUID(), "New Name");
 
+            OrganizationName newName = OrganizationName.of("New Name");
+
             given(readManager.findById(any(OrganizationId.class))).willReturn(deletedOrganization);
+            given(commandFactory.toName("New Name")).willReturn(newName);
+            // validator는 통과, Factory에서 예외 발생
+            given(
+                            commandFactory.applyNameChange(
+                                    any(Organization.class), any(OrganizationName.class)))
+                    .willThrow(
+                            new InvalidOrganizationStateException(
+                                    deletedOrganization.getStatus(), "cannot change name"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

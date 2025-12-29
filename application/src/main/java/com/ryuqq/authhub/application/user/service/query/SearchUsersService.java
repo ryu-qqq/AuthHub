@@ -1,11 +1,14 @@
 package com.ryuqq.authhub.application.user.service.query;
 
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.user.assembler.UserAssembler;
 import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.dto.response.UserResponse;
+import com.ryuqq.authhub.application.user.factory.query.UserQueryFactory;
 import com.ryuqq.authhub.application.user.manager.query.UserReadManager;
 import com.ryuqq.authhub.application.user.port.in.query.SearchUsersUseCase;
 import com.ryuqq.authhub.domain.user.aggregate.User;
+import com.ryuqq.authhub.domain.user.query.criteria.UserCriteria;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -30,20 +33,36 @@ import org.springframework.stereotype.Service;
 @Service
 public class SearchUsersService implements SearchUsersUseCase {
 
+    private final UserQueryFactory queryFactory;
     private final UserReadManager readManager;
     private final UserAssembler assembler;
 
-    public SearchUsersService(UserReadManager readManager, UserAssembler assembler) {
+    public SearchUsersService(
+            UserQueryFactory queryFactory, UserReadManager readManager, UserAssembler assembler) {
+        this.queryFactory = queryFactory;
         this.readManager = readManager;
         this.assembler = assembler;
     }
 
     @Override
-    public List<UserResponse> execute(SearchUsersQuery query) {
-        // 1. Manager: 검색
-        List<User> users = readManager.search(query);
+    public PageResponse<UserResponse> execute(SearchUsersQuery query) {
+        // 1. Query → Criteria 변환
+        UserCriteria criteria = queryFactory.toCriteria(query);
 
-        // 2. Assembler: Response 목록 변환
-        return assembler.toResponseList(users);
+        // 2. ReadManager: 조회
+        List<User> users = readManager.findAllByCriteria(criteria);
+        long totalElements = readManager.countByCriteria(criteria);
+
+        // 3. Assembler: Response 변환
+        List<UserResponse> content = assembler.toResponseList(users);
+
+        // 4. PageResponse 생성
+        int page = criteria.page().page();
+        int size = criteria.page().size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        boolean first = page == 0;
+        boolean last = page >= totalPages - 1 || totalPages == 0;
+
+        return PageResponse.of(content, page, size, totalElements, totalPages, first, last);
     }
 }

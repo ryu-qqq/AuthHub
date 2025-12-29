@@ -16,8 +16,9 @@ package com.ryuqq.authhub.application.onboarding.dto.command;
  * @param tenantName 테넌트(회사) 이름 (필수)
  * @param organizationName 기본 조직 이름 (필수)
  * @param masterEmail 마스터 관리자 이메일 (필수)
+ * @param masterPhoneNumber 마스터 관리자 핸드폰 번호 (필수)
  * @author development-team
  * @since 1.0.0
  */
 public record TenantOnboardingCommand(
-        String tenantName, String organizationName, String masterEmail) {}
+        String tenantName, String organizationName, String masterEmail, String masterPhoneNumber) {}

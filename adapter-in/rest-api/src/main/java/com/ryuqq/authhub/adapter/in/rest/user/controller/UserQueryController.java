@@ -23,14 +23,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -150,19 +148,18 @@ public class UserQueryController {
      *
      * <p>GET /api/v1/users
      *
-     * @param tenantId 테넌트 ID 필터 (선택)
-     * @param organizationId 조직 ID 필터 (선택)
-     * @param identifier 식별자 필터 (선택)
-     * @param status 상태 필터 (선택, ACTIVE/INACTIVE/SUSPENDED)
-     * @param page 페이지 번호 (기본값: 0)
-     * @param size 페이지 크기 (기본값: 20)
-     * @return 200 OK + 사용자 목록
+     * @param request 검색 조건 (필수: createdFrom, createdTo)
+     * @return 200 OK + 페이징된 사용자 목록
      */
     @Operation(
             summary = "사용자 목록 검색",
             description =
                     """
                     조건에 맞는 사용자 목록을 검색합니다.
+
+                    **필수 필터:**
+                    - createdFrom: 생성일 시작 (ISO-8601)
+                    - createdTo: 생성일 종료 (ISO-8601)
 
                     **필요 권한**: `user:read`
                     """)
@@ -173,21 +170,13 @@ public class UserQueryController {
     })
     @PreAuthorize("@access.hasPermission('user:read')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserApiResponse>>> searchUsers(
-            @Parameter(description = "테넌트 ID 필터") @RequestParam(required = false) String tenantId,
-            @Parameter(description = "조직 ID 필터") @RequestParam(required = false)
-                    String organizationId,
-            @Parameter(description = "식별자 필터") @RequestParam(required = false) String identifier,
-            @Parameter(description = "상태 필터 (ACTIVE/INACTIVE/SUSPENDED)")
-                    @RequestParam(required = false)
-                    String status,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") Integer page,
-            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size) {
-        SearchUsersApiRequest request =
-                new SearchUsersApiRequest(tenantId, organizationId, identifier, status, page, size);
-        List<UserResponse> responses = searchUsersUseCase.execute(mapper.toQuery(request));
-        List<UserApiResponse> apiResponses = mapper.toApiResponseList(responses);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponses));
+    public ResponseEntity<ApiResponse<PageApiResponse<UserApiResponse>>> searchUsers(
+            @Valid @ModelAttribute SearchUsersApiRequest request) {
+        PageResponse<UserResponse> pageResponse =
+                searchUsersUseCase.execute(mapper.toQuery(request));
+        PageApiResponse<UserApiResponse> pagedResponse =
+                PageApiResponse.from(pageResponse, mapper::toApiResponse);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(pagedResponse));
     }
 
     // ===== Admin 전용 API =====

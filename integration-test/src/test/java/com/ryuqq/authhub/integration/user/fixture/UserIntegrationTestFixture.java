@@ -18,6 +18,7 @@ import java.util.UUID;
 public final class UserIntegrationTestFixture {
 
     private static final String DEFAULT_PASSWORD = "Password123!";
+    private static final String DEFAULT_PHONE_NUMBER = "010-1234-5678";
 
     private UserIntegrationTestFixture() {
         throw new AssertionError("Utility class - do not instantiate");
@@ -36,7 +37,11 @@ public final class UserIntegrationTestFixture {
      */
     public static CreateUserApiRequest createUserRequest(String tenantId, String organizationId) {
         return createUserRequest(
-                tenantId, organizationId, "testuser@example.com", DEFAULT_PASSWORD);
+                tenantId,
+                organizationId,
+                "testuser@example.com",
+                DEFAULT_PHONE_NUMBER,
+                DEFAULT_PASSWORD);
     }
 
     /**
@@ -45,12 +50,18 @@ public final class UserIntegrationTestFixture {
      * @param tenantId 테넌트 ID (UUID 문자열)
      * @param organizationId 조직 ID (UUID 문자열)
      * @param identifier 사용자 식별자 (이메일)
+     * @param phoneNumber 핸드폰 번호
      * @param password 비밀번호
      * @return 사용자 생성 요청
      */
     public static CreateUserApiRequest createUserRequest(
-            String tenantId, String organizationId, String identifier, String password) {
-        return new CreateUserApiRequest(tenantId, organizationId, identifier, password);
+            String tenantId,
+            String organizationId,
+            String identifier,
+            String phoneNumber,
+            String password) {
+        return new CreateUserApiRequest(
+                tenantId, organizationId, identifier, phoneNumber, password);
     }
 
     /**
@@ -65,8 +76,9 @@ public final class UserIntegrationTestFixture {
     public static CreateUserApiRequest createUserRequestWithUniqueIdentifier(
             String tenantId, String organizationId) {
         String uniqueIdentifier = "user" + System.currentTimeMillis() + "@example.com";
+        String uniquePhoneNumber = "010-" + System.currentTimeMillis() % 10000000;
         return new CreateUserApiRequest(
-                tenantId, organizationId, uniqueIdentifier, DEFAULT_PASSWORD);
+                tenantId, organizationId, uniqueIdentifier, uniquePhoneNumber, DEFAULT_PASSWORD);
     }
 
     // ========================================
@@ -177,7 +189,8 @@ public final class UserIntegrationTestFixture {
      */
     public static CreateUserApiRequest createUserRequestWithEmptyIdentifier(
             String tenantId, String organizationId) {
-        return new CreateUserApiRequest(tenantId, organizationId, "", DEFAULT_PASSWORD);
+        return new CreateUserApiRequest(
+                tenantId, organizationId, "", DEFAULT_PHONE_NUMBER, DEFAULT_PASSWORD);
     }
 
     /**
@@ -191,7 +204,8 @@ public final class UserIntegrationTestFixture {
      */
     public static CreateUserApiRequest createUserRequestWithShortPassword(
             String tenantId, String organizationId) {
-        return new CreateUserApiRequest(tenantId, organizationId, "user@example.com", "short");
+        return new CreateUserApiRequest(
+                tenantId, organizationId, "user@example.com", DEFAULT_PHONE_NUMBER, "short");
     }
 
     /**

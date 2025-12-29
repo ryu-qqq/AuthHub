@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.in.rest.user.dto.query;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.time.Instant;
 
@@ -11,12 +12,19 @@ import java.time.Instant;
  *
  * <p>어드민 화면용 확장된 필터를 지원하는 검색 요청입니다.
  *
+ * <p><strong>필수 필터:</strong>
+ *
+ * <ul>
+ *   <li>createdFrom - 생성일 시작 (ISO-8601 형식, 필수)
+ *   <li>createdTo - 생성일 종료 (ISO-8601 형식, 필수)
+ * </ul>
+ *
  * <p><strong>확장 필터:</strong>
  *
  * <ul>
- *   <li>날짜 범위 필터 (createdFrom, createdTo)
  *   <li>역할 필터 (roleId)
  *   <li>정렬 옵션 (sortBy, sortDirection)
+ *   <li>검색 타입 (searchType) - CONTAINS_LIKE, PREFIX_LIKE, MATCH_AGAINST
  * </ul>
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
@@ -39,13 +47,25 @@ public record SearchUsersAdminApiRequest(
         @Schema(description = "조직 ID 필터") String organizationId,
         @Schema(description = "사용자 식별자 필터 (부분 일치)") String identifier,
         @Schema(
+                        description = "검색 타입",
+                        allowableValues = {"CONTAINS_LIKE", "PREFIX_LIKE", "MATCH_AGAINST"},
+                        defaultValue = "CONTAINS_LIKE")
+                @Pattern(
+                        regexp = "CONTAINS_LIKE|PREFIX_LIKE|MATCH_AGAINST",
+                        message = "검색 타입은 CONTAINS_LIKE, PREFIX_LIKE, MATCH_AGAINST 중 하나여야 합니다")
+                String searchType,
+        @Schema(
                         description = "상태 필터",
                         allowableValues = {"ACTIVE", "INACTIVE", "LOCKED", "WITHDRAWN"})
                 @Pattern(regexp = "ACTIVE|INACTIVE|LOCKED|WITHDRAWN", message = "유효하지 않은 상태입니다")
                 String status,
         @Schema(description = "역할 ID 필터 (해당 역할이 할당된 사용자만)") String roleId,
-        @Schema(description = "생성일 시작 (inclusive)") Instant createdFrom,
-        @Schema(description = "생성일 종료 (inclusive)") Instant createdTo,
+        @Schema(description = "생성일 시작 (ISO-8601, 필수)", requiredMode = Schema.RequiredMode.REQUIRED)
+                @NotNull(message = "생성일 시작은 필수입니다")
+                Instant createdFrom,
+        @Schema(description = "생성일 종료 (ISO-8601, 필수)", requiredMode = Schema.RequiredMode.REQUIRED)
+                @NotNull(message = "생성일 종료는 필수입니다")
+                Instant createdTo,
         @Schema(
                         description = "정렬 기준",
                         allowableValues = {"createdAt", "updatedAt", "identifier"},

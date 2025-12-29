@@ -47,3 +47,12 @@ project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-w
 // ========================================
 include 'integration-test'
 project(':integration-test').projectDir = file('integration-test')
+
+// ========================================
+// SDK Modules (External Client Libraries)
+// ========================================
+include 'sdk:authhub-sdk-core'
+include 'sdk:authhub-sdk-spring-boot-starter'
+
+project(':sdk:authhub-sdk-core').projectDir = file('sdk/authhub-sdk-core')
+project(':sdk:authhub-sdk-spring-boot-starter').projectDir = file('sdk/authhub-sdk-spring-boot-starter')

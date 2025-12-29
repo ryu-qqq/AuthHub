@@ -3,11 +3,16 @@ package com.ryuqq.authhub.adapter.out.persistence.organization.repository;
 import static com.ryuqq.authhub.adapter.out.persistence.organization.entity.QOrganizationJpaEntity.organizationJpaEntity;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.adapter.out.persistence.organization.entity.OrganizationJpaEntity;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
+import com.ryuqq.authhub.domain.common.vo.SearchType;
+import com.ryuqq.authhub.domain.common.vo.SortDirection;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationSortKey;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
@@ -23,7 +28,8 @@ import org.springframework.stereotype.Repository;
  *   <li>findByOrganizationId() - ID로 단건 조회
  *   <li>existsByOrganizationId() - ID 존재 여부 확인
  *   <li>existsByTenantIdAndName() - 테넌트 내 이름 중복 확인
- *   <li>findAllByTenantIdAndCriteria() - 테넌트 범위 조건 검색
+ *   <li>findAllByCriteria() - Criteria 기반 조건 검색
+ *   <li>countByCriteria() - Criteria 기반 개수 조회
  * </ul>
  *
  * <p><strong>CQRS 패턴:</strong>
@@ -39,6 +45,7 @@ import org.springframework.stereotype.Repository;
  *   <li>Entity 반환 (Domain 변환은 Adapter에서)
  *   <li>Join 금지 (N+1 해결은 Application Layer에서)
  *   <li>비즈니스 로직 금지
+ *   <li>Criteria 기반 조회 (개별 파라미터 금지)
  * </ul>
  *
  * @author development-team
@@ -104,38 +111,34 @@ public class OrganizationQueryDslRepository {
     }
 
     /**
-     * 테넌트 범위 내 조직 목록 조회 (페이징)
+     * Criteria 기반 조직 목록 조회 (페이징)
      *
-     * @param tenantId 테넌트 UUID
-     * @param name 조직 이름 필터 (null 허용, 부분 검색)
-     * @param status 조직 상태 필터 (null 허용)
-     * @param offset 시작 위치
-     * @param limit 조회 개수
+     * @param criteria 검색 조건 (OrganizationCriteria)
      * @return OrganizationJpaEntity 목록
      */
-    public List<OrganizationJpaEntity> findAllByTenantIdAndCriteria(
-            UUID tenantId, String name, String status, int offset, int limit) {
-        BooleanBuilder builder = buildCondition(tenantId, name, status);
+    public List<OrganizationJpaEntity> findAllByCriteria(OrganizationCriteria criteria) {
+        BooleanBuilder builder = buildCondition(criteria);
+        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(criteria);
+        int offset = criteria.page().page() * criteria.page().size();
+        int limit = criteria.page().size();
 
         return queryFactory
                 .selectFrom(organizationJpaEntity)
                 .where(builder)
-                .orderBy(organizationJpaEntity.createdAt.desc())
+                .orderBy(orderSpecifier)
                 .offset(offset)
                 .limit(limit)
                 .fetch();
     }
 
     /**
-     * 테넌트 범위 내 조직 개수 조회
+     * Criteria 기반 조직 개수 조회
      *
-     * @param tenantId 테넌트 UUID
-     * @param name 조직 이름 필터 (null 허용, 부분 검색)
-     * @param status 조직 상태 필터 (null 허용)
+     * @param criteria 검색 조건 (OrganizationCriteria)
      * @return 조건에 맞는 조직 총 개수
      */
-    public long countByTenantIdAndCriteria(UUID tenantId, String name, String status) {
-        BooleanBuilder builder = buildCondition(tenantId, name, status);
+    public long countByCriteria(OrganizationCriteria criteria) {
+        BooleanBuilder builder = buildCondition(criteria);
 
         Long count =
                 queryFactory
@@ -147,42 +150,91 @@ public class OrganizationQueryDslRepository {
     }
 
     /**
-     * 검색 조건 빌더 생성
+     * 검색 조건 빌더 생성 (Criteria 기반)
      *
-     * @param tenantId 테넌트 UUID
-     * @param name 이름 필터
-     * @param status 상태 필터
+     * @param criteria 검색 조건
      * @return BooleanBuilder
      */
-    private BooleanBuilder buildCondition(UUID tenantId, String name, String status) {
+    private BooleanBuilder buildCondition(OrganizationCriteria criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        // 테넌트 ID는 필수 조건
-        builder.and(organizationJpaEntity.tenantId.eq(tenantId));
-
-        if (name != null && !name.isBlank()) {
-            builder.and(organizationJpaEntity.name.containsIgnoreCase(name));
+        // 테넌트 ID 필터 (필수)
+        if (criteria.hasTenantFilter()) {
+            builder.and(organizationJpaEntity.tenantId.eq(criteria.tenantId().value()));
         }
-        if (status != null && !status.isBlank()) {
-            OrganizationStatus organizationStatus = parseStatus(status);
-            if (organizationStatus != null) {
-                builder.and(organizationJpaEntity.status.eq(organizationStatus));
+
+        // 이름 필터 (SearchType 기반)
+        if (criteria.hasNameFilter()) {
+            builder.and(buildNameCondition(criteria.name(), criteria.nameSearchType()));
+        }
+
+        // 다중 상태 필터
+        if (criteria.hasStatusFilter()) {
+            builder.and(organizationJpaEntity.status.in(criteria.statuses()));
+        }
+
+        // 생성일시 범위 필터
+        if (criteria.dateRange() != null) {
+            if (criteria.dateRange().startDate() != null) {
+                LocalDateTime from = criteria.dateRange().startDate().atStartOfDay();
+                builder.and(organizationJpaEntity.createdAt.goe(from));
+            }
+            if (criteria.dateRange().endDate() != null) {
+                LocalDateTime to = criteria.dateRange().endDate().atTime(23, 59, 59);
+                builder.and(organizationJpaEntity.createdAt.loe(to));
             }
         }
+
         return builder;
     }
 
     /**
-     * 문자열을 OrganizationStatus로 변환
+     * 이름 검색 조건 생성 (SearchType 기반)
      *
-     * @param status 상태 문자열
-     * @return OrganizationStatus (유효하지 않으면 null)
+     * @param name 검색 이름
+     * @param searchType 검색 타입
+     * @return BooleanExpression
      */
-    private OrganizationStatus parseStatus(String status) {
-        try {
-            return OrganizationStatus.valueOf(status.toUpperCase(Locale.ENGLISH));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    private BooleanExpression buildNameCondition(String name, SearchType searchType) {
+        SearchType type = searchType != null ? searchType : SearchType.CONTAINS_LIKE;
+
+        return switch (type) {
+            case PREFIX_LIKE -> organizationJpaEntity.name.startsWithIgnoreCase(name);
+            case MATCH_AGAINST -> organizationJpaEntity.name.containsIgnoreCase(name);
+            case CONTAINS_LIKE -> organizationJpaEntity.name.containsIgnoreCase(name);
+        };
+    }
+
+    /**
+     * 정렬 조건 생성 (Criteria 기반)
+     *
+     * @param criteria 검색 조건
+     * @return OrderSpecifier
+     */
+    private OrderSpecifier<?> buildOrderSpecifier(OrganizationCriteria criteria) {
+        OrganizationSortKey sortKey =
+                criteria.sortKey() != null ? criteria.sortKey() : OrganizationSortKey.defaultKey();
+        SortDirection direction =
+                criteria.sortDirection() != null
+                        ? criteria.sortDirection()
+                        : SortDirection.defaultDirection();
+        boolean isAsc = direction == SortDirection.ASC;
+
+        return switch (sortKey) {
+            case NAME ->
+                    isAsc ? organizationJpaEntity.name.asc() : organizationJpaEntity.name.desc();
+            case STATUS ->
+                    isAsc
+                            ? organizationJpaEntity.status.asc()
+                            : organizationJpaEntity.status.desc();
+            case UPDATED_AT ->
+                    isAsc
+                            ? organizationJpaEntity.updatedAt.asc()
+                            : organizationJpaEntity.updatedAt.desc();
+            case CREATED_AT ->
+                    isAsc
+                            ? organizationJpaEntity.createdAt.asc()
+                            : organizationJpaEntity.createdAt.desc();
+        };
     }
 }

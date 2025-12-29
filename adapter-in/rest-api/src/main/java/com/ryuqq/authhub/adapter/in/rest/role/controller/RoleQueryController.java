@@ -28,7 +28,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -125,19 +124,26 @@ public class RoleQueryController {
      *
      * <p>GET /api/v1/roles
      *
-     * @param tenantId 테넌트 ID 필터 (선택)
-     * @param name 역할 이름 필터 (선택)
-     * @param scope 범위 필터 (선택, GLOBAL/TENANT/ORGANIZATION)
-     * @param type 역할 유형 필터 (선택, SYSTEM/CUSTOM)
-     * @param page 페이지 번호 (기본값: 0)
-     * @param size 페이지 크기 (기본값: 20)
-     * @return 200 OK + 역할 목록
+     * @param request 검색 조건 (tenantId 필수, name/scopes/types/createdFrom/createdTo/page/size 선택)
+     * @return 200 OK + 역할 목록 (페이징)
      */
     @Operation(
             summary = "역할 목록 검색",
             description =
                     """
-                    조건에 맞는 역할 목록을 검색합니다.
+                    조건에 맞는 역할 목록을 페이징하여 조회합니다.
+
+                    **필수 파라미터:**
+                    - tenantId: 테넌트 ID
+                    - createdFrom: 생성일시 시작
+                    - createdTo: 생성일시 종료
+
+                    **선택 파라미터:**
+                    - name: 역할 이름 필터
+                    - scopes: 범위 필터 (다중 선택 가능)
+                    - types: 유형 필터 (다중 선택 가능)
+                    - page: 페이지 번호 (기본값: 0)
+                    - size: 페이지 크기 (기본값: 20)
 
                     **필요 권한**: `role:read`
                     """)
@@ -148,23 +154,12 @@ public class RoleQueryController {
     })
     @PreAuthorize("@access.hasPermission('role:read')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<RoleApiResponse>>> searchRoles(
-            @Parameter(description = "테넌트 ID 필터") @RequestParam(required = false) String tenantId,
-            @Parameter(description = "역할 이름 필터") @RequestParam(required = false) String name,
-            @Parameter(description = "범위 필터 (GLOBAL/TENANT/ORGANIZATION)")
-                    @RequestParam(required = false)
-                    String scope,
-            @Parameter(description = "역할 유형 필터 (SYSTEM/CUSTOM)") @RequestParam(required = false)
-                    String type,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") @Min(0)
-                    Integer page,
-            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") @Min(1) @Max(100)
-                    Integer size) {
-        SearchRolesApiRequest request =
-                new SearchRolesApiRequest(tenantId, name, scope, type, page, size);
-        List<RoleResponse> responses = searchRolesUseCase.execute(mapper.toQuery(request));
-        List<RoleApiResponse> apiResponses = mapper.toApiResponseList(responses);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponses));
+    public ResponseEntity<ApiResponse<PageApiResponse<RoleApiResponse>>> searchRoles(
+            @Valid @ModelAttribute SearchRolesApiRequest request) {
+        PageResponse<RoleResponse> response = searchRolesUseCase.execute(mapper.toQuery(request));
+        PageApiResponse<RoleApiResponse> pagedResponse =
+                PageApiResponse.from(response, mapper::toApiResponse);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(pagedResponse));
     }
 
     /**

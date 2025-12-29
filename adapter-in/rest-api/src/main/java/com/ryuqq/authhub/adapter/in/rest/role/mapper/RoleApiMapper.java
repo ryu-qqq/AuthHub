@@ -27,10 +27,7 @@ import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleSummaryResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
@@ -108,11 +105,15 @@ public class RoleApiMapper {
      */
     public SearchRolesQuery toQuery(SearchRolesApiRequest request) {
         UUID tenantId = request.tenantId() != null ? UUID.fromString(request.tenantId()) : null;
-        RoleScope scope = parseScope(request.scope());
-        RoleType type = parseType(request.type());
-        int page = request.page() != null ? request.page() : 0;
-        int size = request.size() != null ? request.size() : 20;
-        return SearchRolesQuery.of(tenantId, request.name(), scope, type, page, size);
+        return SearchRolesQuery.of(
+                tenantId,
+                request.name(),
+                request.scopes(),
+                request.types(),
+                request.createdFrom(),
+                request.createdTo(),
+                request.pageOrDefault(),
+                request.sizeOrDefault());
     }
 
     /**
@@ -151,40 +152,6 @@ public class RoleApiMapper {
      */
     public List<RoleApiResponse> toApiResponseList(List<RoleResponse> responses) {
         return responses.stream().map(this::toApiResponse).toList();
-    }
-
-    /**
-     * 문자열을 RoleScope로 변환
-     *
-     * @param scope 범위 문자열
-     * @return RoleScope (유효하지 않거나 null이면 null)
-     */
-    private RoleScope parseScope(String scope) {
-        if (scope == null || scope.isBlank()) {
-            return null;
-        }
-        try {
-            return RoleScope.valueOf(scope.toUpperCase(Locale.ENGLISH));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    /**
-     * 문자열을 RoleType으로 변환
-     *
-     * @param type 타입 문자열
-     * @return RoleType (유효하지 않거나 null이면 null)
-     */
-    private RoleType parseType(String type) {
-        if (type == null || type.isBlank()) {
-            return null;
-        }
-        try {
-            return RoleType.valueOf(type.toUpperCase(Locale.ENGLISH));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 
     // ===== RolePermission 관련 변환 메서드 =====
@@ -298,29 +265,18 @@ public class RoleApiMapper {
      */
     public SearchRolesQuery toAdminQuery(SearchRolesAdminApiRequest request) {
         UUID tenantId = request.tenantId() != null ? UUID.fromString(request.tenantId()) : null;
-        RoleScope scope = parseScope(request.scope());
-        RoleType type = parseType(request.type());
-
-        int page = request.page() != null ? request.page() : 0;
-        int size = request.size() != null ? request.size() : SearchRolesQuery.DEFAULT_PAGE_SIZE;
-        String sortBy =
-                request.sortBy() != null ? request.sortBy() : SearchRolesQuery.DEFAULT_SORT_BY;
-        String sortDirection =
-                request.sortDirection() != null
-                        ? request.sortDirection()
-                        : SearchRolesQuery.DEFAULT_SORT_DIRECTION;
-
-        return new SearchRolesQuery(
+        return SearchRolesQuery.ofAdmin(
                 tenantId,
                 request.name(),
-                scope,
-                type,
+                request.searchType(),
+                request.scopes(),
+                request.types(),
                 request.createdFrom(),
                 request.createdTo(),
-                sortBy,
-                sortDirection,
-                page,
-                size);
+                request.sortBy(),
+                request.sortDirection(),
+                request.pageOrDefault(),
+                request.sizeOrDefault());
     }
 
     /**

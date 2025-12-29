@@ -50,6 +50,7 @@ import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizati
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsAdminUseCase;
 import com.ryuqq.authhub.application.organization.port.in.query.SearchOrganizationsUseCase;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -318,6 +319,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
         UUID organizationId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
         Instant now = Instant.now();
+        Instant oneMonthAgo = now.minus(30, ChronoUnit.DAYS);
 
         OrganizationResponse orgResponse =
                 new OrganizationResponse(organizationId, tenantId, "TestOrg", "ACTIVE", now, now);
@@ -333,13 +335,19 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                         now,
                         now);
 
-        given(mapper.toQuery(any())).willReturn(SearchOrganizationsQuery.of(tenantId));
+        given(mapper.toQuery(any()))
+                .willReturn(
+                        SearchOrganizationsQuery.of(tenantId, null, null, oneMonthAgo, now, 0, 20));
         given(searchOrganizationsUseCase.execute(any(SearchOrganizationsQuery.class)))
                 .willReturn(pageResponse);
         given(mapper.toApiResponse(any(OrganizationResponse.class))).willReturn(apiOrgResponse);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/auth/organizations").param("tenantId", tenantId.toString()))
+        mockMvc.perform(
+                        get("/api/v1/auth/organizations")
+                                .param("tenantId", tenantId.toString())
+                                .param("createdFrom", oneMonthAgo.toString())
+                                .param("createdTo", now.toString()))
                 .andExpect(status().isOk())
                 .andDo(
                         document(
@@ -349,9 +357,12 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("name")
                                                 .description("조직 이름 필터 (선택)")
                                                 .optional(),
-                                        parameterWithName("status")
-                                                .description("조직 상태 필터 (선택, ACTIVE/INACTIVE)")
+                                        parameterWithName("statuses")
+                                                .description("상태 필터 (다중 선택 가능, ACTIVE/INACTIVE)")
                                                 .optional(),
+                                        parameterWithName("createdFrom")
+                                                .description("생성일시 시작 (필수)"),
+                                        parameterWithName("createdTo").description("생성일시 종료 (필수)"),
                                         parameterWithName("page")
                                                 .description("페이지 번호 (기본값: 0)")
                                                 .optional(),
@@ -389,6 +400,7 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
         UUID organizationId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
         Instant now = Instant.now();
+        Instant oneMonthAgo = now.minus(30, ChronoUnit.DAYS);
 
         OrganizationSummaryResponse summaryResponse =
                 new OrganizationSummaryResponse(
@@ -408,7 +420,9 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                         now);
 
         given(mapper.toAdminQuery(any(SearchOrganizationsAdminApiRequest.class)))
-                .willReturn(SearchOrganizationsQuery.of(tenantId));
+                .willReturn(
+                        SearchOrganizationsQuery.ofAdmin(
+                                tenantId, null, null, null, oneMonthAgo, now, null, null, 0, 20));
         given(searchOrganizationsAdminUseCase.execute(any(SearchOrganizationsQuery.class)))
                 .willReturn(pageResponse);
         given(mapper.toSummaryApiResponse(any(OrganizationSummaryResponse.class)))
@@ -418,6 +432,8 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
         mockMvc.perform(
                         get("/api/v1/auth/organizations/admin/search")
                                 .param("tenantId", tenantId.toString())
+                                .param("createdFrom", oneMonthAgo.toString())
+                                .param("createdTo", now.toString())
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
@@ -431,9 +447,14 @@ class OrganizationControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("name")
                                                 .description("조직 이름 필터 (선택)")
                                                 .optional(),
-                                        parameterWithName("status")
+                                        parameterWithName("searchType")
                                                 .description(
-                                                        "조직 상태 필터 (선택, ACTIVE/INACTIVE/SUSPENDED)")
+                                                        "검색 타입 (CONTAINS_LIKE/PREFIX_LIKE, 선택)")
+                                                .optional(),
+                                        parameterWithName("statuses")
+                                                .description(
+                                                        "상태 필터 (다중 선택 가능,"
+                                                                + " ACTIVE/INACTIVE/SUSPENDED)")
                                                 .optional(),
                                         parameterWithName("createdFrom")
                                                 .description("생성일시 시작 (선택)")

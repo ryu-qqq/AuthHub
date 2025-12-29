@@ -12,6 +12,7 @@ import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.mapper.UserApiMapper;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.user.dto.query.GetUserQuery;
 import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.dto.response.UserResponse;
@@ -97,6 +98,7 @@ class UserQueryControllerTest {
                             tenantId,
                             organizationId,
                             "test@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             now,
                             now);
@@ -106,6 +108,7 @@ class UserQueryControllerTest {
                             tenantId.toString(),
                             organizationId.toString(),
                             "test@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             now,
                             now);
@@ -183,9 +186,12 @@ class UserQueryControllerTest {
     @DisplayName("GET /api/v1/users - 사용자 목록 검색")
     class SearchUsersTest {
 
+        private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
+
         @Test
-        @DisplayName("[성공] 파라미터 없이 조회 시 기본값으로 200 OK 반환")
-        void searchUsers_withoutParams_returns200Ok() throws Exception {
+        @DisplayName("[성공] 필수 날짜 범위 파라미터로 조회 시 200 OK 반환")
+        void searchUsers_withRequiredDateRange_returns200Ok() throws Exception {
             // Given
             UUID userId = UUID.randomUUID();
             UUID tenantId = UUID.randomUUID();
@@ -198,6 +204,7 @@ class UserQueryControllerTest {
                             tenantId,
                             organizationId,
                             "test@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             now,
                             now);
@@ -207,27 +214,38 @@ class UserQueryControllerTest {
                             tenantId.toString(),
                             organizationId.toString(),
                             "test@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             now,
                             now);
 
+            PageResponse<UserResponse> pageResponse =
+                    PageResponse.of(List.of(response), 0, 20, 1L, 1, true, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchUsersQuery.of(null, null, null, null, 0, 20));
-            given(searchUsersUseCase.execute(any(SearchUsersQuery.class)))
-                    .willReturn(List.of(response));
-            given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                    .willReturn(
+                            SearchUsersQuery.of(
+                                    null, null, null, null, CREATED_FROM, CREATED_TO, 0, 20));
+            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(pageResponse);
+            given(mapper.toApiResponse(any(UserResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/users").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/api/v1/auth/users")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data[0].userId").value(userId.toString()))
-                    .andExpect(jsonPath("$.data[0].identifier").value("test@example.com"));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].userId").value(userId.toString()))
+                    .andExpect(jsonPath("$.data.content[0].identifier").value("test@example.com"))
+                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.size").value(20))
+                    .andExpect(jsonPath("$.data.totalElements").value(1));
 
             verify(mapper).toQuery(any());
             verify(searchUsersUseCase).execute(any(SearchUsersQuery.class));
-            verify(mapper).toApiResponseList(any());
         }
 
         @Test
@@ -235,19 +253,25 @@ class UserQueryControllerTest {
         void searchUsers_withTenantIdFilter_returns200Ok() throws Exception {
             // Given
             UUID tenantId = UUID.randomUUID();
+            PageResponse<UserResponse> emptyPage =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchUsersQuery.of(tenantId, null, null, null, 0, 20));
-            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                    .willReturn(
+                            SearchUsersQuery.of(
+                                    tenantId, null, null, null, CREATED_FROM, CREATED_TO, 0, 20));
+            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(emptyPage);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/users")
                                     .param("tenantId", tenantId.toString())
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray());
 
             verify(mapper).toQuery(any());
             verify(searchUsersUseCase).execute(any(SearchUsersQuery.class));
@@ -258,19 +282,32 @@ class UserQueryControllerTest {
         void searchUsers_withOrganizationIdFilter_returns200Ok() throws Exception {
             // Given
             UUID organizationId = UUID.randomUUID();
+            PageResponse<UserResponse> emptyPage =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchUsersQuery.of(null, organizationId, null, null, 0, 20));
-            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                    .willReturn(
+                            SearchUsersQuery.of(
+                                    null,
+                                    organizationId,
+                                    null,
+                                    null,
+                                    CREATED_FROM,
+                                    CREATED_TO,
+                                    0,
+                                    20));
+            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(emptyPage);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/users")
                                     .param("organizationId", organizationId.toString())
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray());
 
             verify(mapper).toQuery(any());
             verify(searchUsersUseCase).execute(any(SearchUsersQuery.class));
@@ -281,19 +318,25 @@ class UserQueryControllerTest {
         void searchUsers_withIdentifierFilter_returns200Ok() throws Exception {
             // Given
             String identifier = "test@example.com";
+            PageResponse<UserResponse> emptyPage =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchUsersQuery.of(null, null, identifier, null, 0, 20));
-            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                    .willReturn(
+                            SearchUsersQuery.of(
+                                    null, null, identifier, null, CREATED_FROM, CREATED_TO, 0, 20));
+            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(emptyPage);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/users")
                                     .param("identifier", identifier)
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray());
 
             verify(mapper).toQuery(any());
             verify(searchUsersUseCase).execute(any(SearchUsersQuery.class));
@@ -303,19 +346,25 @@ class UserQueryControllerTest {
         @DisplayName("[성공] 상태 필터로 조회 시 200 OK 반환")
         void searchUsers_withStatusFilter_returns200Ok() throws Exception {
             // Given
+            PageResponse<UserResponse> emptyPage =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchUsersQuery.of(null, null, null, "ACTIVE", 0, 20));
-            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                    .willReturn(
+                            SearchUsersQuery.of(
+                                    null, null, null, "ACTIVE", CREATED_FROM, CREATED_TO, 0, 20));
+            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(emptyPage);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/users")
                                     .param("status", "ACTIVE")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray());
 
             verify(mapper).toQuery(any());
             verify(searchUsersUseCase).execute(any(SearchUsersQuery.class));
@@ -325,20 +374,28 @@ class UserQueryControllerTest {
         @DisplayName("[성공] 페이징 파라미터로 조회 시 200 OK 반환")
         void searchUsers_withPagingParams_returns200Ok() throws Exception {
             // Given
+            PageResponse<UserResponse> emptyPage =
+                    PageResponse.of(List.of(), 1, 10, 0L, 0, false, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchUsersQuery.of(null, null, null, null, 1, 10));
-            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                    .willReturn(
+                            SearchUsersQuery.of(
+                                    null, null, null, null, CREATED_FROM, CREATED_TO, 1, 10));
+            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(emptyPage);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/users")
                                     .param("page", "1")
                                     .param("size", "10")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.page").value(1))
+                    .andExpect(jsonPath("$.data.size").value(10));
 
             verify(mapper).toQuery(any());
             verify(searchUsersUseCase).execute(any(SearchUsersQuery.class));
@@ -351,13 +408,21 @@ class UserQueryControllerTest {
             UUID tenantId = UUID.randomUUID();
             UUID organizationId = UUID.randomUUID();
             String identifier = "test@example.com";
+            PageResponse<UserResponse> emptyPage =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
 
             given(mapper.toQuery(any()))
                     .willReturn(
                             SearchUsersQuery.of(
-                                    tenantId, organizationId, identifier, "ACTIVE", 0, 20));
-            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                                    tenantId,
+                                    organizationId,
+                                    identifier,
+                                    "ACTIVE",
+                                    CREATED_FROM,
+                                    CREATED_TO,
+                                    0,
+                                    20));
+            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(emptyPage);
 
             // When & Then
             mockMvc.perform(
@@ -368,10 +433,12 @@ class UserQueryControllerTest {
                                     .param("status", "ACTIVE")
                                     .param("page", "0")
                                     .param("size", "20")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray());
 
             verify(mapper).toQuery(any());
             verify(searchUsersUseCase).execute(any(SearchUsersQuery.class));
@@ -381,17 +448,26 @@ class UserQueryControllerTest {
         @DisplayName("[성공] 빈 결과 반환 시 200 OK 반환")
         void searchUsers_withNoResults_returns200Ok() throws Exception {
             // Given
+            PageResponse<UserResponse> emptyPage =
+                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
+
             given(mapper.toQuery(any()))
-                    .willReturn(SearchUsersQuery.of(null, null, null, null, 0, 20));
-            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(List.of());
-            given(mapper.toApiResponseList(any())).willReturn(List.of());
+                    .willReturn(
+                            SearchUsersQuery.of(
+                                    null, null, null, null, CREATED_FROM, CREATED_TO, 0, 20));
+            given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(emptyPage);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/users").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/api/v1/auth/users")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data").isEmpty());
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0));
 
             verify(mapper).toQuery(any());
             verify(searchUsersUseCase).execute(any(SearchUsersQuery.class));

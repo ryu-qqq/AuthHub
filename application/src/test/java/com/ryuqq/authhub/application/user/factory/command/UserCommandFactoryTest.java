@@ -59,8 +59,10 @@ class UserCommandFactoryTest {
             String plainPassword = "password123";
             String hashedPassword = "hashed_password_123";
 
+            String phoneNumber = "010-1234-5678";
+
             CreateUserCommand command =
-                    new CreateUserCommand(tenantId, orgId, identifier, plainPassword);
+                    new CreateUserCommand(tenantId, orgId, identifier, phoneNumber, plainPassword);
             given(passwordEncoderPort.hash(plainPassword)).willReturn(hashedPassword);
 
             // when
@@ -86,6 +88,7 @@ class UserCommandFactoryTest {
                             UserFixture.defaultTenantUUID(),
                             UserFixture.defaultOrganizationUUID(),
                             "test@example.com",
+                            "010-1234-5678",
                             plainPassword);
             given(passwordEncoderPort.hash(plainPassword)).willReturn(hashedPassword);
 
@@ -107,6 +110,7 @@ class UserCommandFactoryTest {
                             UserFixture.defaultTenantUUID(),
                             UserFixture.defaultOrganizationUUID(),
                             "active@example.com",
+                            "010-1234-5678",
                             "password");
             given(passwordEncoderPort.hash("password")).willReturn("hashed");
 
@@ -128,6 +132,7 @@ class UserCommandFactoryTest {
                             UserFixture.defaultTenantUUID(),
                             UserFixture.defaultOrganizationUUID(),
                             "uuid@example.com",
+                            "010-1234-5678",
                             "password");
             given(passwordEncoderPort.hash("password")).willReturn("hashed");
 

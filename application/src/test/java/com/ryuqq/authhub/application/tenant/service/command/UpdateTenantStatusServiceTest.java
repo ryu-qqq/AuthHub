@@ -3,12 +3,14 @@ package com.ryuqq.authhub.application.tenant.service.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.application.tenant.assembler.TenantAssembler;
 import com.ryuqq.authhub.application.tenant.dto.command.UpdateTenantStatusCommand;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
+import com.ryuqq.authhub.application.tenant.factory.command.TenantCommandFactory;
 import com.ryuqq.authhub.application.tenant.manager.command.TenantTransactionManager;
 import com.ryuqq.authhub.application.tenant.manager.query.TenantReadManager;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
@@ -41,6 +43,8 @@ class UpdateTenantStatusServiceTest {
 
     @Mock private TenantReadManager readManager;
 
+    @Mock private TenantCommandFactory commandFactory;
+
     @Mock private TenantTransactionManager transactionManager;
 
     @Mock private TenantAssembler assembler;
@@ -52,7 +56,9 @@ class UpdateTenantStatusServiceTest {
     @BeforeEach
     void setUp() {
         clock = Clock.fixed(Instant.parse("2025-01-02T00:00:00Z"), ZoneOffset.UTC);
-        service = new UpdateTenantStatusService(readManager, transactionManager, assembler, clock);
+        service =
+                new UpdateTenantStatusService(
+                        readManager, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -77,6 +83,8 @@ class UpdateTenantStatusServiceTest {
                             deactivatedTenant.updatedAt());
 
             given(readManager.findById(any(TenantId.class))).willReturn(activeTenant);
+            given(commandFactory.applyStatusChange(any(Tenant.class), eq("INACTIVE")))
+                    .willReturn(deactivatedTenant);
             given(transactionManager.persist(any(Tenant.class))).willReturn(deactivatedTenant);
             given(assembler.toResponse(deactivatedTenant)).willReturn(expectedResponse);
 
@@ -86,6 +94,7 @@ class UpdateTenantStatusServiceTest {
             // then
             assertThat(response.status()).isEqualTo("INACTIVE");
             verify(readManager).findById(any(TenantId.class));
+            verify(commandFactory).applyStatusChange(any(Tenant.class), eq("INACTIVE"));
             verify(transactionManager).persist(any(Tenant.class));
             verify(assembler).toResponse(any(Tenant.class));
         }
@@ -108,6 +117,8 @@ class UpdateTenantStatusServiceTest {
                             activatedTenant.updatedAt());
 
             given(readManager.findById(any(TenantId.class))).willReturn(inactiveTenant);
+            given(commandFactory.applyStatusChange(any(Tenant.class), eq("ACTIVE")))
+                    .willReturn(activatedTenant);
             given(transactionManager.persist(any(Tenant.class))).willReturn(activatedTenant);
             given(assembler.toResponse(activatedTenant)).willReturn(expectedResponse);
 
@@ -141,6 +152,9 @@ class UpdateTenantStatusServiceTest {
                     new UpdateTenantStatusCommand(TenantFixture.defaultUUID(), "ACTIVE");
 
             given(readManager.findById(any(TenantId.class))).willReturn(deletedTenant);
+            given(commandFactory.applyStatusChange(any(Tenant.class), eq("ACTIVE")))
+                    .willThrow(
+                            new InvalidTenantStateException(deletedTenant.getStatus(), "ACTIVE"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
@@ -156,6 +170,10 @@ class UpdateTenantStatusServiceTest {
                     new UpdateTenantStatusCommand(TenantFixture.defaultUUID(), "DELETED");
 
             given(readManager.findById(any(TenantId.class))).willReturn(activeTenant);
+            given(commandFactory.applyStatusChange(any(Tenant.class), eq("DELETED")))
+                    .willThrow(
+                            new IllegalArgumentException(
+                                    "DELETED 상태로의 변경은 DeleteTenantUseCase를 사용하세요"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
@@ -172,6 +190,8 @@ class UpdateTenantStatusServiceTest {
                     new UpdateTenantStatusCommand(TenantFixture.defaultUUID(), "ACTIVE");
 
             given(readManager.findById(any(TenantId.class))).willReturn(activeTenant);
+            given(commandFactory.applyStatusChange(any(Tenant.class), eq("ACTIVE")))
+                    .willThrow(new InvalidTenantStateException(activeTenant.getStatus(), "ACTIVE"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

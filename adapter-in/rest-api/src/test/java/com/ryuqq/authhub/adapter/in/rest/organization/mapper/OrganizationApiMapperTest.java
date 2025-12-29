@@ -16,6 +16,7 @@ import com.ryuqq.authhub.application.organization.dto.query.GetOrganizationQuery
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,8 @@ class OrganizationApiMapperTest {
     private static final UUID TENANT_UUID = UUID.fromString("01941234-5678-7000-8000-123456789abc");
     private static final UUID ORG_UUID = UUID.fromString("01941234-5678-7000-8000-123456789def");
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant NOW = Instant.now();
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     @BeforeEach
     void setUp() {
@@ -147,7 +150,13 @@ class OrganizationApiMapperTest {
             // given
             SearchOrganizationsApiRequest request =
                     new SearchOrganizationsApiRequest(
-                            TENANT_UUID.toString(), "Engineering", "ACTIVE", 0, 20);
+                            TENANT_UUID.toString(),
+                            "Engineering",
+                            List.of("ACTIVE"),
+                            ONE_MONTH_AGO,
+                            NOW,
+                            0,
+                            20);
 
             // when
             SearchOrganizationsQuery query = mapper.toQuery(request);
@@ -155,9 +164,30 @@ class OrganizationApiMapperTest {
             // then
             assertThat(query.tenantId()).isEqualTo(TENANT_UUID);
             assertThat(query.name()).isEqualTo("Engineering");
-            assertThat(query.status()).isEqualTo("ACTIVE");
+            assertThat(query.statuses()).containsExactly("ACTIVE");
+            assertThat(query.createdFrom()).isEqualTo(ONE_MONTH_AGO);
+            assertThat(query.createdTo()).isEqualTo(NOW);
             assertThat(query.page()).isZero();
             assertThat(query.size()).isEqualTo(20);
+        }
+
+        @Test
+        @DisplayName("선택적 필드가 null인 경우 기본값 사용")
+        void givenSearchRequestWithNulls_whenToQuery_thenUsesDefaults() {
+            // given
+            SearchOrganizationsApiRequest request =
+                    new SearchOrganizationsApiRequest(
+                            TENANT_UUID.toString(), null, null, ONE_MONTH_AGO, NOW, null, null);
+
+            // when
+            SearchOrganizationsQuery query = mapper.toQuery(request);
+
+            // then
+            assertThat(query.tenantId()).isEqualTo(TENANT_UUID);
+            assertThat(query.name()).isNull();
+            assertThat(query.statuses()).isNull();
+            assertThat(query.page()).isEqualTo(SearchOrganizationsApiRequest.DEFAULT_PAGE);
+            assertThat(query.size()).isEqualTo(SearchOrganizationsApiRequest.DEFAULT_PAGE_SIZE);
         }
     }
 

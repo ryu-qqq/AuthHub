@@ -5,6 +5,7 @@ import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantQueryDs
 import com.ryuqq.authhub.application.tenant.port.out.query.TenantQueryPort;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>findById() - ID로 단건 조회
  *   <li>existsByName() - 이름 존재 여부 확인
+ *   <li>findAllByCriteria() - 조건 검색
  * </ul>
  *
  * <p><strong>규칙:</strong>
@@ -110,32 +112,27 @@ public class TenantQueryAdapter implements TenantQueryPort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
+     *   <li>TenantCriteria에서 검색 조건 추출
      *   <li>QueryDSL Repository로 조건 조회
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
-     * @param name 테넌트 이름 필터 (null 허용, 부분 검색)
-     * @param status 테넌트 상태 필터 (null 허용)
-     * @param offset 시작 위치
-     * @param limit 조회 개수
+     * @param criteria 검색 조건 (TenantCriteria)
      * @return Tenant Domain 목록
      */
     @Override
-    public List<Tenant> findAllByCriteria(String name, String status, int offset, int limit) {
-        return repository.findAllByCriteria(name, status, offset, limit).stream()
-                .map(mapper::toDomain)
-                .toList();
+    public List<Tenant> findAllByCriteria(TenantCriteria criteria) {
+        return repository.findAllByCriteria(criteria).stream().map(mapper::toDomain).toList();
     }
 
     /**
      * 조건에 맞는 테넌트 개수 조회
      *
-     * @param name 테넌트 이름 필터 (null 허용, 부분 검색)
-     * @param status 테넌트 상태 필터 (null 허용)
+     * @param criteria 검색 조건 (TenantCriteria)
      * @return 조건에 맞는 테넌트 총 개수
      */
     @Override
-    public long countAll(String name, String status) {
-        return repository.countAll(name, status);
+    public long countByCriteria(TenantCriteria criteria) {
+        return repository.countByCriteria(criteria);
     }
 }

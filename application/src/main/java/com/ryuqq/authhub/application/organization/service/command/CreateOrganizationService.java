@@ -5,10 +5,9 @@ import com.ryuqq.authhub.application.organization.dto.command.CreateOrganization
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
 import com.ryuqq.authhub.application.organization.factory.command.OrganizationCommandFactory;
 import com.ryuqq.authhub.application.organization.manager.command.OrganizationTransactionManager;
-import com.ryuqq.authhub.application.organization.manager.query.OrganizationReadManager;
 import com.ryuqq.authhub.application.organization.port.in.command.CreateOrganizationUseCase;
+import com.ryuqq.authhub.application.organization.validator.OrganizationValidator;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.exception.DuplicateOrganizationNameException;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ import org.springframework.stereotype.Service;
  * <ul>
  *   <li>{@code @Service} 어노테이션
  *   <li>{@code @Transactional} 직접 사용 금지 (Manager/Facade 책임)
- *   <li>Factory → Manager/Facade → Assembler 흐름
+ *   <li>Validator → Factory → Manager → Assembler 흐름
  *   <li>Port 직접 호출 금지
  *   <li>Lombok 금지
  * </ul>
@@ -34,30 +33,28 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreateOrganizationService implements CreateOrganizationUseCase {
 
+    private final OrganizationValidator validator;
     private final OrganizationCommandFactory commandFactory;
     private final OrganizationTransactionManager transactionManager;
-    private final OrganizationReadManager readManager;
     private final OrganizationAssembler assembler;
 
     public CreateOrganizationService(
+            OrganizationValidator validator,
             OrganizationCommandFactory commandFactory,
             OrganizationTransactionManager transactionManager,
-            OrganizationReadManager readManager,
             OrganizationAssembler assembler) {
+        this.validator = validator;
         this.commandFactory = commandFactory;
         this.transactionManager = transactionManager;
-        this.readManager = readManager;
         this.assembler = assembler;
     }
 
     @Override
     public OrganizationResponse execute(CreateOrganizationCommand command) {
-        // 1. 테넌트 내 중복 이름 검사
+        // 1. Validator: 테넌트 내 중복 이름 검증
         TenantId tenantId = TenantId.of(command.tenantId());
         OrganizationName name = OrganizationName.of(command.name());
-        if (readManager.existsByTenantIdAndName(tenantId, name)) {
-            throw new DuplicateOrganizationNameException(tenantId, name);
-        }
+        validator.validateNameNotDuplicated(tenantId, name);
 
         // 2. Factory: Command → Domain
         Organization organization = commandFactory.create(command);

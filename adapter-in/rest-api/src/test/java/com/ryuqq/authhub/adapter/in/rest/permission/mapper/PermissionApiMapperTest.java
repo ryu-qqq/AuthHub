@@ -15,7 +15,6 @@ import com.ryuqq.authhub.application.permission.dto.query.GetPermissionQuery;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
 import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
-import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -153,12 +152,16 @@ class PermissionApiMapperTest {
     @DisplayName("toQuery(SearchPermissionsApiRequest) 테스트")
     class ToSearchQueryTest {
 
+        private static final Instant CREATED_FROM = Instant.parse("2024-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2024-12-31T23:59:59Z");
+
         @Test
         @DisplayName("SearchPermissionsApiRequest를 SearchPermissionsQuery로 변환 성공")
         void givenSearchRequest_whenToQuery_thenSuccess() {
             // given
             SearchPermissionsApiRequest request =
-                    new SearchPermissionsApiRequest("user", "read", "CUSTOM", 0, 20);
+                    new SearchPermissionsApiRequest(
+                            "user", "read", List.of("CUSTOM"), CREATED_FROM, CREATED_TO, 0, 20);
 
             // when
             SearchPermissionsQuery query = mapper.toQuery(request);
@@ -166,51 +169,63 @@ class PermissionApiMapperTest {
             // then
             assertThat(query.resource()).isEqualTo("user");
             assertThat(query.action()).isEqualTo("read");
-            assertThat(query.type()).isEqualTo(PermissionType.CUSTOM);
+            assertThat(query.types()).containsExactly("CUSTOM");
+            assertThat(query.createdFrom()).isEqualTo(CREATED_FROM);
+            assertThat(query.createdTo()).isEqualTo(CREATED_TO);
             assertThat(query.page()).isZero();
             assertThat(query.size()).isEqualTo(20);
         }
 
         @Test
-        @DisplayName("유효하지 않은 type은 null로 변환")
-        void givenInvalidType_whenToQuery_thenTypeIsNull() {
+        @DisplayName("다중 타입 필터 변환 성공")
+        void givenMultipleTypes_whenToQuery_thenSuccess() {
             // given
             SearchPermissionsApiRequest request =
-                    new SearchPermissionsApiRequest("user", "read", "INVALID", 0, 20);
+                    new SearchPermissionsApiRequest(
+                            "user",
+                            "read",
+                            List.of("SYSTEM", "CUSTOM"),
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
 
             // when
             SearchPermissionsQuery query = mapper.toQuery(request);
 
             // then
-            assertThat(query.type()).isNull();
+            assertThat(query.types()).containsExactly("SYSTEM", "CUSTOM");
         }
 
         @Test
-        @DisplayName("빈 type은 null로 변환")
-        void givenBlankType_whenToQuery_thenTypeIsNull() {
+        @DisplayName("types가 null인 경우 null 유지")
+        void givenNullTypes_whenToQuery_thenTypesIsNull() {
             // given
             SearchPermissionsApiRequest request =
-                    new SearchPermissionsApiRequest("user", "read", "  ", 0, 20);
+                    new SearchPermissionsApiRequest(
+                            "user", "read", null, CREATED_FROM, CREATED_TO, 0, 20);
 
             // when
             SearchPermissionsQuery query = mapper.toQuery(request);
 
             // then
-            assertThat(query.type()).isNull();
+            assertThat(query.types()).isNull();
         }
 
         @Test
-        @DisplayName("소문자 type도 변환 성공")
-        void givenLowercaseType_whenToQuery_thenConverts() {
+        @DisplayName("page, size null인 경우 기본값 적용")
+        void givenNullPageSize_whenToQuery_thenDefaultValues() {
             // given
             SearchPermissionsApiRequest request =
-                    new SearchPermissionsApiRequest("user", "read", "system", 0, 20);
+                    new SearchPermissionsApiRequest(
+                            "user", "read", null, CREATED_FROM, CREATED_TO, null, null);
 
             // when
             SearchPermissionsQuery query = mapper.toQuery(request);
 
             // then
-            assertThat(query.type()).isEqualTo(PermissionType.SYSTEM);
+            assertThat(query.page()).isZero();
+            assertThat(query.size()).isEqualTo(20);
         }
     }
 

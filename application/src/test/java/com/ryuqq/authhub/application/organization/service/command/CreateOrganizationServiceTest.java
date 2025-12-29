@@ -11,7 +11,7 @@ import com.ryuqq.authhub.application.organization.dto.command.CreateOrganization
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
 import com.ryuqq.authhub.application.organization.factory.command.OrganizationCommandFactory;
 import com.ryuqq.authhub.application.organization.manager.command.OrganizationTransactionManager;
-import com.ryuqq.authhub.application.organization.manager.query.OrganizationReadManager;
+import com.ryuqq.authhub.application.organization.validator.OrganizationValidator;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.exception.DuplicateOrganizationNameException;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
@@ -37,11 +37,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CreateOrganizationService 단위 테스트")
 class CreateOrganizationServiceTest {
 
+    @Mock private OrganizationValidator validator;
+
     @Mock private OrganizationCommandFactory commandFactory;
 
     @Mock private OrganizationTransactionManager transactionManager;
-
-    @Mock private OrganizationReadManager readManager;
 
     @Mock private OrganizationAssembler assembler;
 
@@ -51,7 +51,7 @@ class CreateOrganizationServiceTest {
     void setUp() {
         service =
                 new CreateOrganizationService(
-                        commandFactory, transactionManager, readManager, assembler);
+                        validator, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -76,10 +76,7 @@ class CreateOrganizationServiceTest {
                             savedOrganization.createdAt(),
                             savedOrganization.updatedAt());
 
-            given(
-                            readManager.existsByTenantIdAndName(
-                                    any(TenantId.class), any(OrganizationName.class)))
-                    .willReturn(false);
+            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
             given(commandFactory.create(command)).willReturn(newOrganization);
             given(transactionManager.persist(newOrganization)).willReturn(savedOrganization);
             given(assembler.toResponse(savedOrganization)).willReturn(expectedResponse);
@@ -89,8 +86,8 @@ class CreateOrganizationServiceTest {
 
             // then
             assertThat(response).isEqualTo(expectedResponse);
-            verify(readManager)
-                    .existsByTenantIdAndName(any(TenantId.class), any(OrganizationName.class));
+            verify(validator)
+                    .validateNameNotDuplicated(any(TenantId.class), any(OrganizationName.class));
             verify(commandFactory).create(command);
             verify(transactionManager).persist(newOrganization);
             verify(assembler).toResponse(savedOrganization);
@@ -103,10 +100,12 @@ class CreateOrganizationServiceTest {
             CreateOrganizationCommand command =
                     new CreateOrganizationCommand(
                             OrganizationFixture.defaultTenantUUID(), "Existing Org");
-            given(
-                            readManager.existsByTenantIdAndName(
-                                    any(TenantId.class), any(OrganizationName.class)))
-                    .willReturn(true);
+            org.mockito.Mockito.doThrow(
+                            new DuplicateOrganizationNameException(
+                                    TenantId.of(OrganizationFixture.defaultTenantUUID()),
+                                    OrganizationName.of("Existing Org")))
+                    .when(validator)
+                    .validateNameNotDuplicated(any(TenantId.class), any(OrganizationName.class));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

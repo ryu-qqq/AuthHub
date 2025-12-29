@@ -11,7 +11,7 @@ import com.ryuqq.authhub.application.role.dto.command.GrantRolePermissionCommand
 import com.ryuqq.authhub.application.role.dto.response.RolePermissionResponse;
 import com.ryuqq.authhub.application.role.factory.command.RolePermissionCommandFactory;
 import com.ryuqq.authhub.application.role.manager.command.RolePermissionTransactionManager;
-import com.ryuqq.authhub.application.role.manager.query.RolePermissionReadManager;
+import com.ryuqq.authhub.application.role.validator.RolePermissionValidator;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
 import com.ryuqq.authhub.domain.role.exception.DuplicateRolePermissionException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -39,11 +40,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GrantRolePermissionService 단위 테스트")
 class GrantRolePermissionServiceTest {
 
+    @Mock private RolePermissionValidator validator;
+
     @Mock private RolePermissionCommandFactory commandFactory;
 
     @Mock private RolePermissionTransactionManager transactionManager;
-
-    @Mock private RolePermissionReadManager readManager;
 
     @Mock private RolePermissionAssembler assembler;
 
@@ -53,7 +54,7 @@ class GrantRolePermissionServiceTest {
     void setUp() {
         service =
                 new GrantRolePermissionService(
-                        commandFactory, transactionManager, readManager, assembler);
+                        validator, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -75,10 +76,7 @@ class GrantRolePermissionServiceTest {
             RolePermissionResponse expectedResponse =
                     new RolePermissionResponse(roleId, permissionId, grantedAt);
 
-            given(
-                            readManager.existsByRoleIdAndPermissionId(
-                                    RoleId.of(roleId), PermissionId.of(permissionId)))
-                    .willReturn(false);
+            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
             given(commandFactory.create(command)).willReturn(rolePermission);
             given(transactionManager.persist(rolePermission)).willReturn(rolePermission);
             given(assembler.toResponse(rolePermission)).willReturn(expectedResponse);
@@ -90,6 +88,8 @@ class GrantRolePermissionServiceTest {
             assertThat(response).isEqualTo(expectedResponse);
             assertThat(response.roleId()).isEqualTo(roleId);
             assertThat(response.permissionId()).isEqualTo(permissionId);
+            verify(validator)
+                    .validateNotAlreadyGranted(RoleId.of(roleId), PermissionId.of(permissionId));
             verify(commandFactory).create(command);
             verify(transactionManager).persist(rolePermission);
         }
@@ -103,10 +103,9 @@ class GrantRolePermissionServiceTest {
             GrantRolePermissionCommand command =
                     new GrantRolePermissionCommand(roleId, permissionId);
 
-            given(
-                            readManager.existsByRoleIdAndPermissionId(
-                                    RoleId.of(roleId), PermissionId.of(permissionId)))
-                    .willReturn(true);
+            Mockito.doThrow(new DuplicateRolePermissionException(roleId, permissionId))
+                    .when(validator)
+                    .validateNotAlreadyGranted(RoleId.of(roleId), PermissionId.of(permissionId));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

@@ -13,9 +13,7 @@ import com.ryuqq.authhub.application.permission.dto.query.GetPermissionQuery;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
 import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
-import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
@@ -90,9 +88,14 @@ public class PermissionApiMapper {
      * @return Application Query DTO
      */
     public SearchPermissionsQuery toQuery(SearchPermissionsApiRequest request) {
-        PermissionType type = parseType(request.type());
-        return new SearchPermissionsQuery(
-                request.resource(), request.action(), type, request.page(), request.size());
+        return SearchPermissionsQuery.of(
+                request.resource(),
+                request.action(),
+                request.types(),
+                request.createdFrom(),
+                request.createdTo(),
+                request.pageOrDefault(),
+                request.sizeOrDefault());
     }
 
     /**
@@ -144,22 +147,5 @@ public class PermissionApiMapper {
     public UserPermissionsApiResponse toUserPermissionsApiResponse(UserRolesResponse response) {
         return new UserPermissionsApiResponse(
                 response.userId().toString(), response.roles(), response.permissions());
-    }
-
-    /**
-     * 문자열을 PermissionType으로 변환
-     *
-     * @param type 타입 문자열
-     * @return PermissionType (유효하지 않거나 null이면 null)
-     */
-    private PermissionType parseType(String type) {
-        if (type == null || type.isBlank()) {
-            return null;
-        }
-        try {
-            return PermissionType.valueOf(type.toUpperCase(Locale.ENGLISH));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 }

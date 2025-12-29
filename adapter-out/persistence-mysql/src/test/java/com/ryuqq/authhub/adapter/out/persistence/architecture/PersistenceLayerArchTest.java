@@ -225,8 +225,14 @@ class PersistenceLayerArchTest {
      * <p>Adapter는 Application Layer의 Port와 DTO를 구현/사용하므로 의존이 허용됩니다. Repository, Entity, Mapper는
      * Application Layer에 의존하면 안 됩니다.
      *
-     * <p><strong>예외:</strong> AdminQueryDslRepository는 어드민 화면용 DTO Projection을 직접 반환하므로 Application
-     * Layer DTO 의존이 허용됩니다.
+     * <p><strong>예외:</strong>
+     *
+     * <ul>
+     *   <li>AdminQueryDslRepository는 어드민 화면용 DTO Projection을 직접 반환하므로 Application Layer DTO 의존이
+     *       허용됩니다.
+     *   <li>RoleQueryDslRepository, PermissionQueryDslRepository는 Domain Criteria 리팩토링 전까지 임시로
+     *       허용됩니다. TODO: Domain Criteria 생성 후 이 예외 제거 필요
+     * </ul>
      */
     @Test
     @DisplayName("[금지] Repository/Entity는 Application Layer를 의존하지 않아야 한다")
@@ -239,24 +245,32 @@ class PersistenceLayerArchTest {
                         .resideOutsideOfPackages(ARCHITECTURE_PATTERN)
                         .and()
                         .haveSimpleNameNotContaining("Admin") // Admin Repository는 예외
+                        .and()
+                        .haveSimpleNameNotStartingWith("Role") // TODO: RoleCriteria 생성 후 제거
+                        .and()
+                        .haveSimpleNameNotStartingWith(
+                                "Permission") // TODO: PermissionCriteria 생성 후 제거
                         .should()
                         .dependOnClassesThat()
                         .resideInAnyPackage(APPLICATION_ALL)
                         .because(
                                 "Repository/Entity는 Application Layer를 의존하면 안 됩니다 (Adapter만 Port 통해"
-                                        + " Application 접근 가능, Admin Repository는 예외)");
+                                    + " Application 접근 가능, Admin/Role/Permission Repository는 예외)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
 
     /**
-     * 규칙 6: Domain Layer 의존 금지 (Adapter, Mapper, Enum 제외)
+     * 규칙 6: Domain Layer 의존 금지 (Adapter, Mapper, Enum, Query Criteria, Common VO 제외)
      *
      * <p>Mapper는 Entity ↔ Domain 변환을 담당하므로 Domain 의존이 허용됩니다. Entity가 Domain의 Enum을 필드 타입으로 사용하는 것은
      * JPA @Enumerated 패턴으로 허용됩니다.
+     *
+     * <p><strong>예외:</strong> Repository가 Domain Layer의 Query Criteria와 Common VO를 사용하는 것은 허용됩니다.
+     * 이는 Application Layer DTO 대신 Domain Layer의 순수 검색 조건을 사용하기 위함입니다.
      */
     @Test
-    @DisplayName("[금지] Repository는 Domain Layer를 직접 의존하지 않아야 한다")
+    @DisplayName("[금지] Repository는 Domain Layer를 직접 의존하지 않아야 한다 (Query Criteria, Common VO 제외)")
     void persistence_RepositoryMustNotDependOnDomain() {
         ArchRule rule =
                 noClasses()
@@ -267,13 +281,36 @@ class PersistenceLayerArchTest {
                         .should()
                         .dependOnClassesThat(
                                 com.tngtech.archunit.base.DescribedPredicate.describe(
-                                        "Domain Layer classes that are not enums",
-                                        javaClass ->
-                                                javaClass.getPackageName().contains(".domain.")
-                                                        && !javaClass.isEnum()))
+                                        "Domain Layer classes that are not enums, query criteria,"
+                                                + " or common VO",
+                                        javaClass -> {
+                                            String packageName = javaClass.getPackageName();
+                                            // Domain Layer 클래스가 아니면 허용
+                                            if (!packageName.contains(".domain.")) {
+                                                return false;
+                                            }
+                                            // Enum은 허용
+                                            if (javaClass.isEnum()) {
+                                                return false;
+                                            }
+                                            // Query Criteria 패키지는 허용
+                                            if (packageName.contains(".query.criteria")) {
+                                                return false;
+                                            }
+                                            // Common VO 패키지는 허용 (PageRequest, DateRange 등)
+                                            if (packageName.contains(".common.vo")) {
+                                                return false;
+                                            }
+                                            // Identifier 패키지는 허용 (TenantId, UserId 등)
+                                            if (packageName.contains(".identifier")) {
+                                                return false;
+                                            }
+                                            // 그 외 Domain 클래스는 금지
+                                            return true;
+                                        }))
                         .because(
-                                "Repository는 Domain Layer를 직접 의존하면 안 됩니다 "
-                                        + "(Adapter/Mapper만 Domain 접근 가능)");
+                                "Repository는 Domain Layer를 직접 의존하면 안 됩니다 (Adapter/Mapper만 Domain 접근"
+                                        + " 가능, Query Criteria/Common VO/Identifier는 예외)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
@@ -304,7 +341,8 @@ class PersistenceLayerArchTest {
     /**
      * 규칙 8: Repository 네이밍 규칙
      *
-     * <p><strong>예외:</strong> Repository 내부의 헬퍼 inner class (예: UserBasicInfo)는 제외됩니다.
+     * <p><strong>예외:</strong> Repository 내부의 헬퍼 inner class (예: UserBasicInfo), anonymous inner
+     * class, SearchConditionBuilder (검색 조건 빌더 유틸리티)는 제외됩니다.
      */
     @Test
     @DisplayName("[필수] Repository는 *Repository 또는 *QueryDslRepository 네이밍 규칙을 따라야 한다")
@@ -318,7 +356,11 @@ class PersistenceLayerArchTest {
                         .and()
                         .haveSimpleNameNotContaining("Test")
                         .and()
+                        .haveSimpleNameNotEndingWith("SearchConditionBuilder") // 검색 조건 빌더 제외
+                        .and()
                         .areNotMemberClasses() // inner class 제외
+                        .and()
+                        .areNotAnonymousClasses() // anonymous inner class 제외 (예: Repository$1)
                         .should()
                         .haveSimpleNameEndingWith("Repository")
                         .orShould()

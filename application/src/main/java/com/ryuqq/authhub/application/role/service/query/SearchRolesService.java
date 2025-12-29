@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.application.role.service.query;
 
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.role.assembler.RoleAssembler;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
@@ -39,11 +40,22 @@ public class SearchRolesService implements SearchRolesUseCase {
     }
 
     @Override
-    public List<RoleResponse> execute(SearchRolesQuery query) {
+    public PageResponse<RoleResponse> execute(SearchRolesQuery query) {
         // 1. 역할 검색
         List<Role> roles = readManager.search(query);
 
-        // 2. Assembler: Response 변환
-        return roles.stream().map(assembler::toResponse).toList();
+        // 2. 총 개수 조회
+        long totalElements = readManager.count(query);
+
+        // 3. Assembler: Response 변환
+        List<RoleResponse> content = roles.stream().map(assembler::toResponse).toList();
+
+        // 4. PageResponse 생성
+        int totalPages = (int) Math.ceil((double) totalElements / query.size());
+        boolean isFirst = query.page() == 0;
+        boolean isLast = query.page() >= totalPages - 1 || totalPages == 0;
+
+        return PageResponse.of(
+                content, query.page(), query.size(), totalElements, totalPages, isFirst, isLast);
     }
 }

@@ -3,12 +3,12 @@ package com.ryuqq.authhub.adapter.out.persistence.permission.repository;
 import static com.ryuqq.authhub.adapter.out.persistence.permission.entity.QPermissionJpaEntity.permissionJpaEntity;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.PermissionJpaEntity;
-import com.ryuqq.authhub.domain.permission.vo.PermissionType;
+import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
@@ -24,8 +24,8 @@ import org.springframework.stereotype.Repository;
  *   <li>findByPermissionId() - ID로 단건 조회
  *   <li>findByKey() - 권한 키로 단건 조회
  *   <li>existsByKey() - 권한 키 존재 여부 확인
- *   <li>search() - 조건 검색
- *   <li>count() - 조건 개수 조회
+ *   <li>searchByQuery() - Query 기반 조건 검색
+ *   <li>countByQuery() - Query 기반 개수 조회
  * </ul>
  *
  * <p><strong>CQRS 패턴:</strong>
@@ -109,38 +109,34 @@ public class PermissionQueryDslRepository {
     }
 
     /**
-     * 권한 검색 (페이징)
+     * Query 기반 권한 검색 (페이징)
      *
-     * @param resource 리소스 필터 (null 허용, 부분 검색)
-     * @param action 액션 필터 (null 허용, 부분 검색)
-     * @param type 권한 유형 필터 (null 허용)
-     * @param offset 시작 위치
-     * @param limit 조회 개수
+     * @param query 검색 조건 (SearchPermissionsQuery)
      * @return PermissionJpaEntity 목록
      */
-    public List<PermissionJpaEntity> search(
-            String resource, String action, String type, int offset, int limit) {
-        BooleanBuilder builder = buildCondition(resource, action, type);
+    public List<PermissionJpaEntity> searchByQuery(SearchPermissionsQuery query) {
+        BooleanBuilder builder = PermissionSearchConditionBuilder.buildSearchCondition(query);
+        OrderSpecifier<?> orderSpecifier =
+                PermissionSearchConditionBuilder.buildOrderSpecifier(query);
+        int offset = query.page() * query.size();
 
         return queryFactory
                 .selectFrom(permissionJpaEntity)
                 .where(builder)
-                .orderBy(permissionJpaEntity.createdAt.desc())
+                .orderBy(orderSpecifier)
                 .offset(offset)
-                .limit(limit)
+                .limit(query.size())
                 .fetch();
     }
 
     /**
-     * 권한 검색 개수 조회
+     * Query 기반 권한 개수 조회
      *
-     * @param resource 리소스 필터 (null 허용, 부분 검색)
-     * @param action 액션 필터 (null 허용, 부분 검색)
-     * @param type 권한 유형 필터 (null 허용)
+     * @param query 검색 조건 (SearchPermissionsQuery)
      * @return 조건에 맞는 권한 총 개수
      */
-    public long count(String resource, String action, String type) {
-        BooleanBuilder builder = buildCondition(resource, action, type);
+    public long countByQuery(SearchPermissionsQuery query) {
+        BooleanBuilder builder = PermissionSearchConditionBuilder.buildSearchCondition(query);
 
         Long count =
                 queryFactory
@@ -149,49 +145,6 @@ public class PermissionQueryDslRepository {
                         .where(builder)
                         .fetchOne();
         return count != null ? count : 0L;
-    }
-
-    /**
-     * 검색 조건 빌더 생성
-     *
-     * @param resource 리소스 필터
-     * @param action 액션 필터
-     * @param type 타입 필터
-     * @return BooleanBuilder
-     */
-    private BooleanBuilder buildCondition(String resource, String action, String type) {
-        BooleanBuilder builder = new BooleanBuilder();
-
-        // 삭제되지 않은 권한만 조회
-        builder.and(permissionJpaEntity.deleted.eq(false));
-
-        if (resource != null && !resource.isBlank()) {
-            builder.and(permissionJpaEntity.resource.containsIgnoreCase(resource));
-        }
-        if (action != null && !action.isBlank()) {
-            builder.and(permissionJpaEntity.action.containsIgnoreCase(action));
-        }
-        if (type != null && !type.isBlank()) {
-            PermissionType permissionType = parseType(type);
-            if (permissionType != null) {
-                builder.and(permissionJpaEntity.type.eq(permissionType));
-            }
-        }
-        return builder;
-    }
-
-    /**
-     * 문자열을 PermissionType으로 변환
-     *
-     * @param type 타입 문자열
-     * @return PermissionType (유효하지 않으면 null)
-     */
-    private PermissionType parseType(String type) {
-        try {
-            return PermissionType.valueOf(type.toUpperCase(Locale.ENGLISH));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 
     /**

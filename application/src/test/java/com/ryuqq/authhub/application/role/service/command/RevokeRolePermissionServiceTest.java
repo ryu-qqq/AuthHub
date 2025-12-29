@@ -1,13 +1,12 @@
 package com.ryuqq.authhub.application.role.service.command;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.application.role.dto.command.RevokeRolePermissionCommand;
 import com.ryuqq.authhub.application.role.manager.command.RolePermissionTransactionManager;
-import com.ryuqq.authhub.application.role.manager.query.RolePermissionReadManager;
+import com.ryuqq.authhub.application.role.validator.RolePermissionValidator;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
 import com.ryuqq.authhub.domain.role.exception.RolePermissionNotFoundException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -33,15 +33,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("RevokeRolePermissionService 단위 테스트")
 class RevokeRolePermissionServiceTest {
 
-    @Mock private RolePermissionTransactionManager transactionManager;
+    @Mock private RolePermissionValidator validator;
 
-    @Mock private RolePermissionReadManager readManager;
+    @Mock private RolePermissionTransactionManager transactionManager;
 
     private RevokeRolePermissionService service;
 
     @BeforeEach
     void setUp() {
-        service = new RevokeRolePermissionService(transactionManager, readManager);
+        service = new RevokeRolePermissionService(validator, transactionManager);
     }
 
     @Nested
@@ -57,18 +57,13 @@ class RevokeRolePermissionServiceTest {
             RevokeRolePermissionCommand command =
                     new RevokeRolePermissionCommand(roleId, permissionId);
 
-            given(
-                            readManager.existsByRoleIdAndPermissionId(
-                                    RoleId.of(roleId), PermissionId.of(permissionId)))
-                    .willReturn(true);
+            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
 
             // when
             service.execute(command);
 
             // then
-            verify(readManager)
-                    .existsByRoleIdAndPermissionId(
-                            RoleId.of(roleId), PermissionId.of(permissionId));
+            verify(validator).validateExists(RoleId.of(roleId), PermissionId.of(permissionId));
             verify(transactionManager).delete(RoleId.of(roleId), PermissionId.of(permissionId));
         }
 
@@ -81,10 +76,9 @@ class RevokeRolePermissionServiceTest {
             RevokeRolePermissionCommand command =
                     new RevokeRolePermissionCommand(roleId, permissionId);
 
-            given(
-                            readManager.existsByRoleIdAndPermissionId(
-                                    RoleId.of(roleId), PermissionId.of(permissionId)))
-                    .willReturn(false);
+            Mockito.doThrow(new RolePermissionNotFoundException(roleId, permissionId))
+                    .when(validator)
+                    .validateExists(RoleId.of(roleId), PermissionId.of(permissionId));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

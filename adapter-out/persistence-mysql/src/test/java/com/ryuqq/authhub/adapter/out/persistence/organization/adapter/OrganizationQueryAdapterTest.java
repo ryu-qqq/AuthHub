@@ -2,17 +2,17 @@ package com.ryuqq.authhub.adapter.out.persistence.organization.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.adapter.out.persistence.organization.entity.OrganizationJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.organization.mapper.OrganizationJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationQueryDslRepository;
+import com.ryuqq.authhub.domain.common.vo.PageRequest;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
@@ -171,31 +171,31 @@ class OrganizationQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("findAllByTenantIdAndCriteria 메서드")
-    class FindAllByTenantIdAndCriteriaTest {
+    @DisplayName("findAllByCriteria 메서드")
+    class FindAllByCriteriaTest {
 
         @Test
-        @DisplayName("테넌트 범위 내 조직 목록을 조회한다")
-        void shouldFindAllByTenantIdAndCriteria() {
+        @DisplayName("Criteria 기반으로 조직 목록을 조회한다")
+        void shouldFindAllByCriteria() {
             // given
             TenantId tenantId = TenantId.of(TENANT_UUID);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId, null, null, null, null, null, null, PageRequest.of(0, 20));
             Organization org1 = OrganizationFixture.create();
             Organization org2 = OrganizationFixture.createWithName("Another Organization");
             OrganizationJpaEntity entity1 = createOrganizationEntity();
             OrganizationJpaEntity entity2 = createOrganizationEntity();
 
-            given(
-                            repository.findAllByTenantIdAndCriteria(
-                                    eq(TENANT_UUID), any(), any(), anyInt(), anyInt()))
-                    .willReturn(List.of(entity1, entity2));
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity1, entity2));
             given(mapper.toDomain(any(OrganizationJpaEntity.class))).willReturn(org1, org2);
 
             // when
-            List<Organization> results =
-                    adapter.findAllByTenantIdAndCriteria(tenantId, null, null, 0, 20);
+            List<Organization> results = adapter.findAllByCriteria(criteria);
 
             // then
             assertThat(results).hasSize(2);
+            verify(repository).findAllByCriteria(criteria);
         }
 
         @Test
@@ -203,18 +203,17 @@ class OrganizationQueryAdapterTest {
         void shouldFindAllWithNameFilter() {
             // given
             TenantId tenantId = TenantId.of(TENANT_UUID);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId, "Test", null, null, null, null, null, PageRequest.of(0, 20));
             Organization org = OrganizationFixture.create();
             OrganizationJpaEntity entity = createOrganizationEntity();
 
-            given(
-                            repository.findAllByTenantIdAndCriteria(
-                                    eq(TENANT_UUID), eq("Test"), any(), anyInt(), anyInt()))
-                    .willReturn(List.of(entity));
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity));
             given(mapper.toDomain(any(OrganizationJpaEntity.class))).willReturn(org);
 
             // when
-            List<Organization> results =
-                    adapter.findAllByTenantIdAndCriteria(tenantId, "Test", null, 0, 20);
+            List<Organization> results = adapter.findAllByCriteria(criteria);
 
             // then
             assertThat(results).hasSize(1);
@@ -225,18 +224,24 @@ class OrganizationQueryAdapterTest {
         void shouldFindAllWithStatusFilter() {
             // given
             TenantId tenantId = TenantId.of(TENANT_UUID);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId,
+                            null,
+                            null,
+                            List.of(OrganizationStatus.ACTIVE),
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
             Organization org = OrganizationFixture.create();
             OrganizationJpaEntity entity = createOrganizationEntity();
 
-            given(
-                            repository.findAllByTenantIdAndCriteria(
-                                    eq(TENANT_UUID), any(), eq("ACTIVE"), anyInt(), anyInt()))
-                    .willReturn(List.of(entity));
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity));
             given(mapper.toDomain(any(OrganizationJpaEntity.class))).willReturn(org);
 
             // when
-            List<Organization> results =
-                    adapter.findAllByTenantIdAndCriteria(tenantId, null, "ACTIVE", 0, 20);
+            List<Organization> results = adapter.findAllByCriteria(criteria);
 
             // then
             assertThat(results).hasSize(1);
@@ -247,15 +252,21 @@ class OrganizationQueryAdapterTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             TenantId tenantId = TenantId.of(TENANT_UUID);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId,
+                            "nonexistent",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
 
-            given(
-                            repository.findAllByTenantIdAndCriteria(
-                                    eq(TENANT_UUID), any(), any(), anyInt(), anyInt()))
-                    .willReturn(List.of());
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of());
 
             // when
-            List<Organization> results =
-                    adapter.findAllByTenantIdAndCriteria(tenantId, "nonexistent", null, 0, 20);
+            List<Organization> results = adapter.findAllByCriteria(criteria);
 
             // then
             assertThat(results).isEmpty();
@@ -263,23 +274,26 @@ class OrganizationQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("countByTenantIdAndCriteria 메서드")
-    class CountByTenantIdAndCriteriaTest {
+    @DisplayName("countByCriteria 메서드")
+    class CountByCriteriaTest {
 
         @Test
-        @DisplayName("테넌트 범위 내 조직 개수를 조회한다")
-        void shouldCountByTenantIdAndCriteria() {
+        @DisplayName("Criteria 기반으로 조직 개수를 조회한다")
+        void shouldCountByCriteria() {
             // given
             TenantId tenantId = TenantId.of(TENANT_UUID);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId, null, null, null, null, null, null, PageRequest.of(0, 20));
 
-            given(repository.countByTenantIdAndCriteria(eq(TENANT_UUID), any(), any()))
-                    .willReturn(5L);
+            given(repository.countByCriteria(criteria)).willReturn(5L);
 
             // when
-            long result = adapter.countByTenantIdAndCriteria(tenantId, null, null);
+            long result = adapter.countByCriteria(criteria);
 
             // then
             assertThat(result).isEqualTo(5L);
+            verify(repository).countByCriteria(criteria);
         }
 
         @Test
@@ -287,12 +301,14 @@ class OrganizationQueryAdapterTest {
         void shouldCountWithNameFilter() {
             // given
             TenantId tenantId = TenantId.of(TENANT_UUID);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId, "Test", null, null, null, null, null, PageRequest.of(0, 20));
 
-            given(repository.countByTenantIdAndCriteria(eq(TENANT_UUID), eq("Test"), any()))
-                    .willReturn(2L);
+            given(repository.countByCriteria(criteria)).willReturn(2L);
 
             // when
-            long result = adapter.countByTenantIdAndCriteria(tenantId, "Test", null);
+            long result = adapter.countByCriteria(criteria);
 
             // then
             assertThat(result).isEqualTo(2L);

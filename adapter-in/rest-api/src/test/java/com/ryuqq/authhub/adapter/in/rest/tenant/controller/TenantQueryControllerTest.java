@@ -24,6 +24,7 @@ import com.ryuqq.authhub.domain.tenant.exception.TenantNotFoundException;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.net.URI;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,6 +64,9 @@ import org.springframework.test.web.servlet.MockMvc;
 @Tag("unit")
 @Tag("adapter-rest")
 class TenantQueryControllerTest {
+
+    private static final Instant NOW = Instant.now();
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     @Autowired private MockMvc mockMvc;
 
@@ -177,14 +181,19 @@ class TenantQueryControllerTest {
                             Instant.now(),
                             Instant.now());
 
-            given(mapper.toQuery(any())).willReturn(new SearchTenantsQuery(null, null, null, null));
+            given(mapper.toQuery(any()))
+                    .willReturn(SearchTenantsQuery.of(null, null, ONE_MONTH_AGO, NOW, 0, 20));
             given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
                     .willReturn(pageResponse);
             given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
 
             // When & Then
             // ApiResponse<PageApiResponse<T>> 형식으로 래핑
-            mockMvc.perform(get("/api/v1/auth/tenants").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/api/v1/auth/tenants")
+                                    .param("createdFrom", ONE_MONTH_AGO.toString())
+                                    .param("createdTo", NOW.toString())
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.totalElements").value(1));
@@ -210,7 +219,8 @@ class TenantQueryControllerTest {
                             Instant.now(),
                             Instant.now());
 
-            given(mapper.toQuery(any())).willReturn(new SearchTenantsQuery("Test", null, 0, 10));
+            given(mapper.toQuery(any()))
+                    .willReturn(SearchTenantsQuery.of("Test", null, ONE_MONTH_AGO, NOW, 0, 10));
             given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
                     .willReturn(pageResponse);
             given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
@@ -219,6 +229,8 @@ class TenantQueryControllerTest {
             mockMvc.perform(
                             get("/api/v1/auth/tenants")
                                     .param("name", "Test")
+                                    .param("createdFrom", ONE_MONTH_AGO.toString())
+                                    .param("createdTo", NOW.toString())
                                     .param("page", "0")
                                     .param("size", "10")
                                     .accept(MediaType.APPLICATION_JSON))
@@ -237,14 +249,19 @@ class TenantQueryControllerTest {
             PageResponse<TenantResponse> pageResponse =
                     PageResponse.of(List.of(), 0, 20, 0, 0, true, true);
 
-            given(mapper.toQuery(any())).willReturn(new SearchTenantsQuery(null, "ACTIVE", 0, 20));
+            given(mapper.toQuery(any()))
+                    .willReturn(
+                            SearchTenantsQuery.of(
+                                    null, List.of("ACTIVE"), ONE_MONTH_AGO, NOW, 0, 20));
             given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
                     .willReturn(pageResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/tenants")
-                                    .param("status", "ACTIVE")
+                                    .param("statuses", "ACTIVE")
+                                    .param("createdFrom", ONE_MONTH_AGO.toString())
+                                    .param("createdTo", NOW.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content").isArray());

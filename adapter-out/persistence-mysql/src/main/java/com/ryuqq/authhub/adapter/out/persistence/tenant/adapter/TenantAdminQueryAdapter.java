@@ -2,11 +2,11 @@ package com.ryuqq.authhub.adapter.out.persistence.tenant.adapter;
 
 import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantAdminQueryDslRepository;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
-import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantDetailResponse;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantSummaryResponse;
 import com.ryuqq.authhub.application.tenant.port.out.query.TenantAdminQueryPort;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -51,19 +51,21 @@ public class TenantAdminQueryAdapter implements TenantAdminQueryPort {
      *
      * <p>organizationCount를 포함한 Summary DTO를 직접 반환합니다.
      *
-     * @param query 검색 조건 (확장 필터 포함)
+     * @param criteria 검색 조건 (TenantCriteria)
      * @return 페이징된 테넌트 Summary 목록
      */
     @Override
-    public PageResponse<TenantSummaryResponse> searchTenants(SearchTenantsQuery query) {
-        List<TenantSummaryResponse> content = repository.searchTenants(query);
-        long totalElements = repository.countTenants(query);
-        int totalPages = (int) Math.ceil((double) totalElements / query.size());
-        boolean isFirst = query.page() == 0;
-        boolean isLast = query.page() >= totalPages - 1;
+    public PageResponse<TenantSummaryResponse> searchTenants(TenantCriteria criteria) {
+        List<TenantSummaryResponse> content = repository.searchTenants(criteria);
+        long totalElements = repository.countTenants(criteria);
 
-        return PageResponse.of(
-                content, query.page(), query.size(), totalElements, totalPages, isFirst, isLast);
+        int page = criteria.page().page();
+        int size = criteria.page().size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        boolean isFirst = page == 0;
+        boolean isLast = page >= totalPages - 1 || totalPages == 0;
+
+        return PageResponse.of(content, page, size, totalElements, totalPages, isFirst, isLast);
     }
 
     /**

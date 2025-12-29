@@ -30,6 +30,7 @@ public final class User {
     private final TenantId tenantId;
     private final OrganizationId organizationId;
     private final String identifier;
+    private final String phoneNumber;
     private final String hashedPassword;
     private final UserStatus userStatus;
     private final Instant createdAt;
@@ -40,6 +41,7 @@ public final class User {
             TenantId tenantId,
             OrganizationId organizationId,
             String identifier,
+            String phoneNumber,
             String hashedPassword,
             UserStatus userStatus,
             Instant createdAt,
@@ -48,6 +50,7 @@ public final class User {
         this.tenantId = tenantId;
         this.organizationId = organizationId;
         this.identifier = identifier;
+        this.phoneNumber = phoneNumber;
         this.hashedPassword = hashedPassword;
         this.userStatus = userStatus;
         this.createdAt = createdAt;
@@ -61,6 +64,7 @@ public final class User {
      * @param tenantId 테넌트 ID
      * @param organizationId 소속 조직 ID
      * @param identifier 사용자 식별자 (이메일 등)
+     * @param phoneNumber 핸드폰 번호 (필수, 한국 형식)
      * @param hashedPassword 해시된 비밀번호
      * @param clock 시간 주입 (ClockHolder.clock())
      * @return 새로운 User 인스턴스
@@ -70,10 +74,14 @@ public final class User {
             TenantId tenantId,
             OrganizationId organizationId,
             String identifier,
+            String phoneNumber,
             String hashedPassword,
             Clock clock) {
         if (organizationId == null) {
             throw new IllegalArgumentException("OrganizationId는 필수입니다");
+        }
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            throw new IllegalArgumentException("핸드폰 번호는 필수입니다");
         }
         Instant now = clock.instant();
         return new User(
@@ -81,6 +89,7 @@ public final class User {
                 tenantId,
                 organizationId,
                 identifier,
+                phoneNumber,
                 hashedPassword,
                 UserStatus.ACTIVE,
                 now,
@@ -93,6 +102,7 @@ public final class User {
             TenantId tenantId,
             OrganizationId organizationId,
             String identifier,
+            String phoneNumber,
             String hashedPassword,
             UserStatus userStatus,
             Instant createdAt,
@@ -102,6 +112,7 @@ public final class User {
                 tenantId,
                 organizationId,
                 identifier,
+                phoneNumber,
                 hashedPassword,
                 userStatus,
                 createdAt,
@@ -134,6 +145,10 @@ public final class User {
 
     public String getIdentifier() {
         return identifier;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
     public String getHashedPassword() {
@@ -169,6 +184,7 @@ public final class User {
                 this.tenantId,
                 this.organizationId,
                 this.identifier,
+                this.phoneNumber,
                 this.hashedPassword,
                 newStatus,
                 this.createdAt,
@@ -188,6 +204,7 @@ public final class User {
                 this.tenantId,
                 this.organizationId,
                 this.identifier,
+                this.phoneNumber,
                 newHashedPassword,
                 this.userStatus,
                 this.createdAt,
@@ -207,6 +224,30 @@ public final class User {
                 this.tenantId,
                 this.organizationId,
                 newIdentifier,
+                this.phoneNumber,
+                this.hashedPassword,
+                this.userStatus,
+                this.createdAt,
+                clock.instant());
+    }
+
+    /**
+     * 핸드폰 번호 변경
+     *
+     * @param newPhoneNumber 새 핸드폰 번호
+     * @param clock 시간 주입
+     * @return 새 User 인스턴스
+     */
+    public User changePhoneNumber(String newPhoneNumber, Clock clock) {
+        if (newPhoneNumber == null || newPhoneNumber.isBlank()) {
+            throw new IllegalArgumentException("핸드폰 번호는 필수입니다");
+        }
+        return new User(
+                this.userId,
+                this.tenantId,
+                this.organizationId,
+                this.identifier,
+                newPhoneNumber,
                 this.hashedPassword,
                 this.userStatus,
                 this.createdAt,

@@ -9,12 +9,15 @@ import static com.ryuqq.authhub.adapter.out.persistence.user.entity.QUserRoleJpa
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleDetailResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleDetailResponse.RolePermissionSummary;
 import com.ryuqq.authhub.application.role.dto.response.RoleSummaryResponse;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
+import com.ryuqq.authhub.domain.role.vo.RoleType;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -247,26 +250,96 @@ public class RoleAdminQueryDslRepository {
         // 삭제되지 않은 역할만 조회
         builder.and(roleJpaEntity.deleted.eq(false));
 
+        // 테넌트 ID 필터
         if (query.tenantId() != null) {
             builder.and(roleJpaEntity.tenantId.eq(query.tenantId()));
         }
+
+        // 이름 필터 (SearchType 기반)
         if (query.name() != null && !query.name().isBlank()) {
-            builder.and(roleJpaEntity.name.containsIgnoreCase(query.name()));
+            builder.and(buildNameCondition(query.name(), query.searchType()));
         }
-        if (query.scope() != null) {
-            builder.and(roleJpaEntity.scope.eq(query.scope()));
+
+        // 다중 스코프 필터
+        if (query.scopes() != null && !query.scopes().isEmpty()) {
+            List<RoleScope> scopeEnums =
+                    query.scopes().stream().map(this::parseScope).filter(s -> s != null).toList();
+            if (!scopeEnums.isEmpty()) {
+                builder.and(roleJpaEntity.scope.in(scopeEnums));
+            }
         }
-        if (query.type() != null) {
-            builder.and(roleJpaEntity.type.eq(query.type()));
+
+        // 다중 타입 필터
+        if (query.types() != null && !query.types().isEmpty()) {
+            List<RoleType> typeEnums =
+                    query.types().stream().map(this::parseType).filter(t -> t != null).toList();
+            if (!typeEnums.isEmpty()) {
+                builder.and(roleJpaEntity.type.in(typeEnums));
+            }
         }
+
+        // 생성일시 범위 필터
         if (query.createdFrom() != null) {
-            builder.and(roleJpaEntity.createdAt.goe(toLocalDateTime(query.createdFrom())));
+            LocalDateTime from = toLocalDateTime(query.createdFrom());
+            builder.and(roleJpaEntity.createdAt.goe(from));
         }
         if (query.createdTo() != null) {
-            builder.and(roleJpaEntity.createdAt.loe(toLocalDateTime(query.createdTo())));
+            LocalDateTime to = toLocalDateTime(query.createdTo());
+            builder.and(roleJpaEntity.createdAt.loe(to));
         }
 
         return builder;
+    }
+
+    /**
+     * 이름 검색 조건 생성 (SearchType 기반)
+     *
+     * @param name 검색 이름
+     * @param searchType 검색 타입
+     * @return BooleanExpression
+     */
+    private BooleanExpression buildNameCondition(String name, String searchType) {
+        String type = searchType != null ? searchType : "CONTAINS_LIKE";
+
+        return switch (type) {
+            case "PREFIX_LIKE" -> roleJpaEntity.name.startsWithIgnoreCase(name);
+            case "MATCH_AGAINST" -> roleJpaEntity.name.containsIgnoreCase(name);
+            default -> roleJpaEntity.name.containsIgnoreCase(name);
+        };
+    }
+
+    /**
+     * String을 RoleScope enum으로 변환
+     *
+     * @param scope 스코프 문자열
+     * @return RoleScope (null if invalid)
+     */
+    private RoleScope parseScope(String scope) {
+        if (scope == null || scope.isBlank()) {
+            return null;
+        }
+        try {
+            return RoleScope.valueOf(scope.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    /**
+     * String을 RoleType enum으로 변환
+     *
+     * @param type 타입 문자열
+     * @return RoleType (null if invalid)
+     */
+    private RoleType parseType(String type) {
+        if (type == null || type.isBlank()) {
+            return null;
+        }
+        try {
+            return RoleType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /** 정렬 조건 생성 */

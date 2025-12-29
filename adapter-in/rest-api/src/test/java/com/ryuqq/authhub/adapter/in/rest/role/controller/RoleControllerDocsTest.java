@@ -17,7 +17,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
-import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.command.CreateRoleApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.command.GrantRolePermissionApiRequest;
@@ -53,8 +52,6 @@ import com.ryuqq.authhub.application.role.port.in.query.GetRoleUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRoleUsersUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesAdminUseCase;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesUseCase;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -335,6 +332,9 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
             UUID roleId = UUID.randomUUID();
             UUID tenantId = UUID.randomUUID();
             Instant now = Instant.now();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
+
             RoleResponse response =
                     new RoleResponse(
                             roleId,
@@ -345,6 +345,9 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                             "CUSTOM",
                             now,
                             now);
+            PageResponse<RoleResponse> pageResponse =
+                    PageResponse.of(List.of(response), 0, 20, 1L, 1, true, true);
+
             RoleApiResponse apiResponse =
                     new RoleApiResponse(
                             roleId.toString(),
@@ -357,18 +360,28 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                             now);
 
             given(mapper.toQuery(any(SearchRolesApiRequest.class)))
-                    .willReturn(SearchRolesQuery.of(tenantId, "ADMIN", null, null, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
-                    .willReturn(List.of(response));
-            given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                    .willReturn(
+                            SearchRolesQuery.of(
+                                    tenantId,
+                                    "ADMIN",
+                                    List.of("TENANT"),
+                                    List.of("CUSTOM"),
+                                    createdFrom,
+                                    createdTo,
+                                    0,
+                                    20));
+            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
+            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
 
             // when & then
             mockMvc.perform(
                             get("/api/v1/auth/roles")
                                     .param("tenantId", tenantId.toString())
                                     .param("name", "ADMIN")
-                                    .param("scope", "TENANT")
-                                    .param("type", "CUSTOM")
+                                    .param("scopes", "TENANT")
+                                    .param("types", "CUSTOM")
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString())
                                     .param("page", "0")
                                     .param("size", "20")
                                     .accept(MediaType.APPLICATION_JSON))
@@ -383,14 +396,19 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                             parameterWithName("name")
                                                     .description("역할 이름 필터 (선택)")
                                                     .optional(),
-                                            parameterWithName("scope")
+                                            parameterWithName("scopes")
                                                     .description(
                                                             "범위 필터 (TENANT/ORGANIZATION/SYSTEM,"
-                                                                    + " 선택)")
+                                                                    + " 다중 선택 가능)")
                                                     .optional(),
-                                            parameterWithName("type")
-                                                    .description("역할 유형 필터 (SYSTEM/CUSTOM, 선택)")
+                                            parameterWithName("types")
+                                                    .description(
+                                                            "역할 유형 필터 (SYSTEM/CUSTOM, 다중 선택 가능)")
                                                     .optional(),
+                                            parameterWithName("createdFrom")
+                                                    .description("생성일 시작 (ISO 8601 형식, 필수)"),
+                                            parameterWithName("createdTo")
+                                                    .description("생성일 종료 (ISO 8601 형식, 필수)"),
                                             parameterWithName("page")
                                                     .description("페이지 번호 (기본값: 0)")
                                                     .optional(),
@@ -399,20 +417,33 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                                     .optional()),
                                     responseFields(
                                             fieldWithPath("success").description("성공 여부"),
-                                            fieldWithPath("data").description("응답 데이터"),
-                                            fieldWithPath("data[]").description("역할 목록"),
-                                            fieldWithPath("data[].roleId").description("역할 ID"),
-                                            fieldWithPath("data[].tenantId").description("테넌트 ID"),
-                                            fieldWithPath("data[].name").description("역할 이름"),
-                                            fieldWithPath("data[].description")
+                                            fieldWithPath("data").description("페이징된 역할 목록"),
+                                            fieldWithPath("data.content").description("역할 목록"),
+                                            fieldWithPath("data.content[].roleId")
+                                                    .description("역할 ID"),
+                                            fieldWithPath("data.content[].tenantId")
+                                                    .description("테넌트 ID"),
+                                            fieldWithPath("data.content[].name")
+                                                    .description("역할 이름"),
+                                            fieldWithPath("data.content[].description")
                                                     .description("역할 설명"),
-                                            fieldWithPath("data[].scope")
+                                            fieldWithPath("data.content[].scope")
                                                     .description(
                                                             "역할 범위 (TENANT/ORGANIZATION/SYSTEM)"),
-                                            fieldWithPath("data[].type")
+                                            fieldWithPath("data.content[].type")
                                                     .description("역할 유형 (SYSTEM/CUSTOM)"),
-                                            fieldWithPath("data[].createdAt").description("생성 일시"),
-                                            fieldWithPath("data[].updatedAt").description("수정 일시"),
+                                            fieldWithPath("data.content[].createdAt")
+                                                    .description("생성 일시"),
+                                            fieldWithPath("data.content[].updatedAt")
+                                                    .description("수정 일시"),
+                                            fieldWithPath("data.page").description("현재 페이지 번호"),
+                                            fieldWithPath("data.size").description("페이지 크기"),
+                                            fieldWithPath("data.totalElements")
+                                                    .description("전체 데이터 개수"),
+                                            fieldWithPath("data.totalPages")
+                                                    .description("전체 페이지 수"),
+                                            fieldWithPath("data.first").description("첫 페이지 여부"),
+                                            fieldWithPath("data.last").description("마지막 페이지 여부"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }
@@ -517,6 +548,8 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
             UUID roleId = UUID.randomUUID();
             UUID tenantId = UUID.randomUUID();
             Instant now = Instant.now();
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
 
             RoleSummaryResponse summaryResponse =
                     new RoleSummaryResponse(
@@ -533,7 +566,7 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                             now);
 
             PageResponse<RoleSummaryResponse> pageResponse =
-                    new PageResponse<>(List.of(summaryResponse), 0, 20, 1L, 1, true, true);
+                    PageResponse.of(List.of(summaryResponse), 0, 20, 1L, 1, true, true);
 
             RoleSummaryApiResponse apiResponse =
                     new RoleSummaryApiResponse(
@@ -549,17 +582,15 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                             now,
                             now);
 
-            PageApiResponse<RoleSummaryApiResponse> pageApiResponse =
-                    new PageApiResponse<>(List.of(apiResponse), 0, 20, 1L, 1, true, true);
-
             SearchRolesQuery query =
-                    new SearchRolesQuery(
+                    SearchRolesQuery.ofAdmin(
                             tenantId,
                             "ADMIN",
-                            RoleScope.TENANT,
-                            RoleType.CUSTOM,
-                            null,
-                            null,
+                            "CONTAINS_LIKE",
+                            List.of("TENANT"),
+                            List.of("CUSTOM"),
+                            createdFrom,
+                            createdTo,
                             "createdAt",
                             "DESC",
                             0,
@@ -576,10 +607,11 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                             get("/api/v1/auth/roles/admin/search")
                                     .param("tenantId", tenantId.toString())
                                     .param("name", "ADMIN")
-                                    .param("scope", "TENANT")
-                                    .param("type", "CUSTOM")
-                                    .param("createdFrom", "2024-01-01T00:00:00Z")
-                                    .param("createdTo", "2024-12-31T23:59:59Z")
+                                    .param("searchType", "CONTAINS_LIKE")
+                                    .param("scopes", "TENANT")
+                                    .param("types", "CUSTOM")
+                                    .param("createdFrom", createdFrom.toString())
+                                    .param("createdTo", createdTo.toString())
                                     .param("sortBy", "createdAt")
                                     .param("sortDirection", "DESC")
                                     .param("page", "0")
@@ -596,20 +628,25 @@ class RoleControllerDocsTest extends RestDocsTestSupport {
                                             parameterWithName("name")
                                                     .description("역할 이름 필터 (부분 일치, 선택)")
                                                     .optional(),
-                                            parameterWithName("scope")
+                                            parameterWithName("searchType")
+                                                    .description(
+                                                            "검색 유형"
+                                                                + " (CONTAINS_LIKE/PREFIX_LIKE/MATCH_AGAINST,"
+                                                                + " 기본값: CONTAINS_LIKE)")
+                                                    .optional(),
+                                            parameterWithName("scopes")
                                                     .description(
                                                             "범위 필터 (TENANT/ORGANIZATION/SYSTEM,"
-                                                                    + " 선택)")
+                                                                    + " 다중 선택 가능)")
                                                     .optional(),
-                                            parameterWithName("type")
-                                                    .description("역할 유형 필터 (SYSTEM/CUSTOM, 선택)")
+                                            parameterWithName("types")
+                                                    .description(
+                                                            "역할 유형 필터 (SYSTEM/CUSTOM, 다중 선택 가능)")
                                                     .optional(),
                                             parameterWithName("createdFrom")
-                                                    .description("생성일 시작 (ISO 8601 형식, 선택)")
-                                                    .optional(),
+                                                    .description("생성일 시작 (ISO 8601 형식, 필수)"),
                                             parameterWithName("createdTo")
-                                                    .description("생성일 종료 (ISO 8601 형식, 선택)")
-                                                    .optional(),
+                                                    .description("생성일 종료 (ISO 8601 형식, 필수)"),
                                             parameterWithName("sortBy")
                                                     .description(
                                                             "정렬 기준 (createdAt/updatedAt/name, 기본값:"

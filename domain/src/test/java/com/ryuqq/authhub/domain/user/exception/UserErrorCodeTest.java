@@ -175,7 +175,7 @@ class UserErrorCodeTest {
         void shouldHaveAllErrorCodes() {
             UserErrorCode[] values = UserErrorCode.values();
 
-            assertThat(values).hasSize(6);
+            assertThat(values).hasSize(7);
             assertThat(values)
                     .containsExactly(
                             UserErrorCode.USER_NOT_FOUND,
@@ -183,7 +183,8 @@ class UserErrorCodeTest {
                             UserErrorCode.DUPLICATE_USER_IDENTIFIER,
                             UserErrorCode.USER_ROLE_NOT_FOUND,
                             UserErrorCode.DUPLICATE_USER_ROLE,
-                            UserErrorCode.INVALID_PASSWORD);
+                            UserErrorCode.INVALID_PASSWORD,
+                            UserErrorCode.DUPLICATE_USER_PHONE_NUMBER);
         }
     }
 }

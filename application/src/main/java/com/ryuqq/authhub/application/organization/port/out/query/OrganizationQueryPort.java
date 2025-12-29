@@ -2,6 +2,7 @@ package com.ryuqq.authhub.application.organization.port.out.query;
 
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Optional;
  *   <li>Value Object 파라미터 (원시 타입 금지)
  *   <li>Domain 반환 (DTO/Entity 반환 금지)
  *   <li>Optional 반환 (단건 조회 시 null 방지)
+ *   <li>Criteria 기반 조회 (개별 파라미터 금지)
  * </ul>
  *
  * @author development-team
@@ -53,25 +55,18 @@ public interface OrganizationQueryPort {
     boolean existsByTenantIdAndName(TenantId tenantId, OrganizationName name);
 
     /**
-     * 테넌트 범위 내 조직 목록 조회 (페이징)
+     * 조건에 맞는 조직 목록 조회 (Criteria 기반)
      *
-     * @param tenantId Tenant ID (Value Object)
-     * @param name Organization 이름 필터 (null 허용, 부분 검색)
-     * @param status Organization 상태 필터 (null 허용)
-     * @param offset 시작 위치
-     * @param limit 조회 개수
+     * @param criteria 검색 조건 (OrganizationCriteria)
      * @return Organization Domain 목록
      */
-    List<Organization> findAllByTenantIdAndCriteria(
-            TenantId tenantId, String name, String status, int offset, int limit);
+    List<Organization> findAllByCriteria(OrganizationCriteria criteria);
 
     /**
-     * 테넌트 범위 내 조직 개수 조회
+     * 조건에 맞는 조직 개수 조회 (Criteria 기반)
      *
-     * @param tenantId Tenant ID (Value Object)
-     * @param name Organization 이름 필터 (null 허용, 부분 검색)
-     * @param status Organization 상태 필터 (null 허용)
+     * @param criteria 검색 조건 (OrganizationCriteria)
      * @return 조건에 맞는 Organization 총 개수
      */
-    long countByTenantIdAndCriteria(TenantId tenantId, String name, String status);
+    long countByCriteria(OrganizationCriteria criteria);
 }

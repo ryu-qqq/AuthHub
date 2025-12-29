@@ -27,6 +27,7 @@ public final class UserFixture {
     private static final UUID DEFAULT_ORG_UUID =
             UUID.fromString("01941234-5678-7000-8000-123456789def");
     private static final String DEFAULT_IDENTIFIER = "user@example.com";
+    private static final String DEFAULT_PHONE_NUMBER = "01012345678";
     private static final String DEFAULT_HASHED_PASSWORD = "hashed_password_123";
 
     private UserFixture() {}
@@ -38,6 +39,7 @@ public final class UserFixture {
                 TenantId.of(DEFAULT_TENANT_UUID),
                 OrganizationId.of(DEFAULT_ORG_UUID),
                 DEFAULT_IDENTIFIER,
+                DEFAULT_PHONE_NUMBER,
                 DEFAULT_HASHED_PASSWORD,
                 UserStatus.ACTIVE,
                 FIXED_TIME,
@@ -51,6 +53,21 @@ public final class UserFixture {
                 TenantId.of(DEFAULT_TENANT_UUID),
                 OrganizationId.of(DEFAULT_ORG_UUID),
                 identifier,
+                DEFAULT_PHONE_NUMBER,
+                DEFAULT_HASHED_PASSWORD,
+                UserStatus.ACTIVE,
+                FIXED_TIME,
+                FIXED_TIME);
+    }
+
+    /** 지정된 핸드폰 번호로 User 생성 */
+    public static User createWithPhoneNumber(String phoneNumber) {
+        return User.reconstitute(
+                UserId.of(DEFAULT_USER_UUID),
+                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(DEFAULT_ORG_UUID),
+                DEFAULT_IDENTIFIER,
+                phoneNumber,
                 DEFAULT_HASHED_PASSWORD,
                 UserStatus.ACTIVE,
                 FIXED_TIME,
@@ -64,6 +81,7 @@ public final class UserFixture {
                 TenantId.of(DEFAULT_TENANT_UUID),
                 OrganizationId.of(organizationUUID),
                 DEFAULT_IDENTIFIER,
+                DEFAULT_PHONE_NUMBER,
                 DEFAULT_HASHED_PASSWORD,
                 UserStatus.ACTIVE,
                 FIXED_TIME,
@@ -77,6 +95,7 @@ public final class UserFixture {
                 TenantId.of(tenantUUID),
                 OrganizationId.of(DEFAULT_ORG_UUID),
                 DEFAULT_IDENTIFIER,
+                DEFAULT_PHONE_NUMBER,
                 DEFAULT_HASHED_PASSWORD,
                 UserStatus.ACTIVE,
                 FIXED_TIME,
@@ -90,6 +109,7 @@ public final class UserFixture {
                 TenantId.of(DEFAULT_TENANT_UUID),
                 OrganizationId.of(DEFAULT_ORG_UUID),
                 DEFAULT_IDENTIFIER,
+                DEFAULT_PHONE_NUMBER,
                 DEFAULT_HASHED_PASSWORD,
                 fixedClock());
     }
@@ -101,6 +121,7 @@ public final class UserFixture {
                 TenantId.of(DEFAULT_TENANT_UUID),
                 OrganizationId.of(DEFAULT_ORG_UUID),
                 DEFAULT_IDENTIFIER,
+                DEFAULT_PHONE_NUMBER,
                 DEFAULT_HASHED_PASSWORD,
                 status,
                 FIXED_TIME,
@@ -160,5 +181,10 @@ public final class UserFixture {
     /** 기본 해시된 비밀번호 반환 */
     public static String defaultHashedPassword() {
         return DEFAULT_HASHED_PASSWORD;
+    }
+
+    /** 기본 핸드폰 번호 반환 */
+    public static String defaultPhoneNumber() {
+        return DEFAULT_PHONE_NUMBER;
     }
 }

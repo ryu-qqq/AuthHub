@@ -65,6 +65,7 @@ class GetUserDetailServiceTest {
                             ORG_UUID,
                             "테스트 조직",
                             "user@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             List.of(),
                             Instant.now(),

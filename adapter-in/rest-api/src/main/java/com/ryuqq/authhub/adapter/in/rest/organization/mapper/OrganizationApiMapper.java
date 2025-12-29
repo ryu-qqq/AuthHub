@@ -110,12 +110,14 @@ public class OrganizationApiMapper {
      * @return Application Query DTO
      */
     public SearchOrganizationsQuery toQuery(SearchOrganizationsApiRequest request) {
-        return new SearchOrganizationsQuery(
+        return SearchOrganizationsQuery.of(
                 UUID.fromString(request.tenantId()),
                 request.name(),
-                request.status(),
-                request.page(),
-                request.size());
+                request.statuses(),
+                request.createdFrom(),
+                request.createdTo(),
+                request.pageOrDefault(),
+                request.sizeOrDefault());
     }
 
     /**
@@ -209,7 +211,7 @@ public class OrganizationApiMapper {
     /**
      * SearchOrganizationsAdminApiRequest → SearchOrganizationsQuery 변환 (Admin용)
      *
-     * <p>확장 필터(날짜 범위, 정렬)를 포함하여 변환합니다. tenantId는 선택적입니다.
+     * <p>확장 필터(날짜 범위, 정렬, 다중 상태)를 포함하여 변환합니다. tenantId는 선택적입니다.
      *
      * @param request Admin API 요청 DTO
      * @return Application Query DTO (확장 필터 포함)
@@ -217,30 +219,18 @@ public class OrganizationApiMapper {
     public SearchOrganizationsQuery toAdminQuery(SearchOrganizationsAdminApiRequest request) {
         UUID tenantIdValue =
                 request.tenantId() != null ? UUID.fromString(request.tenantId()) : null;
-        int page = request.page() != null ? request.page() : 0;
-        int size =
-                request.size() != null
-                        ? request.size()
-                        : SearchOrganizationsQuery.DEFAULT_PAGE_SIZE;
-        String sortBy =
-                request.sortBy() != null
-                        ? request.sortBy()
-                        : SearchOrganizationsQuery.DEFAULT_SORT_BY;
-        String sortDirection =
-                request.sortDirection() != null
-                        ? request.sortDirection()
-                        : SearchOrganizationsQuery.DEFAULT_SORT_DIRECTION;
 
-        return new SearchOrganizationsQuery(
+        return SearchOrganizationsQuery.ofAdmin(
                 tenantIdValue,
                 request.name(),
-                request.status(),
+                request.searchType(),
+                request.statuses(),
                 request.createdFrom(),
                 request.createdTo(),
-                sortBy,
-                sortDirection,
-                page,
-                size);
+                request.sortBy(),
+                request.sortDirection(),
+                request.pageOrDefault(),
+                request.sizeOrDefault());
     }
 
     /**

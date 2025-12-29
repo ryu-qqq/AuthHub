@@ -3,13 +3,12 @@ package com.ryuqq.authhub.application.permission.service.command;
 import com.ryuqq.authhub.application.permission.assembler.PermissionAssembler;
 import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
+import com.ryuqq.authhub.application.permission.factory.command.PermissionCommandFactory;
 import com.ryuqq.authhub.application.permission.manager.command.PermissionTransactionManager;
 import com.ryuqq.authhub.application.permission.manager.query.PermissionReadManager;
 import com.ryuqq.authhub.application.permission.port.in.command.UpdatePermissionUseCase;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.PermissionDescription;
-import java.time.Clock;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,20 +32,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdatePermissionService implements UpdatePermissionUseCase {
 
-    private final PermissionTransactionManager transactionManager;
     private final PermissionReadManager readManager;
+    private final PermissionCommandFactory commandFactory;
+    private final PermissionTransactionManager transactionManager;
     private final PermissionAssembler assembler;
-    private final Clock clock;
 
     public UpdatePermissionService(
-            PermissionTransactionManager transactionManager,
             PermissionReadManager readManager,
-            PermissionAssembler assembler,
-            Clock clock) {
-        this.transactionManager = transactionManager;
+            PermissionCommandFactory commandFactory,
+            PermissionTransactionManager transactionManager,
+            PermissionAssembler assembler) {
         this.readManager = readManager;
+        this.commandFactory = commandFactory;
+        this.transactionManager = transactionManager;
         this.assembler = assembler;
-        this.clock = clock;
     }
 
     @Override
@@ -55,9 +54,8 @@ public class UpdatePermissionService implements UpdatePermissionUseCase {
         PermissionId permissionId = PermissionId.of(command.permissionId());
         Permission existing = readManager.getById(permissionId);
 
-        // 2. 설명 변경 (SYSTEM 권한이면 예외 발생)
-        PermissionDescription newDescription = PermissionDescription.of(command.description());
-        Permission updated = existing.changeDescription(newDescription, clock);
+        // 2. Factory: Command 적용 (설명 변경, SYSTEM 권한이면 예외 발생)
+        Permission updated = commandFactory.applyUpdate(existing, command);
 
         // 3. Manager: 영속화
         Permission saved = transactionManager.persist(updated);
