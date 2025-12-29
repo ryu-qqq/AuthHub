@@ -111,8 +111,7 @@ public class RoleQueryAdapter implements RoleQueryPort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>Query에서 검색 조건 추출
-     *   <li>QueryDSL Repository로 조회
+     *   <li>Query 객체를 직접 Repository로 전달
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
@@ -121,19 +120,7 @@ public class RoleQueryAdapter implements RoleQueryPort {
      */
     @Override
     public List<Role> search(SearchRolesQuery query) {
-        int offset = query.page() * query.size();
-
-        return repository
-                .search(
-                        query.tenantId(),
-                        query.name(),
-                        query.scope(),
-                        query.type(),
-                        offset,
-                        query.size())
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
+        return repository.searchByQuery(query).stream().map(mapper::toDomain).toList();
     }
 
     /**
@@ -144,7 +131,7 @@ public class RoleQueryAdapter implements RoleQueryPort {
      */
     @Override
     public long count(SearchRolesQuery query) {
-        return repository.count(query.tenantId(), query.name(), query.scope(), query.type());
+        return repository.countByQuery(query);
     }
 
     /**

@@ -108,6 +108,7 @@ class UserJpaEntityMapperTest {
                             TENANT_UUID,
                             ORG_UUID,
                             "test@example.com",
+                            "010-1234-5678",
                             "hashed_password",
                             UserStatus.ACTIVE,
                             FIXED_LOCAL_DATE_TIME,
@@ -121,6 +122,7 @@ class UserJpaEntityMapperTest {
             assertThat(domain.tenantIdValue()).isEqualTo(TENANT_UUID);
             assertThat(domain.organizationIdValue()).isEqualTo(ORG_UUID);
             assertThat(domain.getIdentifier()).isEqualTo("test@example.com");
+            assertThat(domain.getPhoneNumber()).isEqualTo("010-1234-5678");
             assertThat(domain.getHashedPassword()).isEqualTo("hashed_password");
             assertThat(domain.getUserStatus()).isEqualTo(UserStatus.ACTIVE);
         }
@@ -136,6 +138,7 @@ class UserJpaEntityMapperTest {
                             TENANT_UUID,
                             ORG_UUID,
                             "test@example.com",
+                            "010-1234-5678",
                             "hashed_password",
                             UserStatus.ACTIVE,
                             FIXED_LOCAL_DATE_TIME,
@@ -160,6 +163,7 @@ class UserJpaEntityMapperTest {
                             TENANT_UUID,
                             ORG_UUID,
                             "inactive@example.com",
+                            "010-1111-1111",
                             "hashed_password",
                             UserStatus.INACTIVE,
                             FIXED_LOCAL_DATE_TIME,
@@ -172,6 +176,7 @@ class UserJpaEntityMapperTest {
                             TENANT_UUID,
                             ORG_UUID,
                             "locked@example.com",
+                            "010-2222-2222",
                             "hashed_password",
                             UserStatus.LOCKED,
                             FIXED_LOCAL_DATE_TIME,
@@ -206,6 +211,7 @@ class UserJpaEntityMapperTest {
                             entity.getTenantId(),
                             entity.getOrganizationId(),
                             entity.getIdentifier(),
+                            entity.getPhoneNumber(),
                             entity.getHashedPassword(),
                             entity.getStatus(),
                             entity.getCreatedAt(),

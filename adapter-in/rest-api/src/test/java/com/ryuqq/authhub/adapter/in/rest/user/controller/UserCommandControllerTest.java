@@ -97,8 +97,10 @@ class UserCommandControllerTest {
             String organizationId = UUID.randomUUID().toString();
             String identifier = "user@example.com";
             String password = "password123";
+            String phoneNumber = "010-1234-5678";
             CreateUserApiRequest request =
-                    new CreateUserApiRequest(tenantId, organizationId, identifier, password);
+                    new CreateUserApiRequest(
+                            tenantId, organizationId, identifier, phoneNumber, password);
 
             UUID userId = UUID.randomUUID();
             CreateUserCommand command =
@@ -106,6 +108,7 @@ class UserCommandControllerTest {
                             UUID.fromString(tenantId),
                             UUID.fromString(organizationId),
                             identifier,
+                            phoneNumber,
                             password);
             Instant now = Instant.now();
             UserResponse useCaseResponse =
@@ -114,6 +117,7 @@ class UserCommandControllerTest {
                             UUID.fromString(tenantId),
                             UUID.fromString(organizationId),
                             identifier,
+                            phoneNumber,
                             "ACTIVE",
                             now,
                             now);
@@ -150,6 +154,7 @@ class UserCommandControllerTest {
                         "tenantId": "",
                         "organizationId": "550e8400-e29b-41d4-a716-446655440000",
                         "identifier": "user@example.com",
+                        "phoneNumber": "010-1234-5678",
                         "password": "password123"
                     }
                     """;
@@ -174,6 +179,7 @@ class UserCommandControllerTest {
                         "tenantId": "550e8400-e29b-41d4-a716-446655440000",
                         "organizationId": "",
                         "identifier": "user@example.com",
+                        "phoneNumber": "010-1234-5678",
                         "password": "password123"
                     }
                     """;
@@ -198,6 +204,7 @@ class UserCommandControllerTest {
                         "tenantId": "550e8400-e29b-41d4-a716-446655440000",
                         "organizationId": "550e8400-e29b-41d4-a716-446655440000",
                         "identifier": "",
+                        "phoneNumber": "010-1234-5678",
                         "password": "password123"
                     }
                     """;
@@ -222,6 +229,7 @@ class UserCommandControllerTest {
                         "tenantId": "550e8400-e29b-41d4-a716-446655440000",
                         "organizationId": "550e8400-e29b-41d4-a716-446655440000",
                         "identifier": "user@example.com",
+                        "phoneNumber": "010-1234-5678",
                         "password": ""
                     }
                     """;
@@ -246,6 +254,7 @@ class UserCommandControllerTest {
                         "tenantId": "550e8400-e29b-41d4-a716-446655440000",
                         "organizationId": "550e8400-e29b-41d4-a716-446655440000",
                         "identifier": "user@example.com",
+                        "phoneNumber": "010-1234-5678",
                         "password": "short"
                     }
                     """;

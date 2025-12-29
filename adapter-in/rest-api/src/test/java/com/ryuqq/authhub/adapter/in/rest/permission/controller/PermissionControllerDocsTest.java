@@ -25,6 +25,7 @@ import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.CreatePermissio
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.UserPermissionsApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.mapper.PermissionApiMapper;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.command.DeletePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionCommand;
@@ -38,7 +39,6 @@ import com.ryuqq.authhub.application.permission.port.in.query.GetPermissionUseCa
 import com.ryuqq.authhub.application.permission.port.in.query.SearchPermissionsUseCase;
 import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
 import com.ryuqq.authhub.application.role.port.in.GetUserRolesUseCase;
-import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -287,6 +287,9 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
     @DisplayName("GET /api/v1/permissions - 권한 목록 검색")
     class SearchPermissionsDocs {
 
+        private static final Instant CREATED_FROM = Instant.parse("2024-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2024-12-31T23:59:59Z");
+
         @Test
         @DisplayName("권한 목록 검색 API 문서")
         void searchPermissions() throws Exception {
@@ -313,21 +316,31 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                             "SYSTEM",
                             now,
                             now);
+            PageResponse<PermissionResponse> pageResponse =
+                    PageResponse.of(List.of(response), 0, 20, 1, 1, true, true);
 
             given(mapper.toQuery(any(SearchPermissionsApiRequest.class)))
                     .willReturn(
-                            new SearchPermissionsQuery(
-                                    "tenant", "read", PermissionType.SYSTEM, 0, 20));
+                            SearchPermissionsQuery.of(
+                                    "tenant",
+                                    "read",
+                                    List.of("SYSTEM"),
+                                    CREATED_FROM,
+                                    CREATED_TO,
+                                    0,
+                                    20));
             given(searchPermissionsUseCase.execute(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of(response));
-            given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                    .willReturn(pageResponse);
+            given(mapper.toApiResponse(any(PermissionResponse.class))).willReturn(apiResponse);
 
             // when & then
             mockMvc.perform(
                             get("/api/v1/auth/permissions")
                                     .param("resource", "tenant")
                                     .param("action", "read")
-                                    .param("type", "SYSTEM")
+                                    .param("types", "SYSTEM")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .param("page", "0")
                                     .param("size", "20")
                                     .accept(MediaType.APPLICATION_JSON))
@@ -342,9 +355,14 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                                             parameterWithName("action")
                                                     .description("액션 필터 (선택)")
                                                     .optional(),
-                                            parameterWithName("type")
-                                                    .description("권한 유형 필터 (SYSTEM/CUSTOM, 선택)")
+                                            parameterWithName("types")
+                                                    .description(
+                                                            "권한 유형 필터 다중 선택 (SYSTEM/CUSTOM, 선택)")
                                                     .optional(),
+                                            parameterWithName("createdFrom")
+                                                    .description("생성일시 시작 (ISO-8601, 필수)"),
+                                            parameterWithName("createdTo")
+                                                    .description("생성일시 종료 (ISO-8601, 필수)"),
                                             parameterWithName("page")
                                                     .description("페이지 번호 (기본값: 0)")
                                                     .optional(),
@@ -354,18 +372,30 @@ class PermissionControllerDocsTest extends RestDocsTestSupport {
                                     responseFields(
                                             fieldWithPath("success").description("성공 여부"),
                                             fieldWithPath("data").description("응답 데이터"),
-                                            fieldWithPath("data[]").description("권한 목록"),
-                                            fieldWithPath("data[].permissionId")
+                                            fieldWithPath("data.content").description("권한 목록"),
+                                            fieldWithPath("data.content[].permissionId")
                                                     .description("권한 ID"),
-                                            fieldWithPath("data[].key").description("권한 키"),
-                                            fieldWithPath("data[].resource").description("리소스명"),
-                                            fieldWithPath("data[].action").description("액션명"),
-                                            fieldWithPath("data[].description")
+                                            fieldWithPath("data.content[].key").description("권한 키"),
+                                            fieldWithPath("data.content[].resource")
+                                                    .description("리소스명"),
+                                            fieldWithPath("data.content[].action")
+                                                    .description("액션명"),
+                                            fieldWithPath("data.content[].description")
                                                     .description("권한 설명"),
-                                            fieldWithPath("data[].type")
+                                            fieldWithPath("data.content[].type")
                                                     .description("권한 유형 (SYSTEM/CUSTOM)"),
-                                            fieldWithPath("data[].createdAt").description("생성 일시"),
-                                            fieldWithPath("data[].updatedAt").description("수정 일시"),
+                                            fieldWithPath("data.content[].createdAt")
+                                                    .description("생성 일시"),
+                                            fieldWithPath("data.content[].updatedAt")
+                                                    .description("수정 일시"),
+                                            fieldWithPath("data.page").description("현재 페이지 번호"),
+                                            fieldWithPath("data.size").description("페이지 크기"),
+                                            fieldWithPath("data.totalElements")
+                                                    .description("전체 항목 수"),
+                                            fieldWithPath("data.totalPages")
+                                                    .description("전체 페이지 수"),
+                                            fieldWithPath("data.first").description("첫 페이지 여부"),
+                                            fieldWithPath("data.last").description("마지막 페이지 여부"),
                                             fieldWithPath("timestamp").description("응답 시간"),
                                             fieldWithPath("requestId").description("요청 ID"))));
         }

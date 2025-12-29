@@ -86,6 +86,16 @@ public class PermissionReadManager {
     }
 
     /**
+     * 권한 검색 총 개수 조회
+     *
+     * @param query 검색 조건
+     * @return 총 개수
+     */
+    public long count(SearchPermissionsQuery query) {
+        return queryPort.count(query);
+    }
+
+    /**
      * 여러 ID로 권한 목록 조회
      *
      * @param permissionIds 권한 ID Set

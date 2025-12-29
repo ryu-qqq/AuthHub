@@ -72,7 +72,7 @@ final class DefaultRoleApi implements RoleApi {
 
     @Override
     public void revokePermissions(Long roleId, GrantRolePermissionRequest request) {
-        httpClient.delete(BASE_PATH + "/" + roleId + "/permissions");
+        httpClient.delete(BASE_PATH + "/" + roleId + "/permissions", request);
     }
 
     @Override

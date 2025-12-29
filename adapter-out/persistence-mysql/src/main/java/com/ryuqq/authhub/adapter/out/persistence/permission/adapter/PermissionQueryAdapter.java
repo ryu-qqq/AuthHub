@@ -107,8 +107,7 @@ public class PermissionQueryAdapter implements PermissionQueryPort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>Query에서 검색 조건 추출
-     *   <li>QueryDSL Repository로 조회
+     *   <li>Query 기반 QueryDSL Repository 조회
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
@@ -117,14 +116,7 @@ public class PermissionQueryAdapter implements PermissionQueryPort {
      */
     @Override
     public List<Permission> search(SearchPermissionsQuery query) {
-        int offset = query.page() * query.size();
-        String typeString = query.type() != null ? query.type().name() : null;
-
-        return repository
-                .search(query.resource(), query.action(), typeString, offset, query.size())
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
+        return repository.searchByQuery(query).stream().map(mapper::toDomain).toList();
     }
 
     /**
@@ -135,8 +127,7 @@ public class PermissionQueryAdapter implements PermissionQueryPort {
      */
     @Override
     public long count(SearchPermissionsQuery query) {
-        String typeString = query.type() != null ? query.type().name() : null;
-        return repository.count(query.resource(), query.action(), typeString);
+        return repository.countByQuery(query);
     }
 
     /**

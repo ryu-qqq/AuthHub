@@ -58,6 +58,12 @@ public class UserCommandFactory {
         String hashedPassword = passwordEncoderPort.hash(command.password());
 
         return User.create(
-                userId, tenantId, organizationId, command.identifier(), hashedPassword, clock);
+                userId,
+                tenantId,
+                organizationId,
+                command.identifier(),
+                command.phoneNumber(),
+                hashedPassword,
+                clock);
     }
 }

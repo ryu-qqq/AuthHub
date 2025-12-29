@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.application.role.factory.command;
 
 import com.ryuqq.authhub.application.role.dto.command.CreateRoleCommand;
+import com.ryuqq.authhub.application.role.dto.command.UpdateRoleCommand;
 import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
@@ -70,6 +71,29 @@ public class RoleCommandFactory {
             case ORGANIZATION ->
                     Role.createCustomOrganization(roleId, tenantId, name, description, clock);
         };
+    }
+
+    /**
+     * 기존 Role에 UpdateRoleCommand 적용
+     *
+     * @param role 기존 Role
+     * @param command 업데이트 Command
+     * @return 업데이트된 Role 인스턴스
+     */
+    public Role applyUpdate(Role role, UpdateRoleCommand command) {
+        Role updated = role;
+
+        if (command.name() != null && !command.name().isBlank()) {
+            RoleName newName = RoleName.of(command.name());
+            updated = updated.changeName(newName, clock);
+        }
+
+        if (command.description() != null) {
+            RoleDescription newDescription = RoleDescription.of(command.description());
+            updated = updated.changeDescription(newDescription, clock);
+        }
+
+        return updated;
     }
 
     private RoleScope parseScope(String scope) {

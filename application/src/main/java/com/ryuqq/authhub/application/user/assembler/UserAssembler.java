@@ -37,6 +37,7 @@ public class UserAssembler {
                 user.tenantIdValue(),
                 user.organizationIdValue(),
                 user.getIdentifier(),
+                user.getPhoneNumber(),
                 user.getUserStatus().name(),
                 user.getCreatedAt(),
                 user.getUpdatedAt());

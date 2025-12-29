@@ -125,9 +125,11 @@ class UserControllerDocsTest extends RestDocsTestSupport {
         String tenantId = UUID.randomUUID().toString();
         String organizationId = UUID.randomUUID().toString();
         String identifier = "user@example.com";
+        String phoneNumber = "010-1234-5678";
         String password = "password123";
         CreateUserApiRequest request =
-                new CreateUserApiRequest(tenantId, organizationId, identifier, password);
+                new CreateUserApiRequest(
+                        tenantId, organizationId, identifier, phoneNumber, password);
 
         UUID userId = UUID.randomUUID();
         CreateUserCommand command =
@@ -135,6 +137,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                         UUID.fromString(tenantId),
                         UUID.fromString(organizationId),
                         identifier,
+                        phoneNumber,
                         password);
         Instant now = Instant.now();
         UserResponse useCaseResponse =
@@ -143,6 +146,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                         UUID.fromString(tenantId),
                         UUID.fromString(organizationId),
                         identifier,
+                        phoneNumber,
                         "ACTIVE",
                         now,
                         now);
@@ -167,6 +171,8 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                                 .description("조직 ID (UUID 형식)"),
                                         fieldWithPath("identifier")
                                                 .description("사용자 식별자 (이메일 또는 사용자명, 1-255자)"),
+                                        fieldWithPath("phoneNumber")
+                                                .description("핸드폰 번호 (한국 형식, 10-20자)"),
                                         fieldWithPath("password").description("비밀번호 (8-100자)")),
                                 responseFields(
                                         fieldWithPath("success").description("API 성공 여부"),
@@ -318,13 +324,21 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         UserResponse useCaseResponse =
                 new UserResponse(
-                        userId, tenantId, organizationId, "me@example.com", "ACTIVE", now, now);
+                        userId,
+                        tenantId,
+                        organizationId,
+                        "me@example.com",
+                        "010-1234-5678",
+                        "ACTIVE",
+                        now,
+                        now);
         UserApiResponse apiResponse =
                 new UserApiResponse(
                         userId.toString(),
                         tenantId.toString(),
                         organizationId.toString(),
                         "me@example.com",
+                        "010-1234-5678",
                         "ACTIVE",
                         now,
                         now);
@@ -353,6 +367,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                             fieldWithPath("data.organizationId")
                                                     .description("조직 ID"),
                                             fieldWithPath("data.identifier").description("사용자 식별자"),
+                                            fieldWithPath("data.phoneNumber").description("핸드폰 번호"),
                                             fieldWithPath("data.status").description("사용자 상태"),
                                             fieldWithPath("data.createdAt").description("생성 일시"),
                                             fieldWithPath("data.updatedAt").description("수정 일시"),
@@ -372,13 +387,21 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         UserResponse useCaseResponse =
                 new UserResponse(
-                        userId, tenantId, organizationId, "test@example.com", "ACTIVE", now, now);
+                        userId,
+                        tenantId,
+                        organizationId,
+                        "test@example.com",
+                        "010-1234-5678",
+                        "ACTIVE",
+                        now,
+                        now);
         UserApiResponse apiResponse =
                 new UserApiResponse(
                         userId.toString(),
                         tenantId.toString(),
                         organizationId.toString(),
                         "test@example.com",
+                        "010-1234-5678",
                         "ACTIVE",
                         now,
                         now);
@@ -405,6 +428,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.tenantId").description("테넌트 ID"),
                                         fieldWithPath("data.organizationId").description("조직 ID"),
                                         fieldWithPath("data.identifier").description("사용자 식별자"),
+                                        fieldWithPath("data.phoneNumber").description("핸드폰 번호"),
                                         fieldWithPath("data.status").description("사용자 상태"),
                                         fieldWithPath("data.createdAt").description("생성 일시"),
                                         fieldWithPath("data.updatedAt").description("수정 일시"),
@@ -423,13 +447,23 @@ class UserControllerDocsTest extends RestDocsTestSupport {
 
         UserResponse response =
                 new UserResponse(
-                        userId, tenantId, organizationId, "test@example.com", "ACTIVE", now, now);
+                        userId,
+                        tenantId,
+                        organizationId,
+                        "test@example.com",
+                        "010-1234-5678",
+                        "ACTIVE",
+                        now,
+                        now);
+        PageResponse<UserResponse> pageResponse =
+                new PageResponse<>(List.of(response), 0, 20, 1L, 1, true, true);
         UserApiResponse apiResponse =
                 new UserApiResponse(
                         userId.toString(),
                         tenantId.toString(),
                         organizationId.toString(),
                         "test@example.com",
+                        "010-1234-5678",
                         "ACTIVE",
                         now,
                         now);
@@ -437,10 +471,16 @@ class UserControllerDocsTest extends RestDocsTestSupport {
         given(mapper.toQuery(any()))
                 .willReturn(
                         SearchUsersQuery.of(
-                                tenantId, organizationId, "test@example.com", "ACTIVE", 0, 20));
-        given(searchUsersUseCase.execute(any(SearchUsersQuery.class)))
-                .willReturn(List.of(response));
-        given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                                tenantId,
+                                organizationId,
+                                "test@example.com",
+                                "ACTIVE",
+                                now,
+                                now,
+                                0,
+                                20));
+        given(searchUsersUseCase.execute(any(SearchUsersQuery.class))).willReturn(pageResponse);
+        given(mapper.toApiResponse(any(UserResponse.class))).willReturn(apiResponse);
 
         // when & then
         mockMvc.perform(
@@ -449,6 +489,8 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                 .param("organizationId", organizationId.toString())
                                 .param("identifier", "test@example.com")
                                 .param("status", "ACTIVE")
+                                .param("createdFrom", "2025-01-01T00:00:00Z")
+                                .param("createdTo", "2025-12-31T23:59:59Z")
                                 .param("page", "0")
                                 .param("size", "20")
                                 .accept(MediaType.APPLICATION_JSON))
@@ -470,6 +512,10 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                                 .description(
                                                         "사용자 상태 필터 (선택, ACTIVE/INACTIVE/SUSPENDED)")
                                                 .optional(),
+                                        parameterWithName("createdFrom")
+                                                .description("생성일 시작 (ISO 8601 형식, 필수)"),
+                                        parameterWithName("createdTo")
+                                                .description("생성일 종료 (ISO 8601 형식, 필수)"),
                                         parameterWithName("page")
                                                 .description("페이지 번호 (기본값: 0)")
                                                 .optional(),
@@ -478,14 +524,31 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                                 .optional()),
                                 responseFields(
                                         fieldWithPath("success").description("API 성공 여부"),
-                                        fieldWithPath("data").description("응답 데이터 (사용자 목록)"),
-                                        fieldWithPath("data[].userId").description("사용자 ID"),
-                                        fieldWithPath("data[].tenantId").description("테넌트 ID"),
-                                        fieldWithPath("data[].organizationId").description("조직 ID"),
-                                        fieldWithPath("data[].identifier").description("사용자 식별자"),
-                                        fieldWithPath("data[].status").description("사용자 상태"),
-                                        fieldWithPath("data[].createdAt").description("생성 일시"),
-                                        fieldWithPath("data[].updatedAt").description("수정 일시"),
+                                        fieldWithPath("data").description("페이징된 사용자 목록"),
+                                        fieldWithPath("data.content").description("사용자 목록"),
+                                        fieldWithPath("data.content[].userId")
+                                                .description("사용자 ID"),
+                                        fieldWithPath("data.content[].tenantId")
+                                                .description("테넌트 ID"),
+                                        fieldWithPath("data.content[].organizationId")
+                                                .description("조직 ID"),
+                                        fieldWithPath("data.content[].identifier")
+                                                .description("사용자 식별자"),
+                                        fieldWithPath("data.content[].phoneNumber")
+                                                .description("핸드폰 번호"),
+                                        fieldWithPath("data.content[].status")
+                                                .description("사용자 상태"),
+                                        fieldWithPath("data.content[].createdAt")
+                                                .description("생성 일시"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .description("수정 일시"),
+                                        fieldWithPath("data.page").description("현재 페이지 번호"),
+                                        fieldWithPath("data.size").description("페이지 크기"),
+                                        fieldWithPath("data.totalElements")
+                                                .description("전체 데이터 개수"),
+                                        fieldWithPath("data.totalPages").description("전체 페이지 수"),
+                                        fieldWithPath("data.first").description("첫 페이지 여부"),
+                                        fieldWithPath("data.last").description("마지막 페이지 여부"),
                                         fieldWithPath("timestamp").description("응답 시간"),
                                         fieldWithPath("requestId").description("요청 ID"))));
     }
@@ -578,6 +641,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                         organizationId,
                         "조직A",
                         "admin@example.com",
+                        "010-1234-5678",
                         "ACTIVE",
                         2,
                         now,
@@ -594,6 +658,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                         organizationId.toString(),
                         "조직A",
                         "admin@example.com",
+                        "010-1234-5678",
                         "ACTIVE",
                         2,
                         now,
@@ -602,15 +667,18 @@ class UserControllerDocsTest extends RestDocsTestSupport {
         PageApiResponse<UserSummaryApiResponse> pageApiResponse =
                 new PageApiResponse<>(List.of(apiResponse), 0, 20, 1L, 1, true, true);
 
+        Instant createdFrom = Instant.parse("2024-01-01T00:00:00Z");
+        Instant createdTo = Instant.parse("2024-12-31T23:59:59Z");
         SearchUsersQuery query =
-                new SearchUsersQuery(
+                SearchUsersQuery.ofAdmin(
                         tenantId,
                         organizationId,
                         "admin",
+                        null,
                         "ACTIVE",
                         roleId,
-                        null,
-                        null,
+                        createdFrom,
+                        createdTo,
                         "createdAt",
                         "DESC",
                         0,
@@ -694,6 +762,8 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                                 .description("조직 이름"),
                                         fieldWithPath("data.content[].identifier")
                                                 .description("사용자 식별자"),
+                                        fieldWithPath("data.content[].phoneNumber")
+                                                .description("핸드폰 번호"),
                                         fieldWithPath("data.content[].status")
                                                 .description("사용자 상태"),
                                         fieldWithPath("data.content[].roleCount")
@@ -735,6 +805,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                         organizationId,
                         "조직A",
                         "admin@example.com",
+                        "010-1234-5678",
                         "ACTIVE",
                         List.of(roleSummary),
                         now,
@@ -752,6 +823,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                         organizationId.toString(),
                         "조직A",
                         "admin@example.com",
+                        "010-1234-5678",
                         "ACTIVE",
                         List.of(roleApiResponse),
                         now,
@@ -783,6 +855,7 @@ class UserControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.organizationId").description("조직 ID"),
                                         fieldWithPath("data.organizationName").description("조직 이름"),
                                         fieldWithPath("data.identifier").description("사용자 식별자"),
+                                        fieldWithPath("data.phoneNumber").description("핸드폰 번호"),
                                         fieldWithPath("data.status").description("사용자 상태"),
                                         fieldWithPath("data.roles").description("할당된 역할 목록"),
                                         fieldWithPath("data.roles[].roleId").description("역할 ID"),

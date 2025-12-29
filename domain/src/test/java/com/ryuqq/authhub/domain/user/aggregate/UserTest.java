@@ -42,6 +42,7 @@ class UserTest {
             TenantId tenantId = TenantId.of(UUID.randomUUID());
             OrganizationId organizationId = OrganizationId.of(UUID.randomUUID());
             String identifier = "test@example.com";
+            String phoneNumber = "010-1234-5678";
             String hashedPassword = "hashed_password";
 
             // when
@@ -51,6 +52,7 @@ class UserTest {
                             tenantId,
                             organizationId,
                             identifier,
+                            phoneNumber,
                             hashedPassword,
                             FIXED_CLOCK);
 
@@ -60,6 +62,7 @@ class UserTest {
             assertThat(user.getTenantId()).isEqualTo(tenantId);
             assertThat(user.getOrganizationId()).isEqualTo(organizationId);
             assertThat(user.getIdentifier()).isEqualTo(identifier);
+            assertThat(user.getPhoneNumber()).isEqualTo(phoneNumber);
             assertThat(user.getHashedPassword()).isEqualTo(hashedPassword);
             assertThat(user.getUserStatus()).isEqualTo(UserStatus.ACTIVE);
             assertThat(user.isActive()).isTrue();
@@ -72,6 +75,7 @@ class UserTest {
             UserId userId = UserId.forNew(UUID.randomUUID());
             TenantId tenantId = TenantId.of(UUID.randomUUID());
             String identifier = "test@example.com";
+            String phoneNumber = "010-1234-5678";
             String hashedPassword = "hashed_password";
 
             // when & then
@@ -82,6 +86,7 @@ class UserTest {
                                             tenantId,
                                             null,
                                             identifier,
+                                            phoneNumber,
                                             hashedPassword,
                                             FIXED_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -101,6 +106,7 @@ class UserTest {
             TenantId tenantId = TenantId.of(UUID.randomUUID());
             OrganizationId organizationId = OrganizationId.of(UUID.randomUUID());
             String identifier = "test@example.com";
+            String phoneNumber = "010-1234-5678";
             String hashedPassword = "hashed_password";
             Instant createdAt = Instant.parse("2025-01-01T00:00:00Z");
             Instant updatedAt = Instant.parse("2025-01-02T00:00:00Z");
@@ -112,6 +118,7 @@ class UserTest {
                             tenantId,
                             organizationId,
                             identifier,
+                            phoneNumber,
                             hashedPassword,
                             UserStatus.ACTIVE,
                             createdAt,
@@ -122,6 +129,7 @@ class UserTest {
             assertThat(user.getTenantId()).isEqualTo(tenantId);
             assertThat(user.getOrganizationId()).isEqualTo(organizationId);
             assertThat(user.getIdentifier()).isEqualTo(identifier);
+            assertThat(user.getPhoneNumber()).isEqualTo(phoneNumber);
             assertThat(user.getUserStatus()).isEqualTo(UserStatus.ACTIVE);
             assertThat(user.getCreatedAt()).isEqualTo(createdAt);
             assertThat(user.getUpdatedAt()).isEqualTo(updatedAt);

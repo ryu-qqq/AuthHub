@@ -3,6 +3,7 @@ package com.ryuqq.authhub.application.permission.service.command;
 import com.ryuqq.authhub.application.permission.assembler.PermissionUsageAssembler;
 import com.ryuqq.authhub.application.permission.dto.command.RegisterPermissionUsageCommand;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionUsageResponse;
+import com.ryuqq.authhub.application.permission.factory.command.PermissionUsageCommandFactory;
 import com.ryuqq.authhub.application.permission.manager.command.PermissionUsageTransactionManager;
 import com.ryuqq.authhub.application.permission.manager.query.PermissionUsageReadManager;
 import com.ryuqq.authhub.application.permission.port.in.command.RegisterPermissionUsageUseCase;
@@ -42,16 +43,19 @@ public class RegisterPermissionUsageService implements RegisterPermissionUsageUs
     private static final Logger log = LoggerFactory.getLogger(RegisterPermissionUsageService.class);
 
     private final PermissionUsageReadManager readManager;
+    private final PermissionUsageCommandFactory commandFactory;
     private final PermissionUsageTransactionManager transactionManager;
     private final PermissionUsageAssembler assembler;
     private final Clock clock;
 
     public RegisterPermissionUsageService(
             PermissionUsageReadManager readManager,
+            PermissionUsageCommandFactory commandFactory,
             PermissionUsageTransactionManager transactionManager,
             PermissionUsageAssembler assembler,
             Clock clock) {
         this.readManager = readManager;
+        this.commandFactory = commandFactory;
         this.transactionManager = transactionManager;
         this.assembler = assembler;
         this.clock = clock;
@@ -61,7 +65,7 @@ public class RegisterPermissionUsageService implements RegisterPermissionUsageUs
     public PermissionUsageResponse execute(RegisterPermissionUsageCommand command) {
         PermissionKey permissionKey = PermissionKey.of(command.permissionKey());
         ServiceName serviceName = ServiceName.of(command.serviceName());
-        List<CodeLocation> locations = assembler.toCodeLocations(command.locations());
+        List<CodeLocation> locations = commandFactory.toCodeLocations(command.locations());
 
         log.info(
                 "[PERMISSION-USAGE] Registering usage for permission={}, service={}",
@@ -84,7 +88,7 @@ public class RegisterPermissionUsageService implements RegisterPermissionUsageUs
                     "[PERMISSION-USAGE] Creating new usage for permission={}, service={}",
                     command.permissionKey(),
                     command.serviceName());
-            usage = PermissionUsage.create(permissionKey, serviceName, locations, clock);
+            usage = commandFactory.create(command);
         }
 
         PermissionUsage savedUsage = transactionManager.persist(usage);

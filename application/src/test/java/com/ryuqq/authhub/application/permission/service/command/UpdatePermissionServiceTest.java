@@ -10,13 +10,13 @@ import static org.mockito.Mockito.verify;
 import com.ryuqq.authhub.application.permission.assembler.PermissionAssembler;
 import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
+import com.ryuqq.authhub.application.permission.factory.command.PermissionCommandFactory;
 import com.ryuqq.authhub.application.permission.manager.command.PermissionTransactionManager;
 import com.ryuqq.authhub.application.permission.manager.query.PermissionReadManager;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotModifiableException;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import java.time.Clock;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,19 +38,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UpdatePermissionService 단위 테스트")
 class UpdatePermissionServiceTest {
 
-    @Mock private PermissionTransactionManager transactionManager;
-
     @Mock private PermissionReadManager readManager;
+
+    @Mock private PermissionCommandFactory commandFactory;
+
+    @Mock private PermissionTransactionManager transactionManager;
 
     @Mock private PermissionAssembler assembler;
 
-    private Clock clock;
     private UpdatePermissionService service;
 
     @BeforeEach
     void setUp() {
-        clock = PermissionFixture.fixedClock();
-        service = new UpdatePermissionService(transactionManager, readManager, assembler, clock);
+        service =
+                new UpdatePermissionService(
+                        readManager, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -77,6 +79,10 @@ class UpdatePermissionServiceTest {
 
             given(readManager.getById(PermissionId.of(permissionId)))
                     .willReturn(existingPermission);
+            given(
+                            commandFactory.applyUpdate(
+                                    any(Permission.class), any(UpdatePermissionCommand.class)))
+                    .willReturn(existingPermission);
             given(transactionManager.persist(any(Permission.class))).willReturn(existingPermission);
             given(assembler.toResponse(any(Permission.class))).willReturn(expectedResponse);
 
@@ -86,6 +92,8 @@ class UpdatePermissionServiceTest {
             // then
             assertThat(response.description()).isEqualTo("변경된 설명");
             verify(readManager).getById(PermissionId.of(permissionId));
+            verify(commandFactory)
+                    .applyUpdate(any(Permission.class), any(UpdatePermissionCommand.class));
             verify(transactionManager).persist(any(Permission.class));
         }
 
@@ -99,6 +107,12 @@ class UpdatePermissionServiceTest {
             UpdatePermissionCommand command = new UpdatePermissionCommand(permissionId, "새 설명");
 
             given(readManager.getById(PermissionId.of(permissionId))).willReturn(systemPermission);
+            given(
+                            commandFactory.applyUpdate(
+                                    any(Permission.class), any(UpdatePermissionCommand.class)))
+                    .willThrow(
+                            new SystemPermissionNotModifiableException(
+                                    systemPermission.keyValue()));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

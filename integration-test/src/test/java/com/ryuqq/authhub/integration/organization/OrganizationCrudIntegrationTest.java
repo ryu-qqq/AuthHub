@@ -10,6 +10,8 @@ import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.CreateTenantApiResp
 import com.ryuqq.authhub.integration.config.BaseIntegrationTest;
 import com.ryuqq.authhub.integration.organization.fixture.OrganizationIntegrationTestFixture;
 import com.ryuqq.authhub.integration.tenant.fixture.TenantIntegrationTestFixture;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +32,9 @@ import org.springframework.http.ResponseEntity;
  */
 @DisplayName("조직 CRUD 통합 테스트")
 class OrganizationCrudIntegrationTest extends BaseIntegrationTest {
+
+    private static final Instant NOW = Instant.now().plus(1, ChronoUnit.DAYS);
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     private String tenantId;
 
@@ -298,7 +303,13 @@ class OrganizationCrudIntegrationTest extends BaseIntegrationTest {
             // when - 목록 조회
             ResponseEntity<ApiResponse<PageApiResponse<OrganizationApiResponse>>> response =
                     restTemplate.exchange(
-                            organizationsUrl() + "?tenantId=" + tenantId + "&page=0&size=20",
+                            organizationsUrl()
+                                    + "?tenantId="
+                                    + tenantId
+                                    + "&page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -326,7 +337,13 @@ class OrganizationCrudIntegrationTest extends BaseIntegrationTest {
             // when - 페이지 크기 2로 조회
             ResponseEntity<ApiResponse<PageApiResponse<OrganizationApiResponse>>> response =
                     restTemplate.exchange(
-                            organizationsUrl() + "?tenantId=" + tenantId + "&page=0&size=2",
+                            organizationsUrl()
+                                    + "?tenantId="
+                                    + tenantId
+                                    + "&page=0&size=2&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});

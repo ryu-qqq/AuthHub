@@ -3,6 +3,7 @@ package com.ryuqq.authhub.integration.user;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.CreateOrganizationApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.CreateTenantApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.CreateUserApiResponse;
@@ -11,7 +12,8 @@ import com.ryuqq.authhub.integration.config.BaseIntegrationTest;
 import com.ryuqq.authhub.integration.organization.fixture.OrganizationIntegrationTestFixture;
 import com.ryuqq.authhub.integration.tenant.fixture.TenantIntegrationTestFixture;
 import com.ryuqq.authhub.integration.user.fixture.UserIntegrationTestFixture;
-import java.util.List;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +34,9 @@ import org.springframework.http.ResponseEntity;
  */
 @DisplayName("사용자 CRUD 통합 테스트")
 class UserCrudIntegrationTest extends BaseIntegrationTest {
+
+    private static final Instant NOW = Instant.now().plus(1, ChronoUnit.DAYS);
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     private String tenantId;
     private String organizationId;
@@ -445,9 +450,15 @@ class UserCrudIntegrationTest extends BaseIntegrationTest {
             postForApiResponse(usersUrl(), request2, new ParameterizedTypeReference<>() {});
 
             // when - 목록 조회
-            ResponseEntity<ApiResponse<List<UserApiResponse>>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<UserApiResponse>>> response =
                     restTemplate.exchange(
-                            usersUrl() + "?tenantId=" + tenantId,
+                            usersUrl()
+                                    + "?tenantId="
+                                    + tenantId
+                                    + "&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -455,9 +466,9 @@ class UserCrudIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().data()).isNotEmpty();
+            assertThat(response.getBody().data().content()).isNotEmpty();
             // 목록 조회 API가 정상 동작하는지 확인
-            assertThat(response.getBody().data().size()).isGreaterThanOrEqualTo(1);
+            assertThat(response.getBody().data().totalElements()).isGreaterThanOrEqualTo(1);
         }
 
         @Test
@@ -470,13 +481,17 @@ class UserCrudIntegrationTest extends BaseIntegrationTest {
             postForApiResponse(usersUrl(), request, new ParameterizedTypeReference<>() {});
 
             // when - 조직 필터로 조회
-            ResponseEntity<ApiResponse<List<UserApiResponse>>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<UserApiResponse>>> response =
                     restTemplate.exchange(
                             usersUrl()
                                     + "?tenantId="
                                     + tenantId
                                     + "&organizationId="
-                                    + organizationId,
+                                    + organizationId
+                                    + "&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -484,9 +499,9 @@ class UserCrudIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().data()).isNotEmpty();
+            assertThat(response.getBody().data().content()).isNotEmpty();
             // 모든 반환된 사용자가 해당 조직에 속함
-            assertThat(response.getBody().data())
+            assertThat(response.getBody().data().content())
                     .allMatch(user -> organizationId.equals(user.organizationId()));
         }
     }

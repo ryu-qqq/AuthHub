@@ -7,7 +7,11 @@ import static org.mockito.Mockito.verify;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationSummaryResponse;
+import com.ryuqq.authhub.application.organization.factory.query.OrganizationQueryFactory;
 import com.ryuqq.authhub.application.organization.port.out.query.OrganizationAdminQueryPort;
+import com.ryuqq.authhub.domain.common.vo.PageRequest;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -31,15 +35,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchOrganizationsAdminService 단위 테스트")
 class SearchOrganizationsAdminServiceTest {
 
+    @Mock private OrganizationQueryFactory queryFactory;
+
     @Mock private OrganizationAdminQueryPort adminQueryPort;
 
     private SearchOrganizationsAdminService service;
 
     private static final UUID TENANT_UUID = UUID.randomUUID();
+    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
 
     @BeforeEach
     void setUp() {
-        service = new SearchOrganizationsAdminService(adminQueryPort);
+        service = new SearchOrganizationsAdminService(queryFactory, adminQueryPort);
     }
 
     @Nested
@@ -51,8 +59,27 @@ class SearchOrganizationsAdminServiceTest {
         void shouldSearchOrganizationsSuccessfully() {
             // given
             SearchOrganizationsQuery query =
-                    new SearchOrganizationsQuery(
-                            TENANT_UUID, null, null, null, null, "createdAt", "DESC", 0, 20);
+                    SearchOrganizationsQuery.ofAdmin(
+                            TENANT_UUID,
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            "createdAt",
+                            "DESC",
+                            0,
+                            20);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(TENANT_UUID),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
             OrganizationSummaryResponse orgSummary =
                     new OrganizationSummaryResponse(
                             UUID.randomUUID(),
@@ -66,7 +93,8 @@ class SearchOrganizationsAdminServiceTest {
             PageResponse<OrganizationSummaryResponse> expectedResponse =
                     PageResponse.of(List.of(orgSummary), 0, 20, 1L, 1, true, true);
 
-            given(adminQueryPort.searchOrganizations(query)).willReturn(expectedResponse);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(adminQueryPort.searchOrganizations(criteria)).willReturn(expectedResponse);
 
             // when
             PageResponse<OrganizationSummaryResponse> response = service.execute(query);
@@ -74,7 +102,8 @@ class SearchOrganizationsAdminServiceTest {
             // then
             assertThat(response).isEqualTo(expectedResponse);
             assertThat(response.content()).hasSize(1);
-            verify(adminQueryPort).searchOrganizations(query);
+            verify(queryFactory).toCriteria(query);
+            verify(adminQueryPort).searchOrganizations(criteria);
         }
 
         @Test
@@ -82,20 +111,32 @@ class SearchOrganizationsAdminServiceTest {
         void shouldReturnEmptyPageWhenNoResults() {
             // given
             SearchOrganizationsQuery query =
-                    new SearchOrganizationsQuery(
+                    SearchOrganizationsQuery.ofAdmin(
                             TENANT_UUID,
                             "nonexistent",
                             null,
                             null,
-                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
                             "createdAt",
                             "DESC",
                             0,
                             20);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(TENANT_UUID),
+                            "nonexistent",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
             PageResponse<OrganizationSummaryResponse> emptyResponse =
                     PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
 
-            given(adminQueryPort.searchOrganizations(query)).willReturn(emptyResponse);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(adminQueryPort.searchOrganizations(criteria)).willReturn(emptyResponse);
 
             // when
             PageResponse<OrganizationSummaryResponse> response = service.execute(query);
@@ -110,8 +151,27 @@ class SearchOrganizationsAdminServiceTest {
         void shouldSearchOrganizationsWithStatusFilter() {
             // given
             SearchOrganizationsQuery query =
-                    new SearchOrganizationsQuery(
-                            TENANT_UUID, null, "ACTIVE", null, null, "createdAt", "DESC", 0, 20);
+                    SearchOrganizationsQuery.ofAdmin(
+                            TENANT_UUID,
+                            null,
+                            null,
+                            List.of("ACTIVE"),
+                            CREATED_FROM,
+                            CREATED_TO,
+                            "createdAt",
+                            "DESC",
+                            0,
+                            20);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(TENANT_UUID),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
             OrganizationSummaryResponse orgSummary =
                     new OrganizationSummaryResponse(
                             UUID.randomUUID(),
@@ -125,7 +185,8 @@ class SearchOrganizationsAdminServiceTest {
             PageResponse<OrganizationSummaryResponse> expectedResponse =
                     PageResponse.of(List.of(orgSummary), 0, 20, 1L, 1, true, true);
 
-            given(adminQueryPort.searchOrganizations(query)).willReturn(expectedResponse);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(adminQueryPort.searchOrganizations(criteria)).willReturn(expectedResponse);
 
             // when
             PageResponse<OrganizationSummaryResponse> response = service.execute(query);

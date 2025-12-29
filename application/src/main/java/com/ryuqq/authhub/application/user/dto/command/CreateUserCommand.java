@@ -16,9 +16,14 @@ import java.util.UUID;
  * @param tenantId 테넌트 ID
  * @param organizationId 조직 ID
  * @param identifier 사용자 식별자 (이메일)
+ * @param phoneNumber 핸드폰 번호 (한국 형식, 필수)
  * @param password 비밀번호 (plain text, Service에서 해싱)
  * @author development-team
  * @since 1.0.0
  */
 public record CreateUserCommand(
-        UUID tenantId, UUID organizationId, String identifier, String password) {}
+        UUID tenantId,
+        UUID organizationId,
+        String identifier,
+        String phoneNumber,
+        String password) {}

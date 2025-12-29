@@ -67,6 +67,7 @@ class CreateUserServiceTest {
                             UserFixture.defaultTenantUUID(),
                             UserFixture.defaultOrganizationUUID(),
                             "newuser@example.com",
+                            "010-1234-5678",
                             "password123");
             User newUser = UserFixture.createNew();
             User savedUser = UserFixture.create();
@@ -76,6 +77,7 @@ class CreateUserServiceTest {
                             savedUser.tenantIdValue(),
                             savedUser.organizationIdValue(),
                             savedUser.getIdentifier(),
+                            savedUser.getPhoneNumber(),
                             savedUser.getUserStatus().name(),
                             savedUser.getCreatedAt(),
                             savedUser.getUpdatedAt());
@@ -114,6 +116,7 @@ class CreateUserServiceTest {
                             UserFixture.defaultTenantUUID(),
                             UserFixture.defaultOrganizationUUID(),
                             "existing@example.com",
+                            "010-1234-5678",
                             "password123");
 
             given(

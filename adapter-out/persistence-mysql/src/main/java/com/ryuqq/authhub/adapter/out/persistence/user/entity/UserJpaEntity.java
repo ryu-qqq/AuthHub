@@ -44,12 +44,16 @@ import java.util.UUID;
         uniqueConstraints = {
             @UniqueConstraint(
                     name = "uk_users_tenant_org_identifier",
-                    columnNames = {"tenant_id", "organization_id", "identifier"})
+                    columnNames = {"tenant_id", "organization_id", "identifier"}),
+            @UniqueConstraint(
+                    name = "uk_users_tenant_phone",
+                    columnNames = {"tenant_id", "phone_number"})
         },
         indexes = {
             @Index(name = "idx_users_tenant_id", columnList = "tenant_id"),
             @Index(name = "idx_users_organization_id", columnList = "organization_id"),
             @Index(name = "idx_users_identifier", columnList = "identifier"),
+            @Index(name = "idx_users_phone_number", columnList = "phone_number"),
             @Index(name = "idx_users_status", columnList = "status")
         })
 public class UserJpaEntity extends BaseAuditEntity {
@@ -75,6 +79,10 @@ public class UserJpaEntity extends BaseAuditEntity {
     /** 사용자 식별자 (이메일 등) */
     @Column(name = "identifier", nullable = false, length = 255)
     private String identifier;
+
+    /** 핸드폰 번호 (한국 형식, 필수) */
+    @Column(name = "phone_number", nullable = false, length = 20)
+    private String phoneNumber;
 
     /** 해시된 비밀번호 */
     @Column(name = "hashed_password", nullable = false, length = 255)
@@ -103,6 +111,7 @@ public class UserJpaEntity extends BaseAuditEntity {
             UUID tenantId,
             UUID organizationId,
             String identifier,
+            String phoneNumber,
             String hashedPassword,
             UserStatus status,
             LocalDateTime createdAt,
@@ -113,6 +122,7 @@ public class UserJpaEntity extends BaseAuditEntity {
         this.tenantId = tenantId;
         this.organizationId = organizationId;
         this.identifier = identifier;
+        this.phoneNumber = phoneNumber;
         this.hashedPassword = hashedPassword;
         this.status = status;
     }
@@ -127,6 +137,7 @@ public class UserJpaEntity extends BaseAuditEntity {
      * @param tenantId 테넌트 UUID
      * @param organizationId 조직 UUID
      * @param identifier 사용자 식별자
+     * @param phoneNumber 핸드폰 번호
      * @param hashedPassword 해시된 비밀번호
      * @param status 사용자 상태
      * @param createdAt 생성 일시
@@ -139,6 +150,7 @@ public class UserJpaEntity extends BaseAuditEntity {
             UUID tenantId,
             UUID organizationId,
             String identifier,
+            String phoneNumber,
             String hashedPassword,
             UserStatus status,
             LocalDateTime createdAt,
@@ -149,6 +161,7 @@ public class UserJpaEntity extends BaseAuditEntity {
                 tenantId,
                 organizationId,
                 identifier,
+                phoneNumber,
                 hashedPassword,
                 status,
                 createdAt,
@@ -175,6 +188,10 @@ public class UserJpaEntity extends BaseAuditEntity {
 
     public String getIdentifier() {
         return identifier;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
     public String getHashedPassword() {

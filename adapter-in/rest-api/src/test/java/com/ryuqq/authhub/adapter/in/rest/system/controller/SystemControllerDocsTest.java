@@ -60,7 +60,8 @@ class SystemControllerDocsTest extends RestDocsTestSupport {
     void tenantOnboarding() throws Exception {
         // Given
         TenantOnboardingApiRequest request =
-                new TenantOnboardingApiRequest("커넥틀리", "본사", "admin@connectly.com");
+                new TenantOnboardingApiRequest(
+                        "커넥틀리", "본사", "admin@connectly.com", "010-1234-5678");
 
         UUID tenantId = UUID.randomUUID();
         UUID organizationId = UUID.randomUUID();
@@ -77,7 +78,9 @@ class SystemControllerDocsTest extends RestDocsTestSupport {
                         temporaryPassword);
 
         given(mapper.toCommand(any(TenantOnboardingApiRequest.class)))
-                .willReturn(new TenantOnboardingCommand("커넥틀리", "본사", "admin@connectly.com"));
+                .willReturn(
+                        new TenantOnboardingCommand(
+                                "커넥틀리", "본사", "admin@connectly.com", "010-1234-5678"));
         given(tenantOnboardingUseCase.execute(any(TenantOnboardingCommand.class)))
                 .willReturn(useCaseResponse);
         given(mapper.toApiResponse(any(TenantOnboardingResponse.class))).willReturn(apiResponse);
@@ -96,7 +99,9 @@ class SystemControllerDocsTest extends RestDocsTestSupport {
                                                 .description("테넌트(회사) 이름 (2-100자)"),
                                         fieldWithPath("organizationName")
                                                 .description("기본 조직 이름 (2-100자)"),
-                                        fieldWithPath("masterEmail").description("마스터 관리자 이메일")),
+                                        fieldWithPath("masterEmail").description("마스터 관리자 이메일"),
+                                        fieldWithPath("masterPhoneNumber")
+                                                .description("마스터 관리자 핸드폰 번호 (10-20자)")),
                                 responseFields(
                                         fieldWithPath("success").description("요청 성공 여부"),
                                         fieldWithPath("data").description("응답 데이터"),

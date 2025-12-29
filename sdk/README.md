@@ -287,14 +287,14 @@ Map<String, Object> params = Map.of(
 );
 ApiResponse<PageResponse<UserResponse>> list = users.search(params);
 
-// 사용자 정보 수정
-users.update(1L, new UpdateUserRequest("New Name", "010-9999-8888"));
+// 사용자 정보 수정 (identifier 변경)
+users.update(1L, new UpdateUserRequest("new-identifier"));
 
 // 사용자 상태 변경
 users.updateStatus(1L, new UpdateUserStatusRequest("SUSPENDED"));
 
-// 비밀번호 변경
-users.updatePassword(1L, new UpdateUserPasswordRequest("newPassword123"));
+// 비밀번호 변경 (현재 비밀번호, 새 비밀번호)
+users.updatePassword(1L, new UpdateUserPasswordRequest("currentPassword123", "newPassword123"));
 
 // 역할 할당
 users.assignRole(1L, new AssignUserRoleRequest(10L));
@@ -502,7 +502,7 @@ while (true) {
 
     allUsers.addAll(pageData.content());
 
-    if (pageData.last()) {
+    if (!pageData.hasNext()) {
         break;
     }
     page++;

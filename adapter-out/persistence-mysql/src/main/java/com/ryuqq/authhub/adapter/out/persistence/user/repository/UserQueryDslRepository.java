@@ -3,9 +3,15 @@ package com.ryuqq.authhub.adapter.out.persistence.user.repository;
 import static com.ryuqq.authhub.adapter.out.persistence.user.entity.QUserJpaEntity.userJpaEntity;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
-import com.ryuqq.authhub.domain.user.vo.UserStatus;
+import com.ryuqq.authhub.domain.common.vo.SearchType;
+import com.ryuqq.authhub.domain.common.vo.SortDirection;
+import com.ryuqq.authhub.domain.user.query.criteria.UserCriteria;
+import com.ryuqq.authhub.domain.user.vo.UserSortKey;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,8 +28,8 @@ import org.springframework.stereotype.Repository;
  *   <li>findByUserId() - UUID로 단건 조회
  *   <li>findByTenantIdAndOrganizationIdAndIdentifier() - 식별자로 조회
  *   <li>existsByTenantIdAndOrganizationIdAndIdentifier() - 식별자 존재 여부 확인
- *   <li>search() - 조건 검색
- *   <li>count() - 조건 개수 조회
+ *   <li>findAllByCriteria() - 조건 검색
+ *   <li>countByCriteria() - 조건 개수 조회
  * </ul>
  *
  * <p><strong>CQRS 패턴:</strong>
@@ -148,51 +154,60 @@ public class UserQueryDslRepository {
     }
 
     /**
-     * 사용자 검색 (페이징)
+     * 테넌트 내 핸드폰 번호 존재 여부 확인
      *
-     * @param tenantId 테넌트 UUID 필터 (null 허용)
-     * @param organizationId 조직 UUID 필터 (null 허용)
-     * @param identifier 식별자 필터 (null 허용, 부분 검색)
-     * @param status 상태 필터 (null 허용)
-     * @param offset 시작 위치
-     * @param limit 조회 개수
+     * @param tenantId 테넌트 UUID
+     * @param phoneNumber 핸드폰 번호
+     * @return 존재 여부
+     */
+    public boolean existsByTenantIdAndPhoneNumber(UUID tenantId, String phoneNumber) {
+        Integer result =
+                queryFactory
+                        .selectOne()
+                        .from(userJpaEntity)
+                        .where(
+                                userJpaEntity.tenantId.eq(tenantId),
+                                userJpaEntity.phoneNumber.eq(phoneNumber))
+                        .fetchFirst();
+        return result != null;
+    }
+
+    /**
+     * 조건에 맞는 사용자 목록 조회 (페이징)
+     *
+     * @param criteria 검색 조건 (UserCriteria)
      * @return UserJpaEntity 목록
      */
-    public List<UserJpaEntity> search(
-            UUID tenantId,
-            UUID organizationId,
-            String identifier,
-            UserStatus status,
-            int offset,
-            int limit) {
-        BooleanBuilder builder = buildSearchCondition(tenantId, organizationId, identifier, status);
+    public List<UserJpaEntity> findAllByCriteria(UserCriteria criteria) {
+        BooleanBuilder condition = buildCondition(criteria);
+        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(criteria);
+
+        int offset = criteria.page().page() * criteria.page().size();
+        int limit = criteria.page().size();
 
         return queryFactory
                 .selectFrom(userJpaEntity)
-                .where(builder)
-                .orderBy(userJpaEntity.createdAt.desc())
+                .where(condition)
+                .orderBy(orderSpecifier)
                 .offset(offset)
                 .limit(limit)
                 .fetch();
     }
 
     /**
-     * 사용자 검색 개수 조회
+     * 조건에 맞는 사용자 개수 조회
      *
-     * @param tenantId 테넌트 UUID 필터 (null 허용)
-     * @param organizationId 조직 UUID 필터 (null 허용)
-     * @param identifier 식별자 필터 (null 허용, 부분 검색)
-     * @param status 상태 필터 (null 허용)
+     * @param criteria 검색 조건 (UserCriteria)
      * @return 조건에 맞는 사용자 총 개수
      */
-    public long count(UUID tenantId, UUID organizationId, String identifier, UserStatus status) {
-        BooleanBuilder builder = buildSearchCondition(tenantId, organizationId, identifier, status);
+    public long countByCriteria(UserCriteria criteria) {
+        BooleanBuilder condition = buildCondition(criteria);
 
         Long count =
                 queryFactory
                         .select(userJpaEntity.count())
                         .from(userJpaEntity)
-                        .where(builder)
+                        .where(condition)
                         .fetchOne();
         return count != null ? count : 0L;
     }
@@ -200,28 +215,87 @@ public class UserQueryDslRepository {
     /**
      * 검색 조건 빌더 생성
      *
-     * @param tenantId 테넌트 UUID 필터
-     * @param organizationId 조직 UUID 필터
-     * @param identifier 식별자 필터
-     * @param status 상태 필터
+     * @param criteria 검색 조건
      * @return BooleanBuilder
      */
-    private BooleanBuilder buildSearchCondition(
-            UUID tenantId, UUID organizationId, String identifier, UserStatus status) {
+    private BooleanBuilder buildCondition(UserCriteria criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (tenantId != null) {
-            builder.and(userJpaEntity.tenantId.eq(tenantId));
+        // 테넌트 필터
+        if (criteria.hasTenantFilter()) {
+            builder.and(userJpaEntity.tenantId.eq(criteria.tenantId()));
         }
-        if (organizationId != null) {
-            builder.and(userJpaEntity.organizationId.eq(organizationId));
+
+        // 조직 필터
+        if (criteria.hasOrganizationFilter()) {
+            builder.and(userJpaEntity.organizationId.eq(criteria.organizationId()));
         }
-        if (identifier != null && !identifier.isBlank()) {
-            builder.and(userJpaEntity.identifier.containsIgnoreCase(identifier));
+
+        // 식별자 검색 (SearchType에 따라)
+        if (criteria.hasIdentifierFilter()) {
+            SearchType searchType =
+                    criteria.identifierSearchType() != null
+                            ? criteria.identifierSearchType()
+                            : SearchType.CONTAINS_LIKE;
+            builder.and(applyIdentifierSearch(criteria.identifier(), searchType));
         }
-        if (status != null) {
-            builder.and(userJpaEntity.status.eq(status));
+
+        // 상태 필터
+        if (criteria.hasStatusFilter()) {
+            builder.and(userJpaEntity.status.eq(criteria.status()));
         }
+
+        // 날짜 범위 필터
+        if (criteria.dateRange() != null) {
+            if (criteria.dateRange().startDate() != null) {
+                LocalDateTime fromDateTime = criteria.dateRange().startDate().atStartOfDay();
+                builder.and(userJpaEntity.createdAt.goe(fromDateTime));
+            }
+            if (criteria.dateRange().endDate() != null) {
+                LocalDateTime toDateTime = criteria.dateRange().endDate().atTime(23, 59, 59);
+                builder.and(userJpaEntity.createdAt.loe(toDateTime));
+            }
+        }
+
         return builder;
+    }
+
+    /**
+     * SearchType에 따른 식별자 검색 조건 생성
+     *
+     * @param identifier 검색 식별자
+     * @param searchType 검색 타입
+     * @return BooleanExpression
+     */
+    private BooleanExpression applyIdentifierSearch(String identifier, SearchType searchType) {
+        return switch (searchType) {
+            case PREFIX_LIKE -> userJpaEntity.identifier.startsWithIgnoreCase(identifier);
+            case CONTAINS_LIKE -> userJpaEntity.identifier.containsIgnoreCase(identifier);
+            case MATCH_AGAINST ->
+                    userJpaEntity.identifier.containsIgnoreCase(
+                            identifier); // Fallback, 실제 구현은 NativeQuery
+        };
+    }
+
+    /**
+     * 정렬 조건 빌더 생성
+     *
+     * @param criteria 검색 조건
+     * @return OrderSpecifier
+     */
+    private OrderSpecifier<?> buildOrderSpecifier(UserCriteria criteria) {
+        UserSortKey sortKey =
+                criteria.sortKey() != null ? criteria.sortKey() : UserSortKey.CREATED_AT;
+        boolean isAsc = criteria.sortDirection() == SortDirection.ASC;
+
+        return switch (sortKey) {
+            case IDENTIFIER ->
+                    isAsc ? userJpaEntity.identifier.asc() : userJpaEntity.identifier.desc();
+            case STATUS -> isAsc ? userJpaEntity.status.asc() : userJpaEntity.status.desc();
+            case UPDATED_AT ->
+                    isAsc ? userJpaEntity.updatedAt.asc() : userJpaEntity.updatedAt.desc();
+            case CREATED_AT ->
+                    isAsc ? userJpaEntity.createdAt.asc() : userJpaEntity.createdAt.desc();
+        };
     }
 }

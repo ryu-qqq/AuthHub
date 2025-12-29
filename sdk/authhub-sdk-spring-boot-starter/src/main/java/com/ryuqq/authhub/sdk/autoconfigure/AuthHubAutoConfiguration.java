@@ -16,7 +16,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
 
 /**
  * AuthHub SDK Spring Boot AutoConfiguration. authhub.base-url 속성이 설정되면 자동으로 AuthHubClient를 구성합니다.
@@ -124,5 +126,20 @@ public class AuthHubAutoConfiguration {
     @ConditionalOnMissingBean
     public OnboardingApi onboardingApi(AuthHubClient client) {
         return client.onboarding();
+    }
+
+    /** AuthHubTokenContextFilter 자동 등록. HTTP 요청에서 Authorization 헤더를 추출하여 ThreadLocal에 저장합니다. */
+    @Bean
+    @ConditionalOnMissingBean(name = "authHubTokenContextFilterRegistration")
+    @ConditionalOnClass(name = "jakarta.servlet.Filter")
+    public FilterRegistrationBean<AuthHubTokenContextFilter>
+            authHubTokenContextFilterRegistration() {
+        FilterRegistrationBean<AuthHubTokenContextFilter> registrationBean =
+                new FilterRegistrationBean<>();
+        registrationBean.setFilter(new AuthHubTokenContextFilter());
+        registrationBean.addUrlPatterns("/*");
+        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
+        registrationBean.setName("authHubTokenContextFilter");
+        return registrationBean;
     }
 }

@@ -2,8 +2,6 @@ package com.ryuqq.authhub.adapter.out.persistence.role.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -18,6 +16,7 @@ import com.ryuqq.authhub.domain.role.vo.RoleName;
 import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +51,8 @@ class RoleQueryAdapterTest {
     private static final UUID ROLE_UUID = RoleFixture.defaultUUID();
     private static final UUID TENANT_UUID = RoleFixture.defaultTenantUUID();
     private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
 
     @BeforeEach
     void setUp() {
@@ -190,14 +191,15 @@ class RoleQueryAdapterTest {
         @DisplayName("검색 조건으로 역할 목록을 조회한다")
         void shouldSearchRolesSuccessfully() {
             // given
-            SearchRolesQuery query = SearchRolesQuery.of(TENANT_UUID, null, null, null, 0, 20);
+            SearchRolesQuery query =
+                    SearchRolesQuery.of(
+                            TENANT_UUID, null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
             Role role1 = RoleFixture.create();
             Role role2 = RoleFixture.createWithName("ANOTHER_ROLE");
             RoleJpaEntity entity1 = createRoleEntity();
             RoleJpaEntity entity2 = createRoleEntity();
 
-            given(repository.search(eq(TENANT_UUID), any(), any(), any(), anyInt(), anyInt()))
-                    .willReturn(List.of(entity1, entity2));
+            given(repository.searchByQuery(query)).willReturn(List.of(entity1, entity2));
             given(mapper.toDomain(any(RoleJpaEntity.class))).willReturn(role1, role2);
 
             // when
@@ -205,6 +207,7 @@ class RoleQueryAdapterTest {
 
             // then
             assertThat(results).hasSize(2);
+            verify(repository).searchByQuery(query);
         }
 
         @Test
@@ -212,16 +215,24 @@ class RoleQueryAdapterTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             SearchRolesQuery query =
-                    SearchRolesQuery.of(TENANT_UUID, "nonexistent", null, null, 0, 20);
+                    SearchRolesQuery.of(
+                            TENANT_UUID,
+                            "nonexistent",
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
 
-            given(repository.search(eq(TENANT_UUID), any(), any(), any(), anyInt(), anyInt()))
-                    .willReturn(List.of());
+            given(repository.searchByQuery(query)).willReturn(List.of());
 
             // when
             List<Role> results = adapter.search(query);
 
             // then
             assertThat(results).isEmpty();
+            verify(repository).searchByQuery(query);
         }
     }
 
@@ -233,15 +244,18 @@ class RoleQueryAdapterTest {
         @DisplayName("검색 조건으로 역할 개수를 조회한다")
         void shouldCountRolesSuccessfully() {
             // given
-            SearchRolesQuery query = SearchRolesQuery.of(TENANT_UUID, null, null, null, 0, 20);
+            SearchRolesQuery query =
+                    SearchRolesQuery.of(
+                            TENANT_UUID, null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
 
-            given(repository.count(eq(TENANT_UUID), any(), any(), any())).willReturn(5L);
+            given(repository.countByQuery(query)).willReturn(5L);
 
             // when
             long result = adapter.count(query);
 
             // then
             assertThat(result).isEqualTo(5L);
+            verify(repository).countByQuery(query);
         }
     }
 

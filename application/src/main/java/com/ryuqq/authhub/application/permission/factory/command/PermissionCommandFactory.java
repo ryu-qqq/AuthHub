@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.application.permission.factory.command;
 
 import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionCommand;
+import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionCommand;
 import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
@@ -62,5 +63,17 @@ public class PermissionCommandFactory {
         } else {
             return Permission.createCustom(permissionId, resource, action, description, clock);
         }
+    }
+
+    /**
+     * 기존 Permission에 UpdatePermissionCommand 적용
+     *
+     * @param permission 기존 Permission
+     * @param command 업데이트 Command
+     * @return 업데이트된 Permission 인스턴스
+     */
+    public Permission applyUpdate(Permission permission, UpdatePermissionCommand command) {
+        PermissionDescription newDescription = PermissionDescription.of(command.description());
+        return permission.changeDescription(newDescription, clock);
     }
 }

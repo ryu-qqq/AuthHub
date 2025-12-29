@@ -14,7 +14,6 @@ public record CreateUserRequest(
         Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(organizationId, "organizationId must not be null");
         Objects.requireNonNull(identifier, "identifier must not be null");
-        Objects.requireNonNull(phoneNumber, "phoneNumber must not be null");
         Objects.requireNonNull(password, "password must not be null");
         if (identifier.isBlank()) {
             throw new IllegalArgumentException("identifier must not be blank");

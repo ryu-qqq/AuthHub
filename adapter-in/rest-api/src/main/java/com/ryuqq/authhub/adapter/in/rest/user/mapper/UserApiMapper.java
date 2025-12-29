@@ -61,6 +61,7 @@ public class UserApiMapper {
                 UUID.fromString(request.tenantId()),
                 UUID.fromString(request.organizationId()),
                 request.identifier(),
+                request.phoneNumber(),
                 request.password());
     }
 
@@ -133,7 +134,14 @@ public class UserApiMapper {
         int page = request.page() != null ? request.page() : 0;
         int size = request.size() != null ? request.size() : 20;
         return SearchUsersQuery.of(
-                tenantId, organizationId, request.identifier(), request.status(), page, size);
+                tenantId,
+                organizationId,
+                request.identifier(),
+                request.status(),
+                request.createdFrom(),
+                request.createdTo(),
+                page,
+                size);
     }
 
     /**
@@ -158,6 +166,7 @@ public class UserApiMapper {
                 response.tenantId().toString(),
                 response.organizationId().toString(),
                 response.identifier(),
+                response.phoneNumber(),
                 response.status(),
                 response.createdAt(),
                 response.updatedAt());
@@ -234,23 +243,18 @@ public class UserApiMapper {
 
         int page = request.page() != null ? request.page() : 0;
         int size = request.size() != null ? request.size() : SearchUsersQuery.DEFAULT_PAGE_SIZE;
-        String sortBy =
-                request.sortBy() != null ? request.sortBy() : SearchUsersQuery.DEFAULT_SORT_BY;
-        String sortDirection =
-                request.sortDirection() != null
-                        ? request.sortDirection()
-                        : SearchUsersQuery.DEFAULT_SORT_DIRECTION;
 
-        return new SearchUsersQuery(
+        return SearchUsersQuery.ofAdmin(
                 tenantId,
                 organizationId,
                 request.identifier(),
+                request.searchType(),
                 request.status(),
                 roleId,
                 request.createdFrom(),
                 request.createdTo(),
-                sortBy,
-                sortDirection,
+                request.sortBy(),
+                request.sortDirection(),
                 page,
                 size);
     }
@@ -269,6 +273,7 @@ public class UserApiMapper {
                 response.organizationId() != null ? response.organizationId().toString() : null,
                 response.organizationName(),
                 response.identifier(),
+                response.phoneNumber(),
                 response.status(),
                 response.roleCount(),
                 response.createdAt(),
@@ -292,6 +297,7 @@ public class UserApiMapper {
                 response.organizationId() != null ? response.organizationId().toString() : null,
                 response.organizationName(),
                 response.identifier(),
+                response.phoneNumber(),
                 response.status(),
                 roles,
                 response.createdAt(),

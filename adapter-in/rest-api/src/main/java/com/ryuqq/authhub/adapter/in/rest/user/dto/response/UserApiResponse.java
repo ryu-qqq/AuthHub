@@ -27,6 +27,7 @@ public record UserApiResponse(
         @Schema(description = "테넌트 ID") String tenantId,
         @Schema(description = "조직 ID") String organizationId,
         @Schema(description = "사용자 식별자") String identifier,
+        @Schema(description = "핸드폰 번호") String phoneNumber,
         @Schema(description = "사용자 상태") String status,
         @Schema(description = "생성 일시") Instant createdAt,
         @Schema(description = "수정 일시") Instant updatedAt) {}

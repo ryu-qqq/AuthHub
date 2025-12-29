@@ -18,8 +18,6 @@ import com.ryuqq.authhub.application.role.dto.query.GetRoleQuery;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RolePermissionResponse;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -48,6 +46,8 @@ class RoleApiMapperTest {
     private static final UUID PERMISSION_UUID =
             UUID.fromString("01941234-5678-7000-8000-123456789222");
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
 
     @BeforeEach
     void setUp() {
@@ -167,7 +167,14 @@ class RoleApiMapperTest {
             // given
             SearchRolesApiRequest request =
                     new SearchRolesApiRequest(
-                            TENANT_UUID.toString(), "ADMIN", "ORGANIZATION", "CUSTOM", 0, 20);
+                            TENANT_UUID.toString(),
+                            "ADMIN",
+                            List.of("ORGANIZATION"),
+                            List.of("CUSTOM"),
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
 
             // when
             SearchRolesQuery query = mapper.toQuery(request);
@@ -175,8 +182,10 @@ class RoleApiMapperTest {
             // then
             assertThat(query.tenantId()).isEqualTo(TENANT_UUID);
             assertThat(query.name()).isEqualTo("ADMIN");
-            assertThat(query.scope()).isEqualTo(RoleScope.ORGANIZATION);
-            assertThat(query.type()).isEqualTo(RoleType.CUSTOM);
+            assertThat(query.scopes()).containsExactly("ORGANIZATION");
+            assertThat(query.types()).containsExactly("CUSTOM");
+            assertThat(query.createdFrom()).isEqualTo(CREATED_FROM);
+            assertThat(query.createdTo()).isEqualTo(CREATED_TO);
             assertThat(query.page()).isZero();
             assertThat(query.size()).isEqualTo(20);
         }
@@ -186,7 +195,15 @@ class RoleApiMapperTest {
         void givenNullTenantId_whenToQuery_thenSuccess() {
             // given
             SearchRolesApiRequest request =
-                    new SearchRolesApiRequest(null, "SUPER_ADMIN", "GLOBAL", "SYSTEM", null, null);
+                    new SearchRolesApiRequest(
+                            null,
+                            "SUPER_ADMIN",
+                            List.of("GLOBAL"),
+                            List.of("SYSTEM"),
+                            CREATED_FROM,
+                            CREATED_TO,
+                            null,
+                            null);
 
             // when
             SearchRolesQuery query = mapper.toQuery(request);
@@ -198,34 +215,49 @@ class RoleApiMapperTest {
         }
 
         @Test
-        @DisplayName("유효하지 않은 scope/type은 null로 변환")
-        void givenInvalidScopeAndType_whenToQuery_thenNull() {
+        @DisplayName("다중 scope/type 필터 변환 성공")
+        void givenMultipleScopesAndTypes_whenToQuery_thenSuccess() {
             // given
             SearchRolesApiRequest request =
                     new SearchRolesApiRequest(
-                            null, "ADMIN", "INVALID_SCOPE", "INVALID_TYPE", 0, 20);
+                            TENANT_UUID.toString(),
+                            "ADMIN",
+                            List.of("TENANT", "ORGANIZATION"),
+                            List.of("SYSTEM", "CUSTOM"),
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
 
             // when
             SearchRolesQuery query = mapper.toQuery(request);
 
             // then
-            assertThat(query.scope()).isNull();
-            assertThat(query.type()).isNull();
+            assertThat(query.scopes()).containsExactly("TENANT", "ORGANIZATION");
+            assertThat(query.types()).containsExactly("SYSTEM", "CUSTOM");
         }
 
         @Test
-        @DisplayName("소문자 scope/type도 변환 성공")
-        void givenLowercaseScopeAndType_whenToQuery_thenConverts() {
+        @DisplayName("null scope/type은 null로 변환")
+        void givenNullScopeAndType_whenToQuery_thenNull() {
             // given
             SearchRolesApiRequest request =
-                    new SearchRolesApiRequest(null, "ADMIN", "global", "system", 0, 20);
+                    new SearchRolesApiRequest(
+                            TENANT_UUID.toString(),
+                            "ADMIN",
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
 
             // when
             SearchRolesQuery query = mapper.toQuery(request);
 
             // then
-            assertThat(query.scope()).isEqualTo(RoleScope.GLOBAL);
-            assertThat(query.type()).isEqualTo(RoleType.SYSTEM);
+            assertThat(query.scopes()).isNull();
+            assertThat(query.types()).isNull();
         }
     }
 

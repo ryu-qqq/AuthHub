@@ -3,11 +3,13 @@ package com.ryuqq.authhub.integration.permission;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.CreatePermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
 import com.ryuqq.authhub.integration.config.BaseIntegrationTest;
 import com.ryuqq.authhub.integration.permission.fixture.PermissionIntegrationTestFixture;
-import java.util.List;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,6 +29,9 @@ import org.springframework.http.ResponseEntity;
  */
 @DisplayName("권한 CRUD 통합 테스트")
 class PermissionCrudIntegrationTest extends BaseIntegrationTest {
+
+    private static final Instant NOW = Instant.now().plus(1, ChronoUnit.DAYS);
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     private String permissionsUrl() {
         return apiV1() + "/auth/permissions";
@@ -308,9 +313,13 @@ class PermissionCrudIntegrationTest extends BaseIntegrationTest {
             postForApiResponse(permissionsUrl(), request2, new ParameterizedTypeReference<>() {});
 
             // when - 목록 조회
-            ResponseEntity<ApiResponse<List<PermissionApiResponse>>> response =
+            ResponseEntity<ApiResponse<PageApiResponse<PermissionApiResponse>>> response =
                     restTemplate.exchange(
-                            permissionsUrl(),
+                            permissionsUrl()
+                                    + "?createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -318,9 +327,9 @@ class PermissionCrudIntegrationTest extends BaseIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().data()).isNotEmpty();
+            assertThat(response.getBody().data().content()).isNotEmpty();
             // 목록 조회 API가 정상 동작하는지 확인
-            assertThat(response.getBody().data().size()).isGreaterThanOrEqualTo(1);
+            assertThat(response.getBody().data().totalElements()).isGreaterThanOrEqualTo(1);
         }
     }
 }

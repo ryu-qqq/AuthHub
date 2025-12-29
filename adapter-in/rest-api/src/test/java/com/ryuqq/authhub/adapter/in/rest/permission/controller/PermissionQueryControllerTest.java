@@ -13,6 +13,7 @@ import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.UserPermissionsApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.mapper.PermissionApiMapper;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.permission.dto.query.GetPermissionQuery;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
@@ -22,7 +23,6 @@ import com.ryuqq.authhub.application.role.dto.response.UserRolesResponse;
 import com.ryuqq.authhub.application.role.port.in.GetUserRolesUseCase;
 import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
@@ -180,11 +180,15 @@ class PermissionQueryControllerTest {
     @DisplayName("GET /api/v1/permissions - 권한 목록 검색")
     class SearchPermissionsTest {
 
+        private static final Instant CREATED_FROM = Instant.parse("2024-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2024-12-31T23:59:59Z");
+
         @Test
         @DisplayName("[성공] 필터 없이 조회 시 기본값으로 200 OK 반환")
         void searchPermissions_withoutFilters_returns200Ok() throws Exception {
             // Given
             UUID permissionId = UUID.randomUUID();
+            Instant now = Instant.now();
             PermissionResponse response =
                     new PermissionResponse(
                             permissionId,
@@ -193,8 +197,8 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
             PermissionApiResponse apiResponse =
                     new PermissionApiResponse(
                             permissionId.toString(),
@@ -203,22 +207,32 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
+            PageResponse<PermissionResponse> pageResponse =
+                    PageResponse.of(List.of(response), 0, 20, 1, 1, true, true);
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchPermissionsQuery(null, null, null, 0, 20));
+                    .willReturn(
+                            SearchPermissionsQuery.of(
+                                    null, null, null, CREATED_FROM, CREATED_TO, 0, 20));
             given(searchPermissionsUseCase.execute(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of(response));
-            given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                    .willReturn(pageResponse);
+            given(mapper.toApiResponse(any(PermissionResponse.class))).willReturn(apiResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/auth/permissions").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/api/v1/auth/permissions")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data[0].permissionId").value(permissionId.toString()))
-                    .andExpect(jsonPath("$.data[0].key").value("tenant:read"));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(
+                            jsonPath("$.data.content[0].permissionId")
+                                    .value(permissionId.toString()))
+                    .andExpect(jsonPath("$.data.content[0].key").value("tenant:read"));
 
             verify(searchPermissionsUseCase).execute(any(SearchPermissionsQuery.class));
         }
@@ -228,6 +242,7 @@ class PermissionQueryControllerTest {
         void searchPermissions_withResourceFilter_returns200Ok() throws Exception {
             // Given
             UUID permissionId = UUID.randomUUID();
+            Instant now = Instant.now();
             PermissionResponse response =
                     new PermissionResponse(
                             permissionId,
@@ -236,8 +251,8 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
             PermissionApiResponse apiResponse =
                     new PermissionApiResponse(
                             permissionId.toString(),
@@ -246,24 +261,30 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
+            PageResponse<PermissionResponse> pageResponse =
+                    PageResponse.of(List.of(response), 0, 20, 1, 1, true, true);
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchPermissionsQuery("tenant", null, null, 0, 20));
+                    .willReturn(
+                            SearchPermissionsQuery.of(
+                                    "tenant", null, null, CREATED_FROM, CREATED_TO, 0, 20));
             given(searchPermissionsUseCase.execute(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of(response));
-            given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                    .willReturn(pageResponse);
+            given(mapper.toApiResponse(any(PermissionResponse.class))).willReturn(apiResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/permissions")
                                     .param("resource", "tenant")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data[0].resource").value("tenant"));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].resource").value("tenant"));
 
             verify(searchPermissionsUseCase).execute(any(SearchPermissionsQuery.class));
         }
@@ -273,6 +294,7 @@ class PermissionQueryControllerTest {
         void searchPermissions_withActionFilter_returns200Ok() throws Exception {
             // Given
             UUID permissionId = UUID.randomUUID();
+            Instant now = Instant.now();
             PermissionResponse response =
                     new PermissionResponse(
                             permissionId,
@@ -281,8 +303,8 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
             PermissionApiResponse apiResponse =
                     new PermissionApiResponse(
                             permissionId.toString(),
@@ -291,33 +313,40 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
+            PageResponse<PermissionResponse> pageResponse =
+                    PageResponse.of(List.of(response), 0, 20, 1, 1, true, true);
 
             given(mapper.toQuery(any()))
-                    .willReturn(new SearchPermissionsQuery(null, "read", null, 0, 20));
+                    .willReturn(
+                            SearchPermissionsQuery.of(
+                                    null, "read", null, CREATED_FROM, CREATED_TO, 0, 20));
             given(searchPermissionsUseCase.execute(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of(response));
-            given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                    .willReturn(pageResponse);
+            given(mapper.toApiResponse(any(PermissionResponse.class))).willReturn(apiResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/permissions")
                                     .param("action", "read")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data[0].action").value("read"));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].action").value("read"));
 
             verify(searchPermissionsUseCase).execute(any(SearchPermissionsQuery.class));
         }
 
         @Test
         @DisplayName("[성공] 권한 유형 필터로 조회 시 200 OK 반환")
-        void searchPermissions_withTypeFilter_returns200Ok() throws Exception {
+        void searchPermissions_withTypesFilter_returns200Ok() throws Exception {
             // Given
             UUID permissionId = UUID.randomUUID();
+            Instant now = Instant.now();
             PermissionResponse response =
                     new PermissionResponse(
                             permissionId,
@@ -326,8 +355,8 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
             PermissionApiResponse apiResponse =
                     new PermissionApiResponse(
                             permissionId.toString(),
@@ -336,25 +365,36 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
+            PageResponse<PermissionResponse> pageResponse =
+                    PageResponse.of(List.of(response), 0, 20, 1, 1, true, true);
 
             given(mapper.toQuery(any()))
                     .willReturn(
-                            new SearchPermissionsQuery(null, null, PermissionType.SYSTEM, 0, 20));
+                            SearchPermissionsQuery.of(
+                                    null,
+                                    null,
+                                    List.of("SYSTEM"),
+                                    CREATED_FROM,
+                                    CREATED_TO,
+                                    0,
+                                    20));
             given(searchPermissionsUseCase.execute(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of(response));
-            given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                    .willReturn(pageResponse);
+            given(mapper.toApiResponse(any(PermissionResponse.class))).willReturn(apiResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/permissions")
-                                    .param("type", "SYSTEM")
+                                    .param("types", "SYSTEM")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data[0].type").value("SYSTEM"));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].type").value("SYSTEM"));
 
             verify(searchPermissionsUseCase).execute(any(SearchPermissionsQuery.class));
         }
@@ -364,6 +404,7 @@ class PermissionQueryControllerTest {
         void searchPermissions_withMultipleFilters_returns200Ok() throws Exception {
             // Given
             UUID permissionId = UUID.randomUUID();
+            Instant now = Instant.now();
             PermissionResponse response =
                     new PermissionResponse(
                             permissionId,
@@ -372,8 +413,8 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
             PermissionApiResponse apiResponse =
                     new PermissionApiResponse(
                             permissionId.toString(),
@@ -382,29 +423,39 @@ class PermissionQueryControllerTest {
                             "read",
                             "테넌트 조회 권한",
                             "SYSTEM",
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now);
+            PageResponse<PermissionResponse> pageResponse =
+                    PageResponse.of(List.of(response), 0, 10, 1, 1, true, true);
 
             given(mapper.toQuery(any()))
                     .willReturn(
-                            new SearchPermissionsQuery(
-                                    "tenant", "read", PermissionType.SYSTEM, 0, 10));
+                            SearchPermissionsQuery.of(
+                                    "tenant",
+                                    "read",
+                                    List.of("SYSTEM"),
+                                    CREATED_FROM,
+                                    CREATED_TO,
+                                    0,
+                                    10));
             given(searchPermissionsUseCase.execute(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of(response));
-            given(mapper.toApiResponseList(any())).willReturn(List.of(apiResponse));
+                    .willReturn(pageResponse);
+            given(mapper.toApiResponse(any(PermissionResponse.class))).willReturn(apiResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/auth/permissions")
                                     .param("resource", "tenant")
                                     .param("action", "read")
-                                    .param("type", "SYSTEM")
+                                    .param("types", "SYSTEM")
+                                    .param("createdFrom", CREATED_FROM.toString())
+                                    .param("createdTo", CREATED_TO.toString())
                                     .param("page", "0")
                                     .param("size", "10")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray());
+                    .andExpect(jsonPath("$.data.content").isArray());
 
             verify(searchPermissionsUseCase).execute(any(SearchPermissionsQuery.class));
         }

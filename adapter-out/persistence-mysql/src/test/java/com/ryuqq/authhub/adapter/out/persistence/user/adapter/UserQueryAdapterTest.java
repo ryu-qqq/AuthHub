@@ -2,20 +2,18 @@ package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserQueryDslRepository;
-import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.query.criteria.UserCriteria;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -190,86 +188,106 @@ class UserQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("search 메서드")
-    class SearchTest {
+    @DisplayName("findAllByCriteria 메서드")
+    class FindAllByCriteriaTest {
 
         @Test
         @DisplayName("검색 조건으로 사용자 목록을 조회한다")
-        void shouldSearchUsersSuccessfully() {
+        void shouldFindUsersByCriteriaSuccessfully() {
             // given
-            SearchUsersQuery query = SearchUsersQuery.of(TENANT_UUID, ORG_UUID, null, null, 0, 20);
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(TENANT_UUID, ORG_UUID, null, null, null, 0, 20);
             User user1 = UserFixture.create();
             User user2 = UserFixture.createWithIdentifier("user2@example.com");
             UserJpaEntity entity1 = createUserEntity();
             UserJpaEntity entity2 = createUserEntity();
 
-            given(
-                            repository.search(
-                                    eq(TENANT_UUID),
-                                    eq(ORG_UUID),
-                                    any(),
-                                    any(),
-                                    anyInt(),
-                                    anyInt()))
-                    .willReturn(List.of(entity1, entity2));
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity1, entity2));
             given(mapper.toDomain(any(UserJpaEntity.class))).willReturn(user1, user2);
 
             // when
-            List<User> results = adapter.search(query);
+            List<User> results = adapter.findAllByCriteria(criteria);
 
             // then
             assertThat(results).hasSize(2);
+            verify(repository).findAllByCriteria(criteria);
         }
 
         @Test
         @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
         void shouldReturnEmptyListWhenNoResults() {
             // given
-            SearchUsersQuery query =
-                    SearchUsersQuery.of(TENANT_UUID, ORG_UUID, "nonexistent", null, 0, 20);
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(TENANT_UUID, ORG_UUID, "nonexistent", null, null, 0, 20);
 
-            given(
-                            repository.search(
-                                    eq(TENANT_UUID),
-                                    eq(ORG_UUID),
-                                    any(),
-                                    any(),
-                                    anyInt(),
-                                    anyInt()))
-                    .willReturn(List.of());
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of());
 
             // when
-            List<User> results = adapter.search(query);
+            List<User> results = adapter.findAllByCriteria(criteria);
 
             // then
             assertThat(results).isEmpty();
+            verify(repository).findAllByCriteria(criteria);
         }
 
         @Test
         @DisplayName("상태 필터로 사용자를 검색한다")
-        void shouldSearchUsersWithStatusFilter() {
+        void shouldFindUsersWithStatusFilter() {
             // given
-            SearchUsersQuery query =
-                    SearchUsersQuery.of(TENANT_UUID, ORG_UUID, null, "ACTIVE", 0, 20);
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(
+                            TENANT_UUID, ORG_UUID, null, UserStatus.ACTIVE, null, 0, 20);
             User user = UserFixture.create();
             UserJpaEntity entity = createUserEntity();
 
-            given(
-                            repository.search(
-                                    eq(TENANT_UUID),
-                                    eq(ORG_UUID),
-                                    any(),
-                                    eq(UserStatus.ACTIVE),
-                                    anyInt(),
-                                    anyInt()))
-                    .willReturn(List.of(entity));
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity));
             given(mapper.toDomain(any(UserJpaEntity.class))).willReturn(user);
 
             // when
-            List<User> results = adapter.search(query);
+            List<User> results = adapter.findAllByCriteria(criteria);
 
             // then
             assertThat(results).hasSize(1);
+            verify(repository).findAllByCriteria(criteria);
+        }
+    }
+
+    @Nested
+    @DisplayName("countByCriteria 메서드")
+    class CountByCriteriaTest {
+
+        @Test
+        @DisplayName("검색 조건에 맞는 사용자 수를 반환한다")
+        void shouldReturnCountSuccessfully() {
+            // given
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(TENANT_UUID, ORG_UUID, null, null, null, 0, 20);
+
+            given(repository.countByCriteria(criteria)).willReturn(5L);
+
+            // when
+            long count = adapter.countByCriteria(criteria);
+
+            // then
+            assertThat(count).isEqualTo(5L);
+            verify(repository).countByCriteria(criteria);
+        }
+
+        @Test
+        @DisplayName("검색 결과가 없으면 0을 반환한다")
+        void shouldReturnZeroWhenNoResults() {
+            // given
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(TENANT_UUID, ORG_UUID, "nonexistent", null, null, 0, 20);
+
+            given(repository.countByCriteria(criteria)).willReturn(0L);
+
+            // when
+            long count = adapter.countByCriteria(criteria);
+
+            // then
+            assertThat(count).isZero();
+            verify(repository).countByCriteria(criteria);
         }
     }
 
@@ -280,6 +298,7 @@ class UserQueryAdapterTest {
                 TENANT_UUID,
                 ORG_UUID,
                 "user@example.com",
+                "010-1234-5678",
                 "hashed_password",
                 UserStatus.ACTIVE,
                 FIXED_TIME,

@@ -7,7 +7,14 @@ import static org.mockito.Mockito.verify;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantSummaryResponse;
+import com.ryuqq.authhub.application.tenant.factory.query.TenantQueryFactory;
 import com.ryuqq.authhub.application.tenant.port.out.query.TenantAdminQueryPort;
+import com.ryuqq.authhub.domain.common.vo.PageRequest;
+import com.ryuqq.authhub.domain.common.vo.SearchType;
+import com.ryuqq.authhub.domain.common.vo.SortDirection;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
+import com.ryuqq.authhub.domain.tenant.vo.TenantSortKey;
+import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -31,13 +38,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchTenantsAdminService 단위 테스트")
 class SearchTenantsAdminServiceTest {
 
+    @Mock private TenantQueryFactory queryFactory;
     @Mock private TenantAdminQueryPort adminQueryPort;
 
     private SearchTenantsAdminService service;
 
     @BeforeEach
     void setUp() {
-        service = new SearchTenantsAdminService(adminQueryPort);
+        service = new SearchTenantsAdminService(queryFactory, adminQueryPort);
     }
 
     @Nested
@@ -49,7 +57,18 @@ class SearchTenantsAdminServiceTest {
         void shouldSearchTenantsSuccessfully() {
             // given
             SearchTenantsQuery query =
-                    new SearchTenantsQuery(null, null, null, null, "createdAt", "DESC", 0, 20);
+                    new SearchTenantsQuery(
+                            null, null, null, null, null, "createdAt", "DESC", 0, 20);
+            TenantCriteria criteria =
+                    new TenantCriteria(
+                            null,
+                            SearchType.CONTAINS_LIKE,
+                            null,
+                            null,
+                            TenantSortKey.CREATED_AT,
+                            SortDirection.DESC,
+                            new PageRequest(0, 20));
+
             TenantSummaryResponse tenantSummary =
                     new TenantSummaryResponse(
                             UUID.randomUUID(),
@@ -61,7 +80,8 @@ class SearchTenantsAdminServiceTest {
             PageResponse<TenantSummaryResponse> expectedResponse =
                     PageResponse.of(List.of(tenantSummary), 0, 20, 1L, 1, true, true);
 
-            given(adminQueryPort.searchTenants(query)).willReturn(expectedResponse);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(adminQueryPort.searchTenants(criteria)).willReturn(expectedResponse);
 
             // when
             PageResponse<TenantSummaryResponse> response = service.execute(query);
@@ -69,7 +89,8 @@ class SearchTenantsAdminServiceTest {
             // then
             assertThat(response).isEqualTo(expectedResponse);
             assertThat(response.content()).hasSize(1);
-            verify(adminQueryPort).searchTenants(query);
+            verify(queryFactory).toCriteria(query);
+            verify(adminQueryPort).searchTenants(criteria);
         }
 
         @Test
@@ -78,11 +99,22 @@ class SearchTenantsAdminServiceTest {
             // given
             SearchTenantsQuery query =
                     new SearchTenantsQuery(
-                            "nonexistent", null, null, null, "createdAt", "DESC", 0, 20);
+                            "nonexistent", null, null, null, null, "createdAt", "DESC", 0, 20);
+            TenantCriteria criteria =
+                    new TenantCriteria(
+                            "nonexistent",
+                            SearchType.CONTAINS_LIKE,
+                            null,
+                            null,
+                            TenantSortKey.CREATED_AT,
+                            SortDirection.DESC,
+                            new PageRequest(0, 20));
+
             PageResponse<TenantSummaryResponse> emptyResponse =
                     PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
 
-            given(adminQueryPort.searchTenants(query)).willReturn(emptyResponse);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(adminQueryPort.searchTenants(criteria)).willReturn(emptyResponse);
 
             // when
             PageResponse<TenantSummaryResponse> response = service.execute(query);
@@ -97,14 +129,26 @@ class SearchTenantsAdminServiceTest {
         void shouldSearchTenantsWithStatusFilter() {
             // given
             SearchTenantsQuery query =
-                    new SearchTenantsQuery(null, "ACTIVE", null, null, "createdAt", "DESC", 0, 20);
+                    new SearchTenantsQuery(
+                            null, null, List.of("ACTIVE"), null, null, "createdAt", "DESC", 0, 20);
+            TenantCriteria criteria =
+                    new TenantCriteria(
+                            null,
+                            SearchType.CONTAINS_LIKE,
+                            List.of(TenantStatus.ACTIVE),
+                            null,
+                            TenantSortKey.CREATED_AT,
+                            SortDirection.DESC,
+                            new PageRequest(0, 20));
+
             TenantSummaryResponse tenantSummary =
                     new TenantSummaryResponse(
                             UUID.randomUUID(), "활성 테넌트", "ACTIVE", 3, Instant.now(), Instant.now());
             PageResponse<TenantSummaryResponse> expectedResponse =
                     PageResponse.of(List.of(tenantSummary), 0, 20, 1L, 1, true, true);
 
-            given(adminQueryPort.searchTenants(query)).willReturn(expectedResponse);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(adminQueryPort.searchTenants(criteria)).willReturn(expectedResponse);
 
             // when
             PageResponse<TenantSummaryResponse> response = service.execute(query);

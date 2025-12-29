@@ -2,8 +2,6 @@ package com.ryuqq.authhub.adapter.out.persistence.permission.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -16,6 +14,7 @@ import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
 import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -173,11 +172,15 @@ class PermissionQueryAdapterTest {
     @DisplayName("search 메서드")
     class SearchTest {
 
+        private static final Instant CREATED_FROM = Instant.parse("2024-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2024-12-31T23:59:59Z");
+
         @Test
         @DisplayName("검색 조건으로 권한 목록을 조회한다")
         void shouldSearchPermissionsSuccessfully() {
             // given
-            SearchPermissionsQuery query = new SearchPermissionsQuery(null, null, null, 0, 20);
+            SearchPermissionsQuery query =
+                    SearchPermissionsQuery.of(null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
             Permission permission1 =
                     PermissionFixture.createReconstituted(UUID.randomUUID(), "user:read");
             Permission permission2 =
@@ -185,7 +188,7 @@ class PermissionQueryAdapterTest {
             PermissionJpaEntity entity1 = createPermissionEntity();
             PermissionJpaEntity entity2 = createPermissionEntity();
 
-            given(repository.search(any(), any(), any(), anyInt(), anyInt()))
+            given(repository.searchByQuery(any(SearchPermissionsQuery.class)))
                     .willReturn(List.of(entity1, entity2));
             given(mapper.toDomain(any(PermissionJpaEntity.class)))
                     .willReturn(permission1, permission2);
@@ -202,9 +205,11 @@ class PermissionQueryAdapterTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             SearchPermissionsQuery query =
-                    new SearchPermissionsQuery("nonexistent", null, null, 0, 20);
+                    SearchPermissionsQuery.of(
+                            "nonexistent", null, null, CREATED_FROM, CREATED_TO, 0, 20);
 
-            given(repository.search(any(), any(), any(), anyInt(), anyInt())).willReturn(List.of());
+            given(repository.searchByQuery(any(SearchPermissionsQuery.class)))
+                    .willReturn(List.of());
 
             // when
             List<Permission> results = adapter.search(query);
@@ -215,15 +220,16 @@ class PermissionQueryAdapterTest {
 
         @Test
         @DisplayName("타입 필터로 권한을 검색한다")
-        void shouldSearchPermissionsWithTypeFilter() {
+        void shouldSearchPermissionsWithTypesFilter() {
             // given
             SearchPermissionsQuery query =
-                    new SearchPermissionsQuery(null, null, PermissionType.SYSTEM, 0, 20);
+                    SearchPermissionsQuery.of(
+                            null, null, List.of("SYSTEM"), CREATED_FROM, CREATED_TO, 0, 20);
             Permission systemPermission =
                     PermissionFixture.createReconstitutedSystem(PERMISSION_UUID, "user:admin");
             PermissionJpaEntity entity = createSystemPermissionEntity();
 
-            given(repository.search(any(), any(), eq("SYSTEM"), anyInt(), anyInt()))
+            given(repository.searchByQuery(any(SearchPermissionsQuery.class)))
                     .willReturn(List.of(entity));
             given(mapper.toDomain(any(PermissionJpaEntity.class))).willReturn(systemPermission);
 
@@ -240,13 +246,17 @@ class PermissionQueryAdapterTest {
     @DisplayName("count 메서드")
     class CountTest {
 
+        private static final Instant CREATED_FROM = Instant.parse("2024-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2024-12-31T23:59:59Z");
+
         @Test
         @DisplayName("검색 조건으로 권한 개수를 조회한다")
         void shouldCountPermissionsSuccessfully() {
             // given
-            SearchPermissionsQuery query = new SearchPermissionsQuery(null, null, null, 0, 20);
+            SearchPermissionsQuery query =
+                    SearchPermissionsQuery.of(null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
 
-            given(repository.count(any(), any(), any())).willReturn(10L);
+            given(repository.countByQuery(any(SearchPermissionsQuery.class))).willReturn(10L);
 
             // when
             long result = adapter.count(query);

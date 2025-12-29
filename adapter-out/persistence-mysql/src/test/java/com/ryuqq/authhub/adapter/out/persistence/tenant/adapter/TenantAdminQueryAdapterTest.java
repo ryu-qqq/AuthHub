@@ -6,11 +6,17 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantAdminQueryDslRepository;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
-import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantDetailResponse;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantSummaryResponse;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
+import com.ryuqq.authhub.domain.common.vo.PageRequest;
+import com.ryuqq.authhub.domain.common.vo.SearchType;
+import com.ryuqq.authhub.domain.common.vo.SortDirection;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
+import com.ryuqq.authhub.domain.tenant.vo.TenantSortKey;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,6 +45,8 @@ class TenantAdminQueryAdapterTest {
     private TenantAdminQueryAdapter adapter;
 
     private static final UUID TENANT_UUID = UUID.randomUUID();
+    private static final LocalDate CREATED_FROM = LocalDate.of(2025, 1, 1);
+    private static final LocalDate CREATED_TO = LocalDate.of(2025, 12, 31);
 
     @BeforeEach
     void setUp() {
@@ -53,8 +61,15 @@ class TenantAdminQueryAdapterTest {
         @DisplayName("테넌트 목록을 성공적으로 검색한다")
         void shouldSearchTenantsSuccessfully() {
             // given
-            SearchTenantsQuery query =
-                    new SearchTenantsQuery(null, null, null, null, "createdAt", "DESC", 0, 20);
+            TenantCriteria criteria =
+                    TenantCriteria.of(
+                            null,
+                            null,
+                            null,
+                            DateRange.of(CREATED_FROM, CREATED_TO),
+                            TenantSortKey.CREATED_AT,
+                            SortDirection.DESC,
+                            PageRequest.of(0, 20));
             TenantSummaryResponse tenantSummary =
                     new TenantSummaryResponse(
                             UUID.randomUUID(),
@@ -64,34 +79,40 @@ class TenantAdminQueryAdapterTest {
                             Instant.now(),
                             Instant.now());
 
-            given(repository.searchTenants(query)).willReturn(List.of(tenantSummary));
-            given(repository.countTenants(query)).willReturn(1L);
+            given(repository.searchTenants(criteria)).willReturn(List.of(tenantSummary));
+            given(repository.countTenants(criteria)).willReturn(1L);
 
             // when
-            PageResponse<TenantSummaryResponse> result = adapter.searchTenants(query);
+            PageResponse<TenantSummaryResponse> result = adapter.searchTenants(criteria);
 
             // then
             assertThat(result.content()).hasSize(1);
             assertThat(result.totalElements()).isEqualTo(1L);
             assertThat(result.page()).isZero();
             assertThat(result.size()).isEqualTo(20);
-            verify(repository).searchTenants(query);
-            verify(repository).countTenants(query);
+            verify(repository).searchTenants(criteria);
+            verify(repository).countTenants(criteria);
         }
 
         @Test
         @DisplayName("검색 결과가 없으면 빈 페이지를 반환한다")
         void shouldReturnEmptyPageWhenNoResults() {
             // given
-            SearchTenantsQuery query =
-                    new SearchTenantsQuery(
-                            "nonexistent", null, null, null, "createdAt", "DESC", 0, 20);
+            TenantCriteria criteria =
+                    TenantCriteria.of(
+                            "nonexistent",
+                            SearchType.CONTAINS_LIKE,
+                            null,
+                            DateRange.of(CREATED_FROM, CREATED_TO),
+                            TenantSortKey.CREATED_AT,
+                            SortDirection.DESC,
+                            PageRequest.of(0, 20));
 
-            given(repository.searchTenants(query)).willReturn(List.of());
-            given(repository.countTenants(query)).willReturn(0L);
+            given(repository.searchTenants(criteria)).willReturn(List.of());
+            given(repository.countTenants(criteria)).willReturn(0L);
 
             // when
-            PageResponse<TenantSummaryResponse> result = adapter.searchTenants(query);
+            PageResponse<TenantSummaryResponse> result = adapter.searchTenants(criteria);
 
             // then
             assertThat(result.content()).isEmpty();
@@ -102,8 +123,15 @@ class TenantAdminQueryAdapterTest {
         @DisplayName("페이징 정보를 올바르게 계산한다")
         void shouldCalculatePagingInfoCorrectly() {
             // given
-            SearchTenantsQuery query =
-                    new SearchTenantsQuery(null, null, null, null, "createdAt", "DESC", 1, 10);
+            TenantCriteria criteria =
+                    TenantCriteria.of(
+                            null,
+                            null,
+                            null,
+                            DateRange.of(CREATED_FROM, CREATED_TO),
+                            TenantSortKey.CREATED_AT,
+                            SortDirection.DESC,
+                            PageRequest.of(1, 10));
             TenantSummaryResponse tenantSummary =
                     new TenantSummaryResponse(
                             UUID.randomUUID(),
@@ -113,11 +141,11 @@ class TenantAdminQueryAdapterTest {
                             Instant.now(),
                             Instant.now());
 
-            given(repository.searchTenants(query)).willReturn(List.of(tenantSummary));
-            given(repository.countTenants(query)).willReturn(25L);
+            given(repository.searchTenants(criteria)).willReturn(List.of(tenantSummary));
+            given(repository.countTenants(criteria)).willReturn(25L);
 
             // when
-            PageResponse<TenantSummaryResponse> result = adapter.searchTenants(query);
+            PageResponse<TenantSummaryResponse> result = adapter.searchTenants(criteria);
 
             // then
             assertThat(result.page()).isEqualTo(1);

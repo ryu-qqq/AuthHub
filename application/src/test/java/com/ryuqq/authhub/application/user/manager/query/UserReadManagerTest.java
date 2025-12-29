@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
-import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
@@ -12,6 +11,7 @@ import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.query.criteria.UserCriteria;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -160,26 +160,27 @@ class UserReadManagerTest {
     }
 
     @Nested
-    @DisplayName("search 메서드")
-    class SearchTest {
+    @DisplayName("findAllByCriteria 메서드")
+    class FindAllByCriteriaTest {
 
         @Test
-        @DisplayName("검색 조건에 맞는 사용자 목록을 반환한다")
-        void shouldSearchUsers() {
+        @DisplayName("조건에 맞는 사용자 목록을 반환한다")
+        void shouldFindUsersByCriteria() {
             // given
-            SearchUsersQuery query =
-                    SearchUsersQuery.of(
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(
                             UserFixture.defaultTenantUUID(),
                             UserFixture.defaultOrganizationUUID(),
+                            null,
                             null,
                             null,
                             0,
                             10);
             List<User> expectedUsers = List.of(UserFixture.create());
-            given(queryPort.search(query)).willReturn(expectedUsers);
+            given(queryPort.findAllByCriteria(criteria)).willReturn(expectedUsers);
 
             // when
-            List<User> result = readManager.search(query);
+            List<User> result = readManager.findAllByCriteria(criteria);
 
             // then
             assertThat(result).hasSize(1);
@@ -190,15 +191,59 @@ class UserReadManagerTest {
         @DisplayName("결과가 없으면 빈 목록을 반환한다")
         void shouldReturnEmptyListWhenNoResults() {
             // given
-            SearchUsersQuery query =
-                    SearchUsersQuery.of(UserFixture.defaultTenantUUID(), null, null, null, 0, 10);
-            given(queryPort.search(query)).willReturn(List.of());
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(
+                            UserFixture.defaultTenantUUID(), null, null, null, null, 0, 10);
+            given(queryPort.findAllByCriteria(criteria)).willReturn(List.of());
 
             // when
-            List<User> result = readManager.search(query);
+            List<User> result = readManager.findAllByCriteria(criteria);
 
             // then
             assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("countByCriteria 메서드")
+    class CountByCriteriaTest {
+
+        @Test
+        @DisplayName("조건에 맞는 사용자 개수를 반환한다")
+        void shouldCountUsersByCriteria() {
+            // given
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(
+                            UserFixture.defaultTenantUUID(), null, null, null, null, 0, 10);
+            given(queryPort.countByCriteria(criteria)).willReturn(5L);
+
+            // when
+            long count = readManager.countByCriteria(criteria);
+
+            // then
+            assertThat(count).isEqualTo(5L);
+        }
+
+        @Test
+        @DisplayName("결과가 없으면 0을 반환한다")
+        void shouldReturnZeroWhenNoResults() {
+            // given
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(
+                            UserFixture.defaultTenantUUID(),
+                            null,
+                            "nonexistent",
+                            null,
+                            null,
+                            0,
+                            10);
+            given(queryPort.countByCriteria(criteria)).willReturn(0L);
+
+            // when
+            long count = readManager.countByCriteria(criteria);
+
+            // then
+            assertThat(count).isZero();
         }
     }
 }

@@ -1,12 +1,12 @@
 package com.ryuqq.authhub.application.user.manager.query;
 
-import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.query.criteria.UserCriteria;
 import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,12 +80,33 @@ public class UserReadManager {
     }
 
     /**
-     * 사용자 목록 검색
+     * 중복 핸드폰 번호 체크
      *
-     * @param query 검색 조건
+     * @param tenantId 테넌트 ID
+     * @param phoneNumber 핸드폰 번호
+     * @return 존재하면 true
+     */
+    public boolean existsByTenantIdAndPhoneNumber(TenantId tenantId, String phoneNumber) {
+        return queryPort.existsByTenantIdAndPhoneNumber(tenantId, phoneNumber);
+    }
+
+    /**
+     * 조건에 맞는 사용자 목록 조회 (페이징)
+     *
+     * @param criteria 검색 조건 (UserCriteria)
      * @return 사용자 목록
      */
-    public List<User> search(SearchUsersQuery query) {
-        return queryPort.search(query);
+    public List<User> findAllByCriteria(UserCriteria criteria) {
+        return queryPort.findAllByCriteria(criteria);
+    }
+
+    /**
+     * 조건에 맞는 사용자 개수 조회
+     *
+     * @param criteria 검색 조건 (UserCriteria)
+     * @return 조건에 맞는 사용자 총 개수
+     */
+    public long countByCriteria(UserCriteria criteria) {
+        return queryPort.countByCriteria(criteria);
     }
 }

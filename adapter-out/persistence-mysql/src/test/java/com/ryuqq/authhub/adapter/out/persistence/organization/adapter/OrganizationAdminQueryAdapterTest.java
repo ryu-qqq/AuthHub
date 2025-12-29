@@ -6,10 +6,12 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationAdminQueryDslRepository;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
-import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationDetailResponse;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationSummaryResponse;
+import com.ryuqq.authhub.domain.common.vo.PageRequest;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
+import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -54,9 +56,16 @@ class OrganizationAdminQueryAdapterTest {
         @DisplayName("조직 목록을 성공적으로 검색한다")
         void shouldSearchOrganizationsSuccessfully() {
             // given
-            SearchOrganizationsQuery query =
-                    new SearchOrganizationsQuery(
-                            TENANT_UUID, null, null, null, null, "createdAt", "DESC", 0, 20);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(TENANT_UUID),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
             OrganizationSummaryResponse orgSummary =
                     new OrganizationSummaryResponse(
                             UUID.randomUUID(),
@@ -68,42 +77,43 @@ class OrganizationAdminQueryAdapterTest {
                             Instant.now(),
                             Instant.now());
 
-            given(repository.searchOrganizations(query)).willReturn(List.of(orgSummary));
-            given(repository.countOrganizations(query)).willReturn(1L);
+            given(repository.searchOrganizations(criteria)).willReturn(List.of(orgSummary));
+            given(repository.countOrganizations(criteria)).willReturn(1L);
 
             // when
-            PageResponse<OrganizationSummaryResponse> result = adapter.searchOrganizations(query);
+            PageResponse<OrganizationSummaryResponse> result =
+                    adapter.searchOrganizations(criteria);
 
             // then
             assertThat(result.content()).hasSize(1);
             assertThat(result.totalElements()).isEqualTo(1L);
             assertThat(result.page()).isZero();
             assertThat(result.size()).isEqualTo(20);
-            verify(repository).searchOrganizations(query);
-            verify(repository).countOrganizations(query);
+            verify(repository).searchOrganizations(criteria);
+            verify(repository).countOrganizations(criteria);
         }
 
         @Test
         @DisplayName("검색 결과가 없으면 빈 페이지를 반환한다")
         void shouldReturnEmptyPageWhenNoResults() {
             // given
-            SearchOrganizationsQuery query =
-                    new SearchOrganizationsQuery(
-                            TENANT_UUID,
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(TENANT_UUID),
                             "nonexistent",
                             null,
                             null,
                             null,
-                            "createdAt",
-                            "DESC",
-                            0,
-                            20);
+                            null,
+                            null,
+                            PageRequest.of(0, 20));
 
-            given(repository.searchOrganizations(query)).willReturn(List.of());
-            given(repository.countOrganizations(query)).willReturn(0L);
+            given(repository.searchOrganizations(criteria)).willReturn(List.of());
+            given(repository.countOrganizations(criteria)).willReturn(0L);
 
             // when
-            PageResponse<OrganizationSummaryResponse> result = adapter.searchOrganizations(query);
+            PageResponse<OrganizationSummaryResponse> result =
+                    adapter.searchOrganizations(criteria);
 
             // then
             assertThat(result.content()).isEmpty();
@@ -114,9 +124,16 @@ class OrganizationAdminQueryAdapterTest {
         @DisplayName("페이징 정보를 올바르게 계산한다")
         void shouldCalculatePagingInfoCorrectly() {
             // given
-            SearchOrganizationsQuery query =
-                    new SearchOrganizationsQuery(
-                            TENANT_UUID, null, null, null, null, "createdAt", "DESC", 2, 10);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            TenantId.of(TENANT_UUID),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(2, 10));
             OrganizationSummaryResponse orgSummary =
                     new OrganizationSummaryResponse(
                             UUID.randomUUID(),
@@ -128,11 +145,12 @@ class OrganizationAdminQueryAdapterTest {
                             Instant.now(),
                             Instant.now());
 
-            given(repository.searchOrganizations(query)).willReturn(List.of(orgSummary));
-            given(repository.countOrganizations(query)).willReturn(35L);
+            given(repository.searchOrganizations(criteria)).willReturn(List.of(orgSummary));
+            given(repository.countOrganizations(criteria)).willReturn(35L);
 
             // when
-            PageResponse<OrganizationSummaryResponse> result = adapter.searchOrganizations(query);
+            PageResponse<OrganizationSummaryResponse> result =
+                    adapter.searchOrganizations(criteria);
 
             // then
             assertThat(result.page()).isEqualTo(2);

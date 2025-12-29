@@ -1,10 +1,10 @@
 package com.ryuqq.authhub.application.tenant.port.out.query;
 
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
-import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantDetailResponse;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantSummaryResponse;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
 import java.util.Optional;
 
 /**
@@ -17,14 +17,14 @@ import java.util.Optional;
  * <ul>
  *   <li>Domain 대신 DTO 직접 반환
  *   <li>연관 데이터 포함 (organizationCount, organizations)
- *   <li>확장 필터 지원 (날짜 범위, 정렬)
+ *   <li>확장 필터 지원 (날짜 범위, 정렬, 검색 타입)
  * </ul>
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
  *   <li>DTO 반환 (Domain 반환 금지)
- *   <li>TenantId Value Object 파라미터
+ *   <li>TenantCriteria 파라미터 (Query DTO 금지)
  *   <li>저장/수정/삭제 메서드 금지
  * </ul>
  *
@@ -39,10 +39,10 @@ public interface TenantAdminQueryPort {
      *
      * <p>organizationCount를 포함한 Summary DTO를 직접 반환합니다.
      *
-     * @param query 검색 조건 (확장 필터 포함)
+     * @param criteria 검색 조건 (TenantCriteria)
      * @return 페이징된 테넌트 Summary 목록
      */
-    PageResponse<TenantSummaryResponse> searchTenants(SearchTenantsQuery query);
+    PageResponse<TenantSummaryResponse> searchTenants(TenantCriteria criteria);
 
     /**
      * Admin 상세 조회 (연관 데이터 포함)

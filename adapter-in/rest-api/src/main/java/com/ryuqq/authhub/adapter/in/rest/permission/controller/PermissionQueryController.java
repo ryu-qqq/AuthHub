@@ -2,10 +2,12 @@ package com.ryuqq.authhub.adapter.in.rest.permission.controller;
 
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.query.SearchPermissionsApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.PermissionApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.response.UserPermissionsApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.permission.mapper.PermissionApiMapper;
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
 import com.ryuqq.authhub.application.permission.port.in.query.GetPermissionUseCase;
 import com.ryuqq.authhub.application.permission.port.in.query.SearchPermissionsUseCase;
@@ -15,14 +17,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -104,18 +106,25 @@ public class PermissionQueryController {
      *
      * <p>GET /api/v1/permissions
      *
-     * @param resource 리소스 필터 (선택)
-     * @param action 액션 필터 (선택)
-     * @param type 권한 유형 필터 (선택, SYSTEM/CUSTOM)
-     * @param page 페이지 번호 (기본값: 0)
-     * @param size 페이지 크기 (기본값: 20)
-     * @return 200 OK + 권한 목록
+     * @param request 검색 조건 (resource/action/types/createdFrom/createdTo/page/size)
+     * @return 200 OK + 권한 목록 (페이징)
      */
     @Operation(
             summary = "권한 목록 검색",
             description =
                     """
-                    조건에 맞는 권한 목록을 검색합니다.
+                    조건에 맞는 권한 목록을 페이징하여 조회합니다.
+
+                    **필수 파라미터:**
+                    - createdFrom: 생성일시 시작
+                    - createdTo: 생성일시 종료
+
+                    **선택 파라미터:**
+                    - resource: 리소스명 검색어
+                    - action: 액션명 검색어
+                    - types: 권한 유형 필터 (다중 선택 가능)
+                    - page: 페이지 번호 (기본값: 0)
+                    - size: 페이지 크기 (기본값: 20)
 
                     **필요 권한**: `permission:read`
                     """)
@@ -126,19 +135,13 @@ public class PermissionQueryController {
     })
     @PreAuthorize("@access.hasPermission('permission:read')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PermissionApiResponse>>> searchPermissions(
-            @Parameter(description = "리소스 필터") @RequestParam(required = false) String resource,
-            @Parameter(description = "액션 필터") @RequestParam(required = false) String action,
-            @Parameter(description = "권한 유형 필터 (SYSTEM/CUSTOM)") @RequestParam(required = false)
-                    String type,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") int size) {
-        SearchPermissionsApiRequest request =
-                new SearchPermissionsApiRequest(resource, action, type, page, size);
-        List<PermissionResponse> responses =
+    public ResponseEntity<ApiResponse<PageApiResponse<PermissionApiResponse>>> searchPermissions(
+            @Valid @ModelAttribute SearchPermissionsApiRequest request) {
+        PageResponse<PermissionResponse> response =
                 searchPermissionsUseCase.execute(mapper.toQuery(request));
-        List<PermissionApiResponse> apiResponses = mapper.toApiResponseList(responses);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponses));
+        PageApiResponse<PermissionApiResponse> pagedResponse =
+                PageApiResponse.from(response, mapper::toApiResponse);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(pagedResponse));
     }
 
     /**

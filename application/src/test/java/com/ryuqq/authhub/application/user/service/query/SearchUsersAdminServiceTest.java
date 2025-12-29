@@ -38,6 +38,8 @@ class SearchUsersAdminServiceTest {
 
     private static final UUID TENANT_UUID = UserFixture.defaultTenantUUID();
     private static final UUID ORG_UUID = UserFixture.defaultOrganizationUUID();
+    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
 
     @BeforeEach
     void setUp() {
@@ -52,7 +54,9 @@ class SearchUsersAdminServiceTest {
         @DisplayName("사용자 목록을 성공적으로 검색한다")
         void shouldSearchUsersSuccessfully() {
             // given
-            SearchUsersQuery query = SearchUsersQuery.of(TENANT_UUID, ORG_UUID, null, null, 0, 20);
+            SearchUsersQuery query =
+                    SearchUsersQuery.of(
+                            TENANT_UUID, ORG_UUID, null, null, CREATED_FROM, CREATED_TO, 0, 20);
             UserSummaryResponse userSummary =
                     new UserSummaryResponse(
                             UUID.randomUUID(),
@@ -61,6 +65,7 @@ class SearchUsersAdminServiceTest {
                             ORG_UUID,
                             "테스트 조직",
                             "user@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             2,
                             Instant.now(),
@@ -84,7 +89,15 @@ class SearchUsersAdminServiceTest {
         void shouldReturnEmptyPageWhenNoResults() {
             // given
             SearchUsersQuery query =
-                    SearchUsersQuery.of(TENANT_UUID, ORG_UUID, "nonexistent", null, 0, 20);
+                    SearchUsersQuery.of(
+                            TENANT_UUID,
+                            ORG_UUID,
+                            "nonexistent",
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
             PageResponse<UserSummaryResponse> emptyResponse =
                     PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
 

@@ -10,6 +10,7 @@ import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
 import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +39,8 @@ import org.junit.jupiter.api.Test;
 class TenantApiMapperTest {
 
     private TenantApiMapper mapper;
+    private static final Instant NOW = Instant.now();
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     @BeforeEach
     void setUp() {
@@ -71,7 +74,9 @@ class TenantApiMapperTest {
         @DisplayName("[toQuery] 모든 필드가 있는 요청을 Query로 변환")
         void toQuery_shouldConvertRequestWithAllFields() {
             // Given
-            SearchTenantsApiRequest request = new SearchTenantsApiRequest("Test", "ACTIVE", 0, 10);
+            SearchTenantsApiRequest request =
+                    new SearchTenantsApiRequest(
+                            "Test", List.of("ACTIVE"), ONE_MONTH_AGO, NOW, 0, 10);
 
             // When
             SearchTenantsQuery result = mapper.toQuery(request);
@@ -79,16 +84,34 @@ class TenantApiMapperTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result.name()).isEqualTo("Test");
-            assertThat(result.status()).isEqualTo("ACTIVE");
+            assertThat(result.statuses()).containsExactly("ACTIVE");
+            assertThat(result.createdFrom()).isEqualTo(ONE_MONTH_AGO);
+            assertThat(result.createdTo()).isEqualTo(NOW);
             assertThat(result.page()).isEqualTo(0);
             assertThat(result.size()).isEqualTo(10);
         }
 
         @Test
-        @DisplayName("[toQuery] null 필드가 있는 요청을 Query로 변환")
-        void toQuery_shouldConvertRequestWithNullFields() {
+        @DisplayName("[toQuery] 다중 상태를 Query로 변환")
+        void toQuery_shouldConvertRequestWithMultipleStatuses() {
             // Given
-            SearchTenantsApiRequest request = new SearchTenantsApiRequest(null, null, null, null);
+            SearchTenantsApiRequest request =
+                    new SearchTenantsApiRequest(
+                            "Test", List.of("ACTIVE", "INACTIVE"), ONE_MONTH_AGO, NOW, 0, 10);
+
+            // When
+            SearchTenantsQuery result = mapper.toQuery(request);
+
+            // Then
+            assertThat(result.statuses()).containsExactly("ACTIVE", "INACTIVE");
+        }
+
+        @Test
+        @DisplayName("[toQuery] 선택적 필드가 null인 요청을 Query로 변환")
+        void toQuery_shouldConvertRequestWithNullOptionalFields() {
+            // Given
+            SearchTenantsApiRequest request =
+                    new SearchTenantsApiRequest(null, null, ONE_MONTH_AGO, NOW, null, null);
 
             // When
             SearchTenantsQuery result = mapper.toQuery(request);
@@ -96,9 +119,11 @@ class TenantApiMapperTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result.name()).isNull();
-            assertThat(result.status()).isNull();
-            assertThat(result.page()).isEqualTo(0);
-            assertThat(result.size()).isEqualTo(SearchTenantsQuery.DEFAULT_PAGE_SIZE);
+            assertThat(result.statuses()).isNull();
+            assertThat(result.createdFrom()).isEqualTo(ONE_MONTH_AGO);
+            assertThat(result.createdTo()).isEqualTo(NOW);
+            assertThat(result.page()).isEqualTo(SearchTenantsApiRequest.DEFAULT_PAGE);
+            assertThat(result.size()).isEqualTo(SearchTenantsApiRequest.DEFAULT_PAGE_SIZE);
         }
     }
 
@@ -112,8 +137,7 @@ class TenantApiMapperTest {
             // Given
             UUID tenantId = UUID.randomUUID();
             TenantResponse response =
-                    new TenantResponse(
-                            tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
+                    new TenantResponse(tenantId, "TestTenant", "ACTIVE", NOW, NOW);
 
             // When
             CreateTenantApiResponse result = mapper.toCreateResponse(response);
@@ -133,8 +157,8 @@ class TenantApiMapperTest {
         void toApiResponse_shouldConvertToApiResponse() {
             // Given
             UUID tenantId = UUID.randomUUID();
-            Instant createdAt = Instant.now();
-            Instant updatedAt = Instant.now();
+            Instant createdAt = NOW;
+            Instant updatedAt = NOW;
             TenantResponse response =
                     new TenantResponse(tenantId, "TestTenant", "ACTIVE", createdAt, updatedAt);
 
@@ -161,12 +185,9 @@ class TenantApiMapperTest {
             // Given
             UUID tenantId1 = UUID.randomUUID();
             UUID tenantId2 = UUID.randomUUID();
-            TenantResponse response1 =
-                    new TenantResponse(
-                            tenantId1, "Tenant1", "ACTIVE", Instant.now(), Instant.now());
+            TenantResponse response1 = new TenantResponse(tenantId1, "Tenant1", "ACTIVE", NOW, NOW);
             TenantResponse response2 =
-                    new TenantResponse(
-                            tenantId2, "Tenant2", "INACTIVE", Instant.now(), Instant.now());
+                    new TenantResponse(tenantId2, "Tenant2", "INACTIVE", NOW, NOW);
 
             // When
             List<TenantApiResponse> results =

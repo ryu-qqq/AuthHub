@@ -74,6 +74,7 @@ class UpdateUserServiceTest {
                             updatedUser.tenantIdValue(),
                             updatedUser.organizationIdValue(),
                             newIdentifier,
+                            updatedUser.getPhoneNumber(),
                             updatedUser.getUserStatus().name(),
                             updatedUser.getCreatedAt(),
                             updatedUser.getUpdatedAt());
@@ -135,6 +136,7 @@ class UpdateUserServiceTest {
                             existingUser.tenantIdValue(),
                             existingUser.organizationIdValue(),
                             existingUser.getIdentifier(),
+                            existingUser.getPhoneNumber(),
                             existingUser.getUserStatus().name(),
                             existingUser.getCreatedAt(),
                             existingUser.getUpdatedAt());

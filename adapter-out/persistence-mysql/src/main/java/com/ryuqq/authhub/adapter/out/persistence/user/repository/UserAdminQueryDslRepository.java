@@ -9,12 +9,14 @@ import static com.ryuqq.authhub.adapter.out.persistence.user.entity.QUserRoleJpa
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.dto.response.UserDetailResponse;
 import com.ryuqq.authhub.application.user.dto.response.UserDetailResponse.UserRoleSummary;
 import com.ryuqq.authhub.application.user.dto.response.UserSummaryResponse;
+import com.ryuqq.authhub.domain.common.vo.SearchType;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -71,6 +73,7 @@ public class UserAdminQueryDslRepository {
             UUID organizationId,
             String organizationName,
             String identifier,
+            String phoneNumber,
             String status,
             Long roleCount,
             LocalDateTime createdAt,
@@ -89,6 +92,7 @@ public class UserAdminQueryDslRepository {
                     organizationId,
                     organizationName,
                     identifier,
+                    phoneNumber,
                     status,
                     roleCount != null ? roleCount.intValue() : 0,
                     createdAt != null ? createdAt.toInstant(ZoneOffset.UTC) : null,
@@ -119,6 +123,7 @@ public class UserAdminQueryDslRepository {
                                 userJpaEntity.organizationId,
                                 organizationJpaEntity.name,
                                 userJpaEntity.identifier,
+                                userJpaEntity.phoneNumber,
                                 userJpaEntity.status.stringValue(),
                                 JPAExpressions.select(userRoleJpaEntity.count())
                                         .from(userRoleJpaEntity)
@@ -179,6 +184,7 @@ public class UserAdminQueryDslRepository {
                                         userJpaEntity.organizationId.as("organizationId"),
                                         organizationJpaEntity.name.as("organizationName"),
                                         userJpaEntity.identifier.as("identifier"),
+                                        userJpaEntity.phoneNumber.as("phoneNumber"),
                                         userJpaEntity.status.stringValue().as("status"),
                                         userJpaEntity.createdAt.as("createdAt"),
                                         userJpaEntity.updatedAt.as("updatedAt")))
@@ -219,6 +225,7 @@ public class UserAdminQueryDslRepository {
                         basicInfo.organizationId,
                         basicInfo.organizationName,
                         basicInfo.identifier,
+                        basicInfo.phoneNumber,
                         basicInfo.status,
                         roles,
                         toInstant(basicInfo.createdAt),
@@ -236,7 +243,9 @@ public class UserAdminQueryDslRepository {
             builder.and(userJpaEntity.organizationId.eq(query.organizationId()));
         }
         if (query.identifier() != null && !query.identifier().isBlank()) {
-            builder.and(userJpaEntity.identifier.containsIgnoreCase(query.identifier()));
+            builder.and(
+                    buildIdentifierCondition(
+                            query.identifier(), SearchType.fromString(query.searchType())));
         }
         if (query.status() != null && !query.status().isBlank()) {
             builder.and(userJpaEntity.status.eq(UserStatus.valueOf(query.status())));
@@ -257,6 +266,23 @@ public class UserAdminQueryDslRepository {
         }
 
         return builder;
+    }
+
+    /**
+     * 식별자 검색 조건 생성 (SearchType 기반)
+     *
+     * @param identifier 검색 식별자
+     * @param searchType 검색 타입
+     * @return BooleanExpression
+     */
+    private BooleanExpression buildIdentifierCondition(String identifier, SearchType searchType) {
+        SearchType type = searchType != null ? searchType : SearchType.CONTAINS_LIKE;
+
+        return switch (type) {
+            case PREFIX_LIKE -> userJpaEntity.identifier.startsWithIgnoreCase(identifier);
+            case MATCH_AGAINST -> userJpaEntity.identifier.containsIgnoreCase(identifier);
+            case CONTAINS_LIKE -> userJpaEntity.identifier.containsIgnoreCase(identifier);
+        };
     }
 
     /** 정렬 조건 생성 */
@@ -297,6 +323,7 @@ public class UserAdminQueryDslRepository {
         public UUID organizationId;
         public String organizationName;
         public String identifier;
+        public String phoneNumber;
         public String status;
         public LocalDateTime createdAt;
         public LocalDateTime updatedAt;

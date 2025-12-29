@@ -5,12 +5,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.permission.assembler.PermissionAssembler;
 import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
 import com.ryuqq.authhub.application.permission.manager.query.PermissionReadManager;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,13 +49,17 @@ class SearchPermissionsServiceTest {
     @DisplayName("execute 메서드")
     class ExecuteTest {
 
+        private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
+
         @Test
         @DisplayName("권한 목록을 성공적으로 검색한다")
         void shouldSearchPermissionsSuccessfully() {
             // given
             Permission permission1 = PermissionFixture.create();
             Permission permission2 = PermissionFixture.create("order", "read");
-            SearchPermissionsQuery query = new SearchPermissionsQuery(null, null, null, 0, 20);
+            SearchPermissionsQuery query =
+                    SearchPermissionsQuery.of(null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
 
             PermissionResponse response1 =
                     new PermissionResponse(
@@ -77,16 +83,19 @@ class SearchPermissionsServiceTest {
                             permission2.updatedAt());
 
             given(readManager.search(query)).willReturn(List.of(permission1, permission2));
+            given(readManager.count(query)).willReturn(2L);
             given(assembler.toResponse(any(Permission.class))).willReturn(response1, response2);
 
             // when
-            List<PermissionResponse> responses = service.execute(query);
+            PageResponse<PermissionResponse> pageResponse = service.execute(query);
 
             // then
-            assertThat(responses).hasSize(2);
-            assertThat(responses.get(0)).isNotNull();
-            assertThat(responses.get(1)).isNotNull();
+            assertThat(pageResponse.content()).hasSize(2);
+            assertThat(pageResponse.content().get(0)).isNotNull();
+            assertThat(pageResponse.content().get(1)).isNotNull();
+            assertThat(pageResponse.totalElements()).isEqualTo(2);
             verify(readManager).search(query);
+            verify(readManager).count(query);
         }
 
         @Test
@@ -94,16 +103,20 @@ class SearchPermissionsServiceTest {
         void shouldReturnEmptyListWhenNoPermissionsFound() {
             // given
             SearchPermissionsQuery query =
-                    new SearchPermissionsQuery("nonexistent", null, null, 0, 20);
+                    SearchPermissionsQuery.of(
+                            "nonexistent", null, null, CREATED_FROM, CREATED_TO, 0, 20);
 
             given(readManager.search(query)).willReturn(List.of());
+            given(readManager.count(query)).willReturn(0L);
 
             // when
-            List<PermissionResponse> responses = service.execute(query);
+            PageResponse<PermissionResponse> pageResponse = service.execute(query);
 
             // then
-            assertThat(responses).isEmpty();
+            assertThat(pageResponse.content()).isEmpty();
+            assertThat(pageResponse.totalElements()).isZero();
             verify(readManager).search(query);
+            verify(readManager).count(query);
         }
 
         @Test
@@ -111,7 +124,8 @@ class SearchPermissionsServiceTest {
         void shouldFilterPermissionsByResource() {
             // given
             Permission permission = PermissionFixture.create("user", "read");
-            SearchPermissionsQuery query = new SearchPermissionsQuery("user", null, null, 0, 20);
+            SearchPermissionsQuery query =
+                    SearchPermissionsQuery.of("user", null, null, CREATED_FROM, CREATED_TO, 0, 20);
             PermissionResponse expectedResponse =
                     new PermissionResponse(
                             permission.permissionIdValue(),
@@ -124,15 +138,18 @@ class SearchPermissionsServiceTest {
                             permission.updatedAt());
 
             given(readManager.search(query)).willReturn(List.of(permission));
+            given(readManager.count(query)).willReturn(1L);
             given(assembler.toResponse(any(Permission.class))).willReturn(expectedResponse);
 
             // when
-            List<PermissionResponse> responses = service.execute(query);
+            PageResponse<PermissionResponse> pageResponse = service.execute(query);
 
             // then
-            assertThat(responses).hasSize(1);
-            assertThat(responses.get(0).resource()).isEqualTo("user");
+            assertThat(pageResponse.content()).hasSize(1);
+            assertThat(pageResponse.content().get(0).resource()).isEqualTo("user");
+            assertThat(pageResponse.totalElements()).isEqualTo(1);
             verify(readManager).search(query);
+            verify(readManager).count(query);
         }
     }
 }

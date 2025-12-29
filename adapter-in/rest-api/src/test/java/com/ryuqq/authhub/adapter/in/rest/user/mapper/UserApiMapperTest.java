@@ -69,6 +69,7 @@ class UserApiMapperTest {
                             TENANT_UUID.toString(),
                             ORG_UUID.toString(),
                             "user@example.com",
+                            "010-1234-5678",
                             "password123");
 
             // when
@@ -176,13 +177,23 @@ class UserApiMapperTest {
     @DisplayName("toQuery(SearchUsersApiRequest) 테스트")
     class ToSearchQueryTest {
 
+        private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+        private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
+
         @Test
         @DisplayName("SearchUsersApiRequest를 SearchUsersQuery로 변환 성공")
         void givenSearchRequest_whenToQuery_thenSuccess() {
             // given
             SearchUsersApiRequest request =
                     new SearchUsersApiRequest(
-                            TENANT_UUID.toString(), ORG_UUID.toString(), "user@", "ACTIVE", 0, 20);
+                            TENANT_UUID.toString(),
+                            ORG_UUID.toString(),
+                            "user@",
+                            "ACTIVE",
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
 
             // when
             SearchUsersQuery query = mapper.toQuery(request);
@@ -192,6 +203,8 @@ class UserApiMapperTest {
             assertThat(query.organizationId()).isEqualTo(ORG_UUID);
             assertThat(query.identifier()).isEqualTo("user@");
             assertThat(query.status()).isEqualTo("ACTIVE");
+            assertThat(query.createdFrom()).isEqualTo(CREATED_FROM);
+            assertThat(query.createdTo()).isEqualTo(CREATED_TO);
             assertThat(query.page()).isZero();
             assertThat(query.size()).isEqualTo(20);
         }
@@ -201,7 +214,8 @@ class UserApiMapperTest {
         void givenNullValues_whenToQuery_thenSuccess() {
             // given
             SearchUsersApiRequest request =
-                    new SearchUsersApiRequest(null, null, null, null, null, null);
+                    new SearchUsersApiRequest(
+                            null, null, null, null, CREATED_FROM, CREATED_TO, null, null);
 
             // when
             SearchUsersQuery query = mapper.toQuery(request);
@@ -209,6 +223,8 @@ class UserApiMapperTest {
             // then
             assertThat(query.tenantId()).isNull();
             assertThat(query.organizationId()).isNull();
+            assertThat(query.createdFrom()).isEqualTo(CREATED_FROM);
+            assertThat(query.createdTo()).isEqualTo(CREATED_TO);
             assertThat(query.page()).isZero();
             assertThat(query.size()).isEqualTo(20);
         }
@@ -228,6 +244,7 @@ class UserApiMapperTest {
                             TENANT_UUID,
                             ORG_UUID,
                             "user@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             FIXED_INSTANT,
                             FIXED_INSTANT);
@@ -254,6 +271,7 @@ class UserApiMapperTest {
                             TENANT_UUID,
                             ORG_UUID,
                             "user@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             FIXED_INSTANT,
                             FIXED_INSTANT);
@@ -286,6 +304,7 @@ class UserApiMapperTest {
                             TENANT_UUID,
                             ORG_UUID,
                             "user1@example.com",
+                            "010-1234-5678",
                             "ACTIVE",
                             FIXED_INSTANT,
                             FIXED_INSTANT);
@@ -295,6 +314,7 @@ class UserApiMapperTest {
                             TENANT_UUID,
                             ORG_UUID,
                             "user2@example.com",
+                            "010-9876-5432",
                             "INACTIVE",
                             FIXED_INSTANT,
                             FIXED_INSTANT);

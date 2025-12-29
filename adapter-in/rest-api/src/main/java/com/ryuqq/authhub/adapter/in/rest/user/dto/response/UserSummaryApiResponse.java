@@ -39,6 +39,7 @@ public record UserSummaryApiResponse(
         @Schema(description = "조직 ID") String organizationId,
         @Schema(description = "조직 이름") String organizationName,
         @Schema(description = "사용자 식별자") String identifier,
+        @Schema(description = "핸드폰 번호") String phoneNumber,
         @Schema(description = "사용자 상태") String status,
         @Schema(description = "할당된 역할 수") int roleCount,
         @Schema(description = "생성 일시") Instant createdAt,

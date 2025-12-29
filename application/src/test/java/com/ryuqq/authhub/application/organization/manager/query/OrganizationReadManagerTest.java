@@ -5,11 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.authhub.application.organization.port.out.query.OrganizationQueryPort;
+import com.ryuqq.authhub.domain.common.vo.PageRequest;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.exception.OrganizationNotFoundException;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.util.List;
 import java.util.Optional;
@@ -144,21 +147,22 @@ class OrganizationReadManagerTest {
     }
 
     @Nested
-    @DisplayName("findAllByTenantIdAndCriteria 메서드")
-    class FindAllByTenantIdAndCriteriaTest {
+    @DisplayName("findAllByCriteria 메서드")
+    class FindAllByCriteriaTest {
 
         @Test
         @DisplayName("조건에 맞는 조직 목록을 반환한다")
         void shouldFindOrganizationsByCriteria() {
             // given
             TenantId tenantId = OrganizationFixture.defaultTenantId();
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId, null, null, null, null, null, null, PageRequest.of(0, 10));
             List<Organization> expected = List.of(OrganizationFixture.create());
-            given(queryPort.findAllByTenantIdAndCriteria(tenantId, null, null, 0, 10))
-                    .willReturn(expected);
+            given(queryPort.findAllByCriteria(criteria)).willReturn(expected);
 
             // when
-            List<Organization> result =
-                    readManager.findAllByTenantIdAndCriteria(tenantId, null, null, 0, 10);
+            List<Organization> result = readManager.findAllByCriteria(criteria);
 
             // then
             assertThat(result).hasSize(1);
@@ -170,12 +174,20 @@ class OrganizationReadManagerTest {
         void shouldReturnEmptyListWhenNoResults() {
             // given
             TenantId tenantId = OrganizationFixture.defaultTenantId();
-            given(queryPort.findAllByTenantIdAndCriteria(tenantId, "nonexistent", null, 0, 10))
-                    .willReturn(List.of());
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId,
+                            "nonexistent",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 10));
+            given(queryPort.findAllByCriteria(criteria)).willReturn(List.of());
 
             // when
-            List<Organization> result =
-                    readManager.findAllByTenantIdAndCriteria(tenantId, "nonexistent", null, 0, 10);
+            List<Organization> result = readManager.findAllByCriteria(criteria);
 
             // then
             assertThat(result).isEmpty();
@@ -186,13 +198,21 @@ class OrganizationReadManagerTest {
         void shouldFindOrganizationsWithNameAndStatusFilter() {
             // given
             TenantId tenantId = OrganizationFixture.defaultTenantId();
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId,
+                            "Test",
+                            null,
+                            List.of(OrganizationStatus.ACTIVE),
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 10));
             List<Organization> expected = List.of(OrganizationFixture.create());
-            given(queryPort.findAllByTenantIdAndCriteria(tenantId, "Test", "ACTIVE", 0, 10))
-                    .willReturn(expected);
+            given(queryPort.findAllByCriteria(criteria)).willReturn(expected);
 
             // when
-            List<Organization> result =
-                    readManager.findAllByTenantIdAndCriteria(tenantId, "Test", "ACTIVE", 0, 10);
+            List<Organization> result = readManager.findAllByCriteria(criteria);
 
             // then
             assertThat(result).hasSize(1);
@@ -200,18 +220,21 @@ class OrganizationReadManagerTest {
     }
 
     @Nested
-    @DisplayName("countByTenantIdAndCriteria 메서드")
-    class CountByTenantIdAndCriteriaTest {
+    @DisplayName("countByCriteria 메서드")
+    class CountByCriteriaTest {
 
         @Test
         @DisplayName("조건에 맞는 조직 개수를 반환한다")
         void shouldCountOrganizationsByCriteria() {
             // given
             TenantId tenantId = OrganizationFixture.defaultTenantId();
-            given(queryPort.countByTenantIdAndCriteria(tenantId, null, null)).willReturn(5L);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId, null, null, null, null, null, null, PageRequest.of(0, 10));
+            given(queryPort.countByCriteria(criteria)).willReturn(5L);
 
             // when
-            long result = readManager.countByTenantIdAndCriteria(tenantId, null, null);
+            long result = readManager.countByCriteria(criteria);
 
             // then
             assertThat(result).isEqualTo(5L);
@@ -222,11 +245,20 @@ class OrganizationReadManagerTest {
         void shouldReturnZeroWhenNoResults() {
             // given
             TenantId tenantId = OrganizationFixture.defaultTenantId();
-            given(queryPort.countByTenantIdAndCriteria(tenantId, "nonexistent", null))
-                    .willReturn(0L);
+            OrganizationCriteria criteria =
+                    OrganizationCriteria.of(
+                            tenantId,
+                            "nonexistent",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            PageRequest.of(0, 10));
+            given(queryPort.countByCriteria(criteria)).willReturn(0L);
 
             // when
-            long result = readManager.countByTenantIdAndCriteria(tenantId, "nonexistent", null);
+            long result = readManager.countByCriteria(criteria);
 
             // then
             assertThat(result).isZero();

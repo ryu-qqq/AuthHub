@@ -21,6 +21,8 @@ import com.ryuqq.authhub.integration.organization.fixture.OrganizationIntegratio
 import com.ryuqq.authhub.integration.role.fixture.RoleIntegrationTestFixture;
 import com.ryuqq.authhub.integration.tenant.fixture.TenantIntegrationTestFixture;
 import com.ryuqq.authhub.integration.user.fixture.UserIntegrationTestFixture;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,6 +51,9 @@ import org.springframework.http.ResponseEntity;
  */
 @DisplayName("Admin Query API 통합 테스트")
 class AdminQueryIntegrationTest extends BaseIntegrationTest {
+
+    private static final Instant NOW = Instant.now().plus(1, ChronoUnit.DAYS);
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     private String tenantId;
     private String organizationId;
@@ -123,7 +128,11 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // when
             ResponseEntity<ApiResponse<PageApiResponse<UserSummaryApiResponse>>> response =
                     restTemplate.exchange(
-                            usersUrl() + "/admin/search?page=0&size=20",
+                            usersUrl()
+                                    + "/admin/search?page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -141,7 +150,13 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // when
             ResponseEntity<ApiResponse<PageApiResponse<UserSummaryApiResponse>>> response =
                     restTemplate.exchange(
-                            usersUrl() + "/admin/search?tenantId=" + tenantId + "&page=0&size=20",
+                            usersUrl()
+                                    + "/admin/search?tenantId="
+                                    + tenantId
+                                    + "&page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -202,7 +217,11 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // when
             ResponseEntity<ApiResponse<PageApiResponse<RoleSummaryApiResponse>>> response =
                     restTemplate.exchange(
-                            rolesUrl() + "/admin/search?page=0&size=20",
+                            rolesUrl()
+                                    + "/admin/search?page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -219,7 +238,13 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // when
             ResponseEntity<ApiResponse<PageApiResponse<RoleSummaryApiResponse>>> response =
                     restTemplate.exchange(
-                            rolesUrl() + "/admin/search?tenantId=" + tenantId + "&page=0&size=20",
+                            rolesUrl()
+                                    + "/admin/search?tenantId="
+                                    + tenantId
+                                    + "&page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -278,7 +303,11 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // when
             ResponseEntity<ApiResponse<PageApiResponse<TenantSummaryApiResponse>>> response =
                     restTemplate.exchange(
-                            tenantsUrl() + "/admin/search?page=0&size=20",
+                            tenantsUrl()
+                                    + "/admin/search?page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -296,7 +325,11 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // when
             ResponseEntity<ApiResponse<PageApiResponse<TenantSummaryApiResponse>>> response =
                     restTemplate.exchange(
-                            tenantsUrl() + "/admin/search?status=ACTIVE&page=0&size=20",
+                            tenantsUrl()
+                                    + "/admin/search?status=ACTIVE&page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -355,7 +388,11 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
             // when
             ResponseEntity<ApiResponse<PageApiResponse<OrganizationSummaryApiResponse>>> response =
                     restTemplate.exchange(
-                            organizationsUrl() + "/admin/search?page=0&size=20",
+                            organizationsUrl()
+                                    + "/admin/search?page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -376,7 +413,10 @@ class AdminQueryIntegrationTest extends BaseIntegrationTest {
                             organizationsUrl()
                                     + "/admin/search?tenantId="
                                     + tenantId
-                                    + "&page=0&size=20",
+                                    + "&page=0&size=20&createdFrom="
+                                    + ONE_MONTH_AGO
+                                    + "&createdTo="
+                                    + NOW,
                             HttpMethod.GET,
                             null,
                             new ParameterizedTypeReference<>() {});

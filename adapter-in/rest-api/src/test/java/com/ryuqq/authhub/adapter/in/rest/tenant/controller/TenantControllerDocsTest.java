@@ -49,6 +49,7 @@ import com.ryuqq.authhub.application.tenant.port.in.query.GetTenantUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsAdminUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsUseCase;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -87,6 +88,9 @@ import org.springframework.http.MediaType;
 @DisplayName("TenantController REST Docs")
 @Tag("docs")
 class TenantControllerDocsTest extends RestDocsTestSupport {
+
+    private static final Instant NOW = Instant.now();
+    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
 
     @MockBean private CreateTenantUseCase createTenantUseCase;
 
@@ -315,7 +319,10 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                 new TenantApiResponse(
                         tenantId.toString(), "TestTenant", "ACTIVE", Instant.now(), Instant.now());
 
-        given(mapper.toQuery(any())).willReturn(new SearchTenantsQuery("Test", "ACTIVE", 0, 10));
+        given(mapper.toQuery(any()))
+                .willReturn(
+                        SearchTenantsQuery.of(
+                                "Test", List.of("ACTIVE"), ONE_MONTH_AGO, NOW, 0, 10));
         given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class))).willReturn(pageResponse);
         given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
 
@@ -323,7 +330,9 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
         mockMvc.perform(
                         get("/api/v1/auth/tenants")
                                 .param("name", "Test")
-                                .param("status", "ACTIVE")
+                                .param("statuses", "ACTIVE")
+                                .param("createdFrom", ONE_MONTH_AGO.toString())
+                                .param("createdTo", NOW.toString())
                                 .param("page", "0")
                                 .param("size", "10")
                                 .accept(MediaType.APPLICATION_JSON))
@@ -335,9 +344,13 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("name")
                                                 .description("테넌트 이름 필터 (부분 일치)")
                                                 .optional(),
-                                        parameterWithName("status")
-                                                .description("상태 필터 (ACTIVE, INACTIVE)")
+                                        parameterWithName("statuses")
+                                                .description(
+                                                        "상태 필터 목록 (ACTIVE, INACTIVE - 다중 선택 가능)")
                                                 .optional(),
+                                        parameterWithName("createdFrom")
+                                                .description("생성일시 시작 (필수)"),
+                                        parameterWithName("createdTo").description("생성일시 종료 (필수)"),
                                         parameterWithName("page")
                                                 .description("페이지 번호 (0부터 시작, 기본값: 0)")
                                                 .optional(),
@@ -389,7 +402,17 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                 PageResponse.of(List.of(apiSummaryResponse), 0, 20, 1L, 1, true, true);
 
         given(mapper.toAdminQuery(any(SearchTenantsAdminApiRequest.class)))
-                .willReturn(new SearchTenantsQuery("Test", "ACTIVE", 0, 20));
+                .willReturn(
+                        SearchTenantsQuery.ofAdmin(
+                                "Test",
+                                null,
+                                List.of("ACTIVE"),
+                                ONE_MONTH_AGO,
+                                NOW,
+                                null,
+                                null,
+                                0,
+                                20));
         given(searchTenantsAdminUseCase.execute(any(SearchTenantsQuery.class)))
                 .willReturn(pageResponse);
         given(mapper.toSummaryApiPageResponse(any())).willReturn(apiPageResponse);
@@ -398,7 +421,9 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
         mockMvc.perform(
                         get("/api/v1/auth/tenants/admin/search")
                                 .param("name", "Test")
-                                .param("status", "ACTIVE")
+                                .param("statuses", "ACTIVE")
+                                .param("createdFrom", ONE_MONTH_AGO.toString())
+                                .param("createdTo", NOW.toString())
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
@@ -409,14 +434,16 @@ class TenantControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("name")
                                                 .description("테넌트 이름 필터 (선택)")
                                                 .optional(),
-                                        parameterWithName("status")
-                                                .description("테넌트 상태 필터 (선택, ACTIVE/INACTIVE)")
+                                        parameterWithName("statuses")
+                                                .description(
+                                                        "테넌트 상태 필터 목록 (선택, ACTIVE/INACTIVE - 다중 선택"
+                                                                + " 가능)")
                                                 .optional(),
                                         parameterWithName("createdFrom")
-                                                .description("생성일시 시작 (선택)")
+                                                .description("생성일시 시작 (필수)")
                                                 .optional(),
                                         parameterWithName("createdTo")
-                                                .description("생성일시 종료 (선택)")
+                                                .description("생성일시 종료 (필수)")
                                                 .optional(),
                                         parameterWithName("sortBy")
                                                 .description(

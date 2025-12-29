@@ -8,8 +8,6 @@ import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleSummaryResponse;
 import com.ryuqq.authhub.application.role.port.out.query.RoleAdminQueryPort;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +36,8 @@ class SearchRolesAdminServiceTest {
     private SearchRolesAdminService service;
 
     private static final UUID TENANT_UUID = UUID.randomUUID();
+    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
 
     @BeforeEach
     void setUp() {
@@ -53,8 +53,18 @@ class SearchRolesAdminServiceTest {
         void shouldSearchRolesSuccessfully() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(
-                            TENANT_UUID, null, null, null, null, null, "createdAt", "DESC", 0, 20);
+                    SearchRolesQuery.ofAdmin(
+                            TENANT_UUID,
+                            null,
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            "createdAt",
+                            "DESC",
+                            0,
+                            20);
             RoleSummaryResponse roleSummary =
                     new RoleSummaryResponse(
                             UUID.randomUUID(),
@@ -87,13 +97,14 @@ class SearchRolesAdminServiceTest {
         void shouldReturnEmptyPageWhenNoResults() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(
+                    SearchRolesQuery.ofAdmin(
                             TENANT_UUID,
                             "nonexistent",
                             null,
                             null,
                             null,
-                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
                             "createdAt",
                             "DESC",
                             0,
@@ -116,13 +127,14 @@ class SearchRolesAdminServiceTest {
         void shouldSearchRolesWithScopeAndTypeFilter() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(
+                    SearchRolesQuery.ofAdmin(
                             TENANT_UUID,
                             null,
-                            RoleScope.TENANT,
-                            RoleType.CUSTOM,
                             null,
-                            null,
+                            List.of("TENANT"),
+                            List.of("CUSTOM"),
+                            CREATED_FROM,
+                            CREATED_TO,
                             "createdAt",
                             "DESC",
                             0,

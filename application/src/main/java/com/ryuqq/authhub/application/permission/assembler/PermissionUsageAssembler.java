@@ -2,8 +2,6 @@ package com.ryuqq.authhub.application.permission.assembler;
 
 import com.ryuqq.authhub.application.permission.dto.response.PermissionUsageResponse;
 import com.ryuqq.authhub.domain.permission.aggregate.PermissionUsage;
-import com.ryuqq.authhub.domain.permission.vo.CodeLocation;
-import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,18 +40,5 @@ public class PermissionUsageAssembler {
                 usage.locationValues(),
                 usage.getLastScannedAt(),
                 usage.createdAt());
-    }
-
-    /**
-     * 문자열 리스트 → CodeLocation 리스트 변환
-     *
-     * @param locations 코드 위치 문자열 리스트 (nullable)
-     * @return CodeLocation 리스트 (빈 리스트 가능)
-     */
-    public List<CodeLocation> toCodeLocations(List<String> locations) {
-        if (locations == null || locations.isEmpty()) {
-            return List.of();
-        }
-        return locations.stream().map(CodeLocation::of).toList();
     }
 }

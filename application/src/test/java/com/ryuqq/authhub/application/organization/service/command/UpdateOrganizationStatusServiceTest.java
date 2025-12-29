@@ -3,12 +3,14 @@ package com.ryuqq.authhub.application.organization.service.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.authhub.application.organization.assembler.OrganizationAssembler;
 import com.ryuqq.authhub.application.organization.dto.command.UpdateOrganizationStatusCommand;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
+import com.ryuqq.authhub.application.organization.factory.command.OrganizationCommandFactory;
 import com.ryuqq.authhub.application.organization.manager.command.OrganizationTransactionManager;
 import com.ryuqq.authhub.application.organization.manager.query.OrganizationReadManager;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
@@ -41,6 +43,8 @@ class UpdateOrganizationStatusServiceTest {
 
     @Mock private OrganizationReadManager readManager;
 
+    @Mock private OrganizationCommandFactory commandFactory;
+
     @Mock private OrganizationTransactionManager transactionManager;
 
     @Mock private OrganizationAssembler assembler;
@@ -54,7 +58,7 @@ class UpdateOrganizationStatusServiceTest {
         clock = Clock.fixed(Instant.parse("2025-01-02T00:00:00Z"), ZoneOffset.UTC);
         service =
                 new UpdateOrganizationStatusService(
-                        readManager, transactionManager, assembler, clock);
+                        readManager, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -81,6 +85,8 @@ class UpdateOrganizationStatusServiceTest {
                             deactivatedOrganization.updatedAt());
 
             given(readManager.findById(any(OrganizationId.class))).willReturn(activeOrganization);
+            given(commandFactory.applyStatusChange(any(Organization.class), eq("INACTIVE")))
+                    .willReturn(deactivatedOrganization);
             given(transactionManager.persist(any(Organization.class)))
                     .willReturn(deactivatedOrganization);
             given(assembler.toResponse(deactivatedOrganization)).willReturn(expectedResponse);
@@ -91,6 +97,7 @@ class UpdateOrganizationStatusServiceTest {
             // then
             assertThat(response.status()).isEqualTo("INACTIVE");
             verify(readManager).findById(any(OrganizationId.class));
+            verify(commandFactory).applyStatusChange(any(Organization.class), eq("INACTIVE"));
             verify(transactionManager).persist(any(Organization.class));
             verify(assembler).toResponse(any(Organization.class));
         }
@@ -115,6 +122,8 @@ class UpdateOrganizationStatusServiceTest {
                             activatedOrganization.updatedAt());
 
             given(readManager.findById(any(OrganizationId.class))).willReturn(inactiveOrganization);
+            given(commandFactory.applyStatusChange(any(Organization.class), eq("ACTIVE")))
+                    .willReturn(activatedOrganization);
             given(transactionManager.persist(any(Organization.class)))
                     .willReturn(activatedOrganization);
             given(assembler.toResponse(activatedOrganization)).willReturn(expectedResponse);
@@ -151,6 +160,10 @@ class UpdateOrganizationStatusServiceTest {
                             OrganizationFixture.defaultUUID(), "ACTIVE");
 
             given(readManager.findById(any(OrganizationId.class))).willReturn(deletedOrganization);
+            given(commandFactory.applyStatusChange(any(Organization.class), eq("ACTIVE")))
+                    .willThrow(
+                            new InvalidOrganizationStateException(
+                                    deletedOrganization.getStatus(), "ACTIVE"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
@@ -167,6 +180,10 @@ class UpdateOrganizationStatusServiceTest {
                             OrganizationFixture.defaultUUID(), "DELETED");
 
             given(readManager.findById(any(OrganizationId.class))).willReturn(activeOrganization);
+            given(commandFactory.applyStatusChange(any(Organization.class), eq("DELETED")))
+                    .willThrow(
+                            new IllegalArgumentException(
+                                    "DELETED 상태로의 변경은 DeleteOrganizationUseCase를 사용하세요"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
@@ -184,6 +201,10 @@ class UpdateOrganizationStatusServiceTest {
                             OrganizationFixture.defaultUUID(), "ACTIVE");
 
             given(readManager.findById(any(OrganizationId.class))).willReturn(activeOrganization);
+            given(commandFactory.applyStatusChange(any(Organization.class), eq("ACTIVE")))
+                    .willThrow(
+                            new InvalidOrganizationStateException(
+                                    activeOrganization.getStatus(), "ACTIVE"));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))

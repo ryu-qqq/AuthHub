@@ -4,12 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.user.assembler.UserAssembler;
 import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.dto.response.UserResponse;
+import com.ryuqq.authhub.application.user.factory.query.UserQueryFactory;
 import com.ryuqq.authhub.application.user.manager.query.UserReadManager;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
+import com.ryuqq.authhub.domain.user.query.criteria.UserCriteria;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +35,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchUsersService 단위 테스트")
 class SearchUsersServiceTest {
 
+    @Mock private UserQueryFactory queryFactory;
+
     @Mock private UserReadManager readManager;
 
     @Mock private UserAssembler assembler;
@@ -39,7 +45,7 @@ class SearchUsersServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new SearchUsersService(readManager, assembler);
+        service = new SearchUsersService(queryFactory, readManager, assembler);
     }
 
     @Nested
@@ -54,8 +60,22 @@ class SearchUsersServiceTest {
             User user2 = UserFixture.createWithIdentifier("another@example.com");
             List<User> users = List.of(user1, user2);
 
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
             SearchUsersQuery query =
-                    SearchUsersQuery.of(UserFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    SearchUsersQuery.of(
+                            UserFixture.defaultTenantUUID(),
+                            null,
+                            null,
+                            null,
+                            createdFrom,
+                            createdTo,
+                            0,
+                            10);
+
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(
+                            UserFixture.defaultTenantUUID(), null, null, null, null, 0, 10);
 
             UserResponse response1 =
                     new UserResponse(
@@ -63,6 +83,7 @@ class SearchUsersServiceTest {
                             user1.tenantIdValue(),
                             user1.organizationIdValue(),
                             user1.getIdentifier(),
+                            user1.getPhoneNumber(),
                             user1.getUserStatus().name(),
                             user1.getCreatedAt(),
                             user1.getUpdatedAt());
@@ -72,21 +93,30 @@ class SearchUsersServiceTest {
                             user2.tenantIdValue(),
                             user2.organizationIdValue(),
                             user2.getIdentifier(),
+                            user2.getPhoneNumber(),
                             user2.getUserStatus().name(),
                             user2.getCreatedAt(),
                             user2.getUpdatedAt());
             List<UserResponse> expectedResponses = List.of(response1, response2);
 
-            given(readManager.search(query)).willReturn(users);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(readManager.findAllByCriteria(criteria)).willReturn(users);
+            given(readManager.countByCriteria(criteria)).willReturn(2L);
             given(assembler.toResponseList(users)).willReturn(expectedResponses);
 
             // when
-            List<UserResponse> responses = service.execute(query);
+            PageResponse<UserResponse> pageResponse = service.execute(query);
 
             // then
-            assertThat(responses).hasSize(2);
-            assertThat(responses).isEqualTo(expectedResponses);
-            verify(readManager).search(query);
+            assertThat(pageResponse.content()).hasSize(2);
+            assertThat(pageResponse.content()).isEqualTo(expectedResponses);
+            assertThat(pageResponse.totalElements()).isEqualTo(2);
+            assertThat(pageResponse.totalPages()).isEqualTo(1);
+            assertThat(pageResponse.first()).isTrue();
+            assertThat(pageResponse.last()).isTrue();
+            verify(queryFactory).toCriteria(query);
+            verify(readManager).findAllByCriteria(criteria);
+            verify(readManager).countByCriteria(criteria);
             verify(assembler).toResponseList(users);
         }
 
@@ -94,20 +124,46 @@ class SearchUsersServiceTest {
         @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
         void shouldReturnEmptyListWhenNoResults() {
             // given
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
             SearchUsersQuery query =
                     SearchUsersQuery.of(
-                            UserFixture.defaultTenantUUID(), null, "nonexistent", null, 0, 10);
+                            UserFixture.defaultTenantUUID(),
+                            null,
+                            "nonexistent",
+                            null,
+                            createdFrom,
+                            createdTo,
+                            0,
+                            10);
+
+            UserCriteria criteria =
+                    UserCriteria.ofSimple(
+                            UserFixture.defaultTenantUUID(),
+                            null,
+                            "nonexistent",
+                            null,
+                            null,
+                            0,
+                            10);
+
             List<User> emptyList = List.of();
 
-            given(readManager.search(query)).willReturn(emptyList);
+            given(queryFactory.toCriteria(query)).willReturn(criteria);
+            given(readManager.findAllByCriteria(criteria)).willReturn(emptyList);
+            given(readManager.countByCriteria(criteria)).willReturn(0L);
             given(assembler.toResponseList(emptyList)).willReturn(List.of());
 
             // when
-            List<UserResponse> responses = service.execute(query);
+            PageResponse<UserResponse> pageResponse = service.execute(query);
 
             // then
-            assertThat(responses).isEmpty();
-            verify(readManager).search(query);
+            assertThat(pageResponse.content()).isEmpty();
+            assertThat(pageResponse.totalElements()).isZero();
+            assertThat(pageResponse.totalPages()).isZero();
+            verify(queryFactory).toCriteria(query);
+            verify(readManager).findAllByCriteria(criteria);
+            verify(readManager).countByCriteria(criteria);
             verify(assembler).toResponseList(emptyList);
         }
     }

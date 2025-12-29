@@ -4,6 +4,7 @@ import com.ryuqq.authhub.application.organization.port.out.query.OrganizationQue
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.exception.OrganizationNotFoundException;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>단일 QueryPort만 의존
  *   <li>비즈니스 로직 금지
  *   <li>Lombok 금지
+ *   <li>Criteria 기반 조회
  * </ul>
  *
  * @author development-team
@@ -74,31 +76,24 @@ public class OrganizationReadManager {
     }
 
     /**
-     * 테넌트 범위 내 조직 목록 조회 (페이징)
+     * 조건에 맞는 조직 목록 조회 (Criteria 기반)
      *
-     * @param tenantId Tenant ID
-     * @param name Organization 이름 필터 (null 허용, 부분 검색)
-     * @param status Organization 상태 필터 (null 허용)
-     * @param offset 시작 위치
-     * @param limit 조회 개수
+     * @param criteria 검색 조건 (OrganizationCriteria)
      * @return Organization Domain 목록
      */
     @Transactional(readOnly = true)
-    public List<Organization> findAllByTenantIdAndCriteria(
-            TenantId tenantId, String name, String status, int offset, int limit) {
-        return queryPort.findAllByTenantIdAndCriteria(tenantId, name, status, offset, limit);
+    public List<Organization> findAllByCriteria(OrganizationCriteria criteria) {
+        return queryPort.findAllByCriteria(criteria);
     }
 
     /**
-     * 테넌트 범위 내 조직 개수 조회
+     * 조건에 맞는 조직 개수 조회 (Criteria 기반)
      *
-     * @param tenantId Tenant ID
-     * @param name Organization 이름 필터 (null 허용, 부분 검색)
-     * @param status Organization 상태 필터 (null 허용)
+     * @param criteria 검색 조건 (OrganizationCriteria)
      * @return 조건에 맞는 Organization 총 개수
      */
     @Transactional(readOnly = true)
-    public long countByTenantIdAndCriteria(TenantId tenantId, String name, String status) {
-        return queryPort.countByTenantIdAndCriteria(tenantId, name, status);
+    public long countByCriteria(OrganizationCriteria criteria) {
+        return queryPort.countByCriteria(criteria);
     }
 }

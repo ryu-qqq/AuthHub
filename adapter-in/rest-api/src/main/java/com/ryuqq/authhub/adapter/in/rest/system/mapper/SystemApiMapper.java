@@ -34,7 +34,10 @@ public class SystemApiMapper {
      */
     public TenantOnboardingCommand toCommand(TenantOnboardingApiRequest request) {
         return new TenantOnboardingCommand(
-                request.tenantName(), request.organizationName(), request.masterEmail());
+                request.tenantName(),
+                request.organizationName(),
+                request.masterEmail(),
+                request.masterPhoneNumber());
     }
 
     /**

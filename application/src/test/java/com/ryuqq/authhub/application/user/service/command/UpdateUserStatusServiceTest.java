@@ -68,6 +68,7 @@ class UpdateUserStatusServiceTest {
                             updatedUser.tenantIdValue(),
                             updatedUser.organizationIdValue(),
                             updatedUser.getIdentifier(),
+                            updatedUser.getPhoneNumber(),
                             "INACTIVE",
                             updatedUser.getCreatedAt(),
                             updatedUser.getUpdatedAt());

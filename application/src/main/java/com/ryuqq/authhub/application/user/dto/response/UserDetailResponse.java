@@ -30,6 +30,7 @@ import java.util.UUID;
  * @param organizationId 조직 ID
  * @param organizationName 조직 이름
  * @param identifier 사용자 식별자 (이메일)
+ * @param phoneNumber 핸드폰 번호
  * @param status 사용자 상태
  * @param roles 할당된 역할 목록
  * @param createdAt 생성일시
@@ -46,6 +47,7 @@ public record UserDetailResponse(
         UUID organizationId,
         String organizationName,
         String identifier,
+        String phoneNumber,
         String status,
         List<UserRoleSummary> roles,
         Instant createdAt,

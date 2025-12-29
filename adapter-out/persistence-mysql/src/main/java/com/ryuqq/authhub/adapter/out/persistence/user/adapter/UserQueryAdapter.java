@@ -2,15 +2,13 @@ package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserQueryDslRepository;
-import com.ryuqq.authhub.application.user.dto.query.SearchUsersQuery;
 import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
-import com.ryuqq.authhub.domain.user.vo.UserStatus;
+import com.ryuqq.authhub.domain.user.query.criteria.UserCriteria;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +31,7 @@ import org.springframework.stereotype.Component;
  *   <li>findById() - ID로 단건 조회
  *   <li>findByTenantIdAndIdentifier() - 테넌트 내 식별자로 조회
  *   <li>existsByTenantIdAndOrganizationIdAndIdentifier() - 식별자 존재 여부 확인
- *   <li>search() - 조건 검색
+ *   <li>findAllByCriteria() - 조건 검색
  * </ul>
  *
  * <p><strong>규칙:</strong>
@@ -110,29 +108,44 @@ public class UserQueryAdapter implements UserQueryPort {
     }
 
     /**
-     * 사용자 검색 (페이징)
+     * 테넌트 내 핸드폰 번호 존재 여부 확인
      *
-     * @param query 검색 조건
-     * @return User 목록
+     * @param tenantId 테넌트 ID
+     * @param phoneNumber 핸드폰 번호
+     * @return 존재 여부
      */
     @Override
-    public List<User> search(SearchUsersQuery query) {
-        int offset = query.page() * query.size();
-        UserStatus status =
-                query.status() != null
-                        ? UserStatus.valueOf(query.status().toUpperCase(Locale.ENGLISH))
-                        : null;
+    public boolean existsByTenantIdAndPhoneNumber(TenantId tenantId, String phoneNumber) {
+        return repository.existsByTenantIdAndPhoneNumber(tenantId.value(), phoneNumber);
+    }
 
-        return repository
-                .search(
-                        query.tenantId(),
-                        query.organizationId(),
-                        query.identifier(),
-                        status,
-                        offset,
-                        query.size())
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
+    /**
+     * 조건에 맞는 사용자 목록 조회 (페이징)
+     *
+     * <p><strong>처리 흐름:</strong>
+     *
+     * <ol>
+     *   <li>UserCriteria에서 검색 조건 추출
+     *   <li>QueryDSL Repository로 조건 조회
+     *   <li>Entity → Domain 변환 (Mapper)
+     * </ol>
+     *
+     * @param criteria 검색 조건 (UserCriteria)
+     * @return User Domain 목록
+     */
+    @Override
+    public List<User> findAllByCriteria(UserCriteria criteria) {
+        return repository.findAllByCriteria(criteria).stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * 조건에 맞는 사용자 개수 조회
+     *
+     * @param criteria 검색 조건 (UserCriteria)
+     * @return 조건에 맞는 사용자 총 개수
+     */
+    @Override
+    public long countByCriteria(UserCriteria criteria) {
+        return repository.countByCriteria(criteria);
     }
 }

@@ -4,6 +4,7 @@ import com.ryuqq.authhub.application.tenant.port.out.query.TenantQueryPort;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.exception.TenantNotFoundException;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -74,26 +75,22 @@ public class TenantReadManager {
     /**
      * 조건에 맞는 Tenant 목록 조회 (페이징)
      *
-     * @param name Tenant 이름 필터 (null 허용, 부분 검색)
-     * @param status Tenant 상태 필터 (null 허용)
-     * @param offset 시작 위치
-     * @param limit 조회 개수
+     * @param criteria 검색 조건 (TenantCriteria)
      * @return Tenant Domain 목록
      */
     @Transactional(readOnly = true)
-    public List<Tenant> findAllByCriteria(String name, String status, int offset, int limit) {
-        return queryPort.findAllByCriteria(name, status, offset, limit);
+    public List<Tenant> findAllByCriteria(TenantCriteria criteria) {
+        return queryPort.findAllByCriteria(criteria);
     }
 
     /**
      * 조건에 맞는 Tenant 개수 조회
      *
-     * @param name Tenant 이름 필터 (null 허용, 부분 검색)
-     * @param status Tenant 상태 필터 (null 허용)
+     * @param criteria 검색 조건 (TenantCriteria)
      * @return 조건에 맞는 Tenant 총 개수
      */
     @Transactional(readOnly = true)
-    public long countAll(String name, String status) {
-        return queryPort.countAll(name, status);
+    public long countByCriteria(TenantCriteria criteria) {
+        return queryPort.countByCriteria(criteria);
     }
 }

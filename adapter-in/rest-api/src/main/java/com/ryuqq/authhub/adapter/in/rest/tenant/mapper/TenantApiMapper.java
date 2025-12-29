@@ -56,12 +56,19 @@ public class TenantApiMapper {
     /**
      * SearchTenantsApiRequest → SearchTenantsQuery 변환
      *
+     * <p>일반 API용 변환입니다. searchType은 기본값(CONTAINS_LIKE)을 사용합니다.
+     *
      * @param request API 요청 DTO
      * @return Application Query DTO
      */
     public SearchTenantsQuery toQuery(SearchTenantsApiRequest request) {
-        return new SearchTenantsQuery(
-                request.name(), request.status(), request.page(), request.size());
+        return SearchTenantsQuery.of(
+                request.name(),
+                request.statuses(),
+                request.createdFrom(),
+                request.createdTo(),
+                request.pageOrDefault(),
+                request.sizeOrDefault());
     }
 
     /**
@@ -137,30 +144,22 @@ public class TenantApiMapper {
     /**
      * SearchTenantsAdminApiRequest → SearchTenantsQuery 변환 (Admin용)
      *
-     * <p>확장 필터(날짜 범위, 정렬)가 포함된 Query로 변환합니다.
+     * <p>확장 필터(검색 타입, 날짜 범위, 정렬)가 포함된 Query로 변환합니다.
      *
      * @param request Admin API 요청 DTO
      * @return Application Query DTO
      */
     public SearchTenantsQuery toAdminQuery(SearchTenantsAdminApiRequest request) {
-        int page = request.page() != null ? request.page() : 0;
-        int size = request.size() != null ? request.size() : SearchTenantsQuery.DEFAULT_PAGE_SIZE;
-        String sortBy =
-                request.sortBy() != null ? request.sortBy() : SearchTenantsQuery.DEFAULT_SORT_BY;
-        String sortDirection =
-                request.sortDirection() != null
-                        ? request.sortDirection()
-                        : SearchTenantsQuery.DEFAULT_SORT_DIRECTION;
-
-        return new SearchTenantsQuery(
+        return SearchTenantsQuery.ofAdmin(
                 request.name(),
-                request.status(),
+                request.searchTypeOrDefault(),
+                request.statuses(),
                 request.createdFrom(),
                 request.createdTo(),
-                sortBy,
-                sortDirection,
-                page,
-                size);
+                request.sortByOrDefault(),
+                request.sortDirectionOrDefault(),
+                request.pageOrDefault(),
+                request.sizeOrDefault());
     }
 
     /**

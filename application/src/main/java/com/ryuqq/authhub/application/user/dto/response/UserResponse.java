@@ -18,6 +18,7 @@ import java.util.UUID;
  * @param tenantId 테넌트 ID
  * @param organizationId 조직 ID
  * @param identifier 사용자 식별자 (이메일)
+ * @param phoneNumber 핸드폰 번호
  * @param status 사용자 상태
  * @param createdAt 생성일시
  * @param updatedAt 수정일시
@@ -29,6 +30,7 @@ public record UserResponse(
         UUID tenantId,
         UUID organizationId,
         String identifier,
+        String phoneNumber,
         String status,
         Instant createdAt,
         Instant updatedAt) {}

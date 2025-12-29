@@ -5,12 +5,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.authhub.application.common.dto.response.PageResponse;
 import com.ryuqq.authhub.application.role.assembler.RoleAssembler;
 import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
 import com.ryuqq.authhub.application.role.manager.query.RoleReadManager;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,6 +40,9 @@ class SearchRolesServiceTest {
 
     private SearchRolesService service;
 
+    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
+
     @BeforeEach
     void setUp() {
         service = new SearchRolesService(readManager, assembler);
@@ -54,7 +59,15 @@ class SearchRolesServiceTest {
             Role role1 = RoleFixture.create();
             Role role2 = RoleFixture.createWithName("ANOTHER_ROLE");
             SearchRolesQuery query =
-                    SearchRolesQuery.of(RoleFixture.defaultTenantUUID(), null, null, null, 0, 20);
+                    SearchRolesQuery.of(
+                            RoleFixture.defaultTenantUUID(),
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
 
             RoleResponse response1 =
                     new RoleResponse(
@@ -78,33 +91,96 @@ class SearchRolesServiceTest {
                             role2.updatedAt());
 
             given(readManager.search(query)).willReturn(List.of(role1, role2));
+            given(readManager.count(query)).willReturn(2L);
             given(assembler.toResponse(any(Role.class))).willReturn(response1, response2);
 
             // when
-            List<RoleResponse> responses = service.execute(query);
+            PageResponse<RoleResponse> pageResponse = service.execute(query);
 
             // then
-            assertThat(responses).hasSize(2);
-            assertThat(responses.get(0)).isNotNull();
-            assertThat(responses.get(1)).isNotNull();
+            assertThat(pageResponse).isNotNull();
+            assertThat(pageResponse.content()).hasSize(2);
+            assertThat(pageResponse.totalElements()).isEqualTo(2L);
+            assertThat(pageResponse.totalPages()).isEqualTo(1);
+            assertThat(pageResponse.first()).isTrue();
+            assertThat(pageResponse.last()).isTrue();
             verify(readManager).search(query);
+            verify(readManager).count(query);
         }
 
         @Test
-        @DisplayName("역할이 없으면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenNoRolesFound() {
+        @DisplayName("역할이 없으면 빈 페이지를 반환한다")
+        void shouldReturnEmptyPageWhenNoRolesFound() {
             // given
             SearchRolesQuery query =
-                    SearchRolesQuery.of(RoleFixture.defaultTenantUUID(), null, null, null, 0, 20);
+                    SearchRolesQuery.of(
+                            RoleFixture.defaultTenantUUID(),
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            20);
 
             given(readManager.search(query)).willReturn(List.of());
+            given(readManager.count(query)).willReturn(0L);
 
             // when
-            List<RoleResponse> responses = service.execute(query);
+            PageResponse<RoleResponse> pageResponse = service.execute(query);
 
             // then
-            assertThat(responses).isEmpty();
+            assertThat(pageResponse).isNotNull();
+            assertThat(pageResponse.content()).isEmpty();
+            assertThat(pageResponse.totalElements()).isEqualTo(0L);
+            assertThat(pageResponse.totalPages()).isEqualTo(0);
+            assertThat(pageResponse.first()).isTrue();
+            assertThat(pageResponse.last()).isTrue();
             verify(readManager).search(query);
+            verify(readManager).count(query);
+        }
+
+        @Test
+        @DisplayName("페이징 정보가 올바르게 계산된다")
+        void shouldCalculatePaginationCorrectly() {
+            // given
+            Role role = RoleFixture.create();
+            SearchRolesQuery query =
+                    SearchRolesQuery.of(
+                            RoleFixture.defaultTenantUUID(),
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            1,
+                            10);
+
+            RoleResponse response =
+                    new RoleResponse(
+                            role.roleIdValue(),
+                            role.tenantIdValue(),
+                            role.nameValue(),
+                            role.descriptionValue(),
+                            role.getScope().name(),
+                            role.getType().name(),
+                            role.createdAt(),
+                            role.updatedAt());
+
+            given(readManager.search(query)).willReturn(List.of(role));
+            given(readManager.count(query)).willReturn(25L);
+            given(assembler.toResponse(any(Role.class))).willReturn(response);
+
+            // when
+            PageResponse<RoleResponse> pageResponse = service.execute(query);
+
+            // then
+            assertThat(pageResponse.page()).isEqualTo(1);
+            assertThat(pageResponse.size()).isEqualTo(10);
+            assertThat(pageResponse.totalElements()).isEqualTo(25L);
+            assertThat(pageResponse.totalPages()).isEqualTo(3);
+            assertThat(pageResponse.first()).isFalse();
+            assertThat(pageResponse.last()).isFalse();
         }
     }
 }

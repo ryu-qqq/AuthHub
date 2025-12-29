@@ -2,10 +2,9 @@ package com.ryuqq.authhub.application.role.service.command;
 
 import com.ryuqq.authhub.application.role.dto.command.RevokeRolePermissionCommand;
 import com.ryuqq.authhub.application.role.manager.command.RolePermissionTransactionManager;
-import com.ryuqq.authhub.application.role.manager.query.RolePermissionReadManager;
 import com.ryuqq.authhub.application.role.port.in.command.RevokeRolePermissionUseCase;
+import com.ryuqq.authhub.application.role.validator.RolePermissionValidator;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import com.ryuqq.authhub.domain.role.exception.RolePermissionNotFoundException;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Service;
  * <ul>
  *   <li>{@code @Service} 어노테이션
  *   <li>UseCase 구현
- *   <li>Manager 흐름
+ *   <li>Validator → Manager 흐름
  *   <li>{@code @Transactional} 금지 (Manager에서 처리)
  *   <li>Lombok 금지
  * </ul>
@@ -28,14 +27,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class RevokeRolePermissionService implements RevokeRolePermissionUseCase {
 
+    private final RolePermissionValidator validator;
     private final RolePermissionTransactionManager transactionManager;
-    private final RolePermissionReadManager readManager;
 
     public RevokeRolePermissionService(
-            RolePermissionTransactionManager transactionManager,
-            RolePermissionReadManager readManager) {
+            RolePermissionValidator validator,
+            RolePermissionTransactionManager transactionManager) {
+        this.validator = validator;
         this.transactionManager = transactionManager;
-        this.readManager = readManager;
     }
 
     @Override
@@ -43,10 +42,8 @@ public class RevokeRolePermissionService implements RevokeRolePermissionUseCase 
         RoleId roleId = RoleId.of(command.roleId());
         PermissionId permissionId = PermissionId.of(command.permissionId());
 
-        // 1. 존재 여부 검사
-        if (!readManager.existsByRoleIdAndPermissionId(roleId, permissionId)) {
-            throw new RolePermissionNotFoundException(command.roleId(), command.permissionId());
-        }
+        // 1. Validator: 존재 여부 검사
+        validator.validateExists(roleId, permissionId);
 
         // 2. Manager: 삭제
         transactionManager.delete(roleId, permissionId);

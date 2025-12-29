@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** HTTP 클라이언트 지원 클래스. REST API 호출에 필요한 공통 기능을 제공합니다. */
-public class HttpClientSupport {
+class HttpClientSupport {
 
     private static final Logger log = LoggerFactory.getLogger(HttpClientSupport.class);
     private static final String AUTHORIZATION_HEADER = "Authorization";
@@ -202,6 +202,40 @@ public class HttpClientSupport {
                         .build();
 
         executeVoid(request);
+    }
+
+    /** DELETE 요청을 수행합니다 (본문 포함). */
+    public void delete(String path, Object body) {
+        String url = buildUrl(path, Map.of());
+        String jsonBody = toJson(body);
+
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header(CONTENT_TYPE_HEADER, APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, getAuthorizationHeader())
+                        .method("DELETE", HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .timeout(config.readTimeout())
+                        .build();
+
+        executeVoid(request);
+    }
+
+    /** DELETE 요청을 수행합니다 (본문 포함, 제네릭 타입 지원). */
+    public <T> T delete(String path, Object body, TypeReference<T> typeReference) {
+        String url = buildUrl(path, Map.of());
+        String jsonBody = toJson(body);
+
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header(CONTENT_TYPE_HEADER, APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, getAuthorizationHeader())
+                        .method("DELETE", HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .timeout(config.readTimeout())
+                        .build();
+
+        return executeWithTypeReference(request, typeReference);
     }
 
     private <T> T execute(HttpRequest request, Class<T> responseType) {

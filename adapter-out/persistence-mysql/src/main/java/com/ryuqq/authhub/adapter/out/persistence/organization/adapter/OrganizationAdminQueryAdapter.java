@@ -2,11 +2,11 @@ package com.ryuqq.authhub.adapter.out.persistence.organization.adapter;
 
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationAdminQueryDslRepository;
 import com.ryuqq.authhub.application.common.dto.response.PageResponse;
-import com.ryuqq.authhub.application.organization.dto.query.SearchOrganizationsQuery;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationDetailResponse;
 import com.ryuqq.authhub.application.organization.dto.response.OrganizationSummaryResponse;
 import com.ryuqq.authhub.application.organization.port.out.query.OrganizationAdminQueryPort;
 import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
  *   <li>{@code @Component} 어노테이션 필수
  *   <li>{@code @Transactional} 금지 (Manager/Facade에서 관리)
  *   <li>비즈니스 로직 금지 (단순 위임만)
+ *   <li>Criteria 기반 조회 (Query DTO 금지)
  *   <li>Lombok 금지
  * </ul>
  *
@@ -47,24 +48,26 @@ public class OrganizationAdminQueryAdapter implements OrganizationAdminQueryPort
     }
 
     /**
-     * Admin 목록 검색 (확장 필터 + 페이징)
+     * Admin 목록 검색 (Criteria 기반 + 페이징)
      *
      * <p>tenantName, userCount를 포함한 Summary DTO를 직접 반환합니다.
      *
-     * @param query 검색 조건 (확장 필터 포함)
+     * @param criteria 검색 조건 (OrganizationCriteria)
      * @return 페이징된 조직 Summary 목록
      */
     @Override
     public PageResponse<OrganizationSummaryResponse> searchOrganizations(
-            SearchOrganizationsQuery query) {
-        List<OrganizationSummaryResponse> content = repository.searchOrganizations(query);
-        long totalElements = repository.countOrganizations(query);
-        int totalPages = (int) Math.ceil((double) totalElements / query.size());
-        boolean isFirst = query.page() == 0;
-        boolean isLast = query.page() >= totalPages - 1;
+            OrganizationCriteria criteria) {
+        List<OrganizationSummaryResponse> content = repository.searchOrganizations(criteria);
+        long totalElements = repository.countOrganizations(criteria);
 
-        return PageResponse.of(
-                content, query.page(), query.size(), totalElements, totalPages, isFirst, isLast);
+        int page = criteria.page().page();
+        int size = criteria.page().size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        boolean isFirst = page == 0;
+        boolean isLast = page >= totalPages - 1 || totalPages == 0;
+
+        return PageResponse.of(content, page, size, totalElements, totalPages, isFirst, isLast);
     }
 
     /**

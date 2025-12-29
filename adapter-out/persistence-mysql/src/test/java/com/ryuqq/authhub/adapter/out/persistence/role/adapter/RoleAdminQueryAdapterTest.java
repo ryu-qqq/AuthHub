@@ -40,6 +40,8 @@ class RoleAdminQueryAdapterTest {
 
     private static final UUID ROLE_UUID = UUID.randomUUID();
     private static final UUID TENANT_UUID = UUID.randomUUID();
+    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
 
     @BeforeEach
     void setUp() {
@@ -55,8 +57,18 @@ class RoleAdminQueryAdapterTest {
         void shouldSearchRolesSuccessfully() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(
-                            TENANT_UUID, null, null, null, null, null, "createdAt", "DESC", 0, 20);
+                    SearchRolesQuery.ofAdmin(
+                            TENANT_UUID,
+                            null,
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            "createdAt",
+                            "DESC",
+                            0,
+                            20);
             RoleSummaryResponse roleSummary =
                     new RoleSummaryResponse(
                             UUID.randomUUID(),
@@ -91,13 +103,14 @@ class RoleAdminQueryAdapterTest {
         void shouldReturnEmptyPageWhenNoResults() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(
+                    SearchRolesQuery.ofAdmin(
                             TENANT_UUID,
                             "nonexistent",
                             null,
                             null,
                             null,
-                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
                             "createdAt",
                             "DESC",
                             0,
@@ -175,8 +188,18 @@ class RoleAdminQueryAdapterTest {
         void shouldCountRolesSuccessfully() {
             // given
             SearchRolesQuery query =
-                    new SearchRolesQuery(
-                            TENANT_UUID, null, null, null, null, null, "createdAt", "DESC", 0, 20);
+                    SearchRolesQuery.ofAdmin(
+                            TENANT_UUID,
+                            null,
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            "createdAt",
+                            "DESC",
+                            0,
+                            20);
 
             given(repository.countRoles(query)).willReturn(10L);
 

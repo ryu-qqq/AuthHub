@@ -12,6 +12,7 @@ import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
 import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -39,6 +40,9 @@ class RoleReadManagerTest {
     @Mock private RoleQueryPort queryPort;
 
     private RoleReadManager readManager;
+
+    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
 
     @BeforeEach
     void setUp() {
@@ -156,7 +160,15 @@ class RoleReadManagerTest {
         void shouldSearchRoles() {
             // given
             SearchRolesQuery query =
-                    SearchRolesQuery.of(RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    SearchRolesQuery.of(
+                            RoleFixture.defaultTenantUUID(),
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            10);
             List<Role> expectedRoles = List.of(RoleFixture.create());
             given(queryPort.search(query)).willReturn(expectedRoles);
 
@@ -178,7 +190,15 @@ class RoleReadManagerTest {
         void shouldCountRoles() {
             // given
             SearchRolesQuery query =
-                    SearchRolesQuery.of(RoleFixture.defaultTenantUUID(), null, null, null, 0, 10);
+                    SearchRolesQuery.of(
+                            RoleFixture.defaultTenantUUID(),
+                            null,
+                            null,
+                            null,
+                            CREATED_FROM,
+                            CREATED_TO,
+                            0,
+                            10);
             given(queryPort.count(query)).willReturn(5L);
 
             // when

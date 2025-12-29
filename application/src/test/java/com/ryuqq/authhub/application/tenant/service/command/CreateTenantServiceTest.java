@@ -11,7 +11,7 @@ import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
 import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
 import com.ryuqq.authhub.application.tenant.factory.command.TenantCommandFactory;
 import com.ryuqq.authhub.application.tenant.manager.command.TenantTransactionManager;
-import com.ryuqq.authhub.application.tenant.manager.query.TenantReadManager;
+import com.ryuqq.authhub.application.tenant.validator.TenantValidator;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.exception.DuplicateTenantNameException;
 import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
@@ -36,11 +36,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CreateTenantService 단위 테스트")
 class CreateTenantServiceTest {
 
+    @Mock private TenantValidator validator;
+
     @Mock private TenantCommandFactory commandFactory;
 
     @Mock private TenantTransactionManager transactionManager;
-
-    @Mock private TenantReadManager readManager;
 
     @Mock private TenantAssembler assembler;
 
@@ -48,8 +48,7 @@ class CreateTenantServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-                new CreateTenantService(commandFactory, transactionManager, readManager, assembler);
+        service = new CreateTenantService(validator, commandFactory, transactionManager, assembler);
     }
 
     @Nested
@@ -71,7 +70,7 @@ class CreateTenantServiceTest {
                             savedTenant.createdAt(),
                             savedTenant.updatedAt());
 
-            given(readManager.existsByName(any(TenantName.class))).willReturn(false);
+            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
             given(commandFactory.create(command)).willReturn(newTenant);
             given(transactionManager.persist(newTenant)).willReturn(savedTenant);
             given(assembler.toResponse(savedTenant)).willReturn(expectedResponse);
@@ -81,7 +80,7 @@ class CreateTenantServiceTest {
 
             // then
             assertThat(response).isEqualTo(expectedResponse);
-            verify(readManager).existsByName(any(TenantName.class));
+            verify(validator).validateNameNotDuplicated(any(TenantName.class));
             verify(commandFactory).create(command);
             verify(transactionManager).persist(newTenant);
             verify(assembler).toResponse(savedTenant);
@@ -92,7 +91,10 @@ class CreateTenantServiceTest {
         void shouldThrowExceptionWhenDuplicateName() {
             // given
             CreateTenantCommand command = new CreateTenantCommand("Existing Tenant");
-            given(readManager.existsByName(any(TenantName.class))).willReturn(true);
+            org.mockito.Mockito.doThrow(
+                            new DuplicateTenantNameException(TenantName.of("Existing Tenant")))
+                    .when(validator)
+                    .validateNameNotDuplicated(any(TenantName.class));
 
             // when & then
             assertThatThrownBy(() -> service.execute(command))
