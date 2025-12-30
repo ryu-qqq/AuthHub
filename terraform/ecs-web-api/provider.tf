@@ -113,7 +113,7 @@ data "aws_secretsmanager_secret" "jwt_rsa" {
 
 # RDS Proxy endpoint from SSM Parameter Store
 data "aws_ssm_parameter" "rds_proxy_endpoint" {
-  name = "/shared/rds/mysql-proxy-endpoint"
+  name = "/shared/rds/proxy-endpoint"
 }
 
 # AuthHub-specific Secrets Manager secret (using shared MySQL auth credentials)
