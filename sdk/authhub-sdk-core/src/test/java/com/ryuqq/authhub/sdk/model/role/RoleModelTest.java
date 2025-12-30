@@ -76,9 +76,9 @@ class RoleModelTest {
         @Test
         @DisplayName("roleId로 생성 성공")
         void shouldCreateWithRoleId() {
-            CreateRoleResponse response = new CreateRoleResponse(123L);
+            CreateRoleResponse response = new CreateRoleResponse("123");
 
-            assertThat(response.roleId()).isEqualTo(123L);
+            assertThat(response.roleId()).isEqualTo("123");
         }
     }
 
@@ -90,9 +90,9 @@ class RoleModelTest {
         @DisplayName("모든 필드로 생성 성공")
         void shouldCreateWithAllFields() {
             Instant now = Instant.now();
-            RoleResponse response = new RoleResponse(1L, "tenant-1", "Admin", "관리자 역할", now, now);
+            RoleResponse response = new RoleResponse("1", "tenant-1", "Admin", "관리자 역할", now, now);
 
-            assertThat(response.roleId()).isEqualTo(1L);
+            assertThat(response.roleId()).isEqualTo("1");
             assertThat(response.tenantId()).isEqualTo("tenant-1");
             assertThat(response.name()).isEqualTo("Admin");
             assertThat(response.description()).isEqualTo("관리자 역할");
@@ -104,8 +104,8 @@ class RoleModelTest {
         @DisplayName("equals와 hashCode가 올바르게 동작")
         void shouldImplementEqualsAndHashCode() {
             Instant now = Instant.now();
-            RoleResponse response1 = new RoleResponse(1L, "tenant-1", "Admin", "관리자 역할", now, now);
-            RoleResponse response2 = new RoleResponse(1L, "tenant-1", "Admin", "관리자 역할", now, now);
+            RoleResponse response1 = new RoleResponse("1", "tenant-1", "Admin", "관리자 역할", now, now);
+            RoleResponse response2 = new RoleResponse("1", "tenant-1", "Admin", "관리자 역할", now, now);
 
             assertThat(response1).isEqualTo(response2);
             assertThat(response1.hashCode()).isEqualTo(response2.hashCode());
@@ -122,9 +122,9 @@ class RoleModelTest {
             Instant now = Instant.now();
             RoleSummaryResponse response =
                     new RoleSummaryResponse(
-                            1L, "tenant-1", "Test Tenant", "Admin", "관리자 역할", 5, 10, now, now);
+                            "1", "tenant-1", "Test Tenant", "Admin", "관리자 역할", 5, 10, now, now);
 
-            assertThat(response.roleId()).isEqualTo(1L);
+            assertThat(response.roleId()).isEqualTo("1");
             assertThat(response.tenantId()).isEqualTo("tenant-1");
             assertThat(response.tenantName()).isEqualTo("Test Tenant");
             assertThat(response.name()).isEqualTo("Admin");

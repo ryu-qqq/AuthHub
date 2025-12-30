@@ -53,7 +53,7 @@ class PermissionJpaEntityMapperTest {
             PermissionJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
+            assertThat(entity.getPermissionId()).isEqualTo(domain.permissionIdValue());
             assertThat(entity.getPermissionKey()).isEqualTo(domain.keyValue());
             assertThat(entity.getResource()).isEqualTo(domain.resourceValue());
             assertThat(entity.getAction()).isEqualTo(domain.actionValue());
@@ -100,7 +100,6 @@ class PermissionJpaEntityMapperTest {
             // given
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "user:read",
                             "user",
@@ -130,7 +129,6 @@ class PermissionJpaEntityMapperTest {
             // given
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "user:read",
                             "user",
@@ -155,7 +153,6 @@ class PermissionJpaEntityMapperTest {
             // given
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "user:read",
                             "user",
@@ -179,7 +176,6 @@ class PermissionJpaEntityMapperTest {
             // given
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "deleted:permission",
                             "deleted",
@@ -203,7 +199,6 @@ class PermissionJpaEntityMapperTest {
             // given
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "system:admin",
                             "system",
@@ -236,7 +231,6 @@ class PermissionJpaEntityMapperTest {
             PermissionJpaEntity entity = mapper.toEntity(originalDomain);
             PermissionJpaEntity entityWithId =
                     PermissionJpaEntity.of(
-                            1L,
                             originalDomain.permissionIdValue(),
                             entity.getPermissionKey(),
                             entity.getResource(),

@@ -62,7 +62,6 @@ class UserCommandAdapterTest {
 
             UserJpaEntity entityToSave =
                     UserJpaEntity.of(
-                            null,
                             USER_UUID,
                             TENANT_UUID,
                             ORG_UUID,
@@ -74,7 +73,6 @@ class UserCommandAdapterTest {
                             FIXED_TIME);
             UserJpaEntity savedEntity =
                     UserJpaEntity.of(
-                            1L,
                             USER_UUID,
                             TENANT_UUID,
                             ORG_UUID,
@@ -108,7 +106,6 @@ class UserCommandAdapterTest {
 
             UserJpaEntity entityToUpdate =
                     UserJpaEntity.of(
-                            1L,
                             USER_UUID,
                             TENANT_UUID,
                             ORG_UUID,
@@ -120,7 +117,6 @@ class UserCommandAdapterTest {
                             FIXED_TIME);
             UserJpaEntity updatedEntity =
                     UserJpaEntity.of(
-                            1L,
                             USER_UUID,
                             TENANT_UUID,
                             ORG_UUID,
@@ -155,7 +151,6 @@ class UserCommandAdapterTest {
             User domainToDelete = UserFixture.create();
             UserJpaEntity entityToDelete =
                     UserJpaEntity.of(
-                            1L,
                             USER_UUID,
                             TENANT_UUID,
                             ORG_UUID,

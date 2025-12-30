@@ -27,7 +27,7 @@ public interface OrganizationApi {
      * @param organizationId 조직 ID
      * @return 조직 정보
      */
-    ApiResponse<OrganizationResponse> getById(Long organizationId);
+    ApiResponse<OrganizationResponse> getById(String organizationId);
 
     /**
      * 조직 목록을 검색합니다.
@@ -54,7 +54,7 @@ public interface OrganizationApi {
      * @return 수정된 조직 정보
      */
     ApiResponse<OrganizationResponse> update(
-            Long organizationId, UpdateOrganizationRequest request);
+            String organizationId, UpdateOrganizationRequest request);
 
     /**
      * 조직 상태를 변경합니다.
@@ -64,12 +64,12 @@ public interface OrganizationApi {
      * @return 변경된 조직 정보
      */
     ApiResponse<OrganizationResponse> updateStatus(
-            Long organizationId, UpdateOrganizationStatusRequest request);
+            String organizationId, UpdateOrganizationStatusRequest request);
 
     /**
      * 조직을 삭제(비활성화)합니다.
      *
      * @param organizationId 조직 ID
      */
-    void delete(Long organizationId);
+    void delete(String organizationId);
 }

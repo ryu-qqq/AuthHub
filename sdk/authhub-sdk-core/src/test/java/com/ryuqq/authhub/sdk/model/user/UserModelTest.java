@@ -348,9 +348,9 @@ class UserModelTest {
         @Test
         @DisplayName("userId로 생성 성공")
         void shouldCreateWithUserId() {
-            CreateUserResponse response = new CreateUserResponse(123L);
+            CreateUserResponse response = new CreateUserResponse("123");
 
-            assertThat(response.userId()).isEqualTo(123L);
+            assertThat(response.userId()).isEqualTo("123");
         }
     }
 
@@ -434,9 +434,9 @@ class UserModelTest {
         @Test
         @DisplayName("roleId로 생성 성공")
         void shouldCreateWithRoleId() {
-            AssignUserRoleRequest request = new AssignUserRoleRequest(123L);
+            AssignUserRoleRequest request = new AssignUserRoleRequest("123");
 
-            assertThat(request.roleId()).isEqualTo(123L);
+            assertThat(request.roleId()).isEqualTo("123");
         }
 
         @Test

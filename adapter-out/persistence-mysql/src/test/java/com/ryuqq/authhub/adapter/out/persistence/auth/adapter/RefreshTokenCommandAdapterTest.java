@@ -9,6 +9,7 @@ import com.ryuqq.authhub.adapter.out.persistence.auth.entity.RefreshTokenJpaEnti
 import com.ryuqq.authhub.adapter.out.persistence.auth.repository.RefreshTokenJpaRepository;
 import com.ryuqq.authhub.adapter.out.persistence.auth.repository.RefreshTokenQueryDslRepository;
 import com.ryuqq.authhub.domain.common.util.ClockHolder;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import java.time.Clock;
@@ -43,16 +44,21 @@ class RefreshTokenCommandAdapterTest {
 
     @Mock private ClockHolder clockHolder;
 
+    @Mock private UuidHolder uuidHolder;
+
     private RefreshTokenCommandAdapter adapter;
 
     private static final UUID USER_UUID = UserFixture.defaultUUID();
+    private static final UUID REFRESH_TOKEN_UUID = UUID.randomUUID();
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
     private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
 
     @BeforeEach
     void setUp() {
-        adapter = new RefreshTokenCommandAdapter(jpaRepository, queryDslRepository, clockHolder);
+        adapter =
+                new RefreshTokenCommandAdapter(
+                        jpaRepository, queryDslRepository, clockHolder, uuidHolder);
     }
 
     @Nested
@@ -67,6 +73,7 @@ class RefreshTokenCommandAdapterTest {
             String refreshToken = "new-refresh-token-value";
 
             given(clockHolder.clock()).willReturn(FIXED_CLOCK);
+            given(uuidHolder.random()).willReturn(REFRESH_TOKEN_UUID);
             given(queryDslRepository.findByUserId(USER_UUID)).willReturn(Optional.empty());
 
             // when
@@ -83,7 +90,8 @@ class RefreshTokenCommandAdapterTest {
             UserId userId = UserId.of(USER_UUID);
             String newToken = "updated-refresh-token-value";
             RefreshTokenJpaEntity existingEntity =
-                    RefreshTokenJpaEntity.of(1L, USER_UUID, "old-token", FIXED_TIME, FIXED_TIME);
+                    RefreshTokenJpaEntity.of(
+                            UUID.randomUUID(), USER_UUID, "old-token", FIXED_TIME, FIXED_TIME);
 
             given(clockHolder.clock()).willReturn(FIXED_CLOCK);
             given(queryDslRepository.findByUserId(USER_UUID))

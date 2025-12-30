@@ -5,6 +5,7 @@ import com.ryuqq.authhub.adapter.out.persistence.auth.repository.RefreshTokenJpa
 import com.ryuqq.authhub.adapter.out.persistence.auth.repository.RefreshTokenQueryDslRepository;
 import com.ryuqq.authhub.application.auth.port.out.command.RefreshTokenPersistencePort;
 import com.ryuqq.authhub.domain.common.util.ClockHolder;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -43,14 +44,17 @@ public class RefreshTokenCommandAdapter implements RefreshTokenPersistencePort {
     private final RefreshTokenJpaRepository refreshTokenJpaRepository;
     private final RefreshTokenQueryDslRepository refreshTokenQueryDslRepository;
     private final ClockHolder clockHolder;
+    private final UuidHolder uuidHolder;
 
     public RefreshTokenCommandAdapter(
             RefreshTokenJpaRepository refreshTokenJpaRepository,
             RefreshTokenQueryDslRepository refreshTokenQueryDslRepository,
-            ClockHolder clockHolder) {
+            ClockHolder clockHolder,
+            UuidHolder uuidHolder) {
         this.refreshTokenJpaRepository = refreshTokenJpaRepository;
         this.refreshTokenQueryDslRepository = refreshTokenQueryDslRepository;
         this.clockHolder = clockHolder;
+        this.uuidHolder = uuidHolder;
     }
 
     /**
@@ -73,7 +77,8 @@ public class RefreshTokenCommandAdapter implements RefreshTokenPersistencePort {
                         existingEntity -> existingEntity.updateToken(refreshToken, now),
                         () -> {
                             RefreshTokenJpaEntity newEntity =
-                                    RefreshTokenJpaEntity.forNew(userId.value(), refreshToken, now);
+                                    RefreshTokenJpaEntity.forNew(
+                                            uuidHolder.random(), userId.value(), refreshToken, now);
                             refreshTokenJpaRepository.save(newEntity);
                         });
     }

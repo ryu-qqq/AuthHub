@@ -4,7 +4,7 @@ import java.time.Instant;
 
 /** 역할 응답. */
 public record RoleResponse(
-        Long roleId,
+        String roleId,
         String tenantId,
         String name,
         String description,

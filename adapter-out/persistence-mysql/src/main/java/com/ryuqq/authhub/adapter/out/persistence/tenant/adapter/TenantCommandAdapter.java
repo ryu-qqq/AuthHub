@@ -76,7 +76,7 @@ public class TenantCommandAdapter implements TenantPersistencePort {
     @Override
     public Tenant persist(Tenant tenant) {
         UUID tenantIdValue = tenant.tenantIdValue();
-        Optional<TenantJpaEntity> existing = repository.findByTenantId(tenantIdValue);
+        Optional<TenantJpaEntity> existing = repository.findById(tenantIdValue);
 
         TenantJpaEntity entity;
         if (existing.isPresent()) {

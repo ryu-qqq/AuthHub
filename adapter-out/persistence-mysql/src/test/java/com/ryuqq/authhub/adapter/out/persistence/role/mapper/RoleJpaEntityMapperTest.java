@@ -54,7 +54,6 @@ class RoleJpaEntityMapperTest {
             RoleJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
             assertThat(entity.getRoleId()).isEqualTo(domain.roleIdValue());
             assertThat(entity.getTenantId()).isEqualTo(domain.tenantIdValue());
             assertThat(entity.getName()).isEqualTo(domain.nameValue());
@@ -103,7 +102,7 @@ class RoleJpaEntityMapperTest {
             RoleJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
+            assertThat(entity.getRoleId()).isNotNull();
             assertThat(entity.getName()).isEqualTo("NEW_ROLE");
         }
     }
@@ -118,7 +117,6 @@ class RoleJpaEntityMapperTest {
             // given
             RoleJpaEntity entity =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             TENANT_UUID,
                             "TEST_ROLE",
@@ -148,7 +146,6 @@ class RoleJpaEntityMapperTest {
             // given
             RoleJpaEntity entity =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             TENANT_UUID,
                             "TEST_ROLE",
@@ -173,7 +170,6 @@ class RoleJpaEntityMapperTest {
             // given
             RoleJpaEntity entity =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             null,
                             "SUPER_ADMIN",
@@ -198,7 +194,6 @@ class RoleJpaEntityMapperTest {
             // given
             RoleJpaEntity entity =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             TENANT_UUID,
                             "TEST_ROLE",
@@ -222,7 +217,6 @@ class RoleJpaEntityMapperTest {
             // given
             RoleJpaEntity entity =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             TENANT_UUID,
                             "DELETED_ROLE",
@@ -246,7 +240,6 @@ class RoleJpaEntityMapperTest {
             // given
             RoleJpaEntity tenantScope =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             TENANT_UUID,
                             "TENANT_ROLE",
@@ -279,7 +272,6 @@ class RoleJpaEntityMapperTest {
             RoleJpaEntity entity = mapper.toEntity(originalDomain);
             RoleJpaEntity entityWithId =
                     RoleJpaEntity.of(
-                            1L,
                             originalDomain.roleIdValue(),
                             entity.getTenantId(),
                             entity.getName(),

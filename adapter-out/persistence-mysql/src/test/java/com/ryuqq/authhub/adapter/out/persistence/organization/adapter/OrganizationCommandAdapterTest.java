@@ -61,7 +61,6 @@ class OrganizationCommandAdapterTest {
 
             OrganizationJpaEntity entityToSave =
                     OrganizationJpaEntity.of(
-                            null,
                             ORG_UUID,
                             TENANT_UUID,
                             "New Organization",
@@ -70,7 +69,6 @@ class OrganizationCommandAdapterTest {
                             FIXED_TIME);
             OrganizationJpaEntity savedEntity =
                     OrganizationJpaEntity.of(
-                            1L,
                             ORG_UUID,
                             TENANT_UUID,
                             "Test Organization",
@@ -101,7 +99,6 @@ class OrganizationCommandAdapterTest {
 
             OrganizationJpaEntity entityToUpdate =
                     OrganizationJpaEntity.of(
-                            1L,
                             ORG_UUID,
                             TENANT_UUID,
                             "Test Organization",
@@ -110,7 +107,6 @@ class OrganizationCommandAdapterTest {
                             FIXED_TIME);
             OrganizationJpaEntity updatedEntity =
                     OrganizationJpaEntity.of(
-                            1L,
                             ORG_UUID,
                             TENANT_UUID,
                             "Updated Organization",
@@ -139,7 +135,6 @@ class OrganizationCommandAdapterTest {
 
             OrganizationJpaEntity entityToSave =
                     OrganizationJpaEntity.of(
-                            null,
                             ORG_UUID,
                             TENANT_UUID,
                             "Test Organization",
@@ -148,7 +143,6 @@ class OrganizationCommandAdapterTest {
                             FIXED_TIME);
             OrganizationJpaEntity savedEntity =
                     OrganizationJpaEntity.of(
-                            1L,
                             ORG_UUID,
                             TENANT_UUID,
                             "Test Organization",

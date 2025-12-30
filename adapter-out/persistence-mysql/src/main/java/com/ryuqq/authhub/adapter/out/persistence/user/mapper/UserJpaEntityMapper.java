@@ -57,7 +57,6 @@ public class UserJpaEntityMapper {
      */
     public UserJpaEntity toEntity(User domain) {
         return UserJpaEntity.of(
-                null,
                 domain.userIdValue(),
                 domain.tenantIdValue(),
                 domain.organizationIdValue(),
@@ -80,7 +79,6 @@ public class UserJpaEntityMapper {
      */
     public UserJpaEntity updateEntity(UserJpaEntity existing, User domain) {
         return UserJpaEntity.of(
-                existing.getId(),
                 domain.userIdValue(),
                 domain.tenantIdValue(),
                 domain.organizationIdValue(),

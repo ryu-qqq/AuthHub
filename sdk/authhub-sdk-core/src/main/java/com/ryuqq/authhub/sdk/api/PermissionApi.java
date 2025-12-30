@@ -25,7 +25,7 @@ public interface PermissionApi {
      * @param permissionId 권한 ID
      * @return 권한 정보
      */
-    ApiResponse<PermissionResponse> getById(Long permissionId);
+    ApiResponse<PermissionResponse> getById(String permissionId);
 
     /**
      * 권한 목록을 검색합니다.
@@ -42,12 +42,12 @@ public interface PermissionApi {
      * @param request 수정 요청
      * @return 수정된 권한 정보
      */
-    ApiResponse<PermissionResponse> update(Long permissionId, UpdatePermissionRequest request);
+    ApiResponse<PermissionResponse> update(String permissionId, UpdatePermissionRequest request);
 
     /**
      * 권한을 삭제합니다.
      *
      * @param permissionId 권한 ID
      */
-    void delete(Long permissionId);
+    void delete(String permissionId);
 }

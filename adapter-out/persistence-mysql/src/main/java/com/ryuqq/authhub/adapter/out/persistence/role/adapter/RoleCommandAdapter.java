@@ -68,7 +68,7 @@ public class RoleCommandAdapter implements RolePersistencePort {
     @Override
     public Role persist(Role role) {
         UUID roleIdValue = role.roleIdValue();
-        Optional<RoleJpaEntity> existing = repository.findByRoleId(roleIdValue);
+        Optional<RoleJpaEntity> existing = repository.findById(roleIdValue);
 
         RoleJpaEntity entity;
         if (existing.isPresent()) {

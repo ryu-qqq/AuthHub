@@ -6,8 +6,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -19,6 +17,14 @@ import java.util.UUID;
  * UserJpaEntity - 사용자 JPA Entity
  *
  * <p>Persistence Layer의 JPA Entity로서 데이터베이스 테이블과 매핑됩니다.
+ *
+ * <p><strong>UUIDv7 PK 전략:</strong>
+ *
+ * <ul>
+ *   <li>userId(UUID)를 PK로 사용
+ *   <li>UUIDv7은 시간순 정렬 가능하여 B-tree 인덱스 성능 우수
+ *   <li>분산 환경에서 충돌 없는 고유 ID 생성
+ * </ul>
  *
  * <p><strong>Unique 제약:</strong>
  *
@@ -58,14 +64,9 @@ import java.util.UUID;
         })
 public class UserJpaEntity extends BaseAuditEntity {
 
-    /** 기본 키 - AUTO_INCREMENT (내부 Long ID) */
+    /** 사용자 UUID - UUIDv7 (Primary Key) */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-
-    /** 사용자 UUID - UUIDv7 (외부 식별자) */
-    @Column(name = "user_id", nullable = false, unique = true, columnDefinition = "BINARY(16)")
+    @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID userId;
 
     /** 테넌트 UUID */
@@ -106,7 +107,6 @@ public class UserJpaEntity extends BaseAuditEntity {
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
      */
     private UserJpaEntity(
-            Long id,
             UUID userId,
             UUID tenantId,
             UUID organizationId,
@@ -117,7 +117,6 @@ public class UserJpaEntity extends BaseAuditEntity {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
-        this.id = id;
         this.userId = userId;
         this.tenantId = tenantId;
         this.organizationId = organizationId;
@@ -132,8 +131,7 @@ public class UserJpaEntity extends BaseAuditEntity {
      *
      * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
      *
-     * @param id 내부 기본 키 (신규 생성 시 null)
-     * @param userId 사용자 UUID
+     * @param userId 사용자 UUID (PK)
      * @param tenantId 테넌트 UUID
      * @param organizationId 조직 UUID
      * @param identifier 사용자 식별자
@@ -145,7 +143,6 @@ public class UserJpaEntity extends BaseAuditEntity {
      * @return UserJpaEntity 인스턴스
      */
     public static UserJpaEntity of(
-            Long id,
             UUID userId,
             UUID tenantId,
             UUID organizationId,
@@ -156,7 +153,6 @@ public class UserJpaEntity extends BaseAuditEntity {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new UserJpaEntity(
-                id,
                 userId,
                 tenantId,
                 organizationId,
@@ -169,10 +165,6 @@ public class UserJpaEntity extends BaseAuditEntity {
     }
 
     // ===== Getters (Setter 제공 금지) =====
-
-    public Long getId() {
-        return id;
-    }
 
     public UUID getUserId() {
         return userId;

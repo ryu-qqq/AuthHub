@@ -69,7 +69,7 @@ public class UserCommandAdapter implements UserPersistencePort {
     @Override
     public User persist(User user) {
         UUID userIdValue = user.userIdValue();
-        Optional<UserJpaEntity> existing = repository.findByUserId(userIdValue);
+        Optional<UserJpaEntity> existing = repository.findById(userIdValue);
 
         UserJpaEntity entity;
         if (existing.isPresent()) {

@@ -31,16 +31,14 @@ class TenantJpaEntityTest {
         @DisplayName("모든 필드로 Entity를 생성한다")
         void shouldCreateEntityWithAllFields() {
             // given
-            Long id = 1L;
             String name = "Test Tenant";
             TenantStatus status = TenantStatus.ACTIVE;
 
             // when
             TenantJpaEntity entity =
-                    TenantJpaEntity.of(id, TENANT_UUID, name, status, FIXED_TIME, FIXED_TIME);
+                    TenantJpaEntity.of(TENANT_UUID, name, status, FIXED_TIME, FIXED_TIME);
 
             // then
-            assertThat(entity.getId()).isEqualTo(id);
             assertThat(entity.getTenantId()).isEqualTo(TENANT_UUID);
             assertThat(entity.getName()).isEqualTo(name);
             assertThat(entity.getStatus()).isEqualTo(status);
@@ -49,18 +47,17 @@ class TenantJpaEntityTest {
         }
 
         @Test
-        @DisplayName("신규 Entity는 ID가 null이다")
-        void shouldCreateNewEntityWithNullId() {
+        @DisplayName("신규 Entity도 UUID를 가진다")
+        void shouldCreateNewEntityWithUuid() {
             // given
             String name = "New Tenant";
             TenantStatus status = TenantStatus.ACTIVE;
 
             // when
             TenantJpaEntity entity =
-                    TenantJpaEntity.of(null, TENANT_UUID, name, status, FIXED_TIME, FIXED_TIME);
+                    TenantJpaEntity.of(TENANT_UUID, name, status, FIXED_TIME, FIXED_TIME);
 
             // then
-            assertThat(entity.getId()).isNull();
             assertThat(entity.getTenantId()).isEqualTo(TENANT_UUID);
             assertThat(entity.getName()).isEqualTo(name);
         }
@@ -71,19 +68,17 @@ class TenantJpaEntityTest {
             // given & when
             TenantJpaEntity activeEntity =
                     TenantJpaEntity.of(
-                            1L, TENANT_UUID, "Active", TenantStatus.ACTIVE, FIXED_TIME, FIXED_TIME);
+                            TENANT_UUID, "Active", TenantStatus.ACTIVE, FIXED_TIME, FIXED_TIME);
             TenantJpaEntity inactiveEntity =
                     TenantJpaEntity.of(
-                            2L,
-                            TENANT_UUID,
+                            UUID.fromString("01941234-5678-7000-8000-123456789abd"),
                             "Inactive",
                             TenantStatus.INACTIVE,
                             FIXED_TIME,
                             FIXED_TIME);
             TenantJpaEntity deletedEntity =
                     TenantJpaEntity.of(
-                            3L,
-                            TENANT_UUID,
+                            UUID.fromString("01941234-5678-7000-8000-123456789abe"),
                             "Deleted",
                             TenantStatus.DELETED,
                             FIXED_TIME,
@@ -104,17 +99,15 @@ class TenantJpaEntityTest {
         @DisplayName("모든 getter가 올바른 값을 반환한다")
         void shouldReturnCorrectValuesFromGetters() {
             // given
-            Long id = 1L;
             String name = "Test Tenant";
             TenantStatus status = TenantStatus.ACTIVE;
             LocalDateTime createdAt = FIXED_TIME;
             LocalDateTime updatedAt = FIXED_TIME.plusHours(1);
 
             TenantJpaEntity entity =
-                    TenantJpaEntity.of(id, TENANT_UUID, name, status, createdAt, updatedAt);
+                    TenantJpaEntity.of(TENANT_UUID, name, status, createdAt, updatedAt);
 
             // when & then
-            assertThat(entity.getId()).isEqualTo(id);
             assertThat(entity.getTenantId()).isEqualTo(TENANT_UUID);
             assertThat(entity.getName()).isEqualTo(name);
             assertThat(entity.getStatus()).isEqualTo(status);

@@ -62,7 +62,6 @@ class RoleCommandAdapterTest {
 
             RoleJpaEntity entityToSave =
                     RoleJpaEntity.of(
-                            null,
                             ROLE_UUID,
                             TENANT_UUID,
                             "TEST_ROLE",
@@ -74,7 +73,6 @@ class RoleCommandAdapterTest {
                             FIXED_TIME);
             RoleJpaEntity savedEntity =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             TENANT_UUID,
                             "TEST_ROLE",
@@ -108,7 +106,6 @@ class RoleCommandAdapterTest {
 
             RoleJpaEntity entityToUpdate =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             TENANT_UUID,
                             "TEST_ROLE",
@@ -120,7 +117,6 @@ class RoleCommandAdapterTest {
                             FIXED_TIME);
             RoleJpaEntity updatedEntity =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             TENANT_UUID,
                             "UPDATED_ROLE",
@@ -152,7 +148,6 @@ class RoleCommandAdapterTest {
 
             RoleJpaEntity entityToSave =
                     RoleJpaEntity.of(
-                            null,
                             ROLE_UUID,
                             null,
                             "SUPER_ADMIN",
@@ -164,7 +159,6 @@ class RoleCommandAdapterTest {
                             FIXED_TIME);
             RoleJpaEntity savedEntity =
                     RoleJpaEntity.of(
-                            1L,
                             ROLE_UUID,
                             null,
                             "SUPER_ADMIN",

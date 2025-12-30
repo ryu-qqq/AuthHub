@@ -293,7 +293,6 @@ class UserQueryAdapterTest {
 
     private UserJpaEntity createUserEntity() {
         return UserJpaEntity.of(
-                1L,
                 USER_UUID,
                 TENANT_UUID,
                 ORG_UUID,

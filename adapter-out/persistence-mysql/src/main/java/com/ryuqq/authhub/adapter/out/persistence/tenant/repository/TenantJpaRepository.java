@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.adapter.out.persistence.tenant.repository;
 
 import com.ryuqq.authhub.adapter.out.persistence.tenant.entity.TenantJpaEntity;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -10,13 +9,20 @@ import org.springframework.data.jpa.repository.JpaRepository;
  *
  * <p>Spring Data JPA 인터페이스로 Command(CUD) 작업을 담당합니다.
  *
+ * <p><strong>UUIDv7 PK 전략:</strong>
+ *
+ * <ul>
+ *   <li>tenantId(UUID)를 PK로 사용
+ *   <li>findById()로 UUID 직접 조회 가능
+ * </ul>
+ *
  * <p><strong>책임:</strong>
  *
  * <ul>
  *   <li>save() - 테넌트 저장/수정
  *   <li>delete() - 테넌트 삭제
- *   <li>deleteById() - ID로 삭제
- *   <li>findByTenantId() - UUID로 테넌트 조회 (UPDATE용)
+ *   <li>deleteById() - UUID로 삭제
+ *   <li>findById() - UUID로 테넌트 조회
  * </ul>
  *
  * <p><strong>CQRS 패턴:</strong>
@@ -29,15 +35,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author development-team
  * @since 1.0.0
  */
-public interface TenantJpaRepository extends JpaRepository<TenantJpaEntity, Long> {
-
-    /**
-     * UUID로 테넌트 조회 (UPDATE 작업용)
-     *
-     * <p>UPDATE 작업 시 기존 Entity의 JPA internal ID를 유지하기 위해 사용합니다.
-     *
-     * @param tenantId 테넌트 UUID
-     * @return Optional containing the entity if found
-     */
-    Optional<TenantJpaEntity> findByTenantId(UUID tenantId);
-}
+public interface TenantJpaRepository extends JpaRepository<TenantJpaEntity, UUID> {}

@@ -27,7 +27,7 @@ public interface RoleApi {
      * @param roleId 역할 ID
      * @return 역할 정보
      */
-    ApiResponse<RoleResponse> getById(Long roleId);
+    ApiResponse<RoleResponse> getById(String roleId);
 
     /**
      * 역할 목록을 검색합니다.
@@ -52,7 +52,7 @@ public interface RoleApi {
      * @param request 수정 요청
      * @return 수정된 역할 정보
      */
-    ApiResponse<RoleResponse> update(Long roleId, UpdateRoleRequest request);
+    ApiResponse<RoleResponse> update(String roleId, UpdateRoleRequest request);
 
     /**
      * 역할에 권한을 부여합니다.
@@ -60,7 +60,7 @@ public interface RoleApi {
      * @param roleId 역할 ID
      * @param request 권한 부여 요청
      */
-    void grantPermissions(Long roleId, GrantRolePermissionRequest request);
+    void grantPermissions(String roleId, GrantRolePermissionRequest request);
 
     /**
      * 역할에서 권한을 회수합니다.
@@ -68,12 +68,12 @@ public interface RoleApi {
      * @param roleId 역할 ID
      * @param request 권한 회수 요청
      */
-    void revokePermissions(Long roleId, GrantRolePermissionRequest request);
+    void revokePermissions(String roleId, GrantRolePermissionRequest request);
 
     /**
      * 역할을 삭제합니다.
      *
      * @param roleId 역할 ID
      */
-    void delete(Long roleId);
+    void delete(String roleId);
 }

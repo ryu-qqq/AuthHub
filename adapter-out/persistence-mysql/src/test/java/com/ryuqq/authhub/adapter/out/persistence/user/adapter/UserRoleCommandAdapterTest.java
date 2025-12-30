@@ -63,9 +63,9 @@ class UserRoleCommandAdapterTest {
                             UserId.of(USER_UUID), RoleId.of(ROLE_UUID), FIXED_INSTANT);
 
             UserRoleJpaEntity entityToSave =
-                    UserRoleJpaEntity.of(null, USER_UUID, ROLE_UUID, FIXED_INSTANT);
+                    UserRoleJpaEntity.of(UUID.randomUUID(), USER_UUID, ROLE_UUID, FIXED_INSTANT);
             UserRoleJpaEntity savedEntity =
-                    UserRoleJpaEntity.of(1L, USER_UUID, ROLE_UUID, FIXED_INSTANT);
+                    UserRoleJpaEntity.of(UUID.randomUUID(), USER_UUID, ROLE_UUID, FIXED_INSTANT);
 
             given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
             given(repository.save(entityToSave)).willReturn(savedEntity);

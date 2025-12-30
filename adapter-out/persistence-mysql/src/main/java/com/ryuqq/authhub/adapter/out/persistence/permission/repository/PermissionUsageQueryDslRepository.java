@@ -86,19 +86,4 @@ public class PermissionUsageQueryDslRepository {
                 .orderBy(permissionUsageJpaEntity.permissionKey.asc())
                 .fetch();
     }
-
-    /**
-     * 내부 ID로 사용 이력 조회 (UPSERT용)
-     *
-     * @param id 내부 Long ID
-     * @return Optional<PermissionUsageJpaEntity>
-     */
-    public Optional<PermissionUsageJpaEntity> findById(Long id) {
-        PermissionUsageJpaEntity result =
-                queryFactory
-                        .selectFrom(permissionUsageJpaEntity)
-                        .where(permissionUsageJpaEntity.id.eq(id))
-                        .fetchOne();
-        return Optional.ofNullable(result);
-    }
 }

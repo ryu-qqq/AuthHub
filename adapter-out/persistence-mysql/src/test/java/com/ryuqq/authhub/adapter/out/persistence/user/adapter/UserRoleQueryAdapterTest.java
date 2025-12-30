@@ -64,7 +64,7 @@ class UserRoleQueryAdapterTest {
             RoleId roleId = RoleId.of(ROLE_UUID);
             UserRole expectedUserRole = UserRole.reconstitute(userId, roleId, FIXED_INSTANT);
             UserRoleJpaEntity entity =
-                    UserRoleJpaEntity.of(1L, USER_UUID, ROLE_UUID, FIXED_INSTANT);
+                    UserRoleJpaEntity.of(UUID.randomUUID(), USER_UUID, ROLE_UUID, FIXED_INSTANT);
 
             given(queryDslRepository.findByUserIdAndRoleId(USER_UUID, ROLE_UUID))
                     .willReturn(Optional.of(entity));
@@ -110,9 +110,9 @@ class UserRoleQueryAdapterTest {
             UserRole userRole2 =
                     UserRole.reconstitute(userId, RoleId.of(ROLE_UUID_2), FIXED_INSTANT);
             UserRoleJpaEntity entity1 =
-                    UserRoleJpaEntity.of(1L, USER_UUID, ROLE_UUID, FIXED_INSTANT);
+                    UserRoleJpaEntity.of(UUID.randomUUID(), USER_UUID, ROLE_UUID, FIXED_INSTANT);
             UserRoleJpaEntity entity2 =
-                    UserRoleJpaEntity.of(2L, USER_UUID, ROLE_UUID_2, FIXED_INSTANT);
+                    UserRoleJpaEntity.of(UUID.randomUUID(), USER_UUID, ROLE_UUID_2, FIXED_INSTANT);
 
             given(queryDslRepository.findAllByUserId(USER_UUID))
                     .willReturn(List.of(entity1, entity2));

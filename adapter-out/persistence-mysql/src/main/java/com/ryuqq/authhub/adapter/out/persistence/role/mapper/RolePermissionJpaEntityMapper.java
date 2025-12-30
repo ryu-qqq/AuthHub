@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.persistence.role.mapper;
 
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RolePermissionJpaEntity;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RolePermission;
@@ -17,11 +18,24 @@ import org.springframework.stereotype.Component;
  *   <li>Lombok 금지
  * </ul>
  *
+ * <p><strong>UUIDv7 PK 전략:</strong>
+ *
+ * <ul>
+ *   <li>매핑 테이블도 UUID PK 사용
+ *   <li>UuidHolder를 통해 UUIDv7 생성
+ * </ul>
+ *
  * @author development-team
  * @since 1.0.0
  */
 @Component
 public class RolePermissionJpaEntityMapper {
+
+    private final UuidHolder uuidHolder;
+
+    public RolePermissionJpaEntityMapper(UuidHolder uuidHolder) {
+        this.uuidHolder = uuidHolder;
+    }
 
     /**
      * Domain 객체를 JPA Entity로 변환합니다.
@@ -31,7 +45,7 @@ public class RolePermissionJpaEntityMapper {
      */
     public RolePermissionJpaEntity toEntity(RolePermission rolePermission) {
         return RolePermissionJpaEntity.of(
-                null,
+                uuidHolder.random(),
                 rolePermission.roleIdValue(),
                 rolePermission.permissionIdValue(),
                 rolePermission.getGrantedAt());

@@ -52,7 +52,6 @@ class TenantJpaEntityMapperTest {
             TenantJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
             assertThat(entity.getTenantId()).isEqualTo(domain.tenantIdValue());
             assertThat(entity.getName()).isEqualTo(domain.nameValue());
             assertThat(entity.getStatus()).isEqualTo(domain.getStatus());
@@ -82,7 +81,6 @@ class TenantJpaEntityMapperTest {
             TenantJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
             assertThat(entity.getTenantId()).isNotNull();
             assertThat(entity.getName()).isEqualTo("New Tenant");
             assertThat(entity.getStatus()).isEqualTo(TenantStatus.ACTIVE);
@@ -99,7 +97,6 @@ class TenantJpaEntityMapperTest {
             // given
             TenantJpaEntity entity =
                     TenantJpaEntity.of(
-                            1L,
                             TENANT_UUID,
                             "Test Tenant",
                             TenantStatus.ACTIVE,
@@ -121,7 +118,6 @@ class TenantJpaEntityMapperTest {
             // given
             TenantJpaEntity entity =
                     TenantJpaEntity.of(
-                            1L,
                             TENANT_UUID,
                             "Test Tenant",
                             TenantStatus.ACTIVE,
@@ -142,7 +138,6 @@ class TenantJpaEntityMapperTest {
             // given
             TenantJpaEntity inactiveEntity =
                     TenantJpaEntity.of(
-                            1L,
                             TENANT_UUID,
                             "Inactive",
                             TenantStatus.INACTIVE,
@@ -151,8 +146,7 @@ class TenantJpaEntityMapperTest {
 
             TenantJpaEntity deletedEntity =
                     TenantJpaEntity.of(
-                            2L,
-                            TENANT_UUID,
+                            UUID.fromString("01941234-5678-7000-8000-123456789abd"),
                             "Deleted",
                             TenantStatus.DELETED,
                             FIXED_LOCAL_DATE_TIME,
@@ -183,7 +177,6 @@ class TenantJpaEntityMapperTest {
             // Entity에 ID가 설정되어야 reconstitute가 가능하므로, 새로운 Entity 생성
             TenantJpaEntity entityWithId =
                     TenantJpaEntity.of(
-                            1L,
                             originalDomain.tenantIdValue(),
                             entity.getName(),
                             entity.getStatus(),

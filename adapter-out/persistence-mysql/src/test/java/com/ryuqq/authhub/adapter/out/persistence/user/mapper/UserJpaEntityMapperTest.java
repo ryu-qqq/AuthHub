@@ -54,7 +54,6 @@ class UserJpaEntityMapperTest {
             UserJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
             assertThat(entity.getUserId()).isEqualTo(domain.userIdValue());
             assertThat(entity.getTenantId()).isEqualTo(domain.tenantIdValue());
             assertThat(entity.getOrganizationId()).isEqualTo(domain.organizationIdValue());
@@ -87,7 +86,7 @@ class UserJpaEntityMapperTest {
             UserJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
+            assertThat(entity.getUserId()).isNotNull();
             assertThat(entity.getIdentifier()).isEqualTo("user@example.com");
             assertThat(entity.getStatus()).isEqualTo(UserStatus.ACTIVE);
         }
@@ -103,7 +102,6 @@ class UserJpaEntityMapperTest {
             // given
             UserJpaEntity entity =
                     UserJpaEntity.of(
-                            1L,
                             USER_UUID,
                             TENANT_UUID,
                             ORG_UUID,
@@ -133,7 +131,6 @@ class UserJpaEntityMapperTest {
             // given
             UserJpaEntity entity =
                     UserJpaEntity.of(
-                            1L,
                             USER_UUID,
                             TENANT_UUID,
                             ORG_UUID,
@@ -158,7 +155,6 @@ class UserJpaEntityMapperTest {
             // given
             UserJpaEntity inactiveEntity =
                     UserJpaEntity.of(
-                            1L,
                             USER_UUID,
                             TENANT_UUID,
                             ORG_UUID,
@@ -171,8 +167,7 @@ class UserJpaEntityMapperTest {
 
             UserJpaEntity lockedEntity =
                     UserJpaEntity.of(
-                            2L,
-                            USER_UUID,
+                            UUID.fromString("01941234-5678-7000-8000-000000000002"),
                             TENANT_UUID,
                             ORG_UUID,
                             "locked@example.com",
@@ -206,7 +201,6 @@ class UserJpaEntityMapperTest {
             UserJpaEntity entity = mapper.toEntity(originalDomain);
             UserJpaEntity entityWithId =
                     UserJpaEntity.of(
-                            1L,
                             originalDomain.userIdValue(),
                             entity.getTenantId(),
                             entity.getOrganizationId(),

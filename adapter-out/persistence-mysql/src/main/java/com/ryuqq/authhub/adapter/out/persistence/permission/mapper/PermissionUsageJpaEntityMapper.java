@@ -58,7 +58,6 @@ public class PermissionUsageJpaEntityMapper {
      */
     public PermissionUsageJpaEntity toEntity(PermissionUsage domain) {
         return PermissionUsageJpaEntity.of(
-                null,
                 domain.usageIdValue(),
                 domain.permissionKeyValue(),
                 domain.serviceNameValue(),
@@ -69,15 +68,15 @@ public class PermissionUsageJpaEntityMapper {
     }
 
     /**
-     * Domain → Entity 변환 (업데이트용, 기존 ID 유지)
+     * Domain → Entity 변환 (업데이트용)
+     *
+     * <p>UUID PK 전략에서는 도메인의 usageId가 PK이므로 기존 ID 파라미터가 불필요합니다.
      *
      * @param domain PermissionUsage 도메인
-     * @param existingId 기존 내부 ID
      * @return PermissionUsageJpaEntity
      */
-    public PermissionUsageJpaEntity toEntityForUpdate(PermissionUsage domain, Long existingId) {
+    public PermissionUsageJpaEntity toEntityForUpdate(PermissionUsage domain) {
         return PermissionUsageJpaEntity.of(
-                existingId,
                 domain.usageIdValue(),
                 domain.permissionKeyValue(),
                 domain.serviceNameValue(),

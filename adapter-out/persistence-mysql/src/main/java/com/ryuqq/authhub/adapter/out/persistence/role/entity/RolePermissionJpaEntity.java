@@ -2,8 +2,6 @@ package com.ryuqq.authhub.adapter.out.persistence.role.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -15,6 +13,14 @@ import java.util.UUID;
  * RolePermissionJpaEntity - 역할 권한 매핑 JPA Entity
  *
  * <p>Role과 Permission 간의 N:M 관계를 나타내는 중간 테이블입니다.
+ *
+ * <p><strong>UUIDv7 PK 전략:</strong>
+ *
+ * <ul>
+ *   <li>rolePermissionId(UUID)를 PK로 사용
+ *   <li>UUIDv7은 시간순 정렬 가능하여 B-tree 인덱스 성능 우수
+ *   <li>분산 환경에서 충돌 없는 고유 ID 생성
+ * </ul>
  *
  * <p><strong>Unique 제약:</strong>
  *
@@ -48,11 +54,10 @@ import java.util.UUID;
         })
 public class RolePermissionJpaEntity {
 
-    /** 기본 키 - AUTO_INCREMENT (내부 Long ID) */
+    /** 역할 권한 매핑 UUID - UUIDv7 (Primary Key) */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "role_permission_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID rolePermissionId;
 
     /** 역할 UUID */
     @Column(name = "role_id", nullable = false, columnDefinition = "BINARY(16)")
@@ -78,8 +83,9 @@ public class RolePermissionJpaEntity {
      *
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
      */
-    private RolePermissionJpaEntity(Long id, UUID roleId, UUID permissionId, Instant grantedAt) {
-        this.id = id;
+    private RolePermissionJpaEntity(
+            UUID rolePermissionId, UUID roleId, UUID permissionId, Instant grantedAt) {
+        this.rolePermissionId = rolePermissionId;
         this.roleId = roleId;
         this.permissionId = permissionId;
         this.grantedAt = grantedAt;
@@ -90,21 +96,21 @@ public class RolePermissionJpaEntity {
      *
      * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
      *
-     * @param id 내부 기본 키 (신규 생성 시 null)
+     * @param rolePermissionId 역할 권한 매핑 UUID (PK)
      * @param roleId 역할 UUID
      * @param permissionId 권한 UUID
      * @param grantedAt 부여 시간
      * @return RolePermissionJpaEntity 인스턴스
      */
     public static RolePermissionJpaEntity of(
-            Long id, UUID roleId, UUID permissionId, Instant grantedAt) {
-        return new RolePermissionJpaEntity(id, roleId, permissionId, grantedAt);
+            UUID rolePermissionId, UUID roleId, UUID permissionId, Instant grantedAt) {
+        return new RolePermissionJpaEntity(rolePermissionId, roleId, permissionId, grantedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====
 
-    public Long getId() {
-        return id;
+    public UUID getRolePermissionId() {
+        return rolePermissionId;
     }
 
     public UUID getRoleId() {

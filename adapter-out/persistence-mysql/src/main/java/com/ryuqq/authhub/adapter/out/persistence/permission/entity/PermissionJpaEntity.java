@@ -6,8 +6,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -20,18 +18,19 @@ import java.util.UUID;
  *
  * <p>Persistence Layer의 JPA Entity로서 데이터베이스 테이블과 매핑됩니다.
  *
+ * <p><strong>UUIDv7 PK 전략:</strong>
+ *
+ * <ul>
+ *   <li>permissionId(UUID)를 PK로 사용
+ *   <li>UUIDv7은 시간순 정렬 가능하여 B-tree 인덱스 성능 우수
+ *   <li>분산 환경에서 충돌 없는 고유 ID 생성
+ * </ul>
+ *
  * <p><strong>Permission Key 전략:</strong>
  *
  * <ul>
  *   <li>key: "{resource}:{action}" 형식 (예: "user:read", "organization:manage")
  *   <li>resource와 action을 개별 컬럼으로 저장하여 검색 최적화
- * </ul>
- *
- * <p><strong>Soft Delete 전략:</strong>
- *
- * <ul>
- *   <li>deleted 컬럼으로 논리 삭제 관리
- *   <li>SYSTEM 권한은 삭제 불가 (도메인 레벨 검증)
  * </ul>
  *
  * <p><strong>Lombok 금지:</strong>
@@ -60,18 +59,9 @@ import java.util.UUID;
         })
 public class PermissionJpaEntity extends BaseAuditEntity {
 
-    /** 기본 키 - AUTO_INCREMENT (내부 Long ID) */
+    /** 권한 UUID - UUIDv7 (Primary Key) */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-
-    /** 권한 UUID - UUIDv7 (외부 식별자) */
-    @Column(
-            name = "permission_id",
-            nullable = false,
-            unique = true,
-            columnDefinition = "BINARY(16)")
+    @Column(name = "permission_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID permissionId;
 
     /** 권한 키 - "{resource}:{action}" 형식 */
@@ -112,7 +102,6 @@ public class PermissionJpaEntity extends BaseAuditEntity {
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
      */
     private PermissionJpaEntity(
-            Long id,
             UUID permissionId,
             String permissionKey,
             String resource,
@@ -123,7 +112,6 @@ public class PermissionJpaEntity extends BaseAuditEntity {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
-        this.id = id;
         this.permissionId = permissionId;
         this.permissionKey = permissionKey;
         this.resource = resource;
@@ -138,10 +126,7 @@ public class PermissionJpaEntity extends BaseAuditEntity {
      *
      * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
      *
-     * <p>Mapper에서 Domain → Entity 변환 시 사용합니다.
-     *
-     * @param id 내부 기본 키 (신규 생성 시 null)
-     * @param permissionId 권한 UUID
+     * @param permissionId 권한 UUID (PK)
      * @param permissionKey 권한 키
      * @param resource 리소스
      * @param action 액션
@@ -153,7 +138,6 @@ public class PermissionJpaEntity extends BaseAuditEntity {
      * @return PermissionJpaEntity 인스턴스
      */
     public static PermissionJpaEntity of(
-            Long id,
             UUID permissionId,
             String permissionKey,
             String resource,
@@ -164,7 +148,6 @@ public class PermissionJpaEntity extends BaseAuditEntity {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new PermissionJpaEntity(
-                id,
                 permissionId,
                 permissionKey,
                 resource,
@@ -177,10 +160,6 @@ public class PermissionJpaEntity extends BaseAuditEntity {
     }
 
     // ===== Getters (Setter 제공 금지) =====
-
-    public Long getId() {
-        return id;
-    }
 
     public UUID getPermissionId() {
         return permissionId;

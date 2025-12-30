@@ -60,7 +60,6 @@ class TenantQueryAdapterTest {
             TenantId tenantId = TenantFixture.defaultId();
             TenantJpaEntity entity =
                     TenantJpaEntity.of(
-                            1L,
                             TENANT_UUID,
                             "Test Tenant",
                             TenantStatus.ACTIVE,
@@ -179,7 +178,6 @@ class TenantQueryAdapterTest {
             TenantName name = TenantName.of("Test Tenant");
             TenantJpaEntity entity =
                     TenantJpaEntity.of(
-                            1L,
                             TENANT_UUID,
                             "Test Tenant",
                             TenantStatus.ACTIVE,

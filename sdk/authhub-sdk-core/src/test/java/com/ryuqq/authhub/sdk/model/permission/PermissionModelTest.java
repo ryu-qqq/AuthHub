@@ -91,9 +91,9 @@ class PermissionModelTest {
         @Test
         @DisplayName("permissionId로 생성 성공")
         void shouldCreateWithPermissionId() {
-            CreatePermissionResponse response = new CreatePermissionResponse(123L);
+            CreatePermissionResponse response = new CreatePermissionResponse("123");
 
-            assertThat(response.permissionId()).isEqualTo(123L);
+            assertThat(response.permissionId()).isEqualTo("123");
         }
     }
 
@@ -106,9 +106,9 @@ class PermissionModelTest {
         void shouldCreateWithAllFields() {
             Instant now = Instant.now();
             PermissionResponse response =
-                    new PermissionResponse(1L, "/users", "READ", "사용자 조회 권한", true, now, now);
+                    new PermissionResponse("1", "/users", "READ", "사용자 조회 권한", true, now, now);
 
-            assertThat(response.permissionId()).isEqualTo(1L);
+            assertThat(response.permissionId()).isEqualTo("1");
             assertThat(response.resource()).isEqualTo("/users");
             assertThat(response.action()).isEqualTo("READ");
             assertThat(response.description()).isEqualTo("사용자 조회 권한");
@@ -122,9 +122,9 @@ class PermissionModelTest {
         void shouldImplementEqualsAndHashCode() {
             Instant now = Instant.now();
             PermissionResponse response1 =
-                    new PermissionResponse(1L, "/users", "READ", "사용자 조회 권한", true, now, now);
+                    new PermissionResponse("1", "/users", "READ", "사용자 조회 권한", true, now, now);
             PermissionResponse response2 =
-                    new PermissionResponse(1L, "/users", "READ", "사용자 조회 권한", true, now, now);
+                    new PermissionResponse("1", "/users", "READ", "사용자 조회 권한", true, now, now);
 
             assertThat(response1).isEqualTo(response2);
             assertThat(response1.hashCode()).isEqualTo(response2.hashCode());
@@ -135,7 +135,7 @@ class PermissionModelTest {
         void shouldIncludeFieldsInToString() {
             Instant now = Instant.now();
             PermissionResponse response =
-                    new PermissionResponse(1L, "/users", "READ", "사용자 조회 권한", true, now, now);
+                    new PermissionResponse("1", "/users", "READ", "사용자 조회 권한", true, now, now);
 
             String str = response.toString();
             assertThat(str).contains("/users");

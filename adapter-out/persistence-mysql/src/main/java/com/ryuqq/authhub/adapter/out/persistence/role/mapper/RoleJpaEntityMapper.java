@@ -58,7 +58,6 @@ public class RoleJpaEntityMapper {
      */
     public RoleJpaEntity toEntity(Role domain) {
         return RoleJpaEntity.of(
-                null,
                 domain.roleIdValue(),
                 domain.tenantIdValue(),
                 domain.nameValue(),
@@ -81,7 +80,6 @@ public class RoleJpaEntityMapper {
      */
     public RoleJpaEntity updateEntity(RoleJpaEntity existing, Role domain) {
         return RoleJpaEntity.of(
-                existing.getId(),
                 domain.roleIdValue(),
                 domain.tenantIdValue(),
                 domain.nameValue(),

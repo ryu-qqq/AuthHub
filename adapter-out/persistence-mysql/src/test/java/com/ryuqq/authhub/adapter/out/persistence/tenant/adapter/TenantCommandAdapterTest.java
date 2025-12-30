@@ -60,10 +60,9 @@ class TenantCommandAdapterTest {
 
             TenantJpaEntity entityToSave =
                     TenantJpaEntity.of(
-                            null, null, "New Tenant", TenantStatus.ACTIVE, FIXED_TIME, FIXED_TIME);
+                            TENANT_UUID, "New Tenant", TenantStatus.ACTIVE, FIXED_TIME, FIXED_TIME);
             TenantJpaEntity savedEntity =
                     TenantJpaEntity.of(
-                            1L,
                             TENANT_UUID,
                             "Test Tenant",
                             TenantStatus.ACTIVE,
@@ -93,7 +92,6 @@ class TenantCommandAdapterTest {
 
             TenantJpaEntity entityToUpdate =
                     TenantJpaEntity.of(
-                            1L,
                             TENANT_UUID,
                             "Test Tenant",
                             TenantStatus.ACTIVE,
@@ -101,7 +99,6 @@ class TenantCommandAdapterTest {
                             FIXED_TIME);
             TenantJpaEntity updatedEntity =
                     TenantJpaEntity.of(
-                            1L,
                             TENANT_UUID,
                             "Updated Tenant",
                             TenantStatus.ACTIVE,

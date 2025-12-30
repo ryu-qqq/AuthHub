@@ -32,7 +32,7 @@ final class DefaultOrganizationApi implements OrganizationApi {
     }
 
     @Override
-    public ApiResponse<OrganizationResponse> getById(Long organizationId) {
+    public ApiResponse<OrganizationResponse> getById(String organizationId) {
         return httpClient.get(
                 BASE_PATH + "/" + organizationId,
                 Map.of(),
@@ -58,7 +58,7 @@ final class DefaultOrganizationApi implements OrganizationApi {
 
     @Override
     public ApiResponse<OrganizationResponse> update(
-            Long organizationId, UpdateOrganizationRequest request) {
+            String organizationId, UpdateOrganizationRequest request) {
         return httpClient.put(
                 BASE_PATH + "/" + organizationId,
                 request,
@@ -67,7 +67,7 @@ final class DefaultOrganizationApi implements OrganizationApi {
 
     @Override
     public ApiResponse<OrganizationResponse> updateStatus(
-            Long organizationId, UpdateOrganizationStatusRequest request) {
+            String organizationId, UpdateOrganizationStatusRequest request) {
         return httpClient.patch(
                 BASE_PATH + "/" + organizationId + "/status",
                 request,
@@ -75,7 +75,7 @@ final class DefaultOrganizationApi implements OrganizationApi {
     }
 
     @Override
-    public void delete(Long organizationId) {
+    public void delete(String organizationId) {
         httpClient.delete(BASE_PATH + "/" + organizationId + "/delete");
     }
 }

@@ -1,8 +1,10 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserRoleJpaEntity;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import com.ryuqq.authhub.domain.user.vo.UserRole;
@@ -13,6 +15,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * UserRoleJpaEntityMapper 단위 테스트
@@ -21,18 +26,23 @@ import org.junit.jupiter.api.Test;
  * @since 1.0.0
  */
 @Tag("unit")
+@ExtendWith(MockitoExtension.class)
 @DisplayName("UserRoleJpaEntityMapper 단위 테스트")
 class UserRoleJpaEntityMapperTest {
 
+    @Mock private UuidHolder uuidHolder;
+
     private UserRoleJpaEntityMapper mapper;
 
+    private static final UUID USER_ROLE_UUID =
+            UUID.fromString("01941234-5678-7000-8000-123456789000");
     private static final UUID USER_UUID = UUID.fromString("01941234-5678-7000-8000-000000000001");
     private static final UUID ROLE_UUID = UUID.fromString("01941234-5678-7000-8000-123456789111");
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
 
     @BeforeEach
     void setUp() {
-        mapper = new UserRoleJpaEntityMapper();
+        mapper = new UserRoleJpaEntityMapper(uuidHolder);
     }
 
     @Nested
@@ -47,11 +57,13 @@ class UserRoleJpaEntityMapperTest {
                     UserRole.reconstitute(
                             UserId.of(USER_UUID), RoleId.of(ROLE_UUID), FIXED_INSTANT);
 
+            given(uuidHolder.random()).willReturn(USER_ROLE_UUID);
+
             // when
             UserRoleJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
+            assertThat(entity.getUserRoleId()).isEqualTo(USER_ROLE_UUID);
             assertThat(entity.getUserId()).isEqualTo(USER_UUID);
             assertThat(entity.getRoleId()).isEqualTo(ROLE_UUID);
             assertThat(entity.getAssignedAt()).isEqualTo(FIXED_INSTANT);
@@ -62,15 +74,18 @@ class UserRoleJpaEntityMapperTest {
         void shouldConvertAnotherRoleToEntity() {
             // given
             UUID anotherRoleId = UUID.fromString("01941234-5678-7000-8000-123456789222");
+            UUID generatedUuid = UUID.randomUUID();
             UserRole domain =
                     UserRole.reconstitute(
                             UserId.of(USER_UUID), RoleId.of(anotherRoleId), Instant.now());
+
+            given(uuidHolder.random()).willReturn(generatedUuid);
 
             // when
             UserRoleJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
+            assertThat(entity.getUserRoleId()).isEqualTo(generatedUuid);
             assertThat(entity.getUserId()).isEqualTo(USER_UUID);
             assertThat(entity.getRoleId()).isEqualTo(anotherRoleId);
             assertThat(entity.getAssignedAt()).isNotNull();
@@ -86,7 +101,11 @@ class UserRoleJpaEntityMapperTest {
         void shouldConvertEntityToDomain() {
             // given
             UserRoleJpaEntity entity =
-                    UserRoleJpaEntity.of(1L, USER_UUID, ROLE_UUID, FIXED_INSTANT);
+                    UserRoleJpaEntity.of(
+                            UUID.fromString("01941234-5678-7000-8000-123456789999"),
+                            USER_UUID,
+                            ROLE_UUID,
+                            FIXED_INSTANT);
 
             // when
             UserRole domain = mapper.toDomain(entity);
@@ -110,11 +129,16 @@ class UserRoleJpaEntityMapperTest {
                     UserRole.reconstitute(
                             UserId.of(USER_UUID), RoleId.of(ROLE_UUID), FIXED_INSTANT);
 
+            given(uuidHolder.random()).willReturn(USER_ROLE_UUID);
+
             // when
             UserRoleJpaEntity entity = mapper.toEntity(originalDomain);
             UserRoleJpaEntity entityWithId =
                     UserRoleJpaEntity.of(
-                            1L, entity.getUserId(), entity.getRoleId(), entity.getAssignedAt());
+                            entity.getUserRoleId(),
+                            entity.getUserId(),
+                            entity.getRoleId(),
+                            entity.getAssignedAt());
             UserRole convertedDomain = mapper.toDomain(entityWithId);
 
             // then

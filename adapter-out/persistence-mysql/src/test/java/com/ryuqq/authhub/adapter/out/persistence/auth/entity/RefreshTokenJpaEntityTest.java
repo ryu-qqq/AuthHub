@@ -19,7 +19,8 @@ import org.junit.jupiter.api.Test;
 @DisplayName("RefreshTokenJpaEntity 테스트")
 class RefreshTokenJpaEntityTest {
 
-    private static final Long ID = 1L;
+    private static final UUID REFRESH_TOKEN_ID =
+            UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
     private static final UUID USER_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
     private static final String TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refreshToken";
     private static final LocalDateTime CREATED_AT = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
@@ -33,10 +34,11 @@ class RefreshTokenJpaEntityTest {
         @DisplayName("신규 Entity를 생성한다")
         void shouldCreateNewEntity() {
             // When
-            RefreshTokenJpaEntity entity = RefreshTokenJpaEntity.forNew(USER_ID, TOKEN, CREATED_AT);
+            RefreshTokenJpaEntity entity =
+                    RefreshTokenJpaEntity.forNew(REFRESH_TOKEN_ID, USER_ID, TOKEN, CREATED_AT);
 
             // Then
-            assertThat(entity.getId()).isNull();
+            assertThat(entity.getRefreshTokenId()).isEqualTo(REFRESH_TOKEN_ID);
             assertThat(entity.getUserId()).isEqualTo(USER_ID);
             assertThat(entity.getToken()).isEqualTo(TOKEN);
             assertThat(entity.getCreatedAt()).isEqualTo(CREATED_AT);
@@ -53,10 +55,11 @@ class RefreshTokenJpaEntityTest {
         void shouldCreateEntityWithAllFields() {
             // When
             RefreshTokenJpaEntity entity =
-                    RefreshTokenJpaEntity.of(ID, USER_ID, TOKEN, CREATED_AT, UPDATED_AT);
+                    RefreshTokenJpaEntity.of(
+                            REFRESH_TOKEN_ID, USER_ID, TOKEN, CREATED_AT, UPDATED_AT);
 
             // Then
-            assertThat(entity.getId()).isEqualTo(ID);
+            assertThat(entity.getRefreshTokenId()).isEqualTo(REFRESH_TOKEN_ID);
             assertThat(entity.getUserId()).isEqualTo(USER_ID);
             assertThat(entity.getToken()).isEqualTo(TOKEN);
             assertThat(entity.getCreatedAt()).isEqualTo(CREATED_AT);
@@ -73,7 +76,8 @@ class RefreshTokenJpaEntityTest {
         void shouldUpdateTokenAndUpdatedAt() {
             // Given
             RefreshTokenJpaEntity entity =
-                    RefreshTokenJpaEntity.of(ID, USER_ID, TOKEN, CREATED_AT, CREATED_AT);
+                    RefreshTokenJpaEntity.of(
+                            REFRESH_TOKEN_ID, USER_ID, TOKEN, CREATED_AT, CREATED_AT);
             String newToken = "newRefreshTokenValue";
             LocalDateTime newUpdatedAt = LocalDateTime.of(2025, 1, 3, 12, 0, 0);
 
@@ -96,10 +100,15 @@ class RefreshTokenJpaEntityTest {
         void shouldBeEqualForSameId() {
             // Given
             RefreshTokenJpaEntity entity1 =
-                    RefreshTokenJpaEntity.of(ID, USER_ID, TOKEN, CREATED_AT, UPDATED_AT);
+                    RefreshTokenJpaEntity.of(
+                            REFRESH_TOKEN_ID, USER_ID, TOKEN, CREATED_AT, UPDATED_AT);
             RefreshTokenJpaEntity entity2 =
                     RefreshTokenJpaEntity.of(
-                            ID, UUID.randomUUID(), "differentToken", CREATED_AT, UPDATED_AT);
+                            REFRESH_TOKEN_ID,
+                            UUID.randomUUID(),
+                            "differentToken",
+                            CREATED_AT,
+                            UPDATED_AT);
 
             // Then
             assertThat(entity1).isEqualTo(entity2);
@@ -110,9 +119,15 @@ class RefreshTokenJpaEntityTest {
         void shouldNotBeEqualForDifferentId() {
             // Given
             RefreshTokenJpaEntity entity1 =
-                    RefreshTokenJpaEntity.of(ID, USER_ID, TOKEN, CREATED_AT, UPDATED_AT);
+                    RefreshTokenJpaEntity.of(
+                            REFRESH_TOKEN_ID, USER_ID, TOKEN, CREATED_AT, UPDATED_AT);
             RefreshTokenJpaEntity entity2 =
-                    RefreshTokenJpaEntity.of(2L, USER_ID, TOKEN, CREATED_AT, UPDATED_AT);
+                    RefreshTokenJpaEntity.of(
+                            UUID.fromString("550e8400-e29b-41d4-a716-446655440002"),
+                            USER_ID,
+                            TOKEN,
+                            CREATED_AT,
+                            UPDATED_AT);
 
             // Then
             assertThat(entity1).isNotEqualTo(entity2);

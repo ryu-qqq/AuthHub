@@ -75,8 +75,18 @@ public class PermissionUsageCommandAdapter implements PermissionUsagePersistence
 
         PermissionUsageJpaEntity entity;
         if (existing.isPresent()) {
-            // 기존 이력 업데이트
-            entity = mapper.toEntityForUpdate(usage, existing.get().getId());
+            // 기존 이력 업데이트 - 기존 usageId 사용
+            PermissionUsage usageForUpdate =
+                    PermissionUsage.reconstitute(
+                            com.ryuqq.authhub.domain.permission.identifier.PermissionUsageId.of(
+                                    existing.get().getUsageId()),
+                            usage.getPermissionKey(),
+                            usage.getServiceName(),
+                            usage.getLocations(),
+                            usage.getLastScannedAt(),
+                            existing.get().getCreatedAt().toInstant(java.time.ZoneOffset.UTC),
+                            usage.updatedAt());
+            entity = mapper.toEntityForUpdate(usageForUpdate);
         } else {
             // 신규 생성 - ID가 없으면 UUID 발급
             PermissionUsage usageWithId =

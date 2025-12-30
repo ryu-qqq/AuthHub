@@ -28,7 +28,7 @@ final class DefaultPermissionApi implements PermissionApi {
     }
 
     @Override
-    public ApiResponse<PermissionResponse> getById(Long permissionId) {
+    public ApiResponse<PermissionResponse> getById(String permissionId) {
         return httpClient.get(
                 BASE_PATH + "/" + permissionId,
                 Map.of(),
@@ -45,7 +45,7 @@ final class DefaultPermissionApi implements PermissionApi {
 
     @Override
     public ApiResponse<PermissionResponse> update(
-            Long permissionId, UpdatePermissionRequest request) {
+            String permissionId, UpdatePermissionRequest request) {
         return httpClient.put(
                 BASE_PATH + "/" + permissionId,
                 request,
@@ -53,7 +53,7 @@ final class DefaultPermissionApi implements PermissionApi {
     }
 
     @Override
-    public void delete(Long permissionId) {
+    public void delete(String permissionId) {
         httpClient.delete(BASE_PATH + "/" + permissionId);
     }
 }

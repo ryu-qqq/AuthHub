@@ -30,7 +30,7 @@ final class DefaultRoleApi implements RoleApi {
     }
 
     @Override
-    public ApiResponse<RoleResponse> getById(Long roleId) {
+    public ApiResponse<RoleResponse> getById(String roleId) {
         return httpClient.get(
                 BASE_PATH + "/" + roleId,
                 Map.of(),
@@ -55,7 +55,7 @@ final class DefaultRoleApi implements RoleApi {
     }
 
     @Override
-    public ApiResponse<RoleResponse> update(Long roleId, UpdateRoleRequest request) {
+    public ApiResponse<RoleResponse> update(String roleId, UpdateRoleRequest request) {
         return httpClient.put(
                 BASE_PATH + "/" + roleId,
                 request,
@@ -63,7 +63,7 @@ final class DefaultRoleApi implements RoleApi {
     }
 
     @Override
-    public void grantPermissions(Long roleId, GrantRolePermissionRequest request) {
+    public void grantPermissions(String roleId, GrantRolePermissionRequest request) {
         httpClient.post(
                 BASE_PATH + "/" + roleId + "/permissions",
                 request,
@@ -71,12 +71,12 @@ final class DefaultRoleApi implements RoleApi {
     }
 
     @Override
-    public void revokePermissions(Long roleId, GrantRolePermissionRequest request) {
+    public void revokePermissions(String roleId, GrantRolePermissionRequest request) {
         httpClient.delete(BASE_PATH + "/" + roleId + "/permissions", request);
     }
 
     @Override
-    public void delete(Long roleId) {
+    public void delete(String roleId) {
         httpClient.delete(BASE_PATH + "/" + roleId);
     }
 }

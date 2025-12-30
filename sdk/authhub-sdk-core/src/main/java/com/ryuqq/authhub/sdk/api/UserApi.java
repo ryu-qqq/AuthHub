@@ -29,7 +29,7 @@ public interface UserApi {
      * @param userId 사용자 ID
      * @return 사용자 정보
      */
-    ApiResponse<UserResponse> getById(Long userId);
+    ApiResponse<UserResponse> getById(String userId);
 
     /**
      * 사용자 목록을 검색합니다.
@@ -54,7 +54,7 @@ public interface UserApi {
      * @param request 수정 요청
      * @return 수정된 사용자 정보
      */
-    ApiResponse<UserResponse> update(Long userId, UpdateUserRequest request);
+    ApiResponse<UserResponse> update(String userId, UpdateUserRequest request);
 
     /**
      * 사용자 상태를 변경합니다.
@@ -63,7 +63,7 @@ public interface UserApi {
      * @param request 상태 변경 요청
      * @return 변경된 사용자 정보
      */
-    ApiResponse<UserResponse> updateStatus(Long userId, UpdateUserStatusRequest request);
+    ApiResponse<UserResponse> updateStatus(String userId, UpdateUserStatusRequest request);
 
     /**
      * 사용자 비밀번호를 변경합니다.
@@ -71,7 +71,7 @@ public interface UserApi {
      * @param userId 사용자 ID
      * @param request 비밀번호 변경 요청
      */
-    void updatePassword(Long userId, UpdateUserPasswordRequest request);
+    void updatePassword(String userId, UpdateUserPasswordRequest request);
 
     /**
      * 사용자에게 역할을 할당합니다.
@@ -79,7 +79,7 @@ public interface UserApi {
      * @param userId 사용자 ID
      * @param request 역할 할당 요청
      */
-    void assignRole(Long userId, AssignUserRoleRequest request);
+    void assignRole(String userId, AssignUserRoleRequest request);
 
     /**
      * 사용자에서 역할을 해제합니다.
@@ -87,12 +87,12 @@ public interface UserApi {
      * @param userId 사용자 ID
      * @param roleId 역할 ID
      */
-    void unassignRole(Long userId, Long roleId);
+    void unassignRole(String userId, String roleId);
 
     /**
      * 사용자를 삭제(비활성화)합니다.
      *
      * @param userId 사용자 ID
      */
-    void delete(Long userId);
+    void delete(String userId);
 }

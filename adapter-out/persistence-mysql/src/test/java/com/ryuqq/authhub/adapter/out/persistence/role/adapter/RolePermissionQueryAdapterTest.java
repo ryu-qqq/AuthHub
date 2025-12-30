@@ -68,7 +68,8 @@ class RolePermissionQueryAdapterTest {
             RolePermission expectedRolePermission =
                     RolePermission.reconstitute(roleId, permissionId, FIXED_INSTANT);
             RolePermissionJpaEntity entity =
-                    RolePermissionJpaEntity.of(1L, ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
+                    RolePermissionJpaEntity.of(
+                            UUID.randomUUID(), ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
 
             given(queryDslRepository.findByRoleIdAndPermissionId(ROLE_UUID, PERMISSION_UUID))
                     .willReturn(Optional.of(entity));
@@ -121,9 +122,11 @@ class RolePermissionQueryAdapterTest {
                     RolePermission.reconstitute(
                             roleId, PermissionId.of(PERMISSION_UUID_2), FIXED_INSTANT);
             RolePermissionJpaEntity entity1 =
-                    RolePermissionJpaEntity.of(1L, ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
+                    RolePermissionJpaEntity.of(
+                            UUID.randomUUID(), ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
             RolePermissionJpaEntity entity2 =
-                    RolePermissionJpaEntity.of(2L, ROLE_UUID, PERMISSION_UUID_2, FIXED_INSTANT);
+                    RolePermissionJpaEntity.of(
+                            UUID.randomUUID(), ROLE_UUID, PERMISSION_UUID_2, FIXED_INSTANT);
 
             given(queryDslRepository.findAllByRoleId(ROLE_UUID))
                     .willReturn(List.of(entity1, entity2));
@@ -212,9 +215,11 @@ class RolePermissionQueryAdapterTest {
                             PermissionId.of(PERMISSION_UUID_2),
                             FIXED_INSTANT);
             RolePermissionJpaEntity entity1 =
-                    RolePermissionJpaEntity.of(1L, ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
+                    RolePermissionJpaEntity.of(
+                            UUID.randomUUID(), ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
             RolePermissionJpaEntity entity2 =
-                    RolePermissionJpaEntity.of(2L, ROLE_UUID_2, PERMISSION_UUID_2, FIXED_INSTANT);
+                    RolePermissionJpaEntity.of(
+                            UUID.randomUUID(), ROLE_UUID_2, PERMISSION_UUID_2, FIXED_INSTANT);
 
             given(queryDslRepository.findAllByRoleIds(anySet()))
                     .willReturn(List.of(entity1, entity2));

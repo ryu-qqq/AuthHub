@@ -32,7 +32,7 @@ final class DefaultUserApi implements UserApi {
     }
 
     @Override
-    public ApiResponse<UserResponse> getById(Long userId) {
+    public ApiResponse<UserResponse> getById(String userId) {
         return httpClient.get(
                 BASE_PATH + "/" + userId,
                 Map.of(),
@@ -57,7 +57,7 @@ final class DefaultUserApi implements UserApi {
     }
 
     @Override
-    public ApiResponse<UserResponse> update(Long userId, UpdateUserRequest request) {
+    public ApiResponse<UserResponse> update(String userId, UpdateUserRequest request) {
         return httpClient.put(
                 BASE_PATH + "/" + userId,
                 request,
@@ -65,7 +65,7 @@ final class DefaultUserApi implements UserApi {
     }
 
     @Override
-    public ApiResponse<UserResponse> updateStatus(Long userId, UpdateUserStatusRequest request) {
+    public ApiResponse<UserResponse> updateStatus(String userId, UpdateUserStatusRequest request) {
         return httpClient.patch(
                 BASE_PATH + "/" + userId + "/status",
                 request,
@@ -73,7 +73,7 @@ final class DefaultUserApi implements UserApi {
     }
 
     @Override
-    public void updatePassword(Long userId, UpdateUserPasswordRequest request) {
+    public void updatePassword(String userId, UpdateUserPasswordRequest request) {
         httpClient.patch(
                 BASE_PATH + "/" + userId + "/password",
                 request,
@@ -81,7 +81,7 @@ final class DefaultUserApi implements UserApi {
     }
 
     @Override
-    public void assignRole(Long userId, AssignUserRoleRequest request) {
+    public void assignRole(String userId, AssignUserRoleRequest request) {
         httpClient.post(
                 BASE_PATH + "/" + userId + "/roles",
                 request,
@@ -89,12 +89,12 @@ final class DefaultUserApi implements UserApi {
     }
 
     @Override
-    public void unassignRole(Long userId, Long roleId) {
+    public void unassignRole(String userId, String roleId) {
         httpClient.delete(BASE_PATH + "/" + userId + "/roles/" + roleId);
     }
 
     @Override
-    public void delete(Long userId) {
+    public void delete(String userId) {
         httpClient.delete(BASE_PATH + "/" + userId + "/delete");
     }
 }

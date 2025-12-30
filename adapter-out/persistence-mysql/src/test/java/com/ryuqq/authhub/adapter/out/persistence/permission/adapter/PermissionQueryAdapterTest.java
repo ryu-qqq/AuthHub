@@ -321,7 +321,6 @@ class PermissionQueryAdapterTest {
 
     private PermissionJpaEntity createPermissionEntity() {
         return PermissionJpaEntity.of(
-                1L,
                 PERMISSION_UUID,
                 "user:read",
                 "user",
@@ -335,7 +334,6 @@ class PermissionQueryAdapterTest {
 
     private PermissionJpaEntity createSystemPermissionEntity() {
         return PermissionJpaEntity.of(
-                1L,
                 PERMISSION_UUID,
                 "user:admin",
                 "user",

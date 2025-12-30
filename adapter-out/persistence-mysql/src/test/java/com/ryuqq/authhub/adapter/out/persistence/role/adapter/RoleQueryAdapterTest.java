@@ -312,7 +312,6 @@ class RoleQueryAdapterTest {
 
     private RoleJpaEntity createRoleEntity() {
         return RoleJpaEntity.of(
-                1L,
                 ROLE_UUID,
                 TENANT_UUID,
                 "TEST_ROLE",
@@ -326,7 +325,6 @@ class RoleQueryAdapterTest {
 
     private RoleJpaEntity createGlobalRoleEntity() {
         return RoleJpaEntity.of(
-                1L,
                 ROLE_UUID,
                 null,
                 "SUPER_ADMIN",

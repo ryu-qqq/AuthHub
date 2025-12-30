@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.mapper;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserRoleJpaEntity;
+import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.role.identifier.RoleId;
 import com.ryuqq.authhub.domain.user.identifier.UserId;
 import com.ryuqq.authhub.domain.user.vo.UserRole;
@@ -17,11 +18,24 @@ import org.springframework.stereotype.Component;
  *   <li>Lombok 금지
  * </ul>
  *
+ * <p><strong>UUIDv7 PK 전략:</strong>
+ *
+ * <ul>
+ *   <li>매핑 테이블도 UUID PK 사용
+ *   <li>UuidHolder를 통해 UUIDv7 생성
+ * </ul>
+ *
  * @author development-team
  * @since 1.0.0
  */
 @Component
 public class UserRoleJpaEntityMapper {
+
+    private final UuidHolder uuidHolder;
+
+    public UserRoleJpaEntityMapper(UuidHolder uuidHolder) {
+        this.uuidHolder = uuidHolder;
+    }
 
     /**
      * Domain 객체를 JPA Entity로 변환합니다.
@@ -31,7 +45,10 @@ public class UserRoleJpaEntityMapper {
      */
     public UserRoleJpaEntity toEntity(UserRole userRole) {
         return UserRoleJpaEntity.of(
-                null, userRole.userIdValue(), userRole.roleIdValue(), userRole.getAssignedAt());
+                uuidHolder.random(),
+                userRole.userIdValue(),
+                userRole.roleIdValue(),
+                userRole.getAssignedAt());
     }
 
     /**

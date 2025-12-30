@@ -67,7 +67,6 @@ public class OrganizationJpaEntityMapper {
      */
     public OrganizationJpaEntity toEntity(Organization domain) {
         return OrganizationJpaEntity.of(
-                null,
                 domain.organizationIdValue(),
                 domain.tenantIdValue(),
                 domain.nameValue(),
@@ -87,7 +86,6 @@ public class OrganizationJpaEntityMapper {
      */
     public OrganizationJpaEntity updateEntity(OrganizationJpaEntity existing, Organization domain) {
         return OrganizationJpaEntity.of(
-                existing.getId(),
                 domain.organizationIdValue(),
                 domain.tenantIdValue(),
                 domain.nameValue(),

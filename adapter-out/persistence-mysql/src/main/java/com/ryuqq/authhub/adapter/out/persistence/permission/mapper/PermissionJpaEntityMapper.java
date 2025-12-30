@@ -73,7 +73,6 @@ public class PermissionJpaEntityMapper {
      */
     public PermissionJpaEntity toEntity(Permission domain) {
         return PermissionJpaEntity.of(
-                null,
                 domain.permissionIdValue(),
                 domain.keyValue(),
                 domain.resourceValue(),
@@ -117,7 +116,6 @@ public class PermissionJpaEntityMapper {
      */
     public PermissionJpaEntity updateEntity(PermissionJpaEntity existing, Permission domain) {
         return PermissionJpaEntity.of(
-                existing.getId(),
                 domain.permissionIdValue(),
                 domain.keyValue(),
                 domain.resourceValue(),

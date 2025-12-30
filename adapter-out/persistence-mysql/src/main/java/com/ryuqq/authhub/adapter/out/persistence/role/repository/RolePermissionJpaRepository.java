@@ -9,18 +9,25 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * RolePermissionJpaRepository - 역할 권한 JPA Repository
  *
+ * <p><strong>UUIDv7 PK 전략:</strong>
+ *
+ * <ul>
+ *   <li>rolePermissionId(UUID)를 PK로 사용
+ *   <li>findById()로 UUID 직접 조회 가능
+ * </ul>
+ *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
  *   <li>JpaRepository 상속 필수
- *   <li>Long 타입 ID 사용
+ *   <li>UUID 타입 ID 사용
  *   <li>Lombok 금지
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
-public interface RolePermissionJpaRepository extends JpaRepository<RolePermissionJpaEntity, Long> {
+public interface RolePermissionJpaRepository extends JpaRepository<RolePermissionJpaEntity, UUID> {
 
     /**
      * 역할 ID와 권한 ID로 역할 권한을 조회합니다.

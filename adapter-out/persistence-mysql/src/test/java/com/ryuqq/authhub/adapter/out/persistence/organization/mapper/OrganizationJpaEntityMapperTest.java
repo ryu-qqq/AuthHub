@@ -53,7 +53,6 @@ class OrganizationJpaEntityMapperTest {
             OrganizationJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
             assertThat(entity.getOrganizationId()).isEqualTo(domain.organizationIdValue());
             assertThat(entity.getTenantId()).isEqualTo(domain.tenantIdValue());
             assertThat(entity.getName()).isEqualTo(domain.nameValue());
@@ -84,7 +83,7 @@ class OrganizationJpaEntityMapperTest {
             OrganizationJpaEntity entity = mapper.toEntity(domain);
 
             // then
-            assertThat(entity.getId()).isNull();
+            assertThat(entity.getOrganizationId()).isNotNull();
             assertThat(entity.getName()).isEqualTo("New Organization");
             assertThat(entity.getStatus()).isEqualTo(OrganizationStatus.ACTIVE);
         }
@@ -100,7 +99,6 @@ class OrganizationJpaEntityMapperTest {
             // given
             OrganizationJpaEntity entity =
                     OrganizationJpaEntity.of(
-                            1L,
                             ORG_UUID,
                             TENANT_UUID,
                             "Test Organization",
@@ -124,7 +122,6 @@ class OrganizationJpaEntityMapperTest {
             // given
             OrganizationJpaEntity entity =
                     OrganizationJpaEntity.of(
-                            1L,
                             ORG_UUID,
                             TENANT_UUID,
                             "Test Organization",
@@ -146,7 +143,6 @@ class OrganizationJpaEntityMapperTest {
             // given
             OrganizationJpaEntity inactiveEntity =
                     OrganizationJpaEntity.of(
-                            1L,
                             ORG_UUID,
                             TENANT_UUID,
                             "Inactive Org",
@@ -156,8 +152,7 @@ class OrganizationJpaEntityMapperTest {
 
             OrganizationJpaEntity deletedEntity =
                     OrganizationJpaEntity.of(
-                            2L,
-                            ORG_UUID,
+                            UUID.fromString("01941234-5678-7000-8000-123456789df0"),
                             TENANT_UUID,
                             "Deleted Org",
                             OrganizationStatus.DELETED,
@@ -188,7 +183,6 @@ class OrganizationJpaEntityMapperTest {
             OrganizationJpaEntity entity = mapper.toEntity(originalDomain);
             OrganizationJpaEntity entityWithId =
                     OrganizationJpaEntity.of(
-                            1L,
                             originalDomain.organizationIdValue(),
                             entity.getTenantId(),
                             entity.getName(),

@@ -69,8 +69,7 @@ public class OrganizationCommandAdapter implements OrganizationPersistencePort {
     @Override
     public Organization persist(Organization organization) {
         UUID organizationIdValue = organization.organizationIdValue();
-        Optional<OrganizationJpaEntity> existing =
-                repository.findByOrganizationId(organizationIdValue);
+        Optional<OrganizationJpaEntity> existing = repository.findById(organizationIdValue);
 
         OrganizationJpaEntity entity;
         if (existing.isPresent()) {

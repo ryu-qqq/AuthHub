@@ -61,7 +61,6 @@ class PermissionCommandAdapterTest {
 
             PermissionJpaEntity entityToSave =
                     PermissionJpaEntity.of(
-                            null,
                             PERMISSION_UUID,
                             "user:read",
                             "user",
@@ -73,7 +72,6 @@ class PermissionCommandAdapterTest {
                             FIXED_TIME);
             PermissionJpaEntity savedEntity =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "user:read",
                             "user",
@@ -109,7 +107,6 @@ class PermissionCommandAdapterTest {
 
             PermissionJpaEntity entityToUpdate =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "user:read",
                             "user",
@@ -121,7 +118,6 @@ class PermissionCommandAdapterTest {
                             FIXED_TIME);
             PermissionJpaEntity updatedEntity =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "user:write",
                             "user",
@@ -154,7 +150,6 @@ class PermissionCommandAdapterTest {
 
             PermissionJpaEntity entityToSave =
                     PermissionJpaEntity.of(
-                            null,
                             PERMISSION_UUID,
                             "user:read",
                             "user",
@@ -166,7 +161,6 @@ class PermissionCommandAdapterTest {
                             FIXED_TIME);
             PermissionJpaEntity savedEntity =
                     PermissionJpaEntity.of(
-                            1L,
                             PERMISSION_UUID,
                             "user:read",
                             "user",

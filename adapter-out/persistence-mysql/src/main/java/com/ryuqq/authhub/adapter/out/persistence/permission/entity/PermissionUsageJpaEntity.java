@@ -3,8 +3,6 @@ package com.ryuqq.authhub.adapter.out.persistence.permission.entity;
 import com.ryuqq.authhub.adapter.out.persistence.common.entity.BaseAuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -16,6 +14,14 @@ import java.util.UUID;
  * PermissionUsageJpaEntity - 권한 사용 이력 JPA Entity
  *
  * <p>Persistence Layer의 JPA Entity로서 데이터베이스 테이블과 매핑됩니다.
+ *
+ * <p><strong>UUIDv7 PK 전략:</strong>
+ *
+ * <ul>
+ *   <li>usageId(UUID)를 PK로 사용
+ *   <li>UUIDv7은 시간순 정렬 가능하여 B-tree 인덱스 성능 우수
+ *   <li>분산 환경에서 충돌 없는 고유 ID 생성
+ * </ul>
  *
  * <p><strong>용도:</strong>
  *
@@ -51,14 +57,9 @@ import java.util.UUID;
         })
 public class PermissionUsageJpaEntity extends BaseAuditEntity {
 
-    /** 기본 키 - AUTO_INCREMENT (내부 Long ID) */
+    /** 사용 이력 UUID - UUIDv7 (Primary Key) */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-
-    /** 사용 이력 UUID - UUIDv7 (외부 식별자) */
-    @Column(name = "usage_id", nullable = false, unique = true, columnDefinition = "BINARY(16)")
+    @Column(name = "usage_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID usageId;
 
     /** 권한 키 - Permission.permissionKey와 동일 */
@@ -90,7 +91,6 @@ public class PermissionUsageJpaEntity extends BaseAuditEntity {
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
      */
     private PermissionUsageJpaEntity(
-            Long id,
             UUID usageId,
             String permissionKey,
             String serviceName,
@@ -99,7 +99,6 @@ public class PermissionUsageJpaEntity extends BaseAuditEntity {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
-        this.id = id;
         this.usageId = usageId;
         this.permissionKey = permissionKey;
         this.serviceName = serviceName;
@@ -112,8 +111,7 @@ public class PermissionUsageJpaEntity extends BaseAuditEntity {
      *
      * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
      *
-     * @param id 내부 기본 키 (신규 생성 시 null)
-     * @param usageId 사용 이력 UUID
+     * @param usageId 사용 이력 UUID (PK)
      * @param permissionKey 권한 키
      * @param serviceName 서비스명
      * @param locations 코드 위치 목록 (JSON)
@@ -123,7 +121,6 @@ public class PermissionUsageJpaEntity extends BaseAuditEntity {
      * @return PermissionUsageJpaEntity 인스턴스
      */
     public static PermissionUsageJpaEntity of(
-            Long id,
             UUID usageId,
             String permissionKey,
             String serviceName,
@@ -132,7 +129,6 @@ public class PermissionUsageJpaEntity extends BaseAuditEntity {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new PermissionUsageJpaEntity(
-                id,
                 usageId,
                 permissionKey,
                 serviceName,
@@ -143,10 +139,6 @@ public class PermissionUsageJpaEntity extends BaseAuditEntity {
     }
 
     // ===== Getters (Setter 제공 금지) =====
-
-    public Long getId() {
-        return id;
-    }
 
     public UUID getUsageId() {
         return usageId;

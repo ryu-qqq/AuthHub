@@ -64,9 +64,11 @@ class RolePermissionCommandAdapterTest {
                             RoleId.of(ROLE_UUID), PermissionId.of(PERMISSION_UUID), FIXED_INSTANT);
 
             RolePermissionJpaEntity entityToSave =
-                    RolePermissionJpaEntity.of(null, ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
+                    RolePermissionJpaEntity.of(
+                            UUID.randomUUID(), ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
             RolePermissionJpaEntity savedEntity =
-                    RolePermissionJpaEntity.of(1L, ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
+                    RolePermissionJpaEntity.of(
+                            UUID.randomUUID(), ROLE_UUID, PERMISSION_UUID, FIXED_INSTANT);
 
             given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
             given(repository.save(entityToSave)).willReturn(savedEntity);

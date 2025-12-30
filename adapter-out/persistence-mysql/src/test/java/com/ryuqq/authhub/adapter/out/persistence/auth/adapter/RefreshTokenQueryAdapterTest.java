@@ -54,7 +54,8 @@ class RefreshTokenQueryAdapterTest {
             UserId userId = UserId.of(USER_UUID);
             String tokenValue = "stored-refresh-token-value";
             RefreshTokenJpaEntity entity =
-                    RefreshTokenJpaEntity.of(1L, USER_UUID, tokenValue, FIXED_TIME, FIXED_TIME);
+                    RefreshTokenJpaEntity.of(
+                            UUID.randomUUID(), USER_UUID, tokenValue, FIXED_TIME, FIXED_TIME);
 
             given(queryDslRepository.findByUserId(USER_UUID)).willReturn(Optional.of(entity));
 
@@ -128,7 +129,8 @@ class RefreshTokenQueryAdapterTest {
             // given
             String tokenValue = "stored-refresh-token-value";
             RefreshTokenJpaEntity entity =
-                    RefreshTokenJpaEntity.of(1L, USER_UUID, tokenValue, FIXED_TIME, FIXED_TIME);
+                    RefreshTokenJpaEntity.of(
+                            UUID.randomUUID(), USER_UUID, tokenValue, FIXED_TIME, FIXED_TIME);
 
             given(queryDslRepository.findByToken(tokenValue)).willReturn(Optional.of(entity));
 

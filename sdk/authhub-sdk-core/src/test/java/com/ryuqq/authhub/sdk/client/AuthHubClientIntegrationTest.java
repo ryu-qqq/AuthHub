@@ -210,7 +210,7 @@ class AuthHubClientIntegrationTest {
                     {
                         "success": true,
                         "data": {
-                            "userId": 12345
+                            "userId": "12345"
                         },
                         "timestamp": "2025-01-01T00:00:00",
                         "requestId": "req-123"
@@ -230,7 +230,7 @@ class AuthHubClientIntegrationTest {
 
             // then
             assertThat(response.success()).isTrue();
-            assertThat(response.data().userId()).isEqualTo(12345L);
+            assertThat(response.data().userId()).isEqualTo("12345");
 
             RecordedRequest recordedRequest = mockServer.takeRequest();
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");
@@ -298,7 +298,7 @@ class AuthHubClientIntegrationTest {
                     {
                         "success": true,
                         "data": {
-                            "roleId": 1
+                            "roleId": "1"
                         },
                         "timestamp": "2025-01-01T00:00:00",
                         "requestId": "req-123"
@@ -317,7 +317,7 @@ class AuthHubClientIntegrationTest {
 
             // then
             assertThat(response.success()).isTrue();
-            assertThat(response.data().roleId()).isEqualTo(1);
+            assertThat(response.data().roleId()).isEqualTo("1");
 
             RecordedRequest recordedRequest = mockServer.takeRequest();
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");
@@ -338,7 +338,7 @@ class AuthHubClientIntegrationTest {
                     {
                         "success": true,
                         "data": {
-                            "permissionId": 1
+                            "permissionId": "1"
                         },
                         "timestamp": "2025-01-01T00:00:00",
                         "requestId": "req-123"
@@ -357,7 +357,7 @@ class AuthHubClientIntegrationTest {
 
             // then
             assertThat(response.success()).isTrue();
-            assertThat(response.data().permissionId()).isEqualTo(1);
+            assertThat(response.data().permissionId()).isEqualTo("1");
 
             RecordedRequest recordedRequest = mockServer.takeRequest();
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");

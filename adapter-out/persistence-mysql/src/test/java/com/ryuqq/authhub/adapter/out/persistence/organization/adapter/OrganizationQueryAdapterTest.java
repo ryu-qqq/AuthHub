@@ -317,7 +317,6 @@ class OrganizationQueryAdapterTest {
 
     private OrganizationJpaEntity createOrganizationEntity() {
         return OrganizationJpaEntity.of(
-                1L,
                 ORG_UUID,
                 TENANT_UUID,
                 "Test Organization",

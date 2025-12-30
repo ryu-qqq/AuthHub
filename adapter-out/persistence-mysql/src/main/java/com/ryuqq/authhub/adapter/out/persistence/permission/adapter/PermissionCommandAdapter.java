@@ -77,7 +77,7 @@ public class PermissionCommandAdapter implements PermissionPersistencePort {
     @Override
     public Permission persist(Permission permission) {
         UUID permissionIdValue = permission.permissionIdValue();
-        Optional<PermissionJpaEntity> existing = repository.findByPermissionId(permissionIdValue);
+        Optional<PermissionJpaEntity> existing = repository.findById(permissionIdValue);
 
         PermissionJpaEntity entity;
         if (existing.isPresent()) {

@@ -65,7 +65,6 @@ public class TenantJpaEntityMapper {
      */
     public TenantJpaEntity toEntity(Tenant domain) {
         return TenantJpaEntity.of(
-                null,
                 domain.tenantIdValue(),
                 domain.nameValue(),
                 domain.getStatus(),
@@ -90,7 +89,6 @@ public class TenantJpaEntityMapper {
      */
     public TenantJpaEntity updateEntity(TenantJpaEntity existing, Tenant domain) {
         return TenantJpaEntity.of(
-                existing.getId(),
                 domain.tenantIdValue(),
                 domain.nameValue(),
                 domain.getStatus(),

@@ -4,7 +4,7 @@ import java.time.Instant;
 
 /** 권한 응답. */
 public record PermissionResponse(
-        Long permissionId,
+        String permissionId,
         String resource,
         String action,
         String description,
