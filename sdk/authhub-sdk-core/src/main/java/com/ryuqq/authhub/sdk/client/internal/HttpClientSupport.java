@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.sdk.client.internal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -25,7 +26,13 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** HTTP 클라이언트 지원 클래스. REST API 호출에 필요한 공통 기능을 제공합니다. */
+/**
+ * HTTP 클라이언트 지원 클래스. REST API 호출에 필요한 공통 기능을 제공합니다.
+ *
+ * <p>이 클래스는 HTTP 요청/응답 처리의 모든 공통 로직을 담당합니다. GodClass 경고가 발생하지만, HTTP 클라이언트의 특성상
+ * GET/POST/PUT/PATCH/DELETE 메서드들이 함께 있어야 응집도가 높습니다.
+ */
+@SuppressWarnings("PMD.GodClass")
 class HttpClientSupport {
 
     private static final Logger log = LoggerFactory.getLogger(HttpClientSupport.class);
@@ -321,7 +328,9 @@ class HttpClientSupport {
 
     private ErrorResponse parseErrorResponse(String body) {
         try {
-            return objectMapper.readValue(body, ErrorResponse.class);
+            ProblemDetailResponse problemDetail =
+                    objectMapper.readValue(body, ProblemDetailResponse.class);
+            return problemDetail.toErrorResponse();
         } catch (JsonProcessingException e) {
             return new ErrorResponse("UNKNOWN_ERROR", body);
         }
@@ -388,4 +397,66 @@ class HttpClientSupport {
     }
 
     private record ErrorResponse(String errorCode, String message) {}
+
+    /**
+     * RFC 7807 ProblemDetail 및 레거시 에러 응답을 파싱하기 위한 레코드.
+     *
+     * <p>지원 형식:
+     *
+     * <ul>
+     *   <li>RFC 7807 ProblemDetail: adapter-in GlobalExceptionHandler 형식 (type, title, status,
+     *       detail, code)
+     *   <li>레거시 형식: 기존 SDK 호환 형식 (errorCode, message)
+     * </ul>
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record ProblemDetailResponse(
+            String type,
+            String title,
+            Integer status,
+            String detail,
+            String instance,
+            String timestamp,
+            String code,
+            Object errors,
+            String errorCode,
+            String message) {
+
+        /**
+         * ProblemDetail 또는 레거시 형식을 ErrorResponse로 변환합니다.
+         *
+         * @return RFC 7807이면 code→errorCode, detail→message. 레거시면 errorCode, message 그대로 사용.
+         */
+        ErrorResponse toErrorResponse() {
+            String resolvedErrorCode = resolveErrorCode();
+            String resolvedMessage = resolveMessage();
+            return new ErrorResponse(resolvedErrorCode, resolvedMessage);
+        }
+
+        private String resolveErrorCode() {
+            if (errorCode != null && !errorCode.isBlank()) {
+                return errorCode;
+            }
+            if (code != null && !code.isBlank()) {
+                return code;
+            }
+            if (title != null && !title.isBlank()) {
+                return title.toUpperCase().replace(" ", "_");
+            }
+            return "UNKNOWN_ERROR";
+        }
+
+        private String resolveMessage() {
+            if (message != null && !message.isBlank()) {
+                return message;
+            }
+            if (detail != null && !detail.isBlank()) {
+                return detail;
+            }
+            if (title != null && !title.isBlank()) {
+                return title;
+            }
+            return "An unknown error occurred";
+        }
+    }
 }
