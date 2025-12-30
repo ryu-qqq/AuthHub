@@ -111,6 +111,11 @@ data "aws_secretsmanager_secret" "jwt_rsa" {
 # RDS Configuration (MySQL)
 # ========================================
 
+# RDS Proxy endpoint from SSM Parameter Store
+data "aws_ssm_parameter" "rds_proxy_endpoint" {
+  name = "/shared/rds/mysql-proxy-endpoint"
+}
+
 # AuthHub-specific Secrets Manager secret (using shared MySQL auth credentials)
 data "aws_secretsmanager_secret" "rds" {
   name = "prod-shared-mysql-auth"
@@ -159,7 +164,7 @@ locals {
   # RDS Configuration (MySQL)
   # Using RDS Proxy for connection pooling and failover resilience
   rds_credentials = jsondecode(data.aws_secretsmanager_secret_version.rds.secret_string)
-  rds_host        = "prod-shared-mysql-proxy.proxy-cfacertspqbw.ap-northeast-2.rds.amazonaws.com"
+  rds_host        = data.aws_ssm_parameter.rds_proxy_endpoint.value
   rds_port        = "3306"
   rds_dbname      = "auth"
   rds_username    = local.rds_credentials.username
