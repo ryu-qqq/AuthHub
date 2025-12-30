@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -43,6 +44,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayAuthenticationFilter.class);
+    private static final String MDC_TRACE_ID_KEY = "traceId";
 
     private final ObjectMapper objectMapper;
     private final JwtClaimsExtractor jwtClaimsExtractor;
@@ -62,6 +64,12 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
             SecurityContext context = buildSecurityContext(request);
             SecurityContextHolder.setContext(context);
 
+            // MDC에 traceId 저장 (로깅 및 ApiResponse에서 사용)
+            String traceId = context.getTraceId();
+            if (traceId != null) {
+                MDC.put(MDC_TRACE_ID_KEY, traceId);
+            }
+
             if (context.isAuthenticated()) {
                 synchronizeWithSpringSecurityContext(context);
             }
@@ -69,6 +77,7 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } finally {
+            MDC.remove(MDC_TRACE_ID_KEY);
             SecurityContextHolder.clearContext();
             org.springframework.security.core.context.SecurityContextHolder.clearContext();
         }

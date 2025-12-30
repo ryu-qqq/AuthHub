@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.in.rest.common.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import org.slf4j.MDC;
 
 /**
  * ApiResponse - 표준 API 성공 응답 래퍼
@@ -72,17 +73,22 @@ public record ApiResponse<T>(
         return ofSuccess(null);
     }
 
+    private static final String MDC_TRACE_ID_KEY = "traceId";
+
     /**
      * Request ID 생성
      *
-     * <p>실제 운영 환경에서는 MDC나 분산 추적 시스템의 Trace ID를 사용하는 것이 좋습니다.
+     * <p>Gateway에서 전달받은 X-Trace-Id를 MDC에서 읽어 사용합니다. MDC에 값이 없으면 타임스탬프 기반 ID를 생성합니다.
      *
-     * @return Request ID
+     * @return Request ID (Gateway TraceId 또는 fallback)
      * @author ryu-qqq
      * @since 2025-10-23
      */
     private static String generateRequestId() {
-        // TODO: MDC or Distributed Tracing ID 사용 권장
+        String traceId = MDC.get(MDC_TRACE_ID_KEY);
+        if (traceId != null && !traceId.isBlank()) {
+            return traceId;
+        }
         return "req-" + System.currentTimeMillis();
     }
 }
