@@ -32,7 +32,7 @@ module "ecr_web_api" {
 
   # KMS encryption for ECR images
   kms_key_arn  = "arn:aws:kms:ap-northeast-2:646886795421:key/086b1677-614f-46ba-863e-23c215fb5010"
-  force_delete = true  # Allow recreation with existing images
+  force_delete = true # Allow recreation with existing images
 
   # Lifecycle Policy
   enable_lifecycle_policy    = true
