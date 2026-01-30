@@ -24,7 +24,7 @@ permissions:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECS_CLUSTER: authhub-cluster-stage
+  ECS_CLUSTER: authhub-cluster-staging
   ENVIRONMENT: stage
 
 jobs:
@@ -61,7 +61,7 @@ jobs:
     needs: test
     uses: ryu-qqq/Infrastructure/.github/workflows/reusable-build-docker.yml@main
     with:
-      ecr-repository: authhub-web-api-stage
+      ecr-repository: authhub-web-api-staging
       component: web-api
       dockerfile: bootstrap/bootstrap-web-api/Dockerfile
       gradle-task: ":bootstrap:bootstrap-web-api:bootJar"
@@ -77,8 +77,8 @@ jobs:
     needs: build-web-api
     uses: ryu-qqq/Infrastructure/.github/workflows/reusable-deploy-ecs.yml@main
     with:
-      ecs-cluster: authhub-cluster-stage
-      ecs-service: authhub-web-api-stage
+      ecs-cluster: authhub-cluster-staging
+      ecs-service: authhub-web-api-staging
       image-uri: ${{ needs.build-web-api.outputs.image-uri }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
