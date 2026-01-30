@@ -5,12 +5,11 @@ import static com.ryuqq.authhub.adapter.out.persistence.permission.entity.QPermi
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.ryuqq.authhub.adapter.out.persistence.permission.condition.PermissionConditionBuilder;
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.PermissionJpaEntity;
-import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
-import java.util.Collection;
+import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -22,10 +21,12 @@ import org.springframework.stereotype.Repository;
  *
  * <ul>
  *   <li>findByPermissionId() - ID로 단건 조회
- *   <li>findByKey() - 권한 키로 단건 조회
- *   <li>existsByKey() - 권한 키 존재 여부 확인
- *   <li>searchByQuery() - Query 기반 조건 검색
- *   <li>countByQuery() - Query 기반 개수 조회
+ *   <li>existsByPermissionId() - ID 존재 여부 확인
+ *   <li>existsByPermissionKey() - 권한 키 존재 여부 확인
+ *   <li>findByPermissionKey() - 권한 키로 단건 조회
+ *   <li>findAllByCriteria() - 조건 검색
+ *   <li>countByCriteria() - 조건 검색 개수
+ *   <li>findAllByIds() - ID 목록으로 다건 조회
  * </ul>
  *
  * <p><strong>CQRS 패턴:</strong>
@@ -41,7 +42,7 @@ import org.springframework.stereotype.Repository;
  *   <li>Entity 반환 (Domain 변환은 Adapter에서)
  *   <li>Join 금지 (N+1 해결은 Application Layer에서)
  *   <li>비즈니스 로직 금지
- *   <li>삭제되지 않은 권한만 조회 (deleted = false)
+ *   <li>ConditionBuilder를 사용하여 조건 생성
  * </ul>
  *
  * @author development-team
@@ -51,137 +52,155 @@ import org.springframework.stereotype.Repository;
 public class PermissionQueryDslRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final PermissionConditionBuilder conditionBuilder;
 
-    public PermissionQueryDslRepository(JPAQueryFactory queryFactory) {
+    public PermissionQueryDslRepository(
+            JPAQueryFactory queryFactory, PermissionConditionBuilder conditionBuilder) {
         this.queryFactory = queryFactory;
+        this.conditionBuilder = conditionBuilder;
     }
 
     /**
-     * UUID로 권한 단건 조회
+     * 권한 ID로 단건 조회
      *
-     * @param permissionId 권한 UUID
+     * @param permissionId 권한 ID (Long)
      * @return Optional<PermissionJpaEntity>
      */
-    public Optional<PermissionJpaEntity> findByPermissionId(UUID permissionId) {
+    public Optional<PermissionJpaEntity> findByPermissionId(Long permissionId) {
         PermissionJpaEntity result =
                 queryFactory
                         .selectFrom(permissionJpaEntity)
                         .where(
-                                permissionJpaEntity.permissionId.eq(permissionId),
-                                permissionJpaEntity.deleted.eq(false))
+                                conditionBuilder.permissionIdEquals(permissionId),
+                                conditionBuilder.notDeleted())
                         .fetchOne();
         return Optional.ofNullable(result);
     }
 
     /**
-     * 권한 키로 권한 단건 조회
+     * 권한 ID 존재 여부 확인
      *
-     * @param key 권한 키 ("{resource}:{action}" 형식)
-     * @return Optional<PermissionJpaEntity>
-     */
-    public Optional<PermissionJpaEntity> findByKey(String key) {
-        PermissionJpaEntity result =
-                queryFactory
-                        .selectFrom(permissionJpaEntity)
-                        .where(
-                                permissionJpaEntity.permissionKey.eq(key),
-                                permissionJpaEntity.deleted.eq(false))
-                        .fetchOne();
-        return Optional.ofNullable(result);
-    }
-
-    /**
-     * 권한 키 존재 여부 확인
-     *
-     * @param key 권한 키 ("{resource}:{action}" 형식)
+     * @param permissionId 권한 ID (Long)
      * @return 존재 여부
      */
-    public boolean existsByKey(String key) {
+    public boolean existsByPermissionId(Long permissionId) {
         Integer result =
                 queryFactory
                         .selectOne()
                         .from(permissionJpaEntity)
                         .where(
-                                permissionJpaEntity.permissionKey.eq(key),
-                                permissionJpaEntity.deleted.eq(false))
+                                conditionBuilder.permissionIdEquals(permissionId),
+                                conditionBuilder.notDeleted())
                         .fetchFirst();
         return result != null;
     }
 
     /**
-     * Query 기반 권한 검색 (페이징)
+     * 권한 키 존재 여부 확인 (Global 전역)
      *
-     * @param query 검색 조건 (SearchPermissionsQuery)
+     * <p>tenantId와 관계없이 전역적으로 permissionKey 존재 여부를 확인합니다.
+     *
+     * @param permissionKey 권한 키
+     * @return 존재 여부
+     */
+    public boolean existsByPermissionKey(String permissionKey) {
+        Integer result =
+                queryFactory
+                        .selectOne()
+                        .from(permissionJpaEntity)
+                        .where(
+                                conditionBuilder.permissionKeyEquals(permissionKey),
+                                conditionBuilder.notDeleted())
+                        .fetchFirst();
+        return result != null;
+    }
+
+    /**
+     * 권한 키로 단건 조회
+     *
+     * @param permissionKey 권한 키
+     * @return Optional<PermissionJpaEntity>
+     */
+    public Optional<PermissionJpaEntity> findByPermissionKey(String permissionKey) {
+        PermissionJpaEntity result =
+                queryFactory
+                        .selectFrom(permissionJpaEntity)
+                        .where(
+                                conditionBuilder.permissionKeyEquals(permissionKey),
+                                conditionBuilder.notDeleted())
+                        .fetchOne();
+        return Optional.ofNullable(result);
+    }
+
+    /**
+     * 조건에 맞는 권한 목록 조회 (페이징)
+     *
+     * @param criteria 검색 조건 (PermissionSearchCriteria)
      * @return PermissionJpaEntity 목록
      */
-    public List<PermissionJpaEntity> searchByQuery(SearchPermissionsQuery query) {
-        BooleanBuilder builder = PermissionSearchConditionBuilder.buildSearchCondition(query);
-        OrderSpecifier<?> orderSpecifier =
-                PermissionSearchConditionBuilder.buildOrderSpecifier(query);
-        int offset = query.page() * query.size();
+    public List<PermissionJpaEntity> findAllByCriteria(PermissionSearchCriteria criteria) {
+        BooleanBuilder condition = conditionBuilder.buildCondition(criteria);
+        OrderSpecifier<?> orderSpecifier = conditionBuilder.buildOrderSpecifier(criteria);
+
+        long offset = criteria.offset();
+        int limit = criteria.size();
 
         return queryFactory
                 .selectFrom(permissionJpaEntity)
-                .where(builder)
+                .where(condition)
                 .orderBy(orderSpecifier)
                 .offset(offset)
-                .limit(query.size())
+                .limit(limit)
                 .fetch();
     }
 
     /**
-     * Query 기반 권한 개수 조회
+     * 조건에 맞는 권한 개수 조회
      *
-     * @param query 검색 조건 (SearchPermissionsQuery)
+     * @param criteria 검색 조건 (PermissionSearchCriteria)
      * @return 조건에 맞는 권한 총 개수
      */
-    public long countByQuery(SearchPermissionsQuery query) {
-        BooleanBuilder builder = PermissionSearchConditionBuilder.buildSearchCondition(query);
+    public long countByCriteria(PermissionSearchCriteria criteria) {
+        BooleanBuilder condition = conditionBuilder.buildCondition(criteria);
 
         Long count =
                 queryFactory
                         .select(permissionJpaEntity.count())
                         .from(permissionJpaEntity)
-                        .where(builder)
+                        .where(condition)
                         .fetchOne();
         return count != null ? count : 0L;
     }
 
     /**
-     * 여러 ID로 권한 목록 조회
+     * ID 목록으로 권한 다건 조회
      *
-     * @param permissionIds 권한 UUID 컬렉션
+     * @param permissionIds 권한 ID 목록
      * @return PermissionJpaEntity 목록
      */
-    public List<PermissionJpaEntity> findAllByIds(Collection<UUID> permissionIds) {
-        if (permissionIds == null || permissionIds.isEmpty()) {
-            return List.of();
-        }
+    public List<PermissionJpaEntity> findAllByIds(List<Long> permissionIds) {
         return queryFactory
                 .selectFrom(permissionJpaEntity)
                 .where(
-                        permissionJpaEntity.permissionId.in(permissionIds),
-                        permissionJpaEntity.deleted.eq(false))
+                        conditionBuilder.permissionIdIn(permissionIds),
+                        conditionBuilder.notDeleted())
                 .fetch();
     }
 
     /**
-     * 여러 권한 키로 권한 목록 조회 (Bulk 조회)
+     * permissionKey 목록으로 권한 다건 조회
      *
-     * <p>CI/CD 권한 검증에서 사용됩니다.
+     * <p>벌크 동기화 시 기존 Permission을 한 번에 조회합니다.
      *
-     * @param keys 권한 키 컬렉션 ("{resource}:{action}" 형식)
-     * @return PermissionJpaEntity 목록 (존재하는 권한만)
+     * @param permissionKeys 권한 키 목록
+     * @return PermissionJpaEntity 목록
      */
-    public List<PermissionJpaEntity> findAllByKeys(Collection<String> keys) {
-        if (keys == null || keys.isEmpty()) {
-            return List.of();
-        }
+    public List<PermissionJpaEntity> findAllByPermissionKeys(List<String> permissionKeys) {
         return queryFactory
                 .selectFrom(permissionJpaEntity)
                 .where(
-                        permissionJpaEntity.permissionKey.in(keys),
-                        permissionJpaEntity.deleted.eq(false))
+                        conditionBuilder.permissionKeyIn(permissionKeys),
+                        conditionBuilder.notDeleted())
                 .fetch();
     }
 }

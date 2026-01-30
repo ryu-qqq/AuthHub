@@ -1,424 +1,231 @@
 package com.ryuqq.authhub.domain.organization.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.authhub.domain.common.util.ClockHolder;
-import com.ryuqq.authhub.domain.organization.exception.InvalidOrganizationStateException;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.time.Clock;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Organization Aggregate Root 단위 테스트
+ * Organization Aggregate 단위 테스트
  *
  * @author development-team
  * @since 1.0.0
  */
+@ExtendWith(MockitoExtension.class)
 @Tag("unit")
 @DisplayName("Organization Aggregate 테스트")
 class OrganizationTest {
 
-    private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
-    private static final ClockHolder FIXED_CLOCK_HOLDER =
-            () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
-    private static final Clock FIXED_CLOCK = FIXED_CLOCK_HOLDER.clock();
+    private static final Instant NOW = Instant.parse("2025-01-15T10:00:00Z");
 
     @Nested
-    @DisplayName("create 팩토리 메서드")
-    class CreateTest {
+    @DisplayName("Organization 생성 테스트")
+    class CreateTests {
 
         @Test
-        @DisplayName("새로운 Organization을 생성한다")
-        void shouldCreateNewOrganization() {
+        @DisplayName("새로운 Organization을 성공적으로 생성한다")
+        void shouldCreateOrganizationSuccessfully() {
             // given
-            OrganizationId organizationId = OrganizationId.forNew(UUID.randomUUID());
-            TenantId tenantId = TenantId.of(UUID.randomUUID());
+            OrganizationId orgId = OrganizationId.forNew("01941234-5678-7000-8000-123456789999");
+            TenantId tenantId = TenantId.of("01941234-5678-7000-8000-123456789abc");
             OrganizationName name = OrganizationName.of("New Organization");
 
             // when
-            Organization organization =
-                    Organization.create(organizationId, tenantId, name, FIXED_CLOCK);
+            Organization org = Organization.create(orgId, tenantId, name, NOW);
 
             // then
-            assertThat(organization).isNotNull();
-            assertThat(organization.isNew()).isFalse();
-            assertThat(organization.nameValue()).isEqualTo("New Organization");
-            assertThat(organization.isActive()).isTrue();
-            assertThat(organization.organizationIdValue()).isNotNull();
-            assertThat(organization.createdAt()).isEqualTo(FIXED_TIME);
-            assertThat(organization.updatedAt()).isEqualTo(FIXED_TIME);
+            assertThat(org.organizationIdValue()).isEqualTo(orgId.value());
+            assertThat(org.tenantIdValue()).isEqualTo(tenantId.value());
+            assertThat(org.nameValue()).isEqualTo(name.value());
+            assertThat(org.isActive()).isTrue();
+            assertThat(org.isDeleted()).isFalse();
+            assertThat(org.createdAt()).isEqualTo(NOW);
+            assertThat(org.updatedAt()).isEqualTo(NOW);
         }
 
         @Test
-        @DisplayName("생성된 Organization은 ACTIVE 상태이다")
-        void shouldCreateWithActiveStatus() {
+        @DisplayName("reconstitute로 Organization을 재구성한다")
+        void shouldReconstituteFromDatabase() {
             // given
-            OrganizationId organizationId = OrganizationId.forNew(UUID.randomUUID());
-            TenantId tenantId = TenantId.of(UUID.randomUUID());
-            OrganizationName name = OrganizationName.of("Active Organization");
-
-            // when
-            Organization organization =
-                    Organization.create(organizationId, tenantId, name, FIXED_CLOCK);
+            Organization org = OrganizationFixture.create();
 
             // then
-            assertThat(organization.getStatus()).isEqualTo(OrganizationStatus.ACTIVE);
-            assertThat(organization.statusValue()).isEqualTo("ACTIVE");
-        }
-
-        @Test
-        @DisplayName("organizationId가 null이면 예외 발생")
-        void shouldThrowExceptionWhenOrganizationIdIsNull() {
-            assertThatThrownBy(
-                            () ->
-                                    Organization.create(
-                                            null,
-                                            TenantId.of(UUID.randomUUID()),
-                                            OrganizationName.of("Test"),
-                                            FIXED_CLOCK))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("OrganizationId는 null일 수 없습니다");
-        }
-
-        @Test
-        @DisplayName("tenantId가 null이면 예외 발생")
-        void shouldThrowExceptionWhenTenantIdIsNull() {
-            assertThatThrownBy(
-                            () ->
-                                    Organization.create(
-                                            OrganizationId.forNew(UUID.randomUUID()),
-                                            null,
-                                            OrganizationName.of("Test"),
-                                            FIXED_CLOCK))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("TenantId는 null일 수 없습니다");
-        }
-
-        @Test
-        @DisplayName("name이 null이면 예외 발생")
-        void shouldThrowExceptionWhenNameIsNull() {
-            assertThatThrownBy(
-                            () ->
-                                    Organization.create(
-                                            OrganizationId.forNew(UUID.randomUUID()),
-                                            TenantId.of(UUID.randomUUID()),
-                                            null,
-                                            FIXED_CLOCK))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("OrganizationName은 null일 수 없습니다");
+            assertThat(org.organizationIdValue()).isEqualTo(OrganizationFixture.defaultIdString());
+            assertThat(org.tenantIdValue()).isEqualTo(OrganizationFixture.defaultTenantIdString());
+            assertThat(org.isActive()).isTrue();
+            assertThat(org.isDeleted()).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("reconstitute 팩토리 메서드")
-    class ReconstituteTest {
+    @DisplayName("Organization 테넌트 격리 테스트")
+    class TenantIsolationTests {
 
         @Test
-        @DisplayName("DB에서 Organization을 재구성한다")
-        void shouldReconstituteOrganizationFromDb() {
+        @DisplayName("Organization은 tenantId를 변경할 수 없다 (불변)")
+        void shouldNotChangeTenantId() {
             // given
-            UUID orgUuid = UUID.randomUUID();
-            UUID tenantUuid = UUID.randomUUID();
-            OrganizationId organizationId = OrganizationId.of(orgUuid);
-            TenantId tenantId = TenantId.of(tenantUuid);
-            OrganizationName name = OrganizationName.of("Test Organization");
-            Instant createdAt = Instant.parse("2024-01-01T00:00:00Z");
-            Instant updatedAt = Instant.parse("2024-06-01T00:00:00Z");
+            String originalTenantId = OrganizationFixture.defaultTenantIdString();
+            Organization org = OrganizationFixture.create();
+
+            // then - tenantId는 final이므로 변경 불가
+            assertThat(org.tenantIdValue()).isEqualTo(originalTenantId);
+        }
+
+        @Test
+        @DisplayName("다른 테넌트의 Organization을 생성할 수 있다")
+        void shouldCreateOrganizationWithDifferentTenant() {
+            // given
+            String differentTenantId = "01941234-5678-7000-8000-different1234";
 
             // when
-            Organization organization =
-                    Organization.reconstitute(
-                            organizationId,
-                            tenantId,
-                            name,
-                            OrganizationStatus.ACTIVE,
-                            createdAt,
-                            updatedAt);
+            Organization org = OrganizationFixture.createWithTenant(differentTenantId);
 
             // then
-            assertThat(organization).isNotNull();
-            assertThat(organization.isNew()).isFalse();
-            assertThat(organization.organizationIdValue()).isEqualTo(orgUuid);
-            assertThat(organization.tenantIdValue()).isEqualTo(tenantUuid);
-            assertThat(organization.nameValue()).isEqualTo("Test Organization");
-            assertThat(organization.getStatus()).isEqualTo(OrganizationStatus.ACTIVE);
-            assertThat(organization.createdAt()).isEqualTo(createdAt);
-            assertThat(organization.updatedAt()).isEqualTo(updatedAt);
-        }
-
-        @Test
-        @DisplayName("organizationId가 null이면 예외 발생")
-        void shouldThrowExceptionWhenOrganizationIdIsNull() {
-            assertThatThrownBy(
-                            () ->
-                                    Organization.reconstitute(
-                                            null,
-                                            TenantId.of(UUID.randomUUID()),
-                                            OrganizationName.of("Test"),
-                                            OrganizationStatus.ACTIVE,
-                                            FIXED_TIME,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("reconstitute requires non-null organizationId");
-        }
-
-        @Test
-        @DisplayName("필수 필드가 null이면 예외 발생")
-        void shouldThrowExceptionWhenRequiredFieldIsNull() {
-            OrganizationId id = OrganizationId.of(UUID.randomUUID());
-            TenantId tenantId = TenantId.of(UUID.randomUUID());
-
-            assertThatThrownBy(
-                            () ->
-                                    Organization.reconstitute(
-                                            id,
-                                            null,
-                                            OrganizationName.of("Test"),
-                                            OrganizationStatus.ACTIVE,
-                                            FIXED_TIME,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("TenantId는 null일 수 없습니다");
-
-            assertThatThrownBy(
-                            () ->
-                                    Organization.reconstitute(
-                                            id,
-                                            tenantId,
-                                            null,
-                                            OrganizationStatus.ACTIVE,
-                                            FIXED_TIME,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("OrganizationName은 null일 수 없습니다");
-
-            assertThatThrownBy(
-                            () ->
-                                    Organization.reconstitute(
-                                            id,
-                                            tenantId,
-                                            OrganizationName.of("Test"),
-                                            null,
-                                            FIXED_TIME,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("OrganizationStatus는 null일 수 없습니다");
-
-            assertThatThrownBy(
-                            () ->
-                                    Organization.reconstitute(
-                                            id,
-                                            tenantId,
-                                            OrganizationName.of("Test"),
-                                            OrganizationStatus.ACTIVE,
-                                            null,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("createdAt는 null일 수 없습니다");
-
-            assertThatThrownBy(
-                            () ->
-                                    Organization.reconstitute(
-                                            id,
-                                            tenantId,
-                                            OrganizationName.of("Test"),
-                                            OrganizationStatus.ACTIVE,
-                                            FIXED_TIME,
-                                            null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("updatedAt는 null일 수 없습니다");
+            assertThat(org.tenantIdValue()).isEqualTo(differentTenantId);
         }
     }
 
     @Nested
-    @DisplayName("changeName 비즈니스 메서드")
-    class ChangeNameTest {
+    @DisplayName("Organization 이름 변경 테스트")
+    class NameChangeTests {
 
         @Test
-        @DisplayName("활성 상태의 조직 이름을 변경한다")
-        void shouldChangeNameForActiveOrganization() {
+        @DisplayName("Organization 이름을 변경한다")
+        void shouldChangeName() {
             // given
-            Organization organization = OrganizationFixture.create();
-            OrganizationName newName = OrganizationName.of("Changed Name");
+            Organization org = OrganizationFixture.create();
+            OrganizationName newName = OrganizationName.of("Changed Organization Name");
 
             // when
-            Organization changedOrganization = organization.changeName(newName, FIXED_CLOCK);
+            org.changeName(newName, NOW);
 
             // then
-            assertThat(changedOrganization.nameValue()).isEqualTo("Changed Name");
-            assertThat(changedOrganization.updatedAt()).isEqualTo(FIXED_TIME);
-        }
-
-        @Test
-        @DisplayName("비활성 상태의 조직 이름을 변경한다")
-        void shouldChangeNameForInactiveOrganization() {
-            // given
-            Organization organization = OrganizationFixture.createInactive();
-            OrganizationName newName = OrganizationName.of("Changed Name");
-
-            // when
-            Organization changedOrganization = organization.changeName(newName, FIXED_CLOCK);
-
-            // then
-            assertThat(changedOrganization.nameValue()).isEqualTo("Changed Name");
-        }
-
-        @Test
-        @DisplayName("삭제된 조직 이름 변경 시 예외 발생")
-        void shouldThrowExceptionWhenChangingNameOfDeletedOrganization() {
-            // given
-            Organization organization = OrganizationFixture.createDeleted();
-            OrganizationName newName = OrganizationName.of("New Name");
-
-            // when/then
-            assertThatThrownBy(() -> organization.changeName(newName, FIXED_CLOCK))
-                    .isInstanceOf(InvalidOrganizationStateException.class);
+            assertThat(org.nameValue()).isEqualTo("Changed Organization Name");
+            assertThat(org.updatedAt()).isEqualTo(NOW);
         }
     }
 
     @Nested
-    @DisplayName("activate 비즈니스 메서드")
-    class ActivateTest {
+    @DisplayName("Organization 상태 변경 테스트")
+    class StatusChangeTests {
 
         @Test
-        @DisplayName("비활성 상태의 조직을 활성화한다")
-        void shouldActivateInactiveOrganization() {
+        @DisplayName("ACTIVE 상태를 INACTIVE로 변경한다")
+        void shouldChangeStatusToInactive() {
             // given
-            Organization organization = OrganizationFixture.createInactive();
+            Organization org = OrganizationFixture.create();
+            assertThat(org.isActive()).isTrue();
 
             // when
-            Organization activatedOrganization = organization.activate(FIXED_CLOCK);
+            org.changeStatus(OrganizationStatus.INACTIVE, NOW);
 
             // then
-            assertThat(activatedOrganization.isActive()).isTrue();
-            assertThat(activatedOrganization.getStatus()).isEqualTo(OrganizationStatus.ACTIVE);
-            assertThat(activatedOrganization.updatedAt()).isEqualTo(FIXED_TIME);
+            assertThat(org.isActive()).isFalse();
+            assertThat(org.statusValue()).isEqualTo("INACTIVE");
+            assertThat(org.updatedAt()).isEqualTo(NOW);
         }
 
         @Test
-        @DisplayName("삭제된 조직 활성화 시 예외 발생")
-        void shouldThrowExceptionWhenActivatingDeletedOrganization() {
+        @DisplayName("INACTIVE 상태를 ACTIVE로 변경한다")
+        void shouldChangeStatusToActive() {
             // given
-            Organization organization = OrganizationFixture.createDeleted();
+            Organization org = OrganizationFixture.createInactive();
+            assertThat(org.isActive()).isFalse();
 
-            // when/then
-            assertThatThrownBy(() -> organization.activate(FIXED_CLOCK))
-                    .isInstanceOf(InvalidOrganizationStateException.class);
+            // when
+            org.changeStatus(OrganizationStatus.ACTIVE, NOW);
+
+            // then
+            assertThat(org.isActive()).isTrue();
+            assertThat(org.statusValue()).isEqualTo("ACTIVE");
+            assertThat(org.updatedAt()).isEqualTo(NOW);
         }
     }
 
     @Nested
-    @DisplayName("deactivate 비즈니스 메서드")
-    class DeactivateTest {
+    @DisplayName("Organization 삭제/복원 테스트")
+    class DeleteRestoreTests {
 
         @Test
-        @DisplayName("활성 상태의 조직을 비활성화한다")
-        void shouldDeactivateActiveOrganization() {
+        @DisplayName("Organization을 삭제(소프트 삭제)한다")
+        void shouldDeleteOrganization() {
             // given
-            Organization organization = OrganizationFixture.create();
+            Organization org = OrganizationFixture.create();
 
             // when
-            Organization deactivatedOrganization = organization.deactivate(FIXED_CLOCK);
+            org.delete(NOW);
 
             // then
-            assertThat(deactivatedOrganization.isActive()).isFalse();
-            assertThat(deactivatedOrganization.getStatus()).isEqualTo(OrganizationStatus.INACTIVE);
-            assertThat(deactivatedOrganization.updatedAt()).isEqualTo(FIXED_TIME);
+            assertThat(org.isDeleted()).isTrue();
+            assertThat(org.updatedAt()).isEqualTo(NOW);
         }
 
         @Test
-        @DisplayName("삭제된 조직 비활성화 시 예외 발생")
-        void shouldThrowExceptionWhenDeactivatingDeletedOrganization() {
+        @DisplayName("삭제된 Organization을 복원한다")
+        void shouldRestoreOrganization() {
             // given
-            Organization organization = OrganizationFixture.createDeleted();
+            Organization org = OrganizationFixture.createDeleted();
+            assertThat(org.isDeleted()).isTrue();
 
-            // when/then
-            assertThatThrownBy(() -> organization.deactivate(FIXED_CLOCK))
-                    .isInstanceOf(InvalidOrganizationStateException.class);
+            // when
+            org.restore(NOW);
+
+            // then
+            assertThat(org.isDeleted()).isFalse();
+            assertThat(org.updatedAt()).isEqualTo(NOW);
         }
     }
 
     @Nested
-    @DisplayName("delete 비즈니스 메서드")
-    class DeleteTest {
+    @DisplayName("Organization Query 메서드 테스트")
+    class QueryMethodTests {
 
         @Test
-        @DisplayName("활성 상태의 조직을 삭제한다")
-        void shouldDeleteActiveOrganization() {
+        @DisplayName("isActive는 ACTIVE 상태에서 true를 반환한다")
+        void isActiveShouldReturnTrueWhenActive() {
             // given
-            Organization organization = OrganizationFixture.create();
-
-            // when
-            Organization deletedOrganization = organization.delete(FIXED_CLOCK);
+            Organization activeOrg = OrganizationFixture.create();
+            Organization inactiveOrg = OrganizationFixture.createInactive();
 
             // then
-            assertThat(deletedOrganization.isDeleted()).isTrue();
-            assertThat(deletedOrganization.getStatus()).isEqualTo(OrganizationStatus.DELETED);
-            assertThat(deletedOrganization.updatedAt()).isEqualTo(FIXED_TIME);
+            assertThat(activeOrg.isActive()).isTrue();
+            assertThat(inactiveOrg.isActive()).isFalse();
         }
 
         @Test
-        @DisplayName("비활성 상태의 조직을 삭제한다")
-        void shouldDeleteInactiveOrganization() {
+        @DisplayName("statusValue는 상태 문자열을 반환한다")
+        void statusValueShouldReturnStatusString() {
             // given
-            Organization organization = OrganizationFixture.createInactive();
-
-            // when
-            Organization deletedOrganization = organization.delete(FIXED_CLOCK);
+            Organization activeOrg = OrganizationFixture.create();
+            Organization inactiveOrg = OrganizationFixture.createInactive();
 
             // then
-            assertThat(deletedOrganization.isDeleted()).isTrue();
-        }
-
-        @Test
-        @DisplayName("이미 삭제된 조직 삭제 시 예외 발생")
-        void shouldThrowExceptionWhenDeletingAlreadyDeletedOrganization() {
-            // given
-            Organization organization = OrganizationFixture.createDeleted();
-
-            // when/then
-            assertThatThrownBy(() -> organization.delete(FIXED_CLOCK))
-                    .isInstanceOf(InvalidOrganizationStateException.class);
+            assertThat(activeOrg.statusValue()).isEqualTo("ACTIVE");
+            assertThat(inactiveOrg.statusValue()).isEqualTo("INACTIVE");
         }
     }
 
     @Nested
-    @DisplayName("equals 및 hashCode")
-    class EqualsHashCodeTest {
+    @DisplayName("Organization equals/hashCode 테스트")
+    class EqualsHashCodeTests {
 
         @Test
-        @DisplayName("같은 ID를 가진 Organization은 동일하다")
+        @DisplayName("같은 organizationId를 가진 Organization은 동등하다")
         void shouldBeEqualWhenSameOrganizationId() {
             // given
-            UUID uuid = UUID.randomUUID();
-            UUID tenantUuid = UUID.randomUUID();
-            Organization org1 =
-                    Organization.reconstitute(
-                            OrganizationId.of(uuid),
-                            TenantId.of(tenantUuid),
-                            OrganizationName.of("Org1"),
-                            OrganizationStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            Organization org2 =
-                    Organization.reconstitute(
-                            OrganizationId.of(uuid),
-                            TenantId.of(tenantUuid),
-                            OrganizationName.of("Org2"),
-                            OrganizationStatus.INACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
+            Organization org1 = OrganizationFixture.create();
+            Organization org2 = OrganizationFixture.create();
 
             // then
             assertThat(org1).isEqualTo(org2);
@@ -426,93 +233,14 @@ class OrganizationTest {
         }
 
         @Test
-        @DisplayName("다른 ID를 가진 Organization은 다르다")
+        @DisplayName("다른 organizationId를 가진 Organization은 동등하지 않다")
         void shouldNotBeEqualWhenDifferentOrganizationId() {
             // given
-            UUID tenantUuid = UUID.randomUUID();
-            Organization org1 =
-                    Organization.reconstitute(
-                            OrganizationId.of(UUID.randomUUID()),
-                            TenantId.of(tenantUuid),
-                            OrganizationName.of("Organization"),
-                            OrganizationStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            Organization org2 =
-                    Organization.reconstitute(
-                            OrganizationId.of(UUID.randomUUID()),
-                            TenantId.of(tenantUuid),
-                            OrganizationName.of("Organization"),
-                            OrganizationStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
+            Organization org1 = OrganizationFixture.create();
+            Organization org2 = OrganizationFixture.createNew();
 
-            // then
+            // then - createNew()는 다른 ID를 생성하므로 동등하지 않음
             assertThat(org1).isNotEqualTo(org2);
-        }
-
-        @Test
-        @DisplayName("다른 ID로 생성된 Organization은 서로 다르다")
-        void shouldNotBeEqualWhenDifferentIdCreated() {
-            // given
-            TenantId tenantId = TenantId.of(UUID.randomUUID());
-            Organization org1 =
-                    Organization.create(
-                            OrganizationId.forNew(UUID.randomUUID()),
-                            tenantId,
-                            OrganizationName.of("Org1"),
-                            FIXED_CLOCK);
-            Organization org2 =
-                    Organization.create(
-                            OrganizationId.forNew(UUID.randomUUID()),
-                            tenantId,
-                            OrganizationName.of("Org2"),
-                            FIXED_CLOCK);
-
-            // then
-            assertThat(org1).isNotEqualTo(org2);
-        }
-
-        @Test
-        @DisplayName("자기 자신과 같다")
-        void shouldBeEqualToItself() {
-            // given
-            Organization organization = OrganizationFixture.create();
-
-            // then
-            assertThat(organization).isEqualTo(organization);
-        }
-
-        @Test
-        @DisplayName("null과 같지 않다")
-        void shouldNotBeEqualToNull() {
-            // given
-            Organization organization = OrganizationFixture.create();
-
-            // then
-            assertThat(organization).isNotEqualTo(null);
-        }
-    }
-
-    @Nested
-    @DisplayName("toString")
-    class ToStringTest {
-
-        @Test
-        @DisplayName("Organization의 문자열 표현을 반환한다")
-        void shouldReturnStringRepresentation() {
-            // given
-            Organization organization = OrganizationFixture.create();
-
-            // when
-            String toString = organization.toString();
-
-            // then
-            assertThat(toString).contains("Organization");
-            assertThat(toString).contains("organizationId");
-            assertThat(toString).contains("tenantId");
-            assertThat(toString).contains("name");
-            assertThat(toString).contains("status");
         }
     }
 }

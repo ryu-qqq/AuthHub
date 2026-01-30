@@ -3,17 +3,14 @@ package com.ryuqq.authhub.adapter.out.persistence.role.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RoleJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.role.fixture.RoleJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.role.mapper.RoleJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.role.repository.RoleJpaRepository;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
-import java.time.LocalDateTime;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,6 +22,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * RoleCommandAdapter 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Adapter는 Repository 위임 + Mapper 변환 담당
+ *   <li>Repository/Mapper를 Mock으로 대체
+ *   <li>위임 및 변환 흐름 검증
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -38,147 +43,86 @@ class RoleCommandAdapterTest {
 
     @Mock private RoleJpaEntityMapper mapper;
 
-    private RoleCommandAdapter adapter;
-
-    private static final UUID ROLE_UUID = RoleFixture.defaultUUID();
-    private static final UUID TENANT_UUID = RoleFixture.defaultTenantUUID();
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+    private RoleCommandAdapter sut;
 
     @BeforeEach
     void setUp() {
-        adapter = new RoleCommandAdapter(repository, mapper);
+        sut = new RoleCommandAdapter(repository, mapper);
     }
 
     @Nested
     @DisplayName("persist 메서드")
-    class PersistTest {
+    class Persist {
 
         @Test
-        @DisplayName("역할을 성공적으로 저장한다")
-        void shouldPersistRoleSuccessfully() {
+        @DisplayName("성공: Domain → Entity 변환 후 저장하고 ID 반환")
+        void shouldConvertAndPersist_ThenReturnId() {
             // given
-            Role domainToSave = RoleFixture.createNew();
-            Role savedDomain = RoleFixture.create();
+            Role domain = RoleFixture.create();
+            RoleJpaEntity entity = RoleJpaEntityFixture.create();
+            Long expectedId = RoleJpaEntityFixture.defaultRoleId();
 
-            RoleJpaEntity entityToSave =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "TEST_ROLE",
-                            "Test role description",
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            RoleJpaEntity savedEntity =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "TEST_ROLE",
-                            "Test role description",
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
-            given(repository.save(entityToSave)).willReturn(savedEntity);
-            given(mapper.toDomain(savedEntity)).willReturn(savedDomain);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            Role result = adapter.persist(domainToSave);
+            Long result = sut.persist(domain);
 
             // then
-            assertThat(result).isEqualTo(savedDomain);
-            verify(mapper).toEntity(domainToSave);
-            verify(repository).save(entityToSave);
-            verify(mapper).toDomain(savedEntity);
+            assertThat(result).isEqualTo(expectedId);
         }
 
         @Test
-        @DisplayName("기존 역할을 수정한다")
-        void shouldUpdateExistingRole() {
+        @DisplayName("Mapper를 통해 Domain → Entity 변환")
+        void shouldUseMapper_ToConvertDomainToEntity() {
             // given
-            Role existingDomain = RoleFixture.create();
-            Role updatedDomain = RoleFixture.createWithName("UPDATED_ROLE");
+            Role domain = RoleFixture.create();
+            RoleJpaEntity entity = RoleJpaEntityFixture.create();
 
-            RoleJpaEntity entityToUpdate =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "TEST_ROLE",
-                            "Test role description",
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            RoleJpaEntity updatedEntity =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "UPDATED_ROLE",
-                            "Role with custom name",
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(existingDomain)).willReturn(entityToUpdate);
-            given(repository.save(entityToUpdate)).willReturn(updatedEntity);
-            given(mapper.toDomain(updatedEntity)).willReturn(updatedDomain);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            Role result = adapter.persist(existingDomain);
+            sut.persist(domain);
 
             // then
-            assertThat(result.nameValue()).isEqualTo("UPDATED_ROLE");
-            verify(repository).save(any(RoleJpaEntity.class));
+            then(mapper).should().toEntity(domain);
         }
 
         @Test
-        @DisplayName("시스템 역할을 저장한다")
-        void shouldPersistSystemRole() {
+        @DisplayName("Repository를 통해 Entity 저장")
+        void shouldUseRepository_ToSaveEntity() {
             // given
-            Role systemRole = RoleFixture.createSystemGlobal();
-            Role savedSystemRole = RoleFixture.createSystemGlobal();
+            Role domain = RoleFixture.create();
+            RoleJpaEntity entity = RoleJpaEntityFixture.create();
 
-            RoleJpaEntity entityToSave =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            null,
-                            "SUPER_ADMIN",
-                            "System super admin role",
-                            RoleScope.GLOBAL,
-                            RoleType.SYSTEM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            RoleJpaEntity savedEntity =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            null,
-                            "SUPER_ADMIN",
-                            "System super admin role",
-                            RoleScope.GLOBAL,
-                            RoleType.SYSTEM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(systemRole)).willReturn(entityToSave);
-            given(repository.save(entityToSave)).willReturn(savedEntity);
-            given(mapper.toDomain(savedEntity)).willReturn(savedSystemRole);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            Role result = adapter.persist(systemRole);
+            sut.persist(domain);
 
             // then
-            assertThat(result.isSystem()).isTrue();
-            assertThat(result.getScope()).isEqualTo(RoleScope.GLOBAL);
+            then(repository).should().save(entity);
+        }
+
+        @Test
+        @DisplayName("새 Domain 저장 시에도 동일한 흐름")
+        void shouldFollowSameFlow_WhenPersistingNewDomain() {
+            // given
+            Role newDomain = RoleFixture.createNewCustomRole();
+            RoleJpaEntity entity = RoleJpaEntityFixture.create();
+
+            given(mapper.toEntity(newDomain)).willReturn(entity);
+            given(repository.save(any(RoleJpaEntity.class))).willReturn(entity);
+
+            // when
+            Long result = sut.persist(newDomain);
+
+            // then
+            assertThat(result).isNotNull();
+            then(mapper).should().toEntity(newDomain);
+            then(repository).should().save(entity);
         }
     }
 }

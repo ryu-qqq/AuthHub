@@ -1,21 +1,22 @@
 package com.ryuqq.authhub.adapter.out.persistence.permission.mapper;
 
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.PermissionJpaEntity;
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
-import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.Action;
-import com.ryuqq.authhub.domain.permission.vo.PermissionDescription;
-import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
-import com.ryuqq.authhub.domain.permission.vo.Resource;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import org.springframework.stereotype.Component;
 
 /**
- * PermissionJpaEntityMapper - Entity ↔ Domain 변환 Mapper
+ * PermissionJpaEntityMapper - Entity ↔ Domain 변환 Mapper (Global Only)
  *
  * <p>Persistence Layer의 JPA Entity와 Domain Layer의 Permission 간 변환을 담당합니다.
+ *
+ * <p><strong>Global Only 설계:</strong>
+ *
+ * <ul>
+ *   <li>모든 Permission은 전체 시스템에서 공유됩니다
+ *   <li>테넌트 관련 필드가 제거되었습니다
+ * </ul>
  *
  * <p><strong>변환 책임:</strong>
  *
@@ -24,11 +25,11 @@ import org.springframework.stereotype.Component;
  *   <li>PermissionJpaEntity → Permission (조회용)
  * </ul>
  *
- * <p><strong>시간 변환:</strong>
+ * <p><strong>시간 처리:</strong>
  *
  * <ul>
  *   <li>Domain: Instant (UTC)
- *   <li>Entity: LocalDateTime (UTC 기준)
+ *   <li>Entity: Instant (UTC) - 변환 없이 직접 전달
  * </ul>
  *
  * <p><strong>Hexagonal Architecture 관점:</strong>
@@ -46,85 +47,44 @@ import org.springframework.stereotype.Component;
 public class PermissionJpaEntityMapper {
 
     /**
-     * Domain → Entity 변환 (신규 생성용)
+     * Domain → Entity 변환
      *
      * <p><strong>사용 시나리오:</strong>
      *
      * <ul>
-     *   <li>신규 Permission 저장 (ID가 null)
+     *   <li>신규 Permission 저장
+     *   <li>기존 Permission 수정 (Hibernate Dirty Checking)
      * </ul>
      *
      * <p><strong>변환 규칙:</strong>
      *
      * <ul>
-     *   <li>permissionId: Domain.permissionIdValue() → Entity.permissionId (UUID)
-     *   <li>permissionKey: Domain.keyValue() → Entity.permissionKey
+     *   <li>permissionId: Domain.permissionIdValue() → Entity.permissionId (Long)
+     *   <li>permissionKey: Domain.permissionKeyValue() → Entity.permissionKey
      *   <li>resource: Domain.resourceValue() → Entity.resource
      *   <li>action: Domain.actionValue() → Entity.action
      *   <li>description: Domain.descriptionValue() → Entity.description
      *   <li>type: Domain.getType() → Entity.type
-     *   <li>deleted: Domain.isDeleted() → Entity.deleted
-     *   <li>createdAt: Instant → LocalDateTime (UTC)
-     *   <li>updatedAt: Instant → LocalDateTime (UTC)
+     *   <li>createdAt: Instant → Instant (직접 전달)
+     *   <li>updatedAt: Instant → Instant (직접 전달)
+     *   <li>deletedAt: DeletionStatus.deletedAt() → Instant (직접 전달)
      * </ul>
      *
      * @param domain Permission 도메인
-     * @return PermissionJpaEntity (JPA internal ID = null)
+     * @return PermissionJpaEntity
      */
     public PermissionJpaEntity toEntity(Permission domain) {
+        DeletionStatus deletionStatus = domain.getDeletionStatus();
         return PermissionJpaEntity.of(
                 domain.permissionIdValue(),
-                domain.keyValue(),
+                domain.permissionKeyValue(),
                 domain.resourceValue(),
                 domain.actionValue(),
                 domain.descriptionValue(),
                 domain.getType(),
-                domain.isDeleted(),
-                toLocalDateTime(domain.createdAt()),
-                toLocalDateTime(domain.updatedAt()));
-    }
-
-    /**
-     * 기존 Entity 업데이트 (UPDATE용)
-     *
-     * <p>기존 Entity의 JPA internal ID를 유지하면서 Domain 값으로 업데이트합니다.
-     *
-     * <p><strong>사용 시나리오:</strong>
-     *
-     * <ul>
-     *   <li>기존 Permission 수정 (ID가 있음)
-     * </ul>
-     *
-     * <p><strong>변환 규칙:</strong>
-     *
-     * <ul>
-     *   <li>id: 기존 Entity ID 유지 (JPA internal ID)
-     *   <li>permissionId: Domain.permissionIdValue() → Entity.permissionId (UUID)
-     *   <li>permissionKey: Domain.keyValue() → Entity.permissionKey
-     *   <li>resource: Domain.resourceValue() → Entity.resource
-     *   <li>action: Domain.actionValue() → Entity.action
-     *   <li>description: Domain.descriptionValue() → Entity.description
-     *   <li>type: Domain.getType() → Entity.type
-     *   <li>deleted: Domain.isDeleted() → Entity.deleted
-     *   <li>createdAt: Instant → LocalDateTime (UTC)
-     *   <li>updatedAt: Instant → LocalDateTime (UTC)
-     * </ul>
-     *
-     * @param existing 기존 JPA Entity (ID 유지용)
-     * @param domain 업데이트할 Permission 도메인
-     * @return PermissionJpaEntity (기존 JPA internal ID 유지)
-     */
-    public PermissionJpaEntity updateEntity(PermissionJpaEntity existing, Permission domain) {
-        return PermissionJpaEntity.of(
-                domain.permissionIdValue(),
-                domain.keyValue(),
-                domain.resourceValue(),
-                domain.actionValue(),
-                domain.descriptionValue(),
-                domain.getType(),
-                domain.isDeleted(),
-                existing.getCreatedAt(),
-                toLocalDateTime(domain.updatedAt()));
+                domain.createdAt(),
+                domain.updatedAt(),
+                deletionStatus.deletedAt());
     }
 
     /**
@@ -140,44 +100,30 @@ public class PermissionJpaEntityMapper {
      * <p><strong>변환 규칙:</strong>
      *
      * <ul>
-     *   <li>permissionId: Entity.permissionId → PermissionId VO
-     *   <li>key: Entity.resource + Entity.action → PermissionKey VO
-     *   <li>description: Entity.description → PermissionDescription VO
+     *   <li>permissionId: Entity.permissionId (Long) → PermissionId VO
+     *   <li>permissionKey: Entity.permissionKey → String
+     *   <li>resource: Entity.resource → String
+     *   <li>action: Entity.action → String
+     *   <li>description: Entity.description → String
      *   <li>type: Entity.type → PermissionType Enum
-     *   <li>deleted: Entity.deleted → boolean
-     *   <li>createdAt: LocalDateTime → Instant (UTC)
-     *   <li>updatedAt: LocalDateTime → Instant (UTC)
+     *   <li>deletedAt: Entity.getDeletedAt() → DeletionStatus
+     *   <li>createdAt: Instant → Instant (직접 전달)
+     *   <li>updatedAt: Instant → Instant (직접 전달)
      * </ul>
      *
      * @param entity PermissionJpaEntity
      * @return Permission 도메인
      */
     public Permission toDomain(PermissionJpaEntity entity) {
-        Resource resource = Resource.of(entity.getResource());
-        Action action = Action.of(entity.getAction());
-        PermissionKey key = PermissionKey.of(resource, action);
-        PermissionDescription description =
-                entity.getDescription() != null
-                        ? PermissionDescription.of(entity.getDescription())
-                        : PermissionDescription.empty();
-
         return Permission.reconstitute(
                 PermissionId.of(entity.getPermissionId()),
-                key,
-                description,
+                entity.getPermissionKey(),
+                entity.getResource(),
+                entity.getAction(),
+                entity.getDescription(),
                 entity.getType(),
-                entity.isDeleted(),
-                toInstant(entity.getCreatedAt()),
-                toInstant(entity.getUpdatedAt()));
-    }
-
-    /** Instant → LocalDateTime 변환 (UTC 기준) */
-    private LocalDateTime toLocalDateTime(Instant instant) {
-        return instant != null ? LocalDateTime.ofInstant(instant, ZoneOffset.UTC) : null;
-    }
-
-    /** LocalDateTime → Instant 변환 (UTC 기준) */
-    private Instant toInstant(LocalDateTime localDateTime) {
-        return localDateTime != null ? localDateTime.toInstant(ZoneOffset.UTC) : null;
+                DeletionStatus.reconstitute(entity.isDeleted(), entity.getDeletedAt()),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

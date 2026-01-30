@@ -3,7 +3,7 @@
 // ========================================
 // E2E 통합 테스트 전용 모듈
 // 전체 레이어 통합 검증 (REST API → Application → Persistence)
-// TestRestTemplate + H2 MySQL 호환 모드 사용
+// RestAssured + H2 MySQL 호환 모드 사용
 // NO Lombok allowed
 // ========================================
 
@@ -28,6 +28,20 @@ dependencies {
     testImplementation libs.assertj.core
     testImplementation libs.mockito.core
     testImplementation libs.mockito.junit
+
+    // ========================================
+    // REST Assured (E2E API 테스트)
+    // ========================================
+    testImplementation libs.rest.assured
+
+    // ========================================
+    // QueryDSL (JPAQueryFactory 빈 생성용)
+    // ========================================
+    testImplementation(libs.querydsl.jpa) {
+        artifact {
+            classifier = "jakarta"
+        }
+    }
 
     // ========================================
     // Database
@@ -65,15 +79,67 @@ dependencies {
     testImplementation testFixtures(project(':adapter-out:persistence-mysql'))
 }
 
+// ========================================
+// Test Tasks Configuration
+// ========================================
+
+// 기본 테스트 태스크 - 전체 실행
 tasks.named('test') {
     useJUnitPlatform()
-
-    // 병렬 실행 (선택적)
     maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 
-    // 테스트 로깅
     testLogging {
         events "passed", "skipped", "failed"
         showStandardStreams = false
+    }
+}
+
+// Repository 통합 테스트 (@Tag("repository"))
+tasks.register('repositoryTest', Test) {
+    description = 'Repository 레이어 통합 테스트 실행'
+    group = 'verification'
+
+    useJUnitPlatform {
+        includeTags 'repository'
+    }
+
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+// E2E 통합 테스트 (@Tag("e2e"))
+tasks.register('e2eTest', Test) {
+    description = 'E2E API 통합 테스트 실행'
+    group = 'verification'
+
+    useJUnitPlatform {
+        includeTags 'e2e'
+    }
+
+    // E2E는 순차 실행 (포트 충돌 방지)
+    maxParallelForks = 1
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+// 빠른 테스트 (E2E 제외)
+tasks.register('fastTest', Test) {
+    description = 'E2E 제외 빠른 테스트 실행'
+    group = 'verification'
+
+    useJUnitPlatform {
+        excludeTags 'e2e', 'slow'
+    }
+
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+
+    testLogging {
+        events "passed", "skipped", "failed"
     }
 }

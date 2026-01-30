@@ -1,0 +1,229 @@
+=== 조직 생성
+
+새로운 조직을 생성합니다.
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`tenantId`
+|String
+|Y
+|UUID 형식
+|소속 테넌트 ID
+
+|`name`
+|String
+|Y
+|2~100자
+|조직 이름
+|===
+
+==== 요청 예시
+
+include::{snippets}/organization/create/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.organizationId`
+|String
+|생성된 조직 ID (UUID)
+|===
+
+==== 응답 예시
+
+include::{snippets}/organization/create/http-response.adoc[]
+
+'''
+
+=== 조직 목록 조회
+
+조직 목록을 페이징하여 조회합니다.
+
+==== 요청 파라미터
+
+[cols="1,1,1,3"]
+|===
+|파라미터 |타입 |필수 |설명
+
+|`page`
+|Number
+|N
+|페이지 번호 (기본값: 0)
+
+|`size`
+|Number
+|N
+|페이지 크기 (기본값: 20, 최대: 100)
+
+|`tenantId`
+|String
+|N
+|테넌트 ID 필터
+
+|`keyword`
+|String
+|N
+|검색 키워드
+
+|`searchField`
+|String
+|N
+|검색 필드 (NAME)
+
+|`status`
+|String
+|N
+|상태 필터 (ACTIVE, INACTIVE)
+
+|`sortKey`
+|String
+|N
+|정렬 키 (CREATED_AT, NAME)
+
+|`sortDirection`
+|String
+|N
+|정렬 방향 (ASC, DESC)
+|===
+
+==== 요청 예시
+
+include::{snippets}/organization/search/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.content`
+|Array
+|조직 목록
+
+|`data.content[].organizationId`
+|String
+|조직 ID
+
+|`data.content[].tenantId`
+|String
+|테넌트 ID
+
+|`data.content[].name`
+|String
+|조직 이름
+
+|`data.content[].status`
+|String
+|조직 상태 (ACTIVE, INACTIVE)
+
+|`data.content[].createdAt`
+|String
+|생성 일시
+
+|`data.content[].updatedAt`
+|String
+|수정 일시
+
+|`data.page`
+|Number
+|현재 페이지
+
+|`data.size`
+|Number
+|페이지 크기
+
+|`data.totalElements`
+|Number
+|전체 항목 수
+
+|`data.totalPages`
+|Number
+|전체 페이지 수
+|===
+
+==== 응답 예시
+
+include::{snippets}/organization/search/http-response.adoc[]
+
+'''
+
+=== 조직 이름 수정
+
+조직 이름을 수정합니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`organizationId`
+|String
+|조직 ID (UUID)
+|===
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`name`
+|String
+|Y
+|2~100자
+|새 조직 이름
+|===
+
+==== 요청 예시
+
+include::{snippets}/organization/update-name/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/organization/update-name/http-response.adoc[]
+
+'''
+
+=== 조직 상태 변경
+
+조직 상태를 변경합니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`organizationId`
+|String
+|조직 ID (UUID)
+|===
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`status`
+|String
+|Y
+|ACTIVE, INACTIVE
+|새 상태값
+|===
+
+==== 요청 예시
+
+include::{snippets}/organization/update-status/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/organization/update-status/http-response.adoc[]

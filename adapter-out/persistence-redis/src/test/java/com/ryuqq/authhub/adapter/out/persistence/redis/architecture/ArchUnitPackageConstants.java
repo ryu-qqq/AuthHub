@@ -47,8 +47,11 @@ public final class ArchUnitPackageConstants {
     // Redis 서브 패키지 패턴
     // ========================================================================
 
-    /** Cache Adapter 패키지 패턴 */
-    public static final String CACHE_PATTERN = "..cache..";
+    /** Adapter 패키지 패턴 (도메인별 adapter 하위) */
+    public static final String ADAPTER_PATTERN = "..adapter..";
+
+    /** Cache Adapter 패키지 패턴 (하위 호환) */
+    public static final String CACHE_PATTERN = "..adapter..";
 
     /** Lock Adapter 패키지 패턴 */
     public static final String LOCK_PATTERN = "..lock..";
@@ -58,6 +61,9 @@ public final class ArchUnitPackageConstants {
 
     /** Common 패키지 패턴 */
     public static final String COMMON_PATTERN = "..common..";
+
+    /** Auth 도메인 패키지 패턴 */
+    public static final String AUTH_PATTERN = "..auth..";
 
     /** Architecture 패키지 패턴 (테스트 제외용) */
     public static final String ARCHITECTURE_PATTERN = "..architecture..";

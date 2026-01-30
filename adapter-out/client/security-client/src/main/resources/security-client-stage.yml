@@ -1,0 +1,21 @@
+# ===============================================
+# Security Client Configuration - Stage Environment
+# ===============================================
+# 스테이징 환경 전용 설정
+# 공통 설정은 security-client.yml 참조
+#
+# @since 1.0.0
+# ===============================================
+
+security:
+  jwt:
+    # Stage 환경: 환경변수에서 시크릿 로드 필수
+    secret: ${JWT_SECRET}
+
+    # RSA 키 설정 (Stage: RS256 활성화)
+    rsa:
+      enabled: ${SECURITY_JWT_RSA_ENABLED:true}
+      key-id: ${SECURITY_JWT_RSA_KEY_ID:authhub-stage-key-1}
+      # ECS 환경변수에서 키 내용 로드
+      public-key-content: ${SECURITY_JWT_RSA_PUBLIC_KEY_CONTENT:}
+      private-key-content: ${SECURITY_JWT_RSA_PRIVATE_KEY_CONTENT:}

@@ -6,6 +6,8 @@ import java.util.Map;
 /**
  * SystemPermissionNotDeletableException - 시스템 권한 삭제 시도 시 발생하는 예외
  *
+ * <p>시스템(SYSTEM) 타입의 권한은 삭제할 수 없습니다.
+ *
  * @author development-team
  * @since 1.0.0
  */

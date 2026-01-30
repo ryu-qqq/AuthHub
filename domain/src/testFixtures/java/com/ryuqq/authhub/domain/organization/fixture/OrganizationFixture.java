@@ -1,14 +1,12 @@
 package com.ryuqq.authhub.domain.organization.fixture;
 
-import com.ryuqq.authhub.domain.common.util.ClockHolder;
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.time.Clock;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
@@ -20,20 +18,19 @@ import java.util.UUID;
 public final class OrganizationFixture {
 
     private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
-    private static final UUID DEFAULT_ORG_UUID =
-            UUID.fromString("01941234-5678-7000-8000-123456789def");
-    private static final UUID DEFAULT_TENANT_UUID =
-            UUID.fromString("01941234-5678-7000-8000-123456789abc");
+    private static final String DEFAULT_ORG_ID = "01941234-5678-7000-8000-123456789def";
+    private static final String DEFAULT_TENANT_ID = "01941234-5678-7000-8000-123456789abc";
 
     private OrganizationFixture() {}
 
     /** 기본 Organization 생성 (ID 할당됨, ACTIVE) */
     public static Organization create() {
         return Organization.reconstitute(
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                TenantId.of(DEFAULT_TENANT_ID),
                 OrganizationName.of("Test Organization"),
                 OrganizationStatus.ACTIVE,
+                DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
     }
@@ -41,43 +38,45 @@ public final class OrganizationFixture {
     /** 지정된 이름으로 Organization 생성 */
     public static Organization createWithName(String name) {
         return Organization.reconstitute(
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                TenantId.of(DEFAULT_TENANT_ID),
                 OrganizationName.of(name),
                 OrganizationStatus.ACTIVE,
+                DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
     }
 
     /** 지정된 테넌트로 Organization 생성 */
-    public static Organization createWithTenant(UUID tenantUUID) {
+    public static Organization createWithTenant(String tenantId) {
         return Organization.reconstitute(
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                TenantId.of(tenantUUID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                TenantId.of(tenantId),
                 OrganizationName.of("Test Organization"),
                 OrganizationStatus.ACTIVE,
+                DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
     }
 
     /** 새로운 Organization 생성 (ID 할당됨) */
     public static Organization createNew() {
-        ClockHolder clockHolder = () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
-        OrganizationId organizationId = OrganizationId.forNew(UUID.randomUUID());
+        OrganizationId organizationId = OrganizationId.forNew(UUID.randomUUID().toString());
         return Organization.create(
                 organizationId,
-                TenantId.of(DEFAULT_TENANT_UUID),
+                TenantId.of(DEFAULT_TENANT_ID),
                 OrganizationName.of("New Organization"),
-                clockHolder.clock());
+                FIXED_TIME);
     }
 
     /** 지정된 상태로 Organization 생성 */
     public static Organization createWithStatus(OrganizationStatus status) {
         return Organization.reconstitute(
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                TenantId.of(DEFAULT_TENANT_ID),
                 OrganizationName.of("Test Organization"),
                 status,
+                DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
     }
@@ -89,36 +88,38 @@ public final class OrganizationFixture {
 
     /** 삭제된 Organization 생성 */
     public static Organization createDeleted() {
-        return createWithStatus(OrganizationStatus.DELETED);
+        return Organization.reconstitute(
+                OrganizationId.of(DEFAULT_ORG_ID),
+                TenantId.of(DEFAULT_TENANT_ID),
+                OrganizationName.of("Test Organization"),
+                OrganizationStatus.INACTIVE,
+                DeletionStatus.deletedAt(FIXED_TIME),
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    /** 테스트용 고정 ClockHolder 반환 */
-    public static ClockHolder fixedClockHolder() {
-        return () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
-    }
-
-    /** 테스트용 고정 Clock 반환 */
-    public static Clock fixedClock() {
-        return fixedClockHolder().clock();
+    /** 테스트용 고정 시간 반환 */
+    public static Instant fixedTime() {
+        return FIXED_TIME;
     }
 
     /** 기본 OrganizationId 반환 */
     public static OrganizationId defaultId() {
-        return OrganizationId.of(DEFAULT_ORG_UUID);
+        return OrganizationId.of(DEFAULT_ORG_ID);
     }
 
-    /** 기본 Organization UUID 반환 */
-    public static UUID defaultUUID() {
-        return DEFAULT_ORG_UUID;
+    /** 기본 Organization ID 문자열 반환 */
+    public static String defaultIdString() {
+        return DEFAULT_ORG_ID;
     }
 
     /** 기본 TenantId 반환 */
     public static TenantId defaultTenantId() {
-        return TenantId.of(DEFAULT_TENANT_UUID);
+        return TenantId.of(DEFAULT_TENANT_ID);
     }
 
-    /** 기본 Tenant UUID 반환 */
-    public static UUID defaultTenantUUID() {
-        return DEFAULT_TENANT_UUID;
+    /** 기본 Tenant ID 문자열 반환 */
+    public static String defaultTenantIdString() {
+        return DEFAULT_TENANT_ID;
     }
 }

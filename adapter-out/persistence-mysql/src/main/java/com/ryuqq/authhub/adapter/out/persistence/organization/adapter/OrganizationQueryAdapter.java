@@ -4,10 +4,10 @@ import com.ryuqq.authhub.adapter.out.persistence.organization.mapper.Organizatio
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationQueryDslRepository;
 import com.ryuqq.authhub.application.organization.port.out.query.OrganizationQueryPort;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
-import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationSearchCriteria;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -31,8 +31,8 @@ import org.springframework.stereotype.Component;
  *   <li>findById() - ID로 단건 조회
  *   <li>existsById() - ID 존재 여부 확인
  *   <li>existsByTenantIdAndName() - 테넌트 내 이름 중복 확인
- *   <li>findAllByCriteria() - Criteria 기반 조건 검색
- *   <li>countByCriteria() - Criteria 기반 개수 조회
+ *   <li>findAllBySearchCriteria() - SearchCriteria 기반 조건 검색
+ *   <li>countBySearchCriteria() - SearchCriteria 기반 개수 조회
  * </ul>
  *
  * <p><strong>규칙:</strong>
@@ -102,7 +102,7 @@ public class OrganizationQueryAdapter implements OrganizationQueryPort {
     }
 
     /**
-     * Criteria 기반 조직 목록 조회
+     * SearchCriteria 기반 조직 목록 조회
      *
      * <p><strong>처리 흐름:</strong>
      *
@@ -111,22 +111,22 @@ public class OrganizationQueryAdapter implements OrganizationQueryPort {
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
-     * @param criteria 검색 조건 (OrganizationCriteria)
+     * @param criteria 검색 조건 (OrganizationSearchCriteria)
      * @return Organization Domain 목록
      */
     @Override
-    public List<Organization> findAllByCriteria(OrganizationCriteria criteria) {
+    public List<Organization> findAllBySearchCriteria(OrganizationSearchCriteria criteria) {
         return repository.findAllByCriteria(criteria).stream().map(mapper::toDomain).toList();
     }
 
     /**
-     * Criteria 기반 조직 개수 조회
+     * SearchCriteria 기반 조직 개수 조회
      *
-     * @param criteria 검색 조건 (OrganizationCriteria)
+     * @param criteria 검색 조건 (OrganizationSearchCriteria)
      * @return 조건에 맞는 조직 총 개수
      */
     @Override
-    public long countByCriteria(OrganizationCriteria criteria) {
+    public long countBySearchCriteria(OrganizationSearchCriteria criteria) {
         return repository.countByCriteria(criteria);
     }
 }

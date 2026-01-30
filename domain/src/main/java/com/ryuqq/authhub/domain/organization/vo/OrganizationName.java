@@ -1,7 +1,5 @@
 package com.ryuqq.authhub.domain.organization.vo;
 
-import java.util.Objects;
-
 /**
  * OrganizationName - 조직 이름 Value Object
  *
@@ -10,24 +8,18 @@ import java.util.Objects;
  * @author development-team
  * @since 1.0.0
  */
-public final class OrganizationName {
+public record OrganizationName(String value) {
 
     private static final int MIN_LENGTH = 1;
     private static final int MAX_LENGTH = 100;
 
-    private final String value;
-
-    OrganizationName(String value) {
-        validate(value);
-        this.value = value.trim();
-    }
-
-    private void validate(String value) {
+    /** Compact Constructor - 유효성 검증 */
+    public OrganizationName {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("OrganizationName은 null이거나 빈 문자열일 수 없습니다");
         }
-        String trimmed = value.trim();
-        if (trimmed.isEmpty() || trimmed.length() > MAX_LENGTH) {
+        value = value.trim();
+        if (value.isEmpty() || value.length() > MAX_LENGTH) {
             throw new IllegalArgumentException(
                     String.format("OrganizationName은 %d자 이상 %d자 이하여야 합니다", MIN_LENGTH, MAX_LENGTH));
         }
@@ -35,31 +27,5 @@ public final class OrganizationName {
 
     public static OrganizationName of(String value) {
         return new OrganizationName(value);
-    }
-
-    public String value() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        OrganizationName that = (OrganizationName) o;
-        return Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(value);
-    }
-
-    @Override
-    public String toString() {
-        return "OrganizationName{value='" + value + "'}";
     }
 }

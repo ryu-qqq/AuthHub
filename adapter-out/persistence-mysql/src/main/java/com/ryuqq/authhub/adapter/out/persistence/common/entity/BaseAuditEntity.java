@@ -2,7 +2,7 @@ package com.ryuqq.authhub.adapter.out.persistence.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * BaseAuditEntity - 감사 정보 공통 추상 클래스
@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
  *   <li>@MappedSuperclass: 엔티티가 아닌 매핑 정보만 제공
  *   <li>추상 클래스로 직접 인스턴스화 불가
  *   <li>protected 생성자로 상속 클래스만 접근 가능
+ *   <li>Instant 타입 사용 (UTC 기준, 타임존 독립적)
  * </ul>
  *
  * <p><strong>필드 불변성 전략:</strong>
@@ -22,7 +23,6 @@ import java.time.LocalDateTime;
  * <ul>
  *   <li>JPA 프록시 생성을 위해 final 사용 안 함
  *   <li>불변성은 비즈니스 로직에서 보장 (setter 미제공)
- *   <li>수정 일시는 markAsUpdated() 메서드로만 변경
  * </ul>
  *
  * <p><strong>사용 예시:</strong>
@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * }
  * }</pre>
  *
- * @author windsurf
+ * @author development-team
  * @since 1.0.0
  */
 @MappedSuperclass
@@ -49,7 +49,7 @@ public abstract class BaseAuditEntity {
      * <p>updatable = false로 수정 불가능하게 설정합니다.
      */
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     /**
      * 수정 일시
@@ -59,7 +59,7 @@ public abstract class BaseAuditEntity {
      * <p>Mapper에서 of() 메서드로 새 Entity 생성 시 updatedAt을 직접 설정합니다.
      */
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     /**
      * 기본 생성자 (protected)
@@ -76,7 +76,7 @@ public abstract class BaseAuditEntity {
      * @param createdAt 생성 일시
      * @param updatedAt 수정 일시
      */
-    protected BaseAuditEntity(LocalDateTime createdAt, LocalDateTime updatedAt) {
+    protected BaseAuditEntity(Instant createdAt, Instant updatedAt) {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -86,7 +86,7 @@ public abstract class BaseAuditEntity {
      *
      * @return 생성 일시
      */
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
@@ -95,7 +95,7 @@ public abstract class BaseAuditEntity {
      *
      * @return 수정 일시
      */
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 }

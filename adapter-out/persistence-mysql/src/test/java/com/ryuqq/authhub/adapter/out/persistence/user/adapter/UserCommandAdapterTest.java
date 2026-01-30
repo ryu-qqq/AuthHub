@@ -3,16 +3,14 @@ package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.user.fixture.UserJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserJpaRepository;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
-import com.ryuqq.authhub.domain.user.vo.UserStatus;
-import java.time.LocalDateTime;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,6 +22,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * UserCommandAdapter 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Adapter는 Repository 위임 + Mapper 변환 담당
+ *   <li>Repository/Mapper를 Mock으로 대체
+ *   <li>위임 및 변환 흐름 검증
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -37,138 +43,86 @@ class UserCommandAdapterTest {
 
     @Mock private UserJpaEntityMapper mapper;
 
-    private UserCommandAdapter adapter;
-
-    private static final UUID USER_UUID = UserFixture.defaultUUID();
-    private static final UUID TENANT_UUID = UserFixture.defaultTenantUUID();
-    private static final UUID ORG_UUID = UserFixture.defaultOrganizationUUID();
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+    private UserCommandAdapter sut;
 
     @BeforeEach
     void setUp() {
-        adapter = new UserCommandAdapter(repository, mapper);
+        sut = new UserCommandAdapter(repository, mapper);
     }
 
     @Nested
     @DisplayName("persist 메서드")
-    class PersistTest {
+    class Persist {
 
         @Test
-        @DisplayName("사용자를 성공적으로 저장한다")
-        void shouldPersistUserSuccessfully() {
+        @DisplayName("성공: Domain → Entity 변환 후 저장하고 ID 반환")
+        void shouldConvertAndPersist_ThenReturnId() {
             // given
-            User domainToSave = UserFixture.createNew();
-            User savedDomain = UserFixture.create();
+            User domain = UserFixture.create();
+            UserJpaEntity entity = UserJpaEntityFixture.create();
+            String expectedId = UserJpaEntityFixture.defaultUserId();
 
-            UserJpaEntity entityToSave =
-                    UserJpaEntity.of(
-                            USER_UUID,
-                            TENANT_UUID,
-                            ORG_UUID,
-                            "user@example.com",
-                            "010-1234-5678",
-                            "hashed_password",
-                            UserStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            UserJpaEntity savedEntity =
-                    UserJpaEntity.of(
-                            USER_UUID,
-                            TENANT_UUID,
-                            ORG_UUID,
-                            "user@example.com",
-                            "010-1234-5678",
-                            "hashed_password",
-                            UserStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
-            given(repository.save(entityToSave)).willReturn(savedEntity);
-            given(mapper.toDomain(savedEntity)).willReturn(savedDomain);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            User result = adapter.persist(domainToSave);
+            String result = sut.persist(domain);
 
             // then
-            assertThat(result).isEqualTo(savedDomain);
-            verify(mapper).toEntity(domainToSave);
-            verify(repository).save(entityToSave);
-            verify(mapper).toDomain(savedEntity);
+            assertThat(result).isEqualTo(expectedId);
         }
 
         @Test
-        @DisplayName("기존 사용자를 수정한다")
-        void shouldUpdateExistingUser() {
+        @DisplayName("Mapper를 통해 Domain → Entity 변환")
+        void shouldUseMapper_ToConvertDomainToEntity() {
             // given
-            User existingDomain = UserFixture.create();
-            User updatedDomain = UserFixture.createWithIdentifier("updated@example.com");
+            User domain = UserFixture.create();
+            UserJpaEntity entity = UserJpaEntityFixture.create();
 
-            UserJpaEntity entityToUpdate =
-                    UserJpaEntity.of(
-                            USER_UUID,
-                            TENANT_UUID,
-                            ORG_UUID,
-                            "user@example.com",
-                            "010-1234-5678",
-                            "hashed_password",
-                            UserStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            UserJpaEntity updatedEntity =
-                    UserJpaEntity.of(
-                            USER_UUID,
-                            TENANT_UUID,
-                            ORG_UUID,
-                            "updated@example.com",
-                            "010-1234-5678",
-                            "hashed_password",
-                            UserStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(existingDomain)).willReturn(entityToUpdate);
-            given(repository.save(entityToUpdate)).willReturn(updatedEntity);
-            given(mapper.toDomain(updatedEntity)).willReturn(updatedDomain);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            User result = adapter.persist(existingDomain);
+            sut.persist(domain);
 
             // then
-            assertThat(result.getIdentifier()).isEqualTo("updated@example.com");
-            verify(repository).save(any(UserJpaEntity.class));
+            then(mapper).should().toEntity(domain);
         }
-    }
-
-    @Nested
-    @DisplayName("delete 메서드")
-    class DeleteTest {
 
         @Test
-        @DisplayName("사용자를 성공적으로 삭제한다")
-        void shouldDeleteUserSuccessfully() {
+        @DisplayName("Repository를 통해 Entity 저장")
+        void shouldUseRepository_ToSaveEntity() {
             // given
-            User domainToDelete = UserFixture.create();
-            UserJpaEntity entityToDelete =
-                    UserJpaEntity.of(
-                            USER_UUID,
-                            TENANT_UUID,
-                            ORG_UUID,
-                            "user@example.com",
-                            "010-1234-5678",
-                            "hashed_password",
-                            UserStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
+            User domain = UserFixture.create();
+            UserJpaEntity entity = UserJpaEntityFixture.create();
 
-            given(mapper.toEntity(domainToDelete)).willReturn(entityToDelete);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            adapter.delete(domainToDelete);
+            sut.persist(domain);
 
             // then
-            verify(mapper).toEntity(domainToDelete);
-            verify(repository).delete(entityToDelete);
+            then(repository).should().save(entity);
+        }
+
+        @Test
+        @DisplayName("새 Domain 저장 시에도 동일한 흐름")
+        void shouldFollowSameFlow_WhenPersistingNewDomain() {
+            // given
+            User newDomain = UserFixture.createNew();
+            UserJpaEntity entity = UserJpaEntityFixture.create();
+
+            given(mapper.toEntity(newDomain)).willReturn(entity);
+            given(repository.save(any(UserJpaEntity.class))).willReturn(entity);
+
+            // when
+            String result = sut.persist(newDomain);
+
+            // then
+            assertThat(result).isNotNull();
+            then(mapper).should().toEntity(newDomain);
+            then(repository).should().save(entity);
         }
     }
 }

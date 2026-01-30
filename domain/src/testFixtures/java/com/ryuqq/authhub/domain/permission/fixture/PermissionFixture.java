@@ -1,265 +1,157 @@
 package com.ryuqq.authhub.domain.permission.fixture;
 
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
-import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.Action;
-import com.ryuqq.authhub.domain.permission.vo.PermissionDescription;
-import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
-import com.ryuqq.authhub.domain.permission.vo.Resource;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.util.UUID;
 
 /**
- * Permission 테스트 Fixture
- *
- * <p>테스트에서 사용할 Permission 객체를 쉽게 생성할 수 있도록 도와주는 클래스입니다.
+ * Permission 테스트 픽스처
  *
  * @author development-team
  * @since 1.0.0
  */
 public final class PermissionFixture {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Long DEFAULT_PERMISSION_ID = 1L;
+    private static final String DEFAULT_RESOURCE = "user";
+    private static final String DEFAULT_ACTION = "read";
+    private static final String DEFAULT_PERMISSION_KEY = "user:read";
+    private static final String DEFAULT_DESCRIPTION = "사용자 조회 권한";
 
     private PermissionFixture() {}
 
-    // ========== 기본 생성 메서드 ==========
-
-    /** 기본 커스텀 권한 생성 (user:read) */
+    /** 기본 커스텀 권한 생성 (ID 할당됨) */
     public static Permission create() {
-        return Permission.createCustom(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of("user"),
-                Action.of("read"),
-                PermissionDescription.of("사용자 조회 권한"),
-                FIXED_CLOCK);
-    }
-
-    /** 지정된 resource와 action으로 커스텀 권한 생성 */
-    public static Permission create(String resource, String action) {
-        return Permission.createCustom(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of(resource),
-                Action.of(action),
-                PermissionDescription.empty(),
-                FIXED_CLOCK);
-    }
-
-    /** 지정된 key로 커스텀 권한 생성 */
-    public static Permission createWithKey(String key) {
-        return Permission.createCustomWithKey(
-                PermissionId.forNew(UUID.randomUUID()),
-                PermissionKey.of(key),
-                PermissionDescription.empty(),
-                FIXED_CLOCK);
-    }
-
-    // ========== 시스템 권한 ==========
-
-    /** 시스템 권한 생성 (user:read) */
-    public static Permission createSystem() {
-        return Permission.createSystem(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of("user"),
-                Action.of("read"),
-                PermissionDescription.of("사용자 조회 권한 (시스템)"),
-                FIXED_CLOCK);
-    }
-
-    /** 지정된 resource와 action으로 시스템 권한 생성 */
-    public static Permission createSystem(String resource, String action) {
-        return Permission.createSystem(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of(resource),
-                Action.of(action),
-                PermissionDescription.empty(),
-                FIXED_CLOCK);
-    }
-
-    /** 시스템 권한 생성 - user:create */
-    public static Permission createSystemUserCreate() {
-        return Permission.createSystem(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of("user"),
-                Action.of("create"),
-                PermissionDescription.of("사용자 생성 권한"),
-                FIXED_CLOCK);
-    }
-
-    /** 시스템 권한 생성 - user:delete */
-    public static Permission createSystemUserDelete() {
-        return Permission.createSystem(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of("user"),
-                Action.of("delete"),
-                PermissionDescription.of("사용자 삭제 권한"),
-                FIXED_CLOCK);
-    }
-
-    /** 시스템 권한 생성 - organization:manage */
-    public static Permission createSystemOrganizationManage() {
-        return Permission.createSystem(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of("organization"),
-                Action.of("manage"),
-                PermissionDescription.of("조직 관리 권한"),
-                FIXED_CLOCK);
-    }
-
-    /** 시스템 권한 생성 - tenant:admin */
-    public static Permission createSystemTenantAdmin() {
-        return Permission.createSystem(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of("tenant"),
-                Action.of("admin"),
-                PermissionDescription.of("테넌트 관리자 권한"),
-                FIXED_CLOCK);
-    }
-
-    // ========== 커스텀 권한 ==========
-
-    /** 커스텀 권한 생성 - report:export */
-    public static Permission createCustomReportExport() {
-        return Permission.createCustom(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of("report"),
-                Action.of("export"),
-                PermissionDescription.of("리포트 내보내기 권한"),
-                FIXED_CLOCK);
-    }
-
-    /** 커스텀 권한 생성 - dashboard:view */
-    public static Permission createCustomDashboardView() {
-        return Permission.createCustom(
-                PermissionId.forNew(UUID.randomUUID()),
-                Resource.of("dashboard"),
-                Action.of("view"),
-                PermissionDescription.of("대시보드 조회 권한"),
-                FIXED_CLOCK);
-    }
-
-    // ========== 재구성 (DB 조회 시뮬레이션) ==========
-
-    /** ID가 있는 권한 (DB에서 조회된 것처럼) */
-    public static Permission createReconstituted() {
         return Permission.reconstitute(
-                PermissionId.of(UUID.randomUUID()),
-                PermissionKey.of("user:read"),
-                PermissionDescription.of("사용자 조회 권한"),
+                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_KEY,
+                DEFAULT_RESOURCE,
+                DEFAULT_ACTION,
+                DEFAULT_DESCRIPTION,
                 PermissionType.CUSTOM,
-                false,
-                Instant.parse("2025-01-01T00:00:00Z"),
-                Instant.parse("2025-01-01T00:00:00Z"));
+                DeletionStatus.active(),
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    /** 지정된 ID로 권한 재구성 */
-    public static Permission createReconstituted(UUID permissionId) {
+    /** 시스템 권한 생성 */
+    public static Permission createSystemPermission() {
         return Permission.reconstitute(
-                PermissionId.of(permissionId),
-                PermissionKey.of("user:read"),
-                PermissionDescription.of("사용자 조회 권한"),
-                PermissionType.CUSTOM,
-                false,
-                Instant.parse("2025-01-01T00:00:00Z"),
-                Instant.parse("2025-01-01T00:00:00Z"));
-    }
-
-    /** 지정된 ID와 key로 권한 재구성 */
-    public static Permission createReconstituted(UUID permissionId, String key) {
-        return Permission.reconstitute(
-                PermissionId.of(permissionId),
-                PermissionKey.of(key),
-                PermissionDescription.empty(),
-                PermissionType.CUSTOM,
-                false,
-                Instant.parse("2025-01-01T00:00:00Z"),
-                Instant.parse("2025-01-01T00:00:00Z"));
-    }
-
-    /** 시스템 권한 재구성 */
-    public static Permission createReconstitutedSystem(UUID permissionId, String key) {
-        return Permission.reconstitute(
-                PermissionId.of(permissionId),
-                PermissionKey.of(key),
-                PermissionDescription.empty(),
+                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_KEY,
+                DEFAULT_RESOURCE,
+                DEFAULT_ACTION,
+                DEFAULT_DESCRIPTION,
                 PermissionType.SYSTEM,
-                false,
-                Instant.parse("2025-01-01T00:00:00Z"),
-                Instant.parse("2025-01-01T00:00:00Z"));
+                DeletionStatus.active(),
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    // ========== 삭제된 권한 ==========
+    /** 커스텀 권한 생성 */
+    public static Permission createCustomPermission() {
+        return Permission.reconstitute(
+                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_KEY,
+                DEFAULT_RESOURCE,
+                DEFAULT_ACTION,
+                DEFAULT_DESCRIPTION,
+                PermissionType.CUSTOM,
+                DeletionStatus.active(),
+                FIXED_TIME,
+                FIXED_TIME);
+    }
 
-    /** 삭제된 권한 */
+    /** 지정된 리소스와 액션으로 권한 생성 */
+    public static Permission createWithResourceAndAction(String resource, String action) {
+        String permissionKey = resource + ":" + action;
+        return Permission.reconstitute(
+                PermissionId.of(DEFAULT_PERMISSION_ID),
+                permissionKey,
+                resource,
+                action,
+                resource + " " + action + " 권한",
+                PermissionType.CUSTOM,
+                DeletionStatus.active(),
+                FIXED_TIME,
+                FIXED_TIME);
+    }
+
+    /** 지정된 권한 키로 시스템 권한 생성 */
+    public static Permission createSystemWithKey(String resource, String action) {
+        String permissionKey = resource + ":" + action;
+        return Permission.reconstitute(
+                PermissionId.of(DEFAULT_PERMISSION_ID),
+                permissionKey,
+                resource,
+                action,
+                resource + " " + action + " 권한",
+                PermissionType.SYSTEM,
+                DeletionStatus.active(),
+                FIXED_TIME,
+                FIXED_TIME);
+    }
+
+    /** 새로운 시스템 권한 생성 (ID 없음) */
+    public static Permission createNewSystemPermission() {
+        return Permission.createSystem("resource", "action", "새 시스템 권한", FIXED_TIME);
+    }
+
+    /** 새로운 커스텀 권한 생성 (ID 없음) */
+    public static Permission createNewCustomPermission() {
+        return Permission.createCustom("resource", "action", "새 커스텀 권한", FIXED_TIME);
+    }
+
+    /** 새로운 커스텀 권한 생성 (지정된 리소스/액션, ID 없음) */
+    public static Permission createNewCustomWithResourceAndAction(String resource, String action) {
+        return Permission.createCustom(
+                resource, action, resource + " " + action + " 권한", FIXED_TIME);
+    }
+
+    /** 삭제된 권한 생성 */
     public static Permission createDeleted() {
         return Permission.reconstitute(
-                PermissionId.of(UUID.randomUUID()),
-                PermissionKey.of("deleted:permission"),
-                PermissionDescription.of("삭제된 권한"),
+                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_KEY,
+                DEFAULT_RESOURCE,
+                DEFAULT_ACTION,
+                DEFAULT_DESCRIPTION,
                 PermissionType.CUSTOM,
-                true,
-                Instant.parse("2025-01-01T00:00:00Z"),
-                Instant.parse("2025-01-02T00:00:00Z"));
+                DeletionStatus.deletedAt(FIXED_TIME),
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
-    // ========== VO Fixture ==========
-
-    /** Resource 생성 */
-    public static Resource createResource() {
-        return Resource.of("user");
+    /** 테스트용 고정 시간 반환 */
+    public static Instant fixedTime() {
+        return FIXED_TIME;
     }
 
-    /** Resource 생성 */
-    public static Resource createResource(String value) {
-        return Resource.of(value);
+    /** 기본 PermissionId 반환 */
+    public static PermissionId defaultId() {
+        return PermissionId.of(DEFAULT_PERMISSION_ID);
     }
 
-    /** Action 생성 */
-    public static Action createAction() {
-        return Action.of("read");
+    /** 기본 Permission ID 값 반환 */
+    public static Long defaultIdValue() {
+        return DEFAULT_PERMISSION_ID;
     }
 
-    /** Action 생성 */
-    public static Action createAction(String value) {
-        return Action.of(value);
+    /** 기본 권한 키 반환 */
+    public static String defaultPermissionKey() {
+        return DEFAULT_PERMISSION_KEY;
     }
 
-    /** PermissionKey 생성 */
-    public static PermissionKey createPermissionKey() {
-        return PermissionKey.of("user:read");
+    /** 기본 리소스 반환 */
+    public static String defaultResource() {
+        return DEFAULT_RESOURCE;
     }
 
-    /** PermissionKey 생성 */
-    public static PermissionKey createPermissionKey(String value) {
-        return PermissionKey.of(value);
-    }
-
-    /** PermissionDescription 생성 */
-    public static PermissionDescription createDescription() {
-        return PermissionDescription.of("테스트 권한 설명");
-    }
-
-    /** PermissionDescription 생성 */
-    public static PermissionDescription createDescription(String value) {
-        return PermissionDescription.of(value);
-    }
-
-    /** PermissionId 생성 */
-    public static PermissionId createPermissionId() {
-        return PermissionId.of(UUID.randomUUID());
-    }
-
-    /** PermissionId 생성 */
-    public static PermissionId createPermissionId(UUID uuid) {
-        return PermissionId.of(uuid);
-    }
-
-    /** 테스트용 고정 Clock */
-    public static Clock fixedClock() {
-        return FIXED_CLOCK;
+    /** 기본 액션 반환 */
+    public static String defaultAction() {
+        return DEFAULT_ACTION;
     }
 }

@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.application.role.port.in.command;
 
 import com.ryuqq.authhub.application.role.dto.command.UpdateRoleCommand;
-import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
 
 /**
  * UpdateRoleUseCase - 역할 수정 UseCase (Port-In)
@@ -13,7 +12,8 @@ import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
  * <ul>
  *   <li>{@code {Action}{Bc}UseCase} 네이밍
  *   <li>{@code execute()} 메서드 시그니처
- *   <li>Command DTO 파라미터, Response DTO 반환
+ *   <li>Command DTO 파라미터
+ *   <li>void 반환 (수정 후 ID 반환 불필요)
  * </ul>
  *
  * @author development-team
@@ -25,7 +25,6 @@ public interface UpdateRoleUseCase {
      * 역할 수정 실행
      *
      * @param command 역할 수정 Command
-     * @return 수정된 역할 Response
      */
-    RoleResponse execute(UpdateRoleCommand command);
+    void execute(UpdateRoleCommand command);
 }

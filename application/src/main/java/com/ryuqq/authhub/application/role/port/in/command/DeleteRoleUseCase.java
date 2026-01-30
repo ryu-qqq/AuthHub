@@ -12,7 +12,8 @@ import com.ryuqq.authhub.application.role.dto.command.DeleteRoleCommand;
  * <ul>
  *   <li>{@code {Action}{Bc}UseCase} 네이밍
  *   <li>{@code execute()} 메서드 시그니처
- *   <li>Command DTO 파라미터, void 반환
+ *   <li>Command DTO 파라미터
+ *   <li>void 반환 (삭제 후 ID 반환 불필요)
  * </ul>
  *
  * @author development-team

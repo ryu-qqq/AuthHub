@@ -3,16 +3,14 @@ package com.ryuqq.authhub.adapter.out.persistence.permission.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.PermissionJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.permission.fixture.PermissionJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.permission.mapper.PermissionJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.permission.repository.PermissionJpaRepository;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
-import com.ryuqq.authhub.domain.permission.vo.PermissionType;
-import java.time.LocalDateTime;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,6 +22,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * PermissionCommandAdapter 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Adapter는 Repository 위임 + Mapper 변환 담당
+ *   <li>Repository/Mapper를 Mock으로 대체
+ *   <li>위임 및 변환 흐름 검증
+ *   <li>Global Only 설계 (tenantId 없음)
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -37,149 +44,105 @@ class PermissionCommandAdapterTest {
 
     @Mock private PermissionJpaEntityMapper mapper;
 
-    private PermissionCommandAdapter adapter;
-
-    private static final UUID PERMISSION_UUID = UUID.randomUUID();
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+    private PermissionCommandAdapter sut;
 
     @BeforeEach
     void setUp() {
-        adapter = new PermissionCommandAdapter(repository, mapper);
+        sut = new PermissionCommandAdapter(repository, mapper);
     }
 
     @Nested
     @DisplayName("persist 메서드")
-    class PersistTest {
+    class Persist {
 
         @Test
-        @DisplayName("권한을 성공적으로 저장한다")
-        void shouldPersistPermissionSuccessfully() {
+        @DisplayName("성공: Domain → Entity 변환 후 저장하고 ID 반환")
+        void shouldConvertAndPersist_ThenReturnId() {
             // given
-            Permission domainToSave = PermissionFixture.create();
-            Permission savedDomain =
-                    PermissionFixture.createReconstituted(PERMISSION_UUID, "user:read");
+            Permission domain = PermissionFixture.create();
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
+            Long expectedId = PermissionJpaEntityFixture.defaultPermissionId();
 
-            PermissionJpaEntity entityToSave =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:read",
-                            "user",
-                            "read",
-                            "사용자 조회 권한",
-                            PermissionType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            PermissionJpaEntity savedEntity =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:read",
-                            "user",
-                            "read",
-                            "사용자 조회 권한",
-                            PermissionType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
-            given(repository.save(entityToSave)).willReturn(savedEntity);
-            given(mapper.toDomain(savedEntity)).willReturn(savedDomain);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            Permission result = adapter.persist(domainToSave);
+            Long result = sut.persist(domain);
 
             // then
-            assertThat(result).isEqualTo(savedDomain);
-            verify(mapper).toEntity(domainToSave);
-            verify(repository).save(entityToSave);
-            verify(mapper).toDomain(savedEntity);
+            assertThat(result).isEqualTo(expectedId);
         }
 
         @Test
-        @DisplayName("기존 권한을 수정한다")
-        void shouldUpdateExistingPermission() {
+        @DisplayName("Mapper를 통해 Domain → Entity 변환")
+        void shouldUseMapper_ToConvertDomainToEntity() {
             // given
-            Permission existingDomain =
-                    PermissionFixture.createReconstituted(PERMISSION_UUID, "user:read");
-            Permission updatedDomain =
-                    PermissionFixture.createReconstituted(PERMISSION_UUID, "user:write");
+            Permission domain = PermissionFixture.create();
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
 
-            PermissionJpaEntity entityToUpdate =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:read",
-                            "user",
-                            "read",
-                            "사용자 조회 권한",
-                            PermissionType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            PermissionJpaEntity updatedEntity =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:write",
-                            "user",
-                            "write",
-                            "사용자 수정 권한",
-                            PermissionType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(existingDomain)).willReturn(entityToUpdate);
-            given(repository.save(entityToUpdate)).willReturn(updatedEntity);
-            given(mapper.toDomain(updatedEntity)).willReturn(updatedDomain);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            Permission result = adapter.persist(existingDomain);
+            sut.persist(domain);
 
             // then
-            assertThat(result.keyValue()).isEqualTo("user:write");
-            verify(repository).save(any(PermissionJpaEntity.class));
+            then(mapper).should().toEntity(domain);
         }
 
         @Test
-        @DisplayName("시스템 권한을 저장한다")
-        void shouldPersistSystemPermission() {
+        @DisplayName("Repository를 통해 Entity 저장")
+        void shouldUseRepository_ToSaveEntity() {
             // given
-            Permission systemPermission = PermissionFixture.createSystem();
-            Permission savedSystemPermission =
-                    PermissionFixture.createReconstitutedSystem(PERMISSION_UUID, "user:read");
+            Permission domain = PermissionFixture.create();
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
 
-            PermissionJpaEntity entityToSave =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:read",
-                            "user",
-                            "read",
-                            "사용자 조회 권한 (시스템)",
-                            PermissionType.SYSTEM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            PermissionJpaEntity savedEntity =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:read",
-                            "user",
-                            "read",
-                            "사용자 조회 권한 (시스템)",
-                            PermissionType.SYSTEM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(systemPermission)).willReturn(entityToSave);
-            given(repository.save(entityToSave)).willReturn(savedEntity);
-            given(mapper.toDomain(savedEntity)).willReturn(savedSystemPermission);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            Permission result = adapter.persist(systemPermission);
+            sut.persist(domain);
 
             // then
-            assertThat(result.isSystem()).isTrue();
+            then(repository).should().save(entity);
+        }
+
+        @Test
+        @DisplayName("새 Domain 저장 시에도 동일한 흐름")
+        void shouldFollowSameFlow_WhenPersistingNewDomain() {
+            // given
+            Permission newDomain = PermissionFixture.createNewCustomPermission();
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
+
+            given(mapper.toEntity(newDomain)).willReturn(entity);
+            given(repository.save(any(PermissionJpaEntity.class))).willReturn(entity);
+
+            // when
+            Long result = sut.persist(newDomain);
+
+            // then
+            assertThat(result).isNotNull();
+            then(mapper).should().toEntity(newDomain);
+            then(repository).should().save(entity);
+        }
+
+        @Test
+        @DisplayName("시스템 권한 저장 시에도 동일한 흐름")
+        void shouldFollowSameFlow_WhenPersistingSystemPermission() {
+            // given
+            Permission systemPermission = PermissionFixture.createSystemPermission();
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.createSystemPermission();
+
+            given(mapper.toEntity(systemPermission)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
+
+            // when
+            Long result = sut.persist(systemPermission);
+
+            // then
+            assertThat(result).isNotNull();
+            then(mapper).should().toEntity(systemPermission);
+            then(repository).should().save(entity);
         }
     }
 }

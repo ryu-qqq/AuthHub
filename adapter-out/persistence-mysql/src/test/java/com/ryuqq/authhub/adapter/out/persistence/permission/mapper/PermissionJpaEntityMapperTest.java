@@ -3,13 +3,10 @@ package com.ryuqq.authhub.adapter.out.persistence.permission.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.PermissionJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.permission.fixture.PermissionJpaEntityFixture;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +16,16 @@ import org.junit.jupiter.api.Test;
 /**
  * PermissionJpaEntityMapper 단위 테스트
  *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Mapper는 순수 변환 로직 → Mock 불필요
+ *   <li>Domain ↔ Entity 양방향 변환 검증
+ *   <li>모든 필드가 올바르게 매핑되는지 검증
+ *   <li>Edge case (deletedAt, 다양한 유형) 처리 검증
+ *   <li>Global Only 설계 (tenantId 없음)
+ * </ul>
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -26,230 +33,216 @@ import org.junit.jupiter.api.Test;
 @DisplayName("PermissionJpaEntityMapper 단위 테스트")
 class PermissionJpaEntityMapperTest {
 
-    private PermissionJpaEntityMapper mapper;
-
-    private static final UUID PERMISSION_UUID =
-            UUID.fromString("01941234-5678-7000-8000-123456789001");
-    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-    private static final LocalDateTime FIXED_LOCAL_DATE_TIME =
-            LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC);
+    private PermissionJpaEntityMapper sut;
 
     @BeforeEach
     void setUp() {
-        mapper = new PermissionJpaEntityMapper();
+        sut = new PermissionJpaEntityMapper();
     }
 
     @Nested
-    @DisplayName("toEntity 메서드")
-    class ToEntityTest {
+    @DisplayName("toEntity 메서드 (Domain → Entity)")
+    class ToEntity {
 
         @Test
-        @DisplayName("Domain을 Entity로 변환한다")
-        void shouldConvertDomainToEntity() {
+        @DisplayName("성공: Domain의 모든 필드가 Entity로 올바르게 매핑됨")
+        void shouldMapAllFields_FromDomainToEntity() {
             // given
             Permission domain = PermissionFixture.create();
 
             // when
-            PermissionJpaEntity entity = mapper.toEntity(domain);
+            PermissionJpaEntity entity = sut.toEntity(domain);
 
             // then
             assertThat(entity.getPermissionId()).isEqualTo(domain.permissionIdValue());
-            assertThat(entity.getPermissionKey()).isEqualTo(domain.keyValue());
+            assertThat(entity.getPermissionKey()).isEqualTo(domain.permissionKeyValue());
             assertThat(entity.getResource()).isEqualTo(domain.resourceValue());
             assertThat(entity.getAction()).isEqualTo(domain.actionValue());
             assertThat(entity.getDescription()).isEqualTo(domain.descriptionValue());
             assertThat(entity.getType()).isEqualTo(domain.getType());
-            assertThat(entity.isDeleted()).isEqualTo(domain.isDeleted());
+            assertThat(entity.getCreatedAt()).isEqualTo(domain.createdAt());
+            assertThat(entity.getUpdatedAt()).isEqualTo(domain.updatedAt());
         }
 
         @Test
-        @DisplayName("시간 필드가 올바르게 변환된다")
-        void shouldConvertTimeFieldsCorrectly() {
+        @DisplayName("활성 Domain은 deletedAt이 null로 매핑됨")
+        void shouldMapDeletedAtToNull_WhenDomainIsActive() {
             // given
-            Permission domain = PermissionFixture.create();
+            Permission activeDomain = PermissionFixture.create();
 
             // when
-            PermissionJpaEntity entity = mapper.toEntity(domain);
+            PermissionJpaEntity entity = sut.toEntity(activeDomain);
 
             // then
-            assertThat(entity.getCreatedAt()).isEqualTo(FIXED_LOCAL_DATE_TIME);
-            assertThat(entity.getUpdatedAt()).isEqualTo(FIXED_LOCAL_DATE_TIME);
+            assertThat(entity.getDeletedAt()).isNull();
+            assertThat(entity.isDeleted()).isFalse();
+            assertThat(entity.isActive()).isTrue();
         }
 
         @Test
-        @DisplayName("시스템 권한도 Entity로 변환된다")
-        void shouldConvertSystemPermissionToEntity() {
+        @DisplayName("삭제된 Domain은 deletedAt이 설정됨")
+        void shouldMapDeletedAt_WhenDomainIsDeleted() {
             // given
-            Permission domain = PermissionFixture.createSystem();
+            Permission deletedDomain = PermissionFixture.createDeleted();
 
             // when
-            PermissionJpaEntity entity = mapper.toEntity(domain);
+            PermissionJpaEntity entity = sut.toEntity(deletedDomain);
+
+            // then
+            assertThat(entity.getDeletedAt()).isNotNull();
+            assertThat(entity.isDeleted()).isTrue();
+        }
+
+        @Test
+        @DisplayName("시스템 권한 유형이 올바르게 매핑됨")
+        void shouldMapSystemType_Correctly() {
+            // given
+            Permission systemPermission = PermissionFixture.createSystemPermission();
+
+            // when
+            PermissionJpaEntity entity = sut.toEntity(systemPermission);
 
             // then
             assertThat(entity.getType()).isEqualTo(PermissionType.SYSTEM);
         }
+
+        @Test
+        @DisplayName("커스텀 권한 유형이 올바르게 매핑됨")
+        void shouldMapCustomType_Correctly() {
+            // given
+            Permission customPermission = PermissionFixture.createCustomPermission();
+
+            // when
+            PermissionJpaEntity entity = sut.toEntity(customPermission);
+
+            // then
+            assertThat(entity.getType()).isEqualTo(PermissionType.CUSTOM);
+        }
     }
 
     @Nested
-    @DisplayName("toDomain 메서드")
-    class ToDomainTest {
+    @DisplayName("toDomain 메서드 (Entity → Domain)")
+    class ToDomain {
 
         @Test
-        @DisplayName("Entity를 Domain으로 변환한다")
-        void shouldConvertEntityToDomain() {
+        @DisplayName("성공: Entity의 모든 필드가 Domain으로 올바르게 매핑됨")
+        void shouldMapAllFields_FromEntityToDomain() {
             // given
-            PermissionJpaEntity entity =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:read",
-                            "user",
-                            "read",
-                            "사용자 조회 권한",
-                            PermissionType.CUSTOM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
 
             // when
-            Permission domain = mapper.toDomain(entity);
+            Permission domain = sut.toDomain(entity);
 
             // then
-            assertThat(domain.permissionIdValue()).isEqualTo(PERMISSION_UUID);
-            assertThat(domain.keyValue()).isEqualTo("user:read");
-            assertThat(domain.resourceValue()).isEqualTo("user");
-            assertThat(domain.actionValue()).isEqualTo("read");
-            assertThat(domain.descriptionValue()).isEqualTo("사용자 조회 권한");
-            assertThat(domain.getType()).isEqualTo(PermissionType.CUSTOM);
+            assertThat(domain.permissionIdValue()).isEqualTo(entity.getPermissionId());
+            assertThat(domain.permissionKeyValue()).isEqualTo(entity.getPermissionKey());
+            assertThat(domain.resourceValue()).isEqualTo(entity.getResource());
+            assertThat(domain.actionValue()).isEqualTo(entity.getAction());
+            assertThat(domain.descriptionValue()).isEqualTo(entity.getDescription());
+            assertThat(domain.getType()).isEqualTo(entity.getType());
+            assertThat(domain.createdAt()).isEqualTo(entity.getCreatedAt());
+            assertThat(domain.updatedAt()).isEqualTo(entity.getUpdatedAt());
+        }
+
+        @Test
+        @DisplayName("활성 Entity는 DeletionStatus가 active로 매핑됨")
+        void shouldMapToDeletionStatusActive_WhenEntityIsActive() {
+            // given
+            PermissionJpaEntity activeEntity = PermissionJpaEntityFixture.create();
+
+            // when
+            Permission domain = sut.toDomain(activeEntity);
+
+            // then
             assertThat(domain.isDeleted()).isFalse();
+            assertThat(domain.getDeletionStatus().isDeleted()).isFalse();
         }
 
         @Test
-        @DisplayName("시간 필드가 올바르게 변환된다")
-        void shouldConvertTimeFieldsCorrectly() {
+        @DisplayName("삭제된 Entity는 DeletionStatus가 deleted로 매핑됨")
+        void shouldMapToDeletionStatusDeleted_WhenEntityIsDeleted() {
             // given
-            PermissionJpaEntity entity =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:read",
-                            "user",
-                            "read",
-                            "설명",
-                            PermissionType.CUSTOM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            PermissionJpaEntity deletedEntity = PermissionJpaEntityFixture.createDeleted();
 
             // when
-            Permission domain = mapper.toDomain(entity);
-
-            // then
-            assertThat(domain.createdAt()).isEqualTo(FIXED_INSTANT);
-            assertThat(domain.updatedAt()).isEqualTo(FIXED_INSTANT);
-        }
-
-        @Test
-        @DisplayName("null description은 빈 PermissionDescription으로 변환된다")
-        void shouldConvertNullDescriptionToEmpty() {
-            // given
-            PermissionJpaEntity entity =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "user:read",
-                            "user",
-                            "read",
-                            null,
-                            PermissionType.CUSTOM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
-
-            // when
-            Permission domain = mapper.toDomain(entity);
-
-            // then - PermissionDescription.empty()는 빈 문자열("")을 가진 객체를 생성함
-            assertThat(domain.descriptionValue()).isEmpty();
-        }
-
-        @Test
-        @DisplayName("삭제된 권한도 올바르게 변환된다")
-        void shouldConvertDeletedPermission() {
-            // given
-            PermissionJpaEntity entity =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "deleted:permission",
-                            "deleted",
-                            "permission",
-                            "삭제된 권한",
-                            PermissionType.CUSTOM,
-                            true,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
-
-            // when
-            Permission domain = mapper.toDomain(entity);
+            Permission domain = sut.toDomain(deletedEntity);
 
             // then
             assertThat(domain.isDeleted()).isTrue();
+            assertThat(domain.getDeletionStatus().isDeleted()).isTrue();
+            assertThat(domain.getDeletionStatus().deletedAt()).isNotNull();
         }
 
         @Test
-        @DisplayName("시스템 권한 타입이 올바르게 변환된다")
-        void shouldConvertSystemPermissionType() {
+        @DisplayName("시스템 권한 유형이 올바르게 매핑됨")
+        void shouldMapSystemType_Correctly() {
             // given
-            PermissionJpaEntity entity =
-                    PermissionJpaEntity.of(
-                            PERMISSION_UUID,
-                            "system:admin",
-                            "system",
-                            "admin",
-                            "시스템 관리 권한",
-                            PermissionType.SYSTEM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            PermissionJpaEntity systemEntity = PermissionJpaEntityFixture.createSystemPermission();
 
             // when
-            Permission domain = mapper.toDomain(entity);
+            Permission domain = sut.toDomain(systemEntity);
 
             // then
             assertThat(domain.getType()).isEqualTo(PermissionType.SYSTEM);
         }
+
+        @Test
+        @DisplayName("재구성된 Domain은 isNew()가 false")
+        void shouldSetIsNewToFalse_WhenReconstituted() {
+            // given
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
+
+            // when
+            Permission domain = sut.toDomain(entity);
+
+            // then
+            assertThat(domain.isNew()).isFalse();
+        }
     }
 
     @Nested
-    @DisplayName("양방향 변환")
-    class BidirectionalConversionTest {
+    @DisplayName("양방향 변환 테스트")
+    class RoundTrip {
 
         @Test
-        @DisplayName("Domain → Entity → Domain 변환이 일관성을 유지한다")
-        void shouldMaintainConsistencyInBidirectionalConversion() {
+        @DisplayName("Domain → Entity → Domain 변환 시 데이터 보존")
+        void shouldPreserveData_OnRoundTrip() {
             // given
-            Permission originalDomain = PermissionFixture.createReconstituted();
+            Permission originalDomain = PermissionFixture.create();
 
             // when
-            PermissionJpaEntity entity = mapper.toEntity(originalDomain);
-            PermissionJpaEntity entityWithId =
-                    PermissionJpaEntity.of(
-                            originalDomain.permissionIdValue(),
-                            entity.getPermissionKey(),
-                            entity.getResource(),
-                            entity.getAction(),
-                            entity.getDescription(),
-                            entity.getType(),
-                            entity.isDeleted(),
-                            entity.getCreatedAt(),
-                            entity.getUpdatedAt());
-            Permission convertedDomain = mapper.toDomain(entityWithId);
+            PermissionJpaEntity entity = sut.toEntity(originalDomain);
+            Permission reconstitutedDomain = sut.toDomain(entity);
 
             // then
-            assertThat(convertedDomain.permissionIdValue())
+            assertThat(reconstitutedDomain.permissionIdValue())
                     .isEqualTo(originalDomain.permissionIdValue());
-            assertThat(convertedDomain.keyValue()).isEqualTo(originalDomain.keyValue());
-            assertThat(convertedDomain.resourceValue()).isEqualTo(originalDomain.resourceValue());
-            assertThat(convertedDomain.actionValue()).isEqualTo(originalDomain.actionValue());
-            assertThat(convertedDomain.getType()).isEqualTo(originalDomain.getType());
-            assertThat(convertedDomain.isDeleted()).isEqualTo(originalDomain.isDeleted());
+            assertThat(reconstitutedDomain.permissionKeyValue())
+                    .isEqualTo(originalDomain.permissionKeyValue());
+            assertThat(reconstitutedDomain.resourceValue())
+                    .isEqualTo(originalDomain.resourceValue());
+            assertThat(reconstitutedDomain.actionValue()).isEqualTo(originalDomain.actionValue());
+            assertThat(reconstitutedDomain.descriptionValue())
+                    .isEqualTo(originalDomain.descriptionValue());
+            assertThat(reconstitutedDomain.getType()).isEqualTo(originalDomain.getType());
+            assertThat(reconstitutedDomain.createdAt()).isEqualTo(originalDomain.createdAt());
+            assertThat(reconstitutedDomain.updatedAt()).isEqualTo(originalDomain.updatedAt());
+        }
+
+        @Test
+        @DisplayName("삭제된 Domain도 양방향 변환 시 데이터 보존")
+        void shouldPreserveDeletedData_OnRoundTrip() {
+            // given
+            Permission deletedDomain = PermissionFixture.createDeleted();
+
+            // when
+            PermissionJpaEntity entity = sut.toEntity(deletedDomain);
+            Permission reconstitutedDomain = sut.toDomain(entity);
+
+            // then
+            assertThat(reconstitutedDomain.isDeleted()).isEqualTo(deletedDomain.isDeleted());
+            assertThat(reconstitutedDomain.getDeletionStatus().deletedAt())
+                    .isEqualTo(deletedDomain.getDeletionStatus().deletedAt());
         }
     }
 }

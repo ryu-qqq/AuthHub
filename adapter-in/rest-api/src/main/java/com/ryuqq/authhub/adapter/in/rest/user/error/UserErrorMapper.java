@@ -17,11 +17,12 @@ import org.springframework.stereotype.Component;
  *
  * <ul>
  *   <li>USER-001: 사용자 찾을 수 없음 → 404 Not Found
- *   <li>USER-002: 잘못된 사용자 상태 → 400 Bad Request
- *   <li>USER-003: 사용자 식별자 중복 → 409 Conflict
- *   <li>USER-004: 사용자 역할 찾을 수 없음 → 404 Not Found
- *   <li>USER-005: 사용자 역할 중복 → 409 Conflict
- *   <li>USER-006: 잘못된 비밀번호 → 400 Bad Request
+ *   <li>USER-002: 사용자 식별자 중복 → 409 Conflict
+ *   <li>USER-003: 사용자 전화번호 중복 → 409 Conflict
+ *   <li>USER-004: 비활성 사용자 → 403 Forbidden
+ *   <li>USER-005: 정지된 사용자 → 403 Forbidden
+ *   <li>USER-006: 삭제된 사용자 → 403 Forbidden
+ *   <li>USER-007: 잘못된 비밀번호 → 401 Unauthorized
  * </ul>
  *
  * @author development-team
@@ -31,10 +32,18 @@ import org.springframework.stereotype.Component;
 public class UserErrorMapper implements ErrorMapper {
 
     private static final Set<String> SUPPORTED_CODES =
-            Set.of("USER-001", "USER-002", "USER-003", "USER-004", "USER-005", "USER-006");
+            Set.of(
+                    "USER-001",
+                    "USER-002",
+                    "USER-003",
+                    "USER-004",
+                    "USER-005",
+                    "USER-006",
+                    "USER-007");
 
     @Override
-    public boolean supports(String code) {
+    public boolean supports(DomainException ex) {
+        String code = ex.code();
         if (code == null) {
             return false;
         }
@@ -54,32 +63,38 @@ public class UserErrorMapper implements ErrorMapper {
                             URI.create("https://authhub.ryuqq.com/errors/user-not-found"));
             case "USER-002" ->
                     new MappedError(
-                            HttpStatus.BAD_REQUEST,
-                            "Invalid User State",
-                            ex.getMessage(),
-                            URI.create("https://authhub.ryuqq.com/errors/user-invalid-state"));
-            case "USER-003" ->
-                    new MappedError(
                             HttpStatus.CONFLICT,
                             "Duplicate User Identifier",
                             ex.getMessage(),
                             URI.create(
-                                    "https://authhub.ryuqq.com/errors/user-duplicate-identifier"));
-            case "USER-004" ->
-                    new MappedError(
-                            HttpStatus.NOT_FOUND,
-                            "User Role Not Found",
-                            ex.getMessage(),
-                            URI.create("https://authhub.ryuqq.com/errors/user-role-not-found"));
-            case "USER-005" ->
+                                    "https://authhub.ryuqq.com/errors/user-identifier-duplicate"));
+            case "USER-003" ->
                     new MappedError(
                             HttpStatus.CONFLICT,
-                            "Duplicate User Role",
+                            "Duplicate User Phone Number",
                             ex.getMessage(),
-                            URI.create("https://authhub.ryuqq.com/errors/user-role-duplicate"));
+                            URI.create("https://authhub.ryuqq.com/errors/user-phone-duplicate"));
+            case "USER-004" ->
+                    new MappedError(
+                            HttpStatus.FORBIDDEN,
+                            "User Not Active",
+                            ex.getMessage(),
+                            URI.create("https://authhub.ryuqq.com/errors/user-not-active"));
+            case "USER-005" ->
+                    new MappedError(
+                            HttpStatus.FORBIDDEN,
+                            "User Suspended",
+                            ex.getMessage(),
+                            URI.create("https://authhub.ryuqq.com/errors/user-suspended"));
             case "USER-006" ->
                     new MappedError(
-                            HttpStatus.BAD_REQUEST,
+                            HttpStatus.FORBIDDEN,
+                            "User Deleted",
+                            ex.getMessage(),
+                            URI.create("https://authhub.ryuqq.com/errors/user-deleted"));
+            case "USER-007" ->
+                    new MappedError(
+                            HttpStatus.UNAUTHORIZED,
                             "Invalid Password",
                             ex.getMessage(),
                             URI.create("https://authhub.ryuqq.com/errors/user-invalid-password"));

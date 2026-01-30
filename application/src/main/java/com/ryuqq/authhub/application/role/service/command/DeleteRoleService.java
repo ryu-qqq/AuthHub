@@ -1,12 +1,8 @@
 package com.ryuqq.authhub.application.role.service.command;
 
 import com.ryuqq.authhub.application.role.dto.command.DeleteRoleCommand;
-import com.ryuqq.authhub.application.role.manager.command.RoleTransactionManager;
-import com.ryuqq.authhub.application.role.manager.query.RoleReadManager;
+import com.ryuqq.authhub.application.role.internal.RoleDeleteCoordinator;
 import com.ryuqq.authhub.application.role.port.in.command.DeleteRoleUseCase;
-import com.ryuqq.authhub.domain.role.aggregate.Role;
-import com.ryuqq.authhub.domain.role.identifier.RoleId;
-import java.time.Clock;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,15 +10,20 @@ import org.springframework.stereotype.Service;
  *
  * <p>DeleteRoleUseCase를 구현합니다.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p>삭제 전 검증:
  *
  * <ul>
- *   <li>{@code @Service} 어노테이션
- *   <li>{@code @Transactional} 직접 사용 금지 (Manager/Facade 책임)
- *   <li>Manager/Facade 흐름
- *   <li>Port 직접 호출 금지
- *   <li>Lombok 금지
+ *   <li>SYSTEM 역할은 삭제 불가 (Domain에서 예외 발생)
+ *   <li>User에 할당된 역할은 삭제 불가 (Coordinator에서 처리)
  * </ul>
+ *
+ * <p>SVC-001: @Service 어노테이션 필수.
+ *
+ * <p>SVC-002: UseCase(Port-In) 인터페이스 구현 필수.
+ *
+ * <p>SVC-006: @Transactional 금지 → Manager에서 처리.
+ *
+ * <p>SVC-007: Service에 비즈니스 로직 금지 → Coordinator에 위임.
  *
  * @author development-team
  * @since 1.0.0
@@ -30,27 +31,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class DeleteRoleService implements DeleteRoleUseCase {
 
-    private final RoleTransactionManager transactionManager;
-    private final RoleReadManager readManager;
-    private final Clock clock;
+    private final RoleDeleteCoordinator deleteCoordinator;
 
-    public DeleteRoleService(
-            RoleTransactionManager transactionManager, RoleReadManager readManager, Clock clock) {
-        this.transactionManager = transactionManager;
-        this.readManager = readManager;
-        this.clock = clock;
+    public DeleteRoleService(RoleDeleteCoordinator deleteCoordinator) {
+        this.deleteCoordinator = deleteCoordinator;
     }
 
     @Override
     public void execute(DeleteRoleCommand command) {
-        // 1. 기존 Role 조회
-        RoleId roleId = RoleId.of(command.roleId());
-        Role existing = readManager.getById(roleId);
-
-        // 2. 삭제 (SYSTEM 역할이면 예외 발생)
-        Role deleted = existing.delete(clock);
-
-        // 3. Manager: 영속화
-        transactionManager.persist(deleted);
+        deleteCoordinator.execute(command);
     }
 }

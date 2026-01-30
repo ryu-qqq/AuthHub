@@ -1,17 +1,14 @@
 package com.ryuqq.authhub.application.user.service.command;
 
-import com.ryuqq.authhub.application.user.assembler.UserAssembler;
 import com.ryuqq.authhub.application.user.dto.command.CreateUserCommand;
-import com.ryuqq.authhub.application.user.dto.response.UserResponse;
-import com.ryuqq.authhub.application.user.factory.command.UserCommandFactory;
-import com.ryuqq.authhub.application.user.manager.command.UserTransactionManager;
-import com.ryuqq.authhub.application.user.manager.query.UserReadManager;
+import com.ryuqq.authhub.application.user.factory.UserCommandFactory;
+import com.ryuqq.authhub.application.user.manager.UserCommandManager;
 import com.ryuqq.authhub.application.user.port.in.command.CreateUserUseCase;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.application.user.validator.UserValidator;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
-import com.ryuqq.authhub.domain.user.exception.DuplicateUserIdentifierException;
-import com.ryuqq.authhub.domain.user.exception.DuplicateUserPhoneNumberException;
+import com.ryuqq.authhub.domain.user.vo.Identifier;
+import com.ryuqq.authhub.domain.user.vo.PhoneNumber;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,15 +16,13 @@ import org.springframework.stereotype.Service;
  *
  * <p>CreateUserUseCase를 구현합니다.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p>SVC-001: @Service 어노테이션 필수.
  *
- * <ul>
- *   <li>{@code @Service} 어노테이션
- *   <li>{@code @Transactional} 직접 사용 금지 (Manager/Facade 책임)
- *   <li>Factory → Manager/Facade → Assembler 흐름
- *   <li>Port 직접 호출 금지
- *   <li>Lombok 금지
- * </ul>
+ * <p>SVC-002: UseCase(Port-In) 인터페이스 구현 필수.
+ *
+ * <p>SVC-006: @Transactional 금지 → Manager에서 처리.
+ *
+ * <p>SVC-007: Service에 비즈니스 로직 금지 → 오케스트레이션만.
  *
  * @author development-team
  * @since 1.0.0
@@ -35,46 +30,33 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreateUserService implements CreateUserUseCase {
 
+    private final UserValidator validator;
     private final UserCommandFactory commandFactory;
-    private final UserTransactionManager transactionManager;
-    private final UserReadManager readManager;
-    private final UserAssembler assembler;
+    private final UserCommandManager commandManager;
 
     public CreateUserService(
+            UserValidator validator,
             UserCommandFactory commandFactory,
-            UserTransactionManager transactionManager,
-            UserReadManager readManager,
-            UserAssembler assembler) {
+            UserCommandManager commandManager) {
+        this.validator = validator;
         this.commandFactory = commandFactory;
-        this.transactionManager = transactionManager;
-        this.readManager = readManager;
-        this.assembler = assembler;
+        this.commandManager = commandManager;
     }
 
     @Override
-    public UserResponse execute(CreateUserCommand command) {
-        // 1. 중복 식별자 검사
-        TenantId tenantId = TenantId.of(command.tenantId());
+    public String execute(CreateUserCommand command) {
+        // 1. Validator: 식별자/전화번호 중복 검증
         OrganizationId organizationId = OrganizationId.of(command.organizationId());
+        Identifier identifier = Identifier.of(command.identifier());
+        validator.validateIdentifierNotDuplicated(organizationId, identifier);
 
-        if (readManager.existsByTenantIdAndOrganizationIdAndIdentifier(
-                tenantId, organizationId, command.identifier())) {
-            throw new DuplicateUserIdentifierException(
-                    command.tenantId(), command.organizationId(), command.identifier());
-        }
+        PhoneNumber phoneNumber = PhoneNumber.fromNullable(command.phoneNumber());
+        validator.validatePhoneNumberNotDuplicated(organizationId, phoneNumber);
 
-        // 2. 중복 핸드폰 번호 검사
-        if (readManager.existsByTenantIdAndPhoneNumber(tenantId, command.phoneNumber())) {
-            throw new DuplicateUserPhoneNumberException(command.tenantId(), command.phoneNumber());
-        }
-
-        // 3. Factory: Command → Domain
+        // 2. Factory: Command → Domain 생성
         User user = commandFactory.create(command);
 
-        // 4. Manager: 영속화
-        User saved = transactionManager.persist(user);
-
-        // 5. Assembler: Response 변환
-        return assembler.toResponse(saved);
+        // 3. Manager: 영속화 및 ID 반환
+        return commandManager.persist(user);
     }
 }

@@ -4,7 +4,9 @@ import com.ryuqq.authhub.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
- * DuplicatePermissionKeyException - 권한 키가 이미 존재할 때 발생하는 예외
+ * DuplicatePermissionKeyException - 중복된 권한 키 예외
+ *
+ * <p>이미 존재하는 permissionKey로 권한 생성 시도 시 발생합니다.
  *
  * @author development-team
  * @since 1.0.0

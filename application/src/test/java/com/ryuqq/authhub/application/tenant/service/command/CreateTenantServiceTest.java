@@ -4,13 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.never;
 
-import com.ryuqq.authhub.application.tenant.assembler.TenantAssembler;
 import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
-import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
-import com.ryuqq.authhub.application.tenant.factory.command.TenantCommandFactory;
-import com.ryuqq.authhub.application.tenant.manager.command.TenantTransactionManager;
+import com.ryuqq.authhub.application.tenant.factory.TenantCommandFactory;
+import com.ryuqq.authhub.application.tenant.fixture.TenantCommandFixtures;
+import com.ryuqq.authhub.application.tenant.manager.TenantCommandManager;
 import com.ryuqq.authhub.application.tenant.validator.TenantValidator;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.exception.DuplicateTenantNameException;
@@ -40,65 +41,56 @@ class CreateTenantServiceTest {
 
     @Mock private TenantCommandFactory commandFactory;
 
-    @Mock private TenantTransactionManager transactionManager;
+    @Mock private TenantCommandManager commandManager;
 
-    @Mock private TenantAssembler assembler;
-
-    private CreateTenantService service;
+    private CreateTenantService sut;
 
     @BeforeEach
     void setUp() {
-        service = new CreateTenantService(validator, commandFactory, transactionManager, assembler);
+        sut = new CreateTenantService(validator, commandFactory, commandManager);
     }
 
     @Nested
     @DisplayName("execute 메서드")
-    class ExecuteTest {
+    class Execute {
 
         @Test
-        @DisplayName("테넌트를 성공적으로 생성한다")
-        void shouldCreateTenantSuccessfully() {
+        @DisplayName("성공: Validator → Factory → Manager 순서로 호출하고 ID 반환")
+        void shouldOrchestrate_ValidatorThenFactoryThenManager_AndReturnId() {
             // given
-            CreateTenantCommand command = new CreateTenantCommand("New Tenant");
-            Tenant newTenant = TenantFixture.createNew();
-            Tenant savedTenant = TenantFixture.create();
-            TenantResponse expectedResponse =
-                    new TenantResponse(
-                            savedTenant.tenantIdValue(),
-                            savedTenant.nameValue(),
-                            savedTenant.statusValue(),
-                            savedTenant.createdAt(),
-                            savedTenant.updatedAt());
+            CreateTenantCommand command = TenantCommandFixtures.createCommand();
+            Tenant tenant = TenantFixture.createNew();
+            String expectedId = TenantFixture.defaultIdString();
 
-            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
-            given(commandFactory.create(command)).willReturn(newTenant);
-            given(transactionManager.persist(newTenant)).willReturn(savedTenant);
-            given(assembler.toResponse(savedTenant)).willReturn(expectedResponse);
+            given(commandFactory.create(command)).willReturn(tenant);
+            given(commandManager.persist(tenant)).willReturn(expectedId);
 
             // when
-            TenantResponse response = service.execute(command);
+            String result = sut.execute(command);
 
             // then
-            assertThat(response).isEqualTo(expectedResponse);
-            verify(validator).validateNameNotDuplicated(any(TenantName.class));
-            verify(commandFactory).create(command);
-            verify(transactionManager).persist(newTenant);
-            verify(assembler).toResponse(savedTenant);
+            assertThat(result).isEqualTo(expectedId);
+            then(validator).should().validateNameNotDuplicated(any(TenantName.class));
+            then(commandFactory).should().create(command);
+            then(commandManager).should().persist(tenant);
         }
 
         @Test
-        @DisplayName("중복 이름 시 예외를 발생시킨다")
-        void shouldThrowExceptionWhenDuplicateName() {
+        @DisplayName("실패: 중복 이름일 경우 DuplicateTenantNameException 발생")
+        void shouldThrowException_WhenNameIsDuplicated() {
             // given
-            CreateTenantCommand command = new CreateTenantCommand("Existing Tenant");
-            org.mockito.Mockito.doThrow(
-                            new DuplicateTenantNameException(TenantName.of("Existing Tenant")))
-                    .when(validator)
+            CreateTenantCommand command = TenantCommandFixtures.createCommand();
+            TenantName name = TenantName.of(command.name());
+
+            willThrow(new DuplicateTenantNameException(name))
+                    .given(validator)
                     .validateNameNotDuplicated(any(TenantName.class));
 
             // when & then
-            assertThatThrownBy(() -> service.execute(command))
+            assertThatThrownBy(() -> sut.execute(command))
                     .isInstanceOf(DuplicateTenantNameException.class);
+            then(commandFactory).should(never()).create(any());
+            then(commandManager).should(never()).persist(any());
         }
     }
 }

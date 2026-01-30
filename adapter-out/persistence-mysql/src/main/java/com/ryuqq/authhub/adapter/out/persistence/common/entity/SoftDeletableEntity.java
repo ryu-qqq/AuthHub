@@ -2,7 +2,7 @@ package com.ryuqq.authhub.adapter.out.persistence.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * SoftDeletableEntity - 소프트 딜리트 지원 추상 클래스
@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
  *   <li>삭제 여부 판단은 Domain Layer에서 수행
  *   <li>Entity는 deletedAt 필드만 제공
  *   <li>비즈니스 로직은 포함하지 않음
+ *   <li>Instant 타입 사용 (UTC 기준, 타임존 독립적)
  * </ul>
  *
  * <p><strong>올바른 삭제 흐름:</strong>
@@ -48,7 +49,7 @@ import java.time.LocalDateTime;
  *     .fetch();
  * }</pre>
  *
- * @author windsurf
+ * @author development-team
  * @since 1.0.0
  */
 @MappedSuperclass
@@ -72,7 +73,7 @@ public abstract class SoftDeletableEntity extends BaseAuditEntity {
      * </ul>
      */
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     /**
      * 기본 생성자 (protected)
@@ -93,9 +94,9 @@ public abstract class SoftDeletableEntity extends BaseAuditEntity {
      * @param createdAt 생성 일시
      * @param updatedAt 수정 일시
      */
-    protected SoftDeletableEntity(LocalDateTime createdAt, LocalDateTime updatedAt) {
+    protected SoftDeletableEntity(Instant createdAt, Instant updatedAt) {
         super(createdAt, updatedAt);
-        this.deletedAt = null; // 기본값: 활성 상태
+        this.deletedAt = null;
     }
 
     /**
@@ -109,8 +110,7 @@ public abstract class SoftDeletableEntity extends BaseAuditEntity {
      * @param updatedAt 수정 일시
      * @param deletedAt 삭제 일시 (null이면 활성 상태)
      */
-    protected SoftDeletableEntity(
-            LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
+    protected SoftDeletableEntity(Instant createdAt, Instant updatedAt, Instant deletedAt) {
         super(createdAt, updatedAt);
         this.deletedAt = deletedAt;
     }
@@ -120,7 +120,7 @@ public abstract class SoftDeletableEntity extends BaseAuditEntity {
      *
      * @return 삭제 일시 (null이면 활성 상태)
      */
-    public LocalDateTime getDeletedAt() {
+    public Instant getDeletedAt() {
         return deletedAt;
     }
 

@@ -2,16 +2,12 @@ package com.ryuqq.authhub.adapter.out.persistence.permission.adapter;
 
 import com.ryuqq.authhub.adapter.out.persistence.permission.mapper.PermissionJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.permission.repository.PermissionQueryDslRepository;
-import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.application.permission.port.out.query.PermissionQueryPort;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
-import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,10 +27,12 @@ import org.springframework.stereotype.Component;
  *
  * <ul>
  *   <li>findById() - ID로 단건 조회
- *   <li>findByKey() - 권한 키로 단건 조회
- *   <li>existsByKey() - 권한 키 존재 여부 확인
- *   <li>search() - 조건 검색
- *   <li>count() - 조건 개수 조회
+ *   <li>existsById() - ID 존재 여부 확인
+ *   <li>existsByPermissionKey() - 권한 키 존재 여부 확인 (Global 전역)
+ *   <li>findByPermissionKey() - 권한 키로 단건 조회
+ *   <li>findAllBySearchCriteria() - 조건 검색
+ *   <li>countBySearchCriteria() - 조건 검색 개수
+ *   <li>findAllByIds() - ID 목록으로 다건 조회
  * </ul>
  *
  * <p><strong>규칙:</strong>
@@ -66,7 +64,7 @@ public class PermissionQueryAdapter implements PermissionQueryPort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>PermissionId에서 UUID 추출
+     *   <li>PermissionId에서 Long 추출
      *   <li>QueryDSL Repository로 조회
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
@@ -80,87 +78,94 @@ public class PermissionQueryAdapter implements PermissionQueryPort {
     }
 
     /**
-     * 권한 키로 권한 단건 조회
+     * ID 존재 여부 확인
      *
-     * @param key 권한 키 ("{resource}:{action}" 형식)
-     * @return Optional<Permission>
-     */
-    @Override
-    public Optional<Permission> findByKey(PermissionKey key) {
-        return repository.findByKey(key.value()).map(mapper::toDomain);
-    }
-
-    /**
-     * 권한 키 존재 여부 확인
-     *
-     * @param key 권한 키
+     * @param id 권한 ID
      * @return 존재 여부
      */
     @Override
-    public boolean existsByKey(PermissionKey key) {
-        return repository.existsByKey(key.value());
+    public boolean existsById(PermissionId id) {
+        return repository.existsByPermissionId(id.value());
     }
 
     /**
-     * 권한 검색 (페이징)
+     * 권한 키 존재 여부 확인 (Global 전역)
+     *
+     * <p>tenantId와 관계없이 전역적으로 permissionKey 존재 여부를 확인합니다.
+     *
+     * @param permissionKey 권한 키
+     * @return 존재 여부
+     */
+    @Override
+    public boolean existsByPermissionKey(String permissionKey) {
+        return repository.existsByPermissionKey(permissionKey);
+    }
+
+    /**
+     * 권한 키로 단건 조회
+     *
+     * @param permissionKey 권한 키
+     * @return Optional<Permission>
+     */
+    @Override
+    public Optional<Permission> findByPermissionKey(String permissionKey) {
+        return repository.findByPermissionKey(permissionKey).map(mapper::toDomain);
+    }
+
+    /**
+     * 조건에 맞는 권한 목록 조회 (페이징)
      *
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>Query 기반 QueryDSL Repository 조회
+     *   <li>PermissionSearchCriteria에서 검색 조건 추출
+     *   <li>QueryDSL Repository로 조건 조회
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
-     * @param query 검색 조건
-     * @return Permission 목록
+     * @param criteria 검색 조건 (PermissionSearchCriteria)
+     * @return Permission Domain 목록
      */
     @Override
-    public List<Permission> search(SearchPermissionsQuery query) {
-        return repository.searchByQuery(query).stream().map(mapper::toDomain).toList();
+    public List<Permission> findAllBySearchCriteria(PermissionSearchCriteria criteria) {
+        return repository.findAllByCriteria(criteria).stream().map(mapper::toDomain).toList();
     }
 
     /**
-     * 권한 검색 개수 조회
+     * 조건에 맞는 권한 개수 조회
      *
-     * @param query 검색 조건
+     * @param criteria 검색 조건 (PermissionSearchCriteria)
      * @return 조건에 맞는 권한 총 개수
      */
     @Override
-    public long count(SearchPermissionsQuery query) {
-        return repository.countByQuery(query);
+    public long countBySearchCriteria(PermissionSearchCriteria criteria) {
+        return repository.countByCriteria(criteria);
     }
 
     /**
-     * 여러 ID로 권한 목록 조회
+     * ID 목록으로 권한 다건 조회
      *
-     * @param permissionIds 권한 ID Set
-     * @return Permission 목록
+     * @param ids 권한 ID 목록
+     * @return Permission Domain 목록
      */
     @Override
-    public List<Permission> findAllByIds(Set<PermissionId> permissionIds) {
-        if (permissionIds == null || permissionIds.isEmpty()) {
-            return List.of();
-        }
-        Set<UUID> uuids =
-                permissionIds.stream().map(PermissionId::value).collect(Collectors.toSet());
-        return repository.findAllByIds(uuids).stream().map(mapper::toDomain).toList();
+    public List<Permission> findAllByIds(List<PermissionId> ids) {
+        List<Long> permissionIds = ids.stream().map(PermissionId::value).toList();
+        return repository.findAllByIds(permissionIds).stream().map(mapper::toDomain).toList();
     }
 
     /**
-     * 여러 권한 키로 권한 목록 조회 (Bulk 조회)
+     * permissionKey 목록으로 권한 다건 조회
      *
-     * <p>CI/CD 권한 검증에서 사용됩니다.
+     * <p>벌크 동기화 시 기존 Permission을 한 번에 조회합니다.
      *
-     * @param keys 권한 키 Set
-     * @return Permission 목록 (존재하는 권한만)
+     * @param permissionKeys 권한 키 목록
+     * @return Permission Domain 목록
      */
     @Override
-    public List<Permission> findAllByKeys(Set<PermissionKey> keys) {
-        if (keys == null || keys.isEmpty()) {
-            return List.of();
-        }
-        Set<String> keyStrings =
-                keys.stream().map(PermissionKey::value).collect(Collectors.toSet());
-        return repository.findAllByKeys(keyStrings).stream().map(mapper::toDomain).toList();
+    public List<Permission> findAllByPermissionKeys(List<String> permissionKeys) {
+        return repository.findAllByPermissionKeys(permissionKeys).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

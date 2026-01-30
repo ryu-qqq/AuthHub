@@ -1,0 +1,231 @@
+=== 권한 엔드포인트 생성
+
+권한에 API 엔드포인트를 매핑합니다.
+
+NOTE: 권한 엔드포인트는 Gateway에서 URL 기반 권한 검사에 사용됩니다.
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`permissionId`
+|String
+|Y
+|UUID 형식
+|권한 ID
+
+|`httpMethod`
+|String
+|Y
+|GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS
+|HTTP 메서드
+
+|`urlPattern`
+|String
+|Y
+|최대 500자
+|URL 패턴 (예: /api/v1/users/*)
+
+|`description`
+|String
+|N
+|최대 500자
+|엔드포인트 설명
+|===
+
+TIP: URL 패턴에서 `*` 와일드카드를 사용하여 경로 변수를 처리할 수 있습니다. (예: `/api/v1/users/*`, `/api/v1/users/*/roles`)
+
+==== 요청 예시
+
+include::{snippets}/permission-endpoint/create/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.permissionEndpointId`
+|String
+|생성된 권한 엔드포인트 ID (UUID)
+|===
+
+==== 응답 예시
+
+include::{snippets}/permission-endpoint/create/http-response.adoc[]
+
+'''
+
+=== 권한 엔드포인트 목록 조회
+
+권한 엔드포인트 목록을 페이징하여 조회합니다.
+
+==== 요청 파라미터
+
+[cols="1,1,1,3"]
+|===
+|파라미터 |타입 |필수 |설명
+
+|`page`
+|Number
+|N
+|페이지 번호 (기본값: 0)
+
+|`size`
+|Number
+|N
+|페이지 크기 (기본값: 20, 최대: 100)
+
+|`permissionId`
+|String
+|N
+|권한 ID 필터
+
+|`httpMethod`
+|String
+|N
+|HTTP 메서드 필터
+
+|`keyword`
+|String
+|N
+|URL 패턴 검색 키워드
+
+|`sortKey`
+|String
+|N
+|정렬 키 (CREATED_AT, URL_PATTERN)
+
+|`sortDirection`
+|String
+|N
+|정렬 방향 (ASC, DESC)
+|===
+
+==== 요청 예시
+
+include::{snippets}/permission-endpoint/search/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.content`
+|Array
+|권한 엔드포인트 목록
+
+|`data.content[].permissionEndpointId`
+|String
+|권한 엔드포인트 ID
+
+|`data.content[].permissionId`
+|String
+|권한 ID
+
+|`data.content[].permissionCode`
+|String
+|권한 코드 (resource:action)
+
+|`data.content[].httpMethod`
+|String
+|HTTP 메서드
+
+|`data.content[].urlPattern`
+|String
+|URL 패턴
+
+|`data.content[].description`
+|String
+|엔드포인트 설명
+
+|`data.content[].createdAt`
+|String
+|생성 일시
+
+|`data.content[].updatedAt`
+|String
+|수정 일시
+|===
+
+==== 응답 예시
+
+include::{snippets}/permission-endpoint/search/http-response.adoc[]
+
+'''
+
+=== 권한 엔드포인트 수정
+
+권한 엔드포인트 정보를 수정합니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`permissionEndpointId`
+|String
+|권한 엔드포인트 ID (UUID)
+|===
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`httpMethod`
+|String
+|N
+|GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS
+|HTTP 메서드
+
+|`urlPattern`
+|String
+|N
+|최대 500자
+|URL 패턴
+
+|`description`
+|String
+|N
+|최대 500자
+|엔드포인트 설명
+|===
+
+==== 요청 예시
+
+include::{snippets}/permission-endpoint/update/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/permission-endpoint/update/http-response.adoc[]
+
+'''
+
+=== 권한 엔드포인트 삭제
+
+권한 엔드포인트를 삭제합니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`permissionEndpointId`
+|String
+|권한 엔드포인트 ID (UUID)
+|===
+
+==== 요청 예시
+
+include::{snippets}/permission-endpoint/delete/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/permission-endpoint/delete/http-response.adoc[]

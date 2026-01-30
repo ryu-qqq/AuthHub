@@ -1,0 +1,63 @@
+=== 역할에 권한 부여
+
+역할에 권한을 부여합니다.
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`roleId`
+|String
+|Y
+|UUID 형식
+|역할 ID
+
+|`permissionId`
+|String
+|Y
+|UUID 형식
+|권한 ID
+|===
+
+==== 요청 예시
+
+include::{snippets}/role-permission/grant/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/role-permission/grant/http-response.adoc[]
+
+'''
+
+=== 역할에서 권한 회수
+
+역할에서 권한을 회수합니다.
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`roleId`
+|String
+|Y
+|UUID 형식
+|역할 ID
+
+|`permissionId`
+|String
+|Y
+|UUID 형식
+|권한 ID
+|===
+
+==== 요청 예시
+
+include::{snippets}/role-permission/revoke/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/role-permission/revoke/http-response.adoc[]

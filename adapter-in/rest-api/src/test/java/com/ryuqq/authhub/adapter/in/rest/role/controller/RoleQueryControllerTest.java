@@ -2,700 +2,210 @@ package com.ryuqq.authhub.adapter.in.rest.role.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
-import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
-import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.role.dto.response.RoleUserApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.role.mapper.RoleApiMapper;
-import com.ryuqq.authhub.application.common.dto.response.PageResponse;
-import com.ryuqq.authhub.application.role.dto.query.GetRoleQuery;
-import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
-import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
-import com.ryuqq.authhub.application.role.dto.response.RoleUserResponse;
-import com.ryuqq.authhub.application.role.port.in.query.GetRoleDetailUseCase;
-import com.ryuqq.authhub.application.role.port.in.query.GetRoleUseCase;
-import com.ryuqq.authhub.application.role.port.in.query.SearchRoleUsersUseCase;
-import com.ryuqq.authhub.application.role.port.in.query.SearchRolesAdminUseCase;
+import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.role.RoleApiEndpoints;
+import com.ryuqq.authhub.adapter.in.rest.role.controller.query.RoleQueryController;
+import com.ryuqq.authhub.adapter.in.rest.role.fixture.RoleApiFixture;
+import com.ryuqq.authhub.adapter.in.rest.role.mapper.RoleQueryApiMapper;
+import com.ryuqq.authhub.application.role.dto.response.RolePageResult;
+import com.ryuqq.authhub.application.role.dto.response.RoleResult;
 import com.ryuqq.authhub.application.role.port.in.query.SearchRolesUseCase;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 /**
  * RoleQueryController 단위 테스트
  *
- * <p>검증 범위:
- *
- * <ul>
- *   <li>HTTP 요청/응답 매핑
- *   <li>Request 파라미터 바인딩
- *   <li>Response DTO 직렬화
- *   <li>HTTP Status Code
- *   <li>UseCase 호출 검증
- * </ul>
- *
  * @author development-team
  * @since 1.0.0
  */
-@WebMvcTest(RoleQueryController.class)
-@Import(ControllerTestSecurityConfig.class)
-@AutoConfigureMockMvc(addFilters = false)
-@DisplayName("RoleQueryController 단위 테스트")
 @Tag("unit")
-@Tag("adapter-rest")
-@Tag("controller")
-class RoleQueryControllerTest {
-
-    @Autowired private MockMvc mockMvc;
-
-    @Autowired private ObjectMapper objectMapper;
-
-    @MockBean private GetRoleUseCase getRoleUseCase;
-
-    @MockBean private GetRoleDetailUseCase getRoleDetailUseCase;
+@WebMvcTest(RoleQueryController.class)
+@Import({ControllerTestSecurityConfig.class, RoleQueryApiMapper.class})
+@DisplayName("RoleQueryController 테스트")
+class RoleQueryControllerTest extends RestDocsTestSupport {
 
     @MockBean private SearchRolesUseCase searchRolesUseCase;
 
-    @MockBean private SearchRolesAdminUseCase searchRolesAdminUseCase;
-
-    @MockBean private SearchRoleUsersUseCase searchRoleUsersUseCase;
-
-    @MockBean private RoleApiMapper mapper;
-
-    @MockBean private ErrorMapperRegistry errorMapperRegistry;
-
     @Nested
-    @DisplayName("GET /api/v1/roles/{roleId} - 역할 단건 조회")
-    class GetRoleTest {
+    @DisplayName("GET /api/v1/auth/roles - 역할 목록 검색")
+    class SearchTests {
 
         @Test
-        @DisplayName("[성공] 유효한 ID로 역할 조회 시 200 OK 반환")
-        void getRole_withValidId_returns200Ok() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-            UUID tenantId = UUID.randomUUID();
-            Instant now = Instant.now();
-            RoleResponse useCaseResponse =
-                    new RoleResponse(
-                            roleId,
-                            tenantId,
-                            "TestRole",
-                            "Test description",
-                            "TENANT",
-                            "CUSTOM",
-                            now,
-                            now);
-            RoleApiResponse apiResponse =
-                    new RoleApiResponse(
-                            roleId.toString(),
-                            tenantId.toString(),
-                            "TestRole",
-                            "Test description",
-                            "TENANT",
-                            "CUSTOM",
-                            now,
-                            now);
+        @DisplayName("유효한 요청으로 역할 목록을 조회한다")
+        void shouldSearchRolesSuccessfully() throws Exception {
+            // given
+            Instant fixedTime = RoleApiFixture.fixedTime();
+            RoleResult result =
+                    new RoleResult(
+                            RoleApiFixture.defaultRoleId(),
+                            RoleApiFixture.defaultTenantId(),
+                            RoleApiFixture.defaultName(),
+                            RoleApiFixture.defaultDisplayName(),
+                            RoleApiFixture.defaultDescription(),
+                            RoleApiFixture.defaultType(),
+                            fixedTime,
+                            fixedTime);
+            RolePageResult pageResult = RolePageResult.of(List.of(result), 0, 20, 1L);
+            given(searchRolesUseCase.execute(any())).willReturn(pageResult);
 
-            given(mapper.toGetQuery(roleId.toString())).willReturn(new GetRoleQuery(roleId));
-            given(getRoleUseCase.execute(any(GetRoleQuery.class))).willReturn(useCaseResponse);
-            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles/{roleId}", roleId))
+            // when & then
+            mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "0").param("size", "20"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.roleId").value(roleId.toString()))
-                    .andExpect(jsonPath("$.data.tenantId").value(tenantId.toString()))
-                    .andExpect(jsonPath("$.data.name").value("TestRole"))
-                    .andExpect(jsonPath("$.data.description").value("Test description"))
-                    .andExpect(jsonPath("$.data.scope").value("TENANT"))
-                    .andExpect(jsonPath("$.data.type").value("CUSTOM"));
-
-            verify(getRoleUseCase).execute(any(GetRoleQuery.class));
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(
+                            jsonPath("$.data.content[0].roleId")
+                                    .value(RoleApiFixture.defaultRoleId()))
+                    .andExpect(
+                            jsonPath("$.data.content[0].name").value(RoleApiFixture.defaultName()))
+                    .andExpect(
+                            jsonPath("$.data.content[0].type").value(RoleApiFixture.defaultType()))
+                    .andDo(
+                            document(
+                                    "role/search",
+                                    queryParameters(
+                                            parameterWithName("tenantId")
+                                                    .description("테넌트 ID 필터 (null이면 Global만)")
+                                                    .optional(),
+                                            parameterWithName("searchWord")
+                                                    .description("검색어")
+                                                    .optional(),
+                                            parameterWithName("searchField")
+                                                    .description(
+                                                            "검색 필드 (NAME, DISPLAY_NAME,"
+                                                                    + " DESCRIPTION)")
+                                                    .optional(),
+                                            parameterWithName("types")
+                                                    .description("역할 유형 필터 (SYSTEM, CUSTOM)")
+                                                    .optional(),
+                                            parameterWithName("startDate")
+                                                    .description("조회 시작일 (YYYY-MM-DD)")
+                                                    .optional(),
+                                            parameterWithName("endDate")
+                                                    .description("조회 종료일 (YYYY-MM-DD)")
+                                                    .optional(),
+                                            parameterWithName("page")
+                                                    .description("페이지 번호 (기본값: 0, 0 이상)")
+                                                    .optional(),
+                                            parameterWithName("size")
+                                                    .description("페이지 크기 (기본값: 20, 1~100)")
+                                                    .optional()),
+                                    responseFields(
+                                            fieldWithPath("success")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("요청 성공 여부"),
+                                            fieldWithPath("data")
+                                                    .type(JsonFieldType.OBJECT)
+                                                    .description("페이지 응답 데이터"),
+                                            fieldWithPath("data.content")
+                                                    .type(JsonFieldType.ARRAY)
+                                                    .description("역할 목록"),
+                                            fieldWithPath("data.content[].roleId")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("Role ID"),
+                                            fieldWithPath("data.content[].tenantId")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("테넌트 ID (null이면 Global)"),
+                                            fieldWithPath("data.content[].name")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("역할 이름"),
+                                            fieldWithPath("data.content[].displayName")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("표시 이름"),
+                                            fieldWithPath("data.content[].description")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("역할 설명"),
+                                            fieldWithPath("data.content[].type")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("역할 유형 (SYSTEM, CUSTOM)"),
+                                            fieldWithPath("data.content[].createdAt")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("생성일시 (ISO 8601)"),
+                                            fieldWithPath("data.content[].updatedAt")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("수정일시 (ISO 8601)"),
+                                            fieldWithPath("data.page")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("현재 페이지 번호"),
+                                            fieldWithPath("data.size")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("페이지 크기"),
+                                            fieldWithPath("data.totalElements")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("전체 요소 수"),
+                                            fieldWithPath("data.totalPages")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("전체 페이지 수"),
+                                            fieldWithPath("data.first")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("첫 번째 페이지 여부"),
+                                            fieldWithPath("data.last")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("마지막 페이지 여부"),
+                                            fieldWithPath("timestamp")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("응답 시간"),
+                                            fieldWithPath("requestId")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("요청 ID"))));
         }
 
         @Test
-        @DisplayName("[성공] 글로벌 역할 조회 시 tenantId가 null")
-        void getRole_globalRole_returnsTenantIdNull() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-            Instant now = Instant.now();
-            RoleResponse useCaseResponse =
-                    new RoleResponse(
-                            roleId,
-                            null,
-                            "GlobalRole",
-                            "Global role description",
-                            "GLOBAL",
-                            "SYSTEM",
-                            now,
-                            now);
-            RoleApiResponse apiResponse =
-                    new RoleApiResponse(
-                            roleId.toString(),
-                            null,
-                            "GlobalRole",
-                            "Global role description",
-                            "GLOBAL",
-                            "SYSTEM",
-                            now,
-                            now);
+        @DisplayName("다양한 검색 필터를 적용하여 조회한다")
+        void shouldSearchWithFilters() throws Exception {
+            // given
+            RolePageResult pageResult = RolePageResult.empty(10);
+            given(searchRolesUseCase.execute(any())).willReturn(pageResult);
 
-            given(mapper.toGetQuery(roleId.toString())).willReturn(new GetRoleQuery(roleId));
-            given(getRoleUseCase.execute(any(GetRoleQuery.class))).willReturn(useCaseResponse);
-            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles/{roleId}", roleId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.roleId").value(roleId.toString()))
-                    .andExpect(jsonPath("$.data.tenantId").isEmpty())
-                    .andExpect(jsonPath("$.data.name").value("GlobalRole"))
-                    .andExpect(jsonPath("$.data.scope").value("GLOBAL"))
-                    .andExpect(jsonPath("$.data.type").value("SYSTEM"));
-
-            verify(getRoleUseCase).execute(any(GetRoleQuery.class));
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /api/v1/roles - 역할 목록 검색")
-    class SearchRolesTest {
-
-        @Test
-        @DisplayName("[성공] 필터 없이 전체 역할 목록 조회")
-        void searchRoles_withoutFilters_returnsAll() throws Exception {
-            // Given
-            UUID roleId1 = UUID.randomUUID();
-            UUID roleId2 = UUID.randomUUID();
-            UUID tenantId = UUID.randomUUID();
-            Instant now = Instant.now();
-            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
-            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
-
-            List<RoleResponse> useCaseResponses =
-                    List.of(
-                            new RoleResponse(
-                                    roleId1,
-                                    tenantId,
-                                    "Role1",
-                                    "Description1",
-                                    "TENANT",
-                                    "CUSTOM",
-                                    now,
-                                    now),
-                            new RoleResponse(
-                                    roleId2,
-                                    null,
-                                    "Role2",
-                                    "Description2",
-                                    "GLOBAL",
-                                    "SYSTEM",
-                                    now,
-                                    now));
-            PageResponse<RoleResponse> pageResponse =
-                    PageResponse.of(useCaseResponses, 0, 20, 2L, 1, true, true);
-
-            List<RoleApiResponse> apiResponses =
-                    List.of(
-                            new RoleApiResponse(
-                                    roleId1.toString(),
-                                    tenantId.toString(),
-                                    "Role1",
-                                    "Description1",
-                                    "TENANT",
-                                    "CUSTOM",
-                                    now,
-                                    now),
-                            new RoleApiResponse(
-                                    roleId2.toString(),
-                                    null,
-                                    "Role2",
-                                    "Description2",
-                                    "GLOBAL",
-                                    "SYSTEM",
-                                    now,
-                                    now));
-
-            given(mapper.toQuery(any()))
-                    .willReturn(
-                            SearchRolesQuery.of(
-                                    null, null, null, null, createdFrom, createdTo, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
-            given(mapper.toApiResponse(any(RoleResponse.class)))
-                    .willReturn(apiResponses.get(0), apiResponses.get(1));
-
-            // When & Then
+            // when & then
             mockMvc.perform(
-                            get("/api/v1/auth/roles")
-                                    .param("tenantId", tenantId.toString())
-                                    .param("createdFrom", createdFrom.toString())
-                                    .param("createdTo", createdTo.toString()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content.length()").value(2))
-                    .andExpect(jsonPath("$.data.content[0].roleId").value(roleId1.toString()))
-                    .andExpect(jsonPath("$.data.content[1].roleId").value(roleId2.toString()))
-                    .andExpect(jsonPath("$.data.page").value(0))
-                    .andExpect(jsonPath("$.data.size").value(20))
-                    .andExpect(jsonPath("$.data.totalElements").value(2));
-
-            verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
-        }
-
-        @Test
-        @DisplayName("[성공] 테넌트 ID로 필터링")
-        void searchRoles_withTenantIdFilter_returnsFiltered() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-            UUID tenantId = UUID.randomUUID();
-            Instant now = Instant.now();
-            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
-            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
-
-            List<RoleResponse> useCaseResponses =
-                    List.of(
-                            new RoleResponse(
-                                    roleId,
-                                    tenantId,
-                                    "TenantRole",
-                                    "Description",
-                                    "TENANT",
-                                    "CUSTOM",
-                                    now,
-                                    now));
-            PageResponse<RoleResponse> pageResponse =
-                    PageResponse.of(useCaseResponses, 0, 20, 1L, 1, true, true);
-
-            RoleApiResponse apiResponse =
-                    new RoleApiResponse(
-                            roleId.toString(),
-                            tenantId.toString(),
-                            "TenantRole",
-                            "Description",
-                            "TENANT",
-                            "CUSTOM",
-                            now,
-                            now);
-
-            given(mapper.toQuery(any()))
-                    .willReturn(
-                            SearchRolesQuery.of(
-                                    tenantId, null, null, null, createdFrom, createdTo, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
-            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/roles")
-                                    .param("tenantId", tenantId.toString())
-                                    .param("createdFrom", createdFrom.toString())
-                                    .param("createdTo", createdTo.toString()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content.length()").value(1))
-                    .andExpect(jsonPath("$.data.content[0].tenantId").value(tenantId.toString()));
-
-            verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
-        }
-
-        @Test
-        @DisplayName("[성공] 이름으로 필터링")
-        void searchRoles_withNameFilter_returnsFiltered() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-            UUID tenantId = UUID.randomUUID();
-            Instant now = Instant.now();
-            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
-            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
-
-            List<RoleResponse> useCaseResponses =
-                    List.of(
-                            new RoleResponse(
-                                    roleId,
-                                    tenantId,
-                                    "AdminRole",
-                                    "Admin role",
-                                    "TENANT",
-                                    "CUSTOM",
-                                    now,
-                                    now));
-            PageResponse<RoleResponse> pageResponse =
-                    PageResponse.of(useCaseResponses, 0, 20, 1L, 1, true, true);
-
-            RoleApiResponse apiResponse =
-                    new RoleApiResponse(
-                            roleId.toString(),
-                            tenantId.toString(),
-                            "AdminRole",
-                            "Admin role",
-                            "TENANT",
-                            "CUSTOM",
-                            now,
-                            now);
-
-            given(mapper.toQuery(any()))
-                    .willReturn(
-                            SearchRolesQuery.of(
-                                    null, "Admin", null, null, createdFrom, createdTo, 0, 20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
-            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/roles")
-                                    .param("tenantId", tenantId.toString())
-                                    .param("name", "Admin")
-                                    .param("createdFrom", createdFrom.toString())
-                                    .param("createdTo", createdTo.toString()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content.length()").value(1))
-                    .andExpect(jsonPath("$.data.content[0].name").value("AdminRole"));
-
-            verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
-        }
-
-        @Test
-        @DisplayName("[성공] 범위(scope)로 필터링")
-        void searchRoles_withScopeFilter_returnsFiltered() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-            UUID tenantId = UUID.randomUUID();
-            Instant now = Instant.now();
-            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
-            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
-
-            List<RoleResponse> useCaseResponses =
-                    List.of(
-                            new RoleResponse(
-                                    roleId,
-                                    null,
-                                    "GlobalRole",
-                                    "Global role",
-                                    "GLOBAL",
-                                    "SYSTEM",
-                                    now,
-                                    now));
-            PageResponse<RoleResponse> pageResponse =
-                    PageResponse.of(useCaseResponses, 0, 20, 1L, 1, true, true);
-
-            RoleApiResponse apiResponse =
-                    new RoleApiResponse(
-                            roleId.toString(),
-                            null,
-                            "GlobalRole",
-                            "Global role",
-                            "GLOBAL",
-                            "SYSTEM",
-                            now,
-                            now);
-
-            given(mapper.toQuery(any()))
-                    .willReturn(
-                            SearchRolesQuery.of(
-                                    null,
-                                    null,
-                                    List.of("GLOBAL"),
-                                    null,
-                                    createdFrom,
-                                    createdTo,
-                                    0,
-                                    20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
-            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/roles")
-                                    .param("tenantId", tenantId.toString())
-                                    .param("scopes", "GLOBAL")
-                                    .param("createdFrom", createdFrom.toString())
-                                    .param("createdTo", createdTo.toString()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content[0].scope").value("GLOBAL"));
-
-            verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
-        }
-
-        @Test
-        @DisplayName("[성공] 타입(type)으로 필터링")
-        void searchRoles_withTypeFilter_returnsFiltered() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-            UUID tenantId = UUID.randomUUID();
-            Instant now = Instant.now();
-            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
-            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
-
-            List<RoleResponse> useCaseResponses =
-                    List.of(
-                            new RoleResponse(
-                                    roleId,
-                                    null,
-                                    "SystemRole",
-                                    "System role",
-                                    "GLOBAL",
-                                    "SYSTEM",
-                                    now,
-                                    now));
-            PageResponse<RoleResponse> pageResponse =
-                    PageResponse.of(useCaseResponses, 0, 20, 1L, 1, true, true);
-
-            RoleApiResponse apiResponse =
-                    new RoleApiResponse(
-                            roleId.toString(),
-                            null,
-                            "SystemRole",
-                            "System role",
-                            "GLOBAL",
-                            "SYSTEM",
-                            now,
-                            now);
-
-            given(mapper.toQuery(any()))
-                    .willReturn(
-                            SearchRolesQuery.of(
-                                    null,
-                                    null,
-                                    null,
-                                    List.of("SYSTEM"),
-                                    createdFrom,
-                                    createdTo,
-                                    0,
-                                    20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class))).willReturn(pageResponse);
-            given(mapper.toApiResponse(any(RoleResponse.class))).willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/roles")
-                                    .param("tenantId", tenantId.toString())
-                                    .param("types", "SYSTEM")
-                                    .param("createdFrom", createdFrom.toString())
-                                    .param("createdTo", createdTo.toString()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content[0].type").value("SYSTEM"));
-
-            verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
-        }
-
-        @Test
-        @DisplayName("[성공] 페이징 파라미터 지원")
-        void searchRoles_withPagination_returnsPaged() throws Exception {
-            // Given
-            UUID tenantId = UUID.randomUUID();
-            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
-            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
-
-            PageResponse<RoleResponse> emptyPageResponse =
-                    PageResponse.of(List.of(), 1, 10, 0L, 0, false, true);
-
-            given(mapper.toQuery(any()))
-                    .willReturn(
-                            SearchRolesQuery.of(
-                                    tenantId, null, null, null, createdFrom, createdTo, 1, 10));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
-                    .willReturn(emptyPageResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/roles")
-                                    .param("tenantId", tenantId.toString())
-                                    .param("page", "1")
-                                    .param("size", "10")
-                                    .param("createdFrom", createdFrom.toString())
-                                    .param("createdTo", createdTo.toString()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.page").value(1))
-                    .andExpect(jsonPath("$.data.size").value(10));
-
-            verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
-        }
-
-        @Test
-        @DisplayName("[성공] 결과가 없으면 빈 배열 반환")
-        void searchRoles_withNoResults_returnsEmptyArray() throws Exception {
-            // Given
-            UUID tenantId = UUID.randomUUID();
-            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
-            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
-
-            PageResponse<RoleResponse> emptyPageResponse =
-                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
-
-            given(mapper.toQuery(any()))
-                    .willReturn(
-                            SearchRolesQuery.of(
-                                    tenantId,
-                                    "nonexistent",
-                                    null,
-                                    null,
-                                    createdFrom,
-                                    createdTo,
-                                    0,
-                                    20));
-            given(searchRolesUseCase.execute(any(SearchRolesQuery.class)))
-                    .willReturn(emptyPageResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/roles")
-                                    .param("tenantId", tenantId.toString())
-                                    .param("name", "nonexistent")
-                                    .param("createdFrom", createdFrom.toString())
-                                    .param("createdTo", createdTo.toString()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content").isEmpty())
-                    .andExpect(jsonPath("$.data.totalElements").value(0));
-
-            verify(searchRolesUseCase).execute(any(SearchRolesQuery.class));
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /api/v1/roles/{roleId}/users - 역할별 사용자 목록 조회")
-    class GetRoleUsersTest {
-
-        @Test
-        @DisplayName("[성공] 유효한 역할 ID로 사용자 목록 조회 시 200 OK 반환")
-        void getRoleUsers_withValidRoleId_returns200Ok() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-            UUID userId = UUID.randomUUID();
-            UUID tenantId = UUID.randomUUID();
-            UUID organizationId = UUID.randomUUID();
-            Instant now = Instant.now();
-
-            RoleUserResponse useCaseResponse =
-                    new RoleUserResponse(
-                            userId.toString(),
-                            "user@example.com",
-                            tenantId.toString(),
-                            organizationId.toString(),
-                            now);
-            PageResponse<RoleUserResponse> pageResponse =
-                    PageResponse.of(List.of(useCaseResponse), 0, 20, 1L, 1, true, true);
-
-            RoleUserApiResponse apiResponse =
-                    new RoleUserApiResponse(
-                            userId.toString(),
-                            "user@example.com",
-                            tenantId.toString(),
-                            organizationId.toString(),
-                            now);
-            PageResponse<RoleUserApiResponse> apiPageResponse =
-                    PageResponse.of(List.of(apiResponse), 0, 20, 1L, 1, true, true);
-
-            given(searchRoleUsersUseCase.execute(any())).willReturn(pageResponse);
-            given(mapper.toRoleUserApiPageResponse(any())).willReturn(apiPageResponse);
-
-            // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles/{roleId}/users", roleId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content[0].userId").value(userId.toString()))
-                    .andExpect(jsonPath("$.data.content[0].email").value("user@example.com"))
-                    .andExpect(jsonPath("$.data.page").value(0))
-                    .andExpect(jsonPath("$.data.size").value(20))
-                    .andExpect(jsonPath("$.data.totalElements").value(1));
-
-            verify(searchRoleUsersUseCase).execute(any());
-        }
-
-        @Test
-        @DisplayName("[성공] 빈 사용자 목록 조회 시 빈 배열 반환")
-        void getRoleUsers_withNoUsers_returnsEmptyArray() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-
-            PageResponse<RoleUserResponse> emptyPageResponse =
-                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
-            PageResponse<RoleUserApiResponse> emptyApiPageResponse =
-                    PageResponse.of(List.of(), 0, 20, 0L, 0, true, true);
-
-            given(searchRoleUsersUseCase.execute(any())).willReturn(emptyPageResponse);
-            given(mapper.toRoleUserApiPageResponse(any())).willReturn(emptyApiPageResponse);
-
-            // When & Then
-            mockMvc.perform(get("/api/v1/auth/roles/{roleId}/users", roleId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content").isEmpty())
-                    .andExpect(jsonPath("$.data.totalElements").value(0));
-
-            verify(searchRoleUsersUseCase).execute(any());
-        }
-
-        @Test
-        @DisplayName("[성공] 페이지네이션 파라미터로 조회 시 200 OK 반환")
-        void getRoleUsers_withPagination_returns200Ok() throws Exception {
-            // Given
-            UUID roleId = UUID.randomUUID();
-            UUID userId = UUID.randomUUID();
-            UUID tenantId = UUID.randomUUID();
-            Instant now = Instant.now();
-
-            RoleUserResponse useCaseResponse =
-                    new RoleUserResponse(
-                            userId.toString(), "user@example.com", tenantId.toString(), null, now);
-            PageResponse<RoleUserResponse> pageResponse =
-                    PageResponse.of(List.of(useCaseResponse), 1, 10, 25L, 3, false, false);
-
-            RoleUserApiResponse apiResponse =
-                    new RoleUserApiResponse(
-                            userId.toString(), "user@example.com", tenantId.toString(), null, now);
-            PageResponse<RoleUserApiResponse> apiPageResponse =
-                    PageResponse.of(List.of(apiResponse), 1, 10, 25L, 3, false, false);
-
-            given(searchRoleUsersUseCase.execute(any())).willReturn(pageResponse);
-            given(mapper.toRoleUserApiPageResponse(any())).willReturn(apiPageResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/roles/{roleId}/users", roleId)
-                                    .param("page", "1")
+                            get(RoleApiEndpoints.ROLES)
+                                    .param("tenantId", RoleApiFixture.defaultTenantId())
+                                    .param("searchWord", "USER")
+                                    .param("searchField", "NAME")
+                                    .param("types", "CUSTOM")
+                                    .param("startDate", "2024-01-01")
+                                    .param("endDate", "2024-12-31")
+                                    .param("page", "0")
                                     .param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.page").value(1))
-                    .andExpect(jsonPath("$.data.size").value(10))
-                    .andExpect(jsonPath("$.data.totalElements").value(25))
-                    .andExpect(jsonPath("$.data.totalPages").value(3))
-                    .andExpect(jsonPath("$.data.first").value(false))
-                    .andExpect(jsonPath("$.data.last").value(false));
+                    .andExpect(jsonPath("$.data.content").isArray());
+        }
 
-            verify(searchRoleUsersUseCase).execute(any());
+        @Test
+        @DisplayName("페이지 크기가 최대값을 초과하면 400 Bad Request")
+        void shouldFailWhenSizeExceedsMax() throws Exception {
+            // when & then
+            mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "0").param("size", "101"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("페이지 번호가 음수이면 400 Bad Request")
+        void shouldFailWhenPageIsNegative() throws Exception {
+            // when & then
+            mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "-1").param("size", "20"))
+                    .andExpect(status().isBadRequest());
         }
     }
 }

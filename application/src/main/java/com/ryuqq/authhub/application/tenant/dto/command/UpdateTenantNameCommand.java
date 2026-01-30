@@ -1,7 +1,5 @@
 package com.ryuqq.authhub.application.tenant.dto.command;
 
-import java.util.UUID;
-
 /**
  * UpdateTenantNameCommand - 테넌트 이름 변경 Command DTO
  *
@@ -18,4 +16,4 @@ import java.util.UUID;
  * @author development-team
  * @since 1.0.0
  */
-public record UpdateTenantNameCommand(UUID tenantId, String name) {}
+public record UpdateTenantNameCommand(String tenantId, String name) {}

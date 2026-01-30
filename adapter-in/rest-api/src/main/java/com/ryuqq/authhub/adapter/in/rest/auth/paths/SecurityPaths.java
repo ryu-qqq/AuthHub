@@ -1,5 +1,8 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.paths;
 
+import com.ryuqq.authhub.adapter.in.rest.common.ApiVersionPaths;
+import com.ryuqq.authhub.adapter.in.rest.internal.InternalApiEndpoints;
+import com.ryuqq.authhub.adapter.in.rest.token.TokenApiEndpoints;
 import java.util.List;
 
 /**
@@ -40,18 +43,18 @@ public final class SecurityPaths {
         /** Public 경로 목록 */
         public static final List<String> PATTERNS =
                 List.of(
-                        // 인증 API
-                        ApiPaths.Auth.BASE + ApiPaths.Auth.LOGIN,
-                        ApiPaths.Auth.BASE + ApiPaths.Auth.REFRESH,
-                        ApiPaths.Auth.BASE + ApiPaths.Auth.JWKS,
+                        // 인증 API (TokenApiEndpoints 참조)
+                        TokenApiEndpoints.BASE + TokenApiEndpoints.LOGIN,
+                        TokenApiEndpoints.BASE + TokenApiEndpoints.REFRESH,
+                        TokenApiEndpoints.BASE + TokenApiEndpoints.JWKS,
 
                         // OAuth2
-                        ApiPaths.OAuth2.BASE,
-                        ApiPaths.OAuth2.LOGIN,
+                        ApiVersionPaths.OAuth2.BASE,
+                        ApiVersionPaths.OAuth2.LOGIN,
 
                         // 헬스체크
-                        ApiPaths.Actuator.BASE + "/**",
-                        ApiPaths.Health.CHECK);
+                        ApiVersionPaths.ACTUATOR_BASE + "/**",
+                        ApiVersionPaths.HEALTH);
 
         private Public() {}
     }
@@ -67,19 +70,32 @@ public final class SecurityPaths {
         public static final List<String> PATTERNS =
                 List.of(
                         // Gateway 라우팅용 경로 (서비스별 prefix)
-                        ApiPaths.OpenApi.SWAGGER_REDIRECT,
-                        ApiPaths.OpenApi.SWAGGER_UI,
-                        ApiPaths.OpenApi.SWAGGER_UI_HTML,
-                        ApiPaths.OpenApi.DOCS,
+                        ApiVersionPaths.OpenApi.SWAGGER_REDIRECT,
+                        ApiVersionPaths.OpenApi.SWAGGER_UI,
+                        ApiVersionPaths.OpenApi.SWAGGER_UI_HTML,
+                        ApiVersionPaths.OpenApi.DOCS,
                         // SpringDoc 기본 경로 (로컬 개발용)
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
                         // REST Docs
-                        ApiPaths.Docs.BASE,
-                        ApiPaths.Docs.ALL);
+                        ApiVersionPaths.Docs.BASE,
+                        ApiVersionPaths.Docs.ALL);
 
         private Docs() {}
+    }
+
+    /**
+     * Internal API 경로
+     *
+     * <p>서비스 토큰 인증으로 보호되는 내부 서비스 간 통신 경로입니다.
+     */
+    public static final class Internal {
+
+        /** Internal API 경로 목록 */
+        public static final List<String> PATTERNS = List.of(InternalApiEndpoints.BASE + "/**");
+
+        private Internal() {}
     }
 
     /**
@@ -106,9 +122,6 @@ public final class SecurityPaths {
 
         /** 추적 ID 헤더 - 분산 추적용 */
         public static final String TRACE_ID = "X-Trace-Id";
-
-        /** 서비스 토큰 헤더 - Internal API 인증용 */
-        public static final String SERVICE_TOKEN = "X-Service-Token";
 
         private Headers() {}
     }
