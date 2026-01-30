@@ -19,6 +19,7 @@ package com.ryuqq.authhub.adapter.in.rest.common;
  * @author development-team
  * @since 1.0.0
  */
+@SuppressWarnings("PMD.DataClass")
 public final class ApiVersionPaths {
 
     /** API 버전 */
@@ -36,6 +37,7 @@ public final class ApiVersionPaths {
     private ApiVersionPaths() {}
 
     /** OpenAPI (Swagger) 문서 경로 */
+    @SuppressWarnings("PMD.DataClass")
     public static final class OpenApi {
         public static final String DOCS = AUTH_SERVICE_BASE + "/api-docs/**";
         public static final String SWAGGER_UI = AUTH_SERVICE_BASE + "/swagger-ui/**";

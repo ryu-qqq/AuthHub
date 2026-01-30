@@ -51,6 +51,7 @@ import java.util.Objects;
  * @author development-team
  * @since 1.0.0
  */
+@SuppressWarnings("PMD.GodClass")
 public final class Permission {
 
     private final PermissionId permissionId;

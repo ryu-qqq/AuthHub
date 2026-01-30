@@ -41,6 +41,7 @@ import java.util.Objects;
  * @author development-team
  * @since 1.0.0
  */
+@SuppressWarnings("PMD.GodClass")
 public final class PermissionEndpoint {
 
     private final PermissionEndpointId permissionEndpointId;
@@ -337,11 +338,10 @@ public final class PermissionEndpoint {
 
     private boolean matchesUrlPattern(String requestUrl) {
         String pattern = this.urlPattern;
-        String regex =
-                pattern.replaceAll("\\{[^}]+\\}", "[^/]+")
-                        .replace("**", "\0")
-                        .replace("*", "[^/]*")
-                        .replace("\0", ".*");
+        String withPathVariables = pattern.replaceAll("\\{[^}]+\\}", "[^/]+");
+        String withDoubleWildcardPlaceholder = withPathVariables.replace("**", "\0");
+        String withSingleWildcard = withDoubleWildcardPlaceholder.replace("*", "[^/]*");
+        String regex = withSingleWildcard.replace("\0", ".*");
         return requestUrl.matches("^" + regex + "$");
     }
 
