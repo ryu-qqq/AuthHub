@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.repository;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
-import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -12,8 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * <p><strong>UUIDv7 PK 전략:</strong>
  *
  * <ul>
- *   <li>userId(UUID)를 PK로 사용
- *   <li>findById()로 UUID 직접 조회 가능
+ *   <li>userId(String)를 PK로 사용
+ *   <li>findById()로 String ID 직접 조회 가능
  * </ul>
  *
  * <p><strong>책임:</strong>
@@ -21,8 +20,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * <ul>
  *   <li>save() - 사용자 저장/수정
  *   <li>delete() - 사용자 삭제
- *   <li>deleteById() - UUID로 삭제
- *   <li>findById() - UUID로 사용자 조회
+ *   <li>deleteById() - ID로 삭제
+ *   <li>findById() - ID로 사용자 조회
  * </ul>
  *
  * <p><strong>CQRS 패턴:</strong>
@@ -35,4 +34,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author development-team
  * @since 1.0.0
  */
-public interface UserJpaRepository extends JpaRepository<UserJpaEntity, UUID> {}
+public interface UserJpaRepository extends JpaRepository<UserJpaEntity, String> {}

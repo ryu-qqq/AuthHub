@@ -4,17 +4,12 @@ import static com.ryuqq.authhub.adapter.out.persistence.tenant.entity.QTenantJpa
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.ryuqq.authhub.adapter.out.persistence.tenant.condition.TenantConditionBuilder;
 import com.ryuqq.authhub.adapter.out.persistence.tenant.entity.TenantJpaEntity;
-import com.ryuqq.authhub.domain.common.vo.SearchType;
-import com.ryuqq.authhub.domain.common.vo.SortDirection;
-import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
-import com.ryuqq.authhub.domain.tenant.vo.TenantSortKey;
-import java.time.LocalDateTime;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantSearchCriteria;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -25,10 +20,10 @@ import org.springframework.stereotype.Repository;
  * <p><strong>책임:</strong>
  *
  * <ul>
- *   <li>findById() - ID로 단건 조회
- *   <li>findByName() - 이름으로 단건 조회
+ *   <li>findByTenantId() - ID로 단건 조회
  *   <li>existsByName() - 이름 존재 여부 확인
- *   <li>findByCriteria() - 조건 검색
+ *   <li>findAllByCriteria() - 조건 검색
+ *   <li>countByCriteria() - 조건 검색 개수
  * </ul>
  *
  * <p><strong>CQRS 패턴:</strong>
@@ -44,6 +39,7 @@ import org.springframework.stereotype.Repository;
  *   <li>Entity 반환 (Domain 변환은 Adapter에서)
  *   <li>Join 금지 (N+1 해결은 Application Layer에서)
  *   <li>비즈니스 로직 금지
+ *   <li>ConditionBuilder를 사용하여 조건 생성
  * </ul>
  *
  * @author development-team
@@ -53,37 +49,25 @@ import org.springframework.stereotype.Repository;
 public class TenantQueryDslRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final TenantConditionBuilder conditionBuilder;
 
-    public TenantQueryDslRepository(JPAQueryFactory queryFactory) {
+    public TenantQueryDslRepository(
+            JPAQueryFactory queryFactory, TenantConditionBuilder conditionBuilder) {
         this.queryFactory = queryFactory;
+        this.conditionBuilder = conditionBuilder;
     }
 
     /**
-     * UUID로 테넌트 단건 조회
+     * 테넌트 ID로 단건 조회
      *
-     * @param tenantId 테넌트 UUID
+     * @param tenantId 테넌트 ID (String)
      * @return Optional<TenantJpaEntity>
      */
-    public Optional<TenantJpaEntity> findByTenantId(UUID tenantId) {
+    public Optional<TenantJpaEntity> findByTenantId(String tenantId) {
         TenantJpaEntity result =
                 queryFactory
                         .selectFrom(tenantJpaEntity)
-                        .where(tenantJpaEntity.tenantId.eq(tenantId))
-                        .fetchOne();
-        return Optional.ofNullable(result);
-    }
-
-    /**
-     * 이름으로 테넌트 단건 조회
-     *
-     * @param name 테넌트 이름
-     * @return Optional<TenantJpaEntity>
-     */
-    public Optional<TenantJpaEntity> findByName(String name) {
-        TenantJpaEntity result =
-                queryFactory
-                        .selectFrom(tenantJpaEntity)
-                        .where(tenantJpaEntity.name.eq(name))
+                        .where(conditionBuilder.tenantIdEquals(tenantId))
                         .fetchOne();
         return Optional.ofNullable(result);
     }
@@ -99,23 +83,44 @@ public class TenantQueryDslRepository {
                 queryFactory
                         .selectOne()
                         .from(tenantJpaEntity)
-                        .where(tenantJpaEntity.name.eq(name))
+                        .where(conditionBuilder.nameEquals(name))
                         .fetchFirst();
         return result != null;
     }
 
     /**
-     * UUID 존재 여부 확인
+     * 테넌트 ID 존재 여부 확인
      *
-     * @param tenantId 테넌트 UUID
+     * @param tenantId 테넌트 ID (String)
      * @return 존재 여부
      */
-    public boolean existsByTenantId(UUID tenantId) {
+    public boolean existsByTenantId(String tenantId) {
         Integer result =
                 queryFactory
                         .selectOne()
                         .from(tenantJpaEntity)
-                        .where(tenantJpaEntity.tenantId.eq(tenantId))
+                        .where(conditionBuilder.tenantIdEquals(tenantId))
+                        .fetchFirst();
+        return result != null;
+    }
+
+    /**
+     * 이름 존재 여부 확인 (특정 ID 제외)
+     *
+     * <p>이름 중복 검증 시 자기 자신은 제외합니다.
+     *
+     * @param name 테넌트 이름
+     * @param excludeId 제외할 테넌트 ID (String)
+     * @return 존재 여부
+     */
+    public boolean existsByNameAndIdNot(String name, String excludeId) {
+        Integer result =
+                queryFactory
+                        .selectOne()
+                        .from(tenantJpaEntity)
+                        .where(
+                                conditionBuilder.nameEquals(name),
+                                conditionBuilder.tenantIdNotEquals(excludeId))
                         .fetchFirst();
         return result != null;
     }
@@ -123,15 +128,15 @@ public class TenantQueryDslRepository {
     /**
      * 조건에 맞는 테넌트 목록 조회 (페이징)
      *
-     * @param criteria 검색 조건 (TenantCriteria)
+     * @param criteria 검색 조건 (TenantSearchCriteria)
      * @return TenantJpaEntity 목록
      */
-    public List<TenantJpaEntity> findAllByCriteria(TenantCriteria criteria) {
-        BooleanBuilder condition = buildCondition(criteria);
-        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(criteria);
+    public List<TenantJpaEntity> findAllByCriteria(TenantSearchCriteria criteria) {
+        BooleanBuilder condition = conditionBuilder.buildCondition(criteria);
+        OrderSpecifier<?> orderSpecifier = conditionBuilder.buildOrderSpecifier(criteria);
 
-        int offset = criteria.page().page() * criteria.page().size();
-        int limit = criteria.page().size();
+        long offset = criteria.offset();
+        int limit = criteria.size();
 
         return queryFactory
                 .selectFrom(tenantJpaEntity)
@@ -145,11 +150,11 @@ public class TenantQueryDslRepository {
     /**
      * 조건에 맞는 테넌트 개수 조회
      *
-     * @param criteria 검색 조건 (TenantCriteria)
+     * @param criteria 검색 조건 (TenantSearchCriteria)
      * @return 조건에 맞는 테넌트 총 개수
      */
-    public long countByCriteria(TenantCriteria criteria) {
-        BooleanBuilder condition = buildCondition(criteria);
+    public long countByCriteria(TenantSearchCriteria criteria) {
+        BooleanBuilder condition = conditionBuilder.buildCondition(criteria);
 
         Long count =
                 queryFactory
@@ -158,80 +163,5 @@ public class TenantQueryDslRepository {
                         .where(condition)
                         .fetchOne();
         return count != null ? count : 0L;
-    }
-
-    /**
-     * 검색 조건 빌더 생성
-     *
-     * @param criteria 검색 조건
-     * @return BooleanBuilder
-     */
-    private BooleanBuilder buildCondition(TenantCriteria criteria) {
-        BooleanBuilder builder = new BooleanBuilder();
-
-        // 이름 검색 (SearchType에 따라)
-        if (criteria.name() != null && !criteria.name().isBlank()) {
-            SearchType searchType =
-                    criteria.nameSearchType() != null
-                            ? criteria.nameSearchType()
-                            : SearchType.CONTAINS_LIKE;
-            builder.and(applyNameSearch(criteria.name(), searchType));
-        }
-
-        // 다중 상태 필터
-        if (criteria.statuses() != null && !criteria.statuses().isEmpty()) {
-            builder.and(tenantJpaEntity.status.in(criteria.statuses()));
-        }
-
-        // 날짜 범위 필터
-        if (criteria.dateRange() != null) {
-            if (criteria.dateRange().startDate() != null) {
-                LocalDateTime fromDateTime = criteria.dateRange().startDate().atStartOfDay();
-                builder.and(tenantJpaEntity.createdAt.goe(fromDateTime));
-            }
-            if (criteria.dateRange().endDate() != null) {
-                LocalDateTime toDateTime = criteria.dateRange().endDate().atTime(23, 59, 59);
-                builder.and(tenantJpaEntity.createdAt.loe(toDateTime));
-            }
-        }
-
-        return builder;
-    }
-
-    /**
-     * SearchType에 따른 이름 검색 조건 생성
-     *
-     * @param name 검색 이름
-     * @param searchType 검색 타입
-     * @return BooleanExpression
-     */
-    private BooleanExpression applyNameSearch(String name, SearchType searchType) {
-        return switch (searchType) {
-            case PREFIX_LIKE -> tenantJpaEntity.name.startsWithIgnoreCase(name);
-            case CONTAINS_LIKE -> tenantJpaEntity.name.containsIgnoreCase(name);
-            case MATCH_AGAINST ->
-                    tenantJpaEntity.name.containsIgnoreCase(name); // Fallback, 실제 구현은 NativeQuery
-        };
-    }
-
-    /**
-     * 정렬 조건 빌더 생성
-     *
-     * @param criteria 검색 조건
-     * @return OrderSpecifier
-     */
-    private OrderSpecifier<?> buildOrderSpecifier(TenantCriteria criteria) {
-        TenantSortKey sortKey =
-                criteria.sortKey() != null ? criteria.sortKey() : TenantSortKey.CREATED_AT;
-        boolean isAsc = criteria.sortDirection() == SortDirection.ASC;
-
-        return switch (sortKey) {
-            case NAME -> isAsc ? tenantJpaEntity.name.asc() : tenantJpaEntity.name.desc();
-            case STATUS -> isAsc ? tenantJpaEntity.status.asc() : tenantJpaEntity.status.desc();
-            case UPDATED_AT ->
-                    isAsc ? tenantJpaEntity.updatedAt.asc() : tenantJpaEntity.updatedAt.desc();
-            case CREATED_AT ->
-                    isAsc ? tenantJpaEntity.createdAt.asc() : tenantJpaEntity.createdAt.desc();
-        };
     }
 }

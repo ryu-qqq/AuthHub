@@ -1,0 +1,23 @@
+	TenantCommandApiMapper.java	59.52%	🍏
+DateTimeFormatUtils.java	57.14%	🍏
+SecurityContextHolder.java	43.75%	🍏
+SecurityContext.java	23.98%	🍏
+GlobalExceptionHandler.java	20.36%	🍏
+ErrorMapperRegistry.java	19.44%	🍏
+GatewayAuthenticationFilter.java	4.38%	🍏
+GatewayHeaderExtractor.java	0%	🍏
+RoleErrorMapper.java	0%	🍏
+ApiDocsController.java	0%	🍏
+OrganizationErrorMapper.java	0%	🍏
+RolePermissionErrorMapper.java	0%	🍏
+SecurityExceptionHandler.java	0%	🍏
+SliceApiResponse.java	0%	🍏
+ErrorMapper.java	0%	🍏
+UserErrorMapper.java	0%	🍏
+SecurityPaths.java	0%	🍏
+SecurityConfig.java	0%	🍏
+TenantErrorMapper.java	0%	🍏
+UserRoleErrorMapper.java	0%	🍏
+PermissionEndpointErrorMapper.java	0%	🍏
+PermissionErrorMapper.java	0%	🍏
+AuthErrorMapper.java	0%	🍏

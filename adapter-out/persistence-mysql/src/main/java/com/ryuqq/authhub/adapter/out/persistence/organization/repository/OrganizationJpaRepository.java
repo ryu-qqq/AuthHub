@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.adapter.out.persistence.organization.repository;
 
 import com.ryuqq.authhub.adapter.out.persistence.organization.entity.OrganizationJpaEntity;
-import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -35,4 +34,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author development-team
  * @since 1.0.0
  */
-public interface OrganizationJpaRepository extends JpaRepository<OrganizationJpaEntity, UUID> {}
+public interface OrganizationJpaRepository extends JpaRepository<OrganizationJpaEntity, String> {}

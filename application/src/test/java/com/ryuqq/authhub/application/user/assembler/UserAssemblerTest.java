@@ -2,10 +2,11 @@ package com.ryuqq.authhub.application.user.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ryuqq.authhub.application.user.dto.response.UserResponse;
+import com.ryuqq.authhub.application.user.dto.response.UserPageResult;
+import com.ryuqq.authhub.application.user.dto.response.UserResult;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
-import com.ryuqq.authhub.domain.user.vo.UserStatus;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,93 +24,91 @@ import org.junit.jupiter.api.Test;
 @DisplayName("UserAssembler 단위 테스트")
 class UserAssemblerTest {
 
-    private UserAssembler assembler;
+    private UserAssembler sut;
 
     @BeforeEach
     void setUp() {
-        assembler = new UserAssembler();
+        sut = new UserAssembler();
     }
 
     @Nested
-    @DisplayName("toResponse 메서드")
-    class ToResponseTest {
+    @DisplayName("toResult 메서드")
+    class ToResult {
 
         @Test
-        @DisplayName("User를 UserResponse로 변환한다")
-        void shouldConvertToResponse() {
+        @DisplayName("성공: Domain의 모든 필드가 Result로 올바르게 매핑됨")
+        void shouldMapAllFields_FromDomainToResult() {
             // given
             User user = UserFixture.create();
 
             // when
-            UserResponse result = assembler.toResponse(user);
+            UserResult result = sut.toResult(user);
 
             // then
-            assertThat(result).isNotNull();
             assertThat(result.userId()).isEqualTo(user.userIdValue());
-            assertThat(result.tenantId()).isEqualTo(user.tenantIdValue());
             assertThat(result.organizationId()).isEqualTo(user.organizationIdValue());
-            assertThat(result.identifier()).isEqualTo(user.getIdentifier());
-            assertThat(result.status()).isEqualTo(user.getUserStatus().name());
-            assertThat(result.createdAt()).isEqualTo(user.getCreatedAt());
-            assertThat(result.updatedAt()).isEqualTo(user.getUpdatedAt());
-        }
-
-        @Test
-        @DisplayName("비활성 사용자를 UserResponse로 변환한다")
-        void shouldConvertInactiveUserToResponse() {
-            // given
-            User inactiveUser = UserFixture.createWithStatus(UserStatus.INACTIVE);
-
-            // when
-            UserResponse result = assembler.toResponse(inactiveUser);
-
-            // then
-            assertThat(result.status()).isEqualTo("INACTIVE");
-        }
-
-        @Test
-        @DisplayName("다양한 상태의 사용자를 올바르게 변환한다")
-        void shouldConvertUserWithVariousStatus() {
-            // given
-            User lockedUser = UserFixture.createWithStatus(UserStatus.LOCKED);
-
-            // when
-            UserResponse result = assembler.toResponse(lockedUser);
-
-            // then
-            assertThat(result.status()).isEqualTo("LOCKED");
+            assertThat(result.identifier()).isEqualTo(user.identifierValue());
+            assertThat(result.phoneNumber()).isEqualTo(user.phoneNumberValue());
+            assertThat(result.status()).isEqualTo(user.statusValue());
+            assertThat(result.createdAt()).isEqualTo(user.createdAt());
+            assertThat(result.updatedAt()).isEqualTo(user.updatedAt());
         }
     }
 
     @Nested
-    @DisplayName("toResponseList 메서드")
-    class ToResponseListTest {
+    @DisplayName("toResultList 메서드")
+    class ToResultList {
 
         @Test
-        @DisplayName("User 목록을 UserResponse 목록으로 변환한다")
-        void shouldConvertToResponseList() {
+        @DisplayName("성공: Domain 목록이 Result 목록으로 올바르게 변환됨")
+        void shouldMapAllUsers_ToResultList() {
             // given
-            User user1 = UserFixture.create();
-            User user2 = UserFixture.createWithIdentifier("another@example.com");
-            List<User> users = List.of(user1, user2);
+            User u1 = UserFixture.createWithIdentifier("user1@example.com");
+            User u2 = UserFixture.createWithIdentifier("user2@example.com");
+            List<User> users = List.of(u1, u2);
 
             // when
-            List<UserResponse> result = assembler.toResponseList(users);
+            List<UserResult> results = sut.toResultList(users);
 
             // then
-            assertThat(result).hasSize(2);
-            assertThat(result.get(0).userId()).isEqualTo(user1.userIdValue());
-            assertThat(result.get(1).identifier()).isEqualTo("another@example.com");
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0).identifier()).isEqualTo("user1@example.com");
+            assertThat(results.get(1).identifier()).isEqualTo("user2@example.com");
         }
 
         @Test
-        @DisplayName("빈 목록은 빈 목록을 반환한다")
-        void shouldReturnEmptyListForEmptyInput() {
+        @DisplayName("빈 목록 입력 시 빈 목록 반환")
+        void shouldReturnEmptyList_WhenInputIsEmpty() {
             // when
-            List<UserResponse> result = assembler.toResponseList(List.of());
+            List<UserResult> results = sut.toResultList(Collections.emptyList());
 
             // then
-            assertThat(result).isEmpty();
+            assertThat(results).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("toPageResult 메서드")
+    class ToPageResult {
+
+        @Test
+        @DisplayName("성공: Domain 목록과 페이징 정보가 PageResult로 올바르게 변환됨")
+        void shouldCreatePageResult_WithCorrectPagination() {
+            // given
+            User user = UserFixture.create();
+            List<User> users = List.of(user);
+            int page = 0;
+            int size = 10;
+            long totalElements = 25L;
+
+            // when
+            UserPageResult result = sut.toPageResult(users, page, size, totalElements);
+
+            // then
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.pageMeta().page()).isEqualTo(page);
+            assertThat(result.pageMeta().size()).isEqualTo(size);
+            assertThat(result.pageMeta().totalElements()).isEqualTo(totalElements);
         }
     }
 }

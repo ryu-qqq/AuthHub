@@ -10,8 +10,6 @@ import com.ryuqq.authhub.domain.common.vo.SortKey;
  * <p><strong>지원 정렬 필드:</strong>
  *
  * <ul>
- *   <li>{@link #NAME}: 테넌트 이름
- *   <li>{@link #STATUS}: 테넌트 상태
  *   <li>{@link #CREATED_AT}: 생성일시 (기본값)
  *   <li>{@link #UPDATED_AT}: 수정일시
  * </ul>
@@ -20,8 +18,6 @@ import com.ryuqq.authhub.domain.common.vo.SortKey;
  * @since 1.0.0
  */
 public enum TenantSortKey implements SortKey {
-    NAME("name"),
-    STATUS("status"),
     CREATED_AT("createdAt"),
     UPDATED_AT("updatedAt");
 

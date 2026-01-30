@@ -267,8 +267,8 @@ class AuthHubClientBuilderTest {
     class ClientApis {
 
         @Test
-        @DisplayName("tenants() API를 반환한다")
-        void shouldProvideTenantApi() {
+        @DisplayName("auth() API를 반환한다")
+        void shouldProvideAuthApi() {
             // given
             AuthHubClient client =
                     AuthHubClient.builder()
@@ -277,63 +277,7 @@ class AuthHubClientBuilderTest {
                             .build();
 
             // when & then
-            assertThat(client.tenants()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("organizations() API를 반환한다")
-        void shouldProvideOrganizationApi() {
-            // given
-            AuthHubClient client =
-                    AuthHubClient.builder()
-                            .baseUrl("https://authhub.example.com")
-                            .serviceToken("test-token")
-                            .build();
-
-            // when & then
-            assertThat(client.organizations()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("roles() API를 반환한다")
-        void shouldProvideRoleApi() {
-            // given
-            AuthHubClient client =
-                    AuthHubClient.builder()
-                            .baseUrl("https://authhub.example.com")
-                            .serviceToken("test-token")
-                            .build();
-
-            // when & then
-            assertThat(client.roles()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("users() API를 반환한다")
-        void shouldProvideUserApi() {
-            // given
-            AuthHubClient client =
-                    AuthHubClient.builder()
-                            .baseUrl("https://authhub.example.com")
-                            .serviceToken("test-token")
-                            .build();
-
-            // when & then
-            assertThat(client.users()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("permissions() API를 반환한다")
-        void shouldProvidePermissionApi() {
-            // given
-            AuthHubClient client =
-                    AuthHubClient.builder()
-                            .baseUrl("https://authhub.example.com")
-                            .serviceToken("test-token")
-                            .build();
-
-            // when & then
-            assertThat(client.permissions()).isNotNull();
+            assertThat(client.auth()).isNotNull();
         }
 
         @Test

@@ -1,75 +1,58 @@
 package com.ryuqq.authhub.domain.role.vo;
 
-import java.util.Objects;
-
 /**
  * RoleName - 역할 이름 Value Object
  *
- * <p>1-50자 길이의 문자열입니다. 역할 이름은 영문 대문자와 언더스코어만 허용합니다.
+ * <p>역할의 고유한 이름을 나타내는 VO입니다.
  *
- * <p>예시: SUPER_ADMIN, TENANT_ADMIN, ORG_ADMIN, USER
+ * <p><strong>명명 규칙:</strong>
  *
+ * <ul>
+ *   <li>영문 대문자, 숫자, 언더스코어만 허용
+ *   <li>예: SUPER_ADMIN, TENANT_ADMIN, USER_MANAGER
+ * </ul>
+ *
+ * @param value 역할 이름 값
  * @author development-team
  * @since 1.0.0
  */
-public final class RoleName {
+public record RoleName(String value) {
 
-    private static final int MIN_LENGTH = 1;
-    private static final int MAX_LENGTH = 50;
-    private static final String PATTERN = "^[A-Z][A-Z0-9_]*$";
+    private static final String NAME_PATTERN = "^[A-Z][A-Z0-9_]*$";
 
-    private final String value;
-
-    RoleName(String value) {
-        String normalizedValue = normalizeAndValidate(value);
-        this.value = normalizedValue;
-    }
-
-    private String normalizeAndValidate(String value) {
+    /** Compact Constructor - 유효성 검증 */
+    public RoleName {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("RoleName은 null이거나 빈 문자열일 수 없습니다");
+            throw new IllegalArgumentException("RoleName은 null이거나 빈 값일 수 없습니다");
         }
-        String trimmed = value.trim();
-        String uppercased = trimmed.toUpperCase();
-        int length = uppercased.length();
-        if (length < MIN_LENGTH || length > MAX_LENGTH) {
+        if (!value.matches(NAME_PATTERN)) {
             throw new IllegalArgumentException(
-                    String.format("RoleName은 %d자 이상 %d자 이하여야 합니다", MIN_LENGTH, MAX_LENGTH));
+                    "RoleName은 영문 대문자로 시작하고 대문자, 숫자, 언더스코어만 포함해야 합니다: " + value);
         }
-        if (!uppercased.matches(PATTERN)) {
-            throw new IllegalArgumentException(
-                    "RoleName은 영문 대문자로 시작하고, 영문 대문자, 숫자, 언더스코어만 사용할 수 있습니다");
-        }
-        return uppercased;
     }
 
+    /**
+     * RoleName 생성
+     *
+     * @param value 역할 이름
+     * @return RoleName 인스턴스
+     */
     public static RoleName of(String value) {
         return new RoleName(value);
     }
 
-    public String value() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+    /**
+     * 문자열로부터 RoleName 파싱 (nullable)
+     *
+     * <p>null이거나 빈 문자열이면 null을 반환합니다.
+     *
+     * @param value 역할 이름 문자열 (nullable)
+     * @return RoleName 또는 null
+     */
+    public static RoleName fromNullable(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        RoleName that = (RoleName) o;
-        return Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(value);
-    }
-
-    @Override
-    public String toString() {
-        return "RoleName{value='" + value + "'}";
+        return new RoleName(value);
     }
 }

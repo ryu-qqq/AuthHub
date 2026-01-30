@@ -3,14 +3,10 @@ package com.ryuqq.authhub.adapter.out.persistence.role.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RoleJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.role.fixture.RoleJpaEntityFixture;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +16,15 @@ import org.junit.jupiter.api.Test;
 /**
  * RoleJpaEntityMapper 단위 테스트
  *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Mapper는 순수 변환 로직 → Mock 불필요
+ *   <li>Domain ↔ Entity 양방향 변환 검증
+ *   <li>모든 필드가 올바르게 매핑되는지 검증
+ *   <li>Edge case (null tenantId, deletedAt, 다양한 유형) 처리 검증
+ * </ul>
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -27,271 +32,254 @@ import org.junit.jupiter.api.Test;
 @DisplayName("RoleJpaEntityMapper 단위 테스트")
 class RoleJpaEntityMapperTest {
 
-    private RoleJpaEntityMapper mapper;
-
-    private static final UUID ROLE_UUID = UUID.fromString("01941234-5678-7000-8000-123456789111");
-    private static final UUID TENANT_UUID = UUID.fromString("01941234-5678-7000-8000-123456789abc");
-    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-    private static final LocalDateTime FIXED_LOCAL_DATE_TIME =
-            LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC);
+    private RoleJpaEntityMapper sut;
 
     @BeforeEach
     void setUp() {
-        mapper = new RoleJpaEntityMapper();
+        sut = new RoleJpaEntityMapper();
     }
 
     @Nested
-    @DisplayName("toEntity 메서드")
-    class ToEntityTest {
+    @DisplayName("toEntity 메서드 (Domain → Entity)")
+    class ToEntity {
 
         @Test
-        @DisplayName("Domain을 Entity로 변환한다")
-        void shouldConvertDomainToEntity() {
+        @DisplayName("성공: Domain의 모든 필드가 Entity로 올바르게 매핑됨")
+        void shouldMapAllFields_FromDomainToEntity() {
             // given
             Role domain = RoleFixture.create();
 
             // when
-            RoleJpaEntity entity = mapper.toEntity(domain);
+            RoleJpaEntity entity = sut.toEntity(domain);
 
             // then
             assertThat(entity.getRoleId()).isEqualTo(domain.roleIdValue());
             assertThat(entity.getTenantId()).isEqualTo(domain.tenantIdValue());
             assertThat(entity.getName()).isEqualTo(domain.nameValue());
+            assertThat(entity.getDisplayName()).isEqualTo(domain.displayNameValue());
             assertThat(entity.getDescription()).isEqualTo(domain.descriptionValue());
-            assertThat(entity.getScope()).isEqualTo(domain.getScope());
             assertThat(entity.getType()).isEqualTo(domain.getType());
-            assertThat(entity.isDeleted()).isEqualTo(domain.isDeleted());
+            assertThat(entity.getCreatedAt()).isEqualTo(domain.createdAt());
+            assertThat(entity.getUpdatedAt()).isEqualTo(domain.updatedAt());
         }
 
         @Test
-        @DisplayName("시간 필드가 올바르게 변환된다")
-        void shouldConvertTimeFieldsCorrectly() {
+        @DisplayName("활성 Domain은 deletedAt이 null로 매핑됨")
+        void shouldMapDeletedAtToNull_WhenDomainIsActive() {
             // given
-            Role domain = RoleFixture.create();
+            Role activeDomain = RoleFixture.create();
 
             // when
-            RoleJpaEntity entity = mapper.toEntity(domain);
+            RoleJpaEntity entity = sut.toEntity(activeDomain);
 
             // then
-            assertThat(entity.getCreatedAt()).isEqualTo(FIXED_LOCAL_DATE_TIME);
-            assertThat(entity.getUpdatedAt()).isEqualTo(FIXED_LOCAL_DATE_TIME);
+            assertThat(entity.getDeletedAt()).isNull();
+            assertThat(entity.isDeleted()).isFalse();
+            assertThat(entity.isActive()).isTrue();
         }
 
         @Test
-        @DisplayName("시스템 글로벌 역할도 Entity로 변환된다")
-        void shouldConvertSystemGlobalRoleToEntity() {
+        @DisplayName("삭제된 Domain은 deletedAt이 설정됨")
+        void shouldMapDeletedAt_WhenDomainIsDeleted() {
             // given
-            Role domain = RoleFixture.createSystemGlobal();
+            Role deletedDomain = RoleFixture.createDeleted();
 
             // when
-            RoleJpaEntity entity = mapper.toEntity(domain);
+            RoleJpaEntity entity = sut.toEntity(deletedDomain);
+
+            // then
+            assertThat(entity.getDeletedAt()).isNotNull();
+            assertThat(entity.isDeleted()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Global 역할은 tenantId가 null로 매핑됨")
+        void shouldMapTenantIdToNull_WhenDomainIsGlobal() {
+            // given
+            Role globalRole = RoleFixture.create(); // Global Role
+
+            // when
+            RoleJpaEntity entity = sut.toEntity(globalRole);
 
             // then
             assertThat(entity.getTenantId()).isNull();
-            assertThat(entity.getScope()).isEqualTo(RoleScope.GLOBAL);
-            assertThat(entity.getType()).isEqualTo(RoleType.SYSTEM);
         }
 
         @Test
-        @DisplayName("신규 Domain도 Entity로 변환된다")
-        void shouldConvertNewDomainToEntity() {
+        @DisplayName("테넌트 역할은 tenantId가 올바르게 매핑됨")
+        void shouldMapTenantId_WhenDomainHasTenant() {
             // given
-            Role domain = RoleFixture.createNew();
+            Role tenantRole = RoleFixture.createTenantRole();
 
             // when
-            RoleJpaEntity entity = mapper.toEntity(domain);
+            RoleJpaEntity entity = sut.toEntity(tenantRole);
 
             // then
-            assertThat(entity.getRoleId()).isNotNull();
-            assertThat(entity.getName()).isEqualTo("NEW_ROLE");
+            assertThat(entity.getTenantId()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("시스템 역할 유형이 올바르게 매핑됨")
+        void shouldMapSystemType_Correctly() {
+            // given
+            Role systemRole = RoleFixture.createSystemRole();
+
+            // when
+            RoleJpaEntity entity = sut.toEntity(systemRole);
+
+            // then
+            assertThat(entity.getType()).isEqualTo(RoleType.SYSTEM);
         }
     }
 
     @Nested
-    @DisplayName("toDomain 메서드")
-    class ToDomainTest {
+    @DisplayName("toDomain 메서드 (Entity → Domain)")
+    class ToDomain {
 
         @Test
-        @DisplayName("Entity를 Domain으로 변환한다")
-        void shouldConvertEntityToDomain() {
+        @DisplayName("성공: Entity의 모든 필드가 Domain으로 올바르게 매핑됨")
+        void shouldMapAllFields_FromEntityToDomain() {
             // given
-            RoleJpaEntity entity =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "TEST_ROLE",
-                            "Test role description",
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            RoleJpaEntity entity = RoleJpaEntityFixture.create();
 
             // when
-            Role domain = mapper.toDomain(entity);
+            Role domain = sut.toDomain(entity);
 
             // then
-            assertThat(domain.roleIdValue()).isEqualTo(ROLE_UUID);
-            assertThat(domain.tenantIdValue()).isEqualTo(TENANT_UUID);
-            assertThat(domain.nameValue()).isEqualTo("TEST_ROLE");
-            assertThat(domain.descriptionValue()).isEqualTo("Test role description");
-            assertThat(domain.getScope()).isEqualTo(RoleScope.ORGANIZATION);
-            assertThat(domain.getType()).isEqualTo(RoleType.CUSTOM);
+            assertThat(domain.roleIdValue()).isEqualTo(entity.getRoleId());
+            assertThat(domain.tenantIdValue()).isEqualTo(entity.getTenantId());
+            assertThat(domain.nameValue()).isEqualTo(entity.getName());
+            assertThat(domain.displayNameValue()).isEqualTo(entity.getDisplayName());
+            assertThat(domain.descriptionValue()).isEqualTo(entity.getDescription());
+            assertThat(domain.getType()).isEqualTo(entity.getType());
+            assertThat(domain.createdAt()).isEqualTo(entity.getCreatedAt());
+            assertThat(domain.updatedAt()).isEqualTo(entity.getUpdatedAt());
+        }
+
+        @Test
+        @DisplayName("활성 Entity는 DeletionStatus가 active로 매핑됨")
+        void shouldMapToDeletionStatusActive_WhenEntityIsActive() {
+            // given
+            RoleJpaEntity activeEntity = RoleJpaEntityFixture.create();
+
+            // when
+            Role domain = sut.toDomain(activeEntity);
+
+            // then
             assertThat(domain.isDeleted()).isFalse();
+            assertThat(domain.getDeletionStatus().isDeleted()).isFalse();
         }
 
         @Test
-        @DisplayName("시간 필드가 올바르게 변환된다")
-        void shouldConvertTimeFieldsCorrectly() {
+        @DisplayName("삭제된 Entity는 DeletionStatus가 deleted로 매핑됨")
+        void shouldMapToDeletionStatusDeleted_WhenEntityIsDeleted() {
             // given
-            RoleJpaEntity entity =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "TEST_ROLE",
-                            "설명",
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            RoleJpaEntity deletedEntity = RoleJpaEntityFixture.createDeleted();
 
             // when
-            Role domain = mapper.toDomain(entity);
-
-            // then
-            assertThat(domain.createdAt()).isEqualTo(FIXED_INSTANT);
-            assertThat(domain.updatedAt()).isEqualTo(FIXED_INSTANT);
-        }
-
-        @Test
-        @DisplayName("null tenantId는 올바르게 변환된다 (GLOBAL 역할)")
-        void shouldConvertNullTenantIdForGlobalRole() {
-            // given
-            RoleJpaEntity entity =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            null,
-                            "SUPER_ADMIN",
-                            "System super admin role",
-                            RoleScope.GLOBAL,
-                            RoleType.SYSTEM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
-
-            // when
-            Role domain = mapper.toDomain(entity);
-
-            // then
-            assertThat(domain.tenantIdValue()).isNull();
-            assertThat(domain.getScope()).isEqualTo(RoleScope.GLOBAL);
-        }
-
-        @Test
-        @DisplayName("null description은 빈 RoleDescription으로 변환된다")
-        void shouldConvertNullDescriptionToEmpty() {
-            // given
-            RoleJpaEntity entity =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "TEST_ROLE",
-                            null,
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
-
-            // when
-            Role domain = mapper.toDomain(entity);
-
-            // then - RoleDescription.empty()는 빈 문자열("")을 가진 객체를 생성함 (validate()에서 null→"" 변환)
-            assertThat(domain.descriptionValue()).isEmpty();
-        }
-
-        @Test
-        @DisplayName("삭제된 역할도 올바르게 변환된다")
-        void shouldConvertDeletedRole() {
-            // given
-            RoleJpaEntity entity =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "DELETED_ROLE",
-                            "Deleted role",
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            true,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
-
-            // when
-            Role domain = mapper.toDomain(entity);
+            Role domain = sut.toDomain(deletedEntity);
 
             // then
             assertThat(domain.isDeleted()).isTrue();
+            assertThat(domain.getDeletionStatus().isDeleted()).isTrue();
+            assertThat(domain.getDeletionStatus().deletedAt()).isNotNull();
         }
 
         @Test
-        @DisplayName("다양한 Scope의 Entity를 Domain으로 변환한다")
-        void shouldConvertEntityWithDifferentScopes() {
+        @DisplayName("Global Entity는 tenantId가 null로 매핑됨")
+        void shouldMapTenantIdToNull_WhenEntityIsGlobal() {
             // given
-            RoleJpaEntity tenantScope =
-                    RoleJpaEntity.of(
-                            ROLE_UUID,
-                            TENANT_UUID,
-                            "TENANT_ROLE",
-                            "Tenant role",
-                            RoleScope.TENANT,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            RoleJpaEntity globalEntity = RoleJpaEntityFixture.create(); // Global
 
             // when
-            Role domain = mapper.toDomain(tenantScope);
+            Role domain = sut.toDomain(globalEntity);
 
             // then
-            assertThat(domain.getScope()).isEqualTo(RoleScope.TENANT);
+            assertThat(domain.tenantIdValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("테넌트 Entity는 tenantId가 올바르게 매핑됨")
+        void shouldMapTenantId_WhenEntityHasTenant() {
+            // given
+            RoleJpaEntity tenantEntity = RoleJpaEntityFixture.createWithTenant();
+
+            // when
+            Role domain = sut.toDomain(tenantEntity);
+
+            // then
+            assertThat(domain.tenantIdValue()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("시스템 역할 유형이 올바르게 매핑됨")
+        void shouldMapSystemType_Correctly() {
+            // given
+            RoleJpaEntity systemEntity = RoleJpaEntityFixture.createSystemRole();
+
+            // when
+            Role domain = sut.toDomain(systemEntity);
+
+            // then
+            assertThat(domain.getType()).isEqualTo(RoleType.SYSTEM);
+        }
+
+        @Test
+        @DisplayName("재구성된 Domain은 isNew()가 false")
+        void shouldSetIsNewToFalse_WhenReconstituted() {
+            // given
+            RoleJpaEntity entity = RoleJpaEntityFixture.create();
+
+            // when
+            Role domain = sut.toDomain(entity);
+
+            // then
+            assertThat(domain.isNew()).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("양방향 변환")
-    class BidirectionalConversionTest {
+    @DisplayName("양방향 변환 테스트")
+    class RoundTrip {
 
         @Test
-        @DisplayName("Domain → Entity → Domain 변환이 일관성을 유지한다")
-        void shouldMaintainConsistencyInBidirectionalConversion() {
+        @DisplayName("Domain → Entity → Domain 변환 시 데이터 보존")
+        void shouldPreserveData_OnRoundTrip() {
             // given
             Role originalDomain = RoleFixture.create();
 
             // when
-            RoleJpaEntity entity = mapper.toEntity(originalDomain);
-            RoleJpaEntity entityWithId =
-                    RoleJpaEntity.of(
-                            originalDomain.roleIdValue(),
-                            entity.getTenantId(),
-                            entity.getName(),
-                            entity.getDescription(),
-                            entity.getScope(),
-                            entity.getType(),
-                            entity.isDeleted(),
-                            entity.getCreatedAt(),
-                            entity.getUpdatedAt());
-            Role convertedDomain = mapper.toDomain(entityWithId);
+            RoleJpaEntity entity = sut.toEntity(originalDomain);
+            Role reconstitutedDomain = sut.toDomain(entity);
 
             // then
-            assertThat(convertedDomain.roleIdValue()).isEqualTo(originalDomain.roleIdValue());
-            assertThat(convertedDomain.tenantIdValue()).isEqualTo(originalDomain.tenantIdValue());
-            assertThat(convertedDomain.nameValue()).isEqualTo(originalDomain.nameValue());
-            assertThat(convertedDomain.descriptionValue())
+            assertThat(reconstitutedDomain.roleIdValue()).isEqualTo(originalDomain.roleIdValue());
+            assertThat(reconstitutedDomain.tenantIdValue())
+                    .isEqualTo(originalDomain.tenantIdValue());
+            assertThat(reconstitutedDomain.nameValue()).isEqualTo(originalDomain.nameValue());
+            assertThat(reconstitutedDomain.displayNameValue())
+                    .isEqualTo(originalDomain.displayNameValue());
+            assertThat(reconstitutedDomain.descriptionValue())
                     .isEqualTo(originalDomain.descriptionValue());
-            assertThat(convertedDomain.getScope()).isEqualTo(originalDomain.getScope());
-            assertThat(convertedDomain.getType()).isEqualTo(originalDomain.getType());
-            assertThat(convertedDomain.isDeleted()).isEqualTo(originalDomain.isDeleted());
+            assertThat(reconstitutedDomain.getType()).isEqualTo(originalDomain.getType());
+            assertThat(reconstitutedDomain.createdAt()).isEqualTo(originalDomain.createdAt());
+            assertThat(reconstitutedDomain.updatedAt()).isEqualTo(originalDomain.updatedAt());
+        }
+
+        @Test
+        @DisplayName("삭제된 Domain도 양방향 변환 시 데이터 보존")
+        void shouldPreserveDeletedData_OnRoundTrip() {
+            // given
+            Role deletedDomain = RoleFixture.createDeleted();
+
+            // when
+            RoleJpaEntity entity = sut.toEntity(deletedDomain);
+            Role reconstitutedDomain = sut.toDomain(entity);
+
+            // then
+            assertThat(reconstitutedDomain.isDeleted()).isEqualTo(deletedDomain.isDeleted());
+            assertThat(reconstitutedDomain.getDeletionStatus().deletedAt())
+                    .isEqualTo(deletedDomain.getDeletionStatus().deletedAt());
         }
     }
 }

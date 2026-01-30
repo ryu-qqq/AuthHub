@@ -4,19 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
-import com.ryuqq.authhub.application.permission.assembler.PermissionAssembler;
 import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionCommand;
-import com.ryuqq.authhub.application.permission.dto.response.PermissionResponse;
-import com.ryuqq.authhub.application.permission.factory.command.PermissionCommandFactory;
-import com.ryuqq.authhub.application.permission.manager.command.PermissionTransactionManager;
+import com.ryuqq.authhub.application.permission.factory.PermissionCommandFactory;
+import com.ryuqq.authhub.application.permission.fixture.PermissionCommandFixtures;
+import com.ryuqq.authhub.application.permission.manager.PermissionCommandManager;
 import com.ryuqq.authhub.application.permission.validator.PermissionValidator;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.exception.DuplicatePermissionKeyException;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
-import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,11 +23,18 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * CreatePermissionService 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Service는 오케스트레이션만 담당 → 협력 객체 호출 순서/조건 검증
+ *   <li>비즈니스 로직은 Domain/Validator에서 테스트
+ *   <li>BDDMockito 스타일로 Given-When-Then 구조 명확화
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -42,107 +48,75 @@ class CreatePermissionServiceTest {
 
     @Mock private PermissionCommandFactory commandFactory;
 
-    @Mock private PermissionTransactionManager transactionManager;
+    @Mock private PermissionCommandManager commandManager;
 
-    @Mock private PermissionAssembler assembler;
-
-    private CreatePermissionService service;
+    private CreatePermissionService sut;
 
     @BeforeEach
     void setUp() {
-        service =
-                new CreatePermissionService(
-                        validator, commandFactory, transactionManager, assembler);
+        sut = new CreatePermissionService(validator, commandFactory, commandManager);
     }
 
     @Nested
     @DisplayName("execute 메서드")
-    class ExecuteTest {
+    class Execute {
 
         @Test
-        @DisplayName("권한을 성공적으로 생성한다")
-        void shouldCreatePermissionSuccessfully() {
+        @DisplayName("성공: Factory → Validator → Manager 순서로 호출하고 ID 반환")
+        void shouldOrchestrate_FactoryThenValidatorThenManager_AndReturnId() {
             // given
-            Permission permission = PermissionFixture.create();
-            CreatePermissionCommand command =
-                    new CreatePermissionCommand("user", "read", "사용자 조회 권한", false);
-            PermissionResponse expectedResponse =
-                    new PermissionResponse(
-                            permission.permissionIdValue(),
-                            permission.keyValue(),
-                            permission.resourceValue(),
-                            permission.actionValue(),
-                            permission.descriptionValue(),
-                            permission.getType().name(),
-                            permission.createdAt(),
-                            permission.updatedAt());
+            CreatePermissionCommand command = PermissionCommandFixtures.createCommand();
+            Permission permission = PermissionFixture.createNewCustomPermission();
+            Long expectedId = PermissionFixture.defaultIdValue();
 
-            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
             given(commandFactory.create(command)).willReturn(permission);
-            given(transactionManager.persist(permission)).willReturn(permission);
-            given(assembler.toResponse(permission)).willReturn(expectedResponse);
+            given(commandManager.persist(permission)).willReturn(expectedId);
 
             // when
-            PermissionResponse response = service.execute(command);
+            Long result = sut.execute(command);
 
             // then
-            assertThat(response).isEqualTo(expectedResponse);
-            assertThat(response.key()).isEqualTo("user:read");
-            verify(validator).validateKeyNotDuplicated(any(PermissionKey.class));
-            verify(commandFactory).create(command);
-            verify(transactionManager).persist(permission);
-            verify(assembler).toResponse(permission);
+            assertThat(result).isEqualTo(expectedId);
+
+            then(commandFactory).should().create(command);
+            then(validator).should().validateKeyNotDuplicated(permission.permissionKeyValue());
+            then(commandManager).should().persist(permission);
         }
 
         @Test
-        @DisplayName("중복 권한 키 시 예외를 발생시킨다")
-        void shouldThrowExceptionWhenDuplicateKey() {
+        @DisplayName("실패: 중복 권한 키일 경우 DuplicatePermissionKeyException 발생")
+        void shouldThrowException_WhenKeyIsDuplicated() {
             // given
-            CreatePermissionCommand command =
-                    new CreatePermissionCommand("user", "read", "설명", false);
+            CreatePermissionCommand command = PermissionCommandFixtures.createCommand();
+            Permission permission = PermissionFixture.createNewCustomPermission();
 
-            Mockito.doThrow(new DuplicatePermissionKeyException("user:read"))
-                    .when(validator)
-                    .validateKeyNotDuplicated(any(PermissionKey.class));
+            given(commandFactory.create(command)).willReturn(permission);
+            willThrow(new DuplicatePermissionKeyException("user:read"))
+                    .given(validator)
+                    .validateKeyNotDuplicated(any(String.class));
 
             // when & then
-            assertThatThrownBy(() -> service.execute(command))
+            assertThatThrownBy(() -> sut.execute(command))
                     .isInstanceOf(DuplicatePermissionKeyException.class);
 
-            verify(commandFactory, never()).create(any());
-            verify(transactionManager, never()).persist(any());
+            then(commandManager).should(never()).persist(any());
         }
 
         @Test
-        @DisplayName("시스템 권한을 성공적으로 생성한다")
-        void shouldCreateSystemPermissionSuccessfully() {
+        @DisplayName("검증 통과 후 Manager를 통해 영속화 수행")
+        void shouldPersistPermission_ThroughManager() {
             // given
-            Permission systemPermission = PermissionFixture.createSystem();
-            CreatePermissionCommand command =
-                    new CreatePermissionCommand("user", "read", "시스템 권한", true);
-            PermissionResponse expectedResponse =
-                    new PermissionResponse(
-                            systemPermission.permissionIdValue(),
-                            systemPermission.keyValue(),
-                            systemPermission.resourceValue(),
-                            systemPermission.actionValue(),
-                            systemPermission.descriptionValue(),
-                            systemPermission.getType().name(),
-                            systemPermission.createdAt(),
-                            systemPermission.updatedAt());
+            CreatePermissionCommand command = PermissionCommandFixtures.createCommand();
+            Permission permission = PermissionFixture.createNewCustomPermission();
 
-            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
-            given(commandFactory.create(command)).willReturn(systemPermission);
-            given(transactionManager.persist(systemPermission)).willReturn(systemPermission);
-            given(assembler.toResponse(systemPermission)).willReturn(expectedResponse);
+            given(commandFactory.create(command)).willReturn(permission);
+            given(commandManager.persist(permission)).willReturn(1L);
 
             // when
-            PermissionResponse response = service.execute(command);
+            sut.execute(command);
 
             // then
-            assertThat(response.type()).isEqualTo("SYSTEM");
-            verify(validator).validateKeyNotDuplicated(any(PermissionKey.class));
-            verify(transactionManager).persist(systemPermission);
+            then(commandManager).should().persist(permission);
         }
     }
 }

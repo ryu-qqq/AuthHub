@@ -1,6 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.config;
 
-import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.adapter.in.rest.common.ApiVersionPaths;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -33,7 +33,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler(ApiPaths.Docs.ALL)
+        registry.addResourceHandler(ApiVersionPaths.Docs.ALL)
                 .addResourceLocations("classpath:/static/docs/");
     }
 }

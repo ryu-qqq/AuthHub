@@ -1,7 +1,7 @@
 package com.ryuqq.authhub.domain.tenant.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.Map;
 import java.util.UUID;
 

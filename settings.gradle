@@ -1,11 +1,6 @@
 rootProject.name = 'AuthHub'
 
 // ========================================
-// Common Library (Shared across services)
-// ========================================
-include 'common-auth'
-
-// ========================================
 // Core Modules (Hexagonal Architecture)
 // ========================================
 include 'domain'
@@ -22,6 +17,10 @@ include 'adapter-out:persistence-mysql'
 include 'adapter-out:persistence-redis'
 include 'adapter-out:security'
 
+// Outbound Adapters - Client Layer
+include 'adapter-out:client:security-client'
+include 'adapter-out:client:id-client'
+
 // ========================================
 // Bootstrap Modules (Runnable Applications)
 // ========================================
@@ -30,8 +29,6 @@ include 'bootstrap:bootstrap-web-api'
 // ========================================
 // Project Structure
 // ========================================
-project(':common-auth').projectDir = file('common-auth')
-
 project(':domain').projectDir = file('domain')
 project(':application').projectDir = file('application')
 
@@ -39,6 +36,9 @@ project(':adapter-in:rest-api').projectDir = file('adapter-in/rest-api')
 project(':adapter-out:persistence-mysql').projectDir = file('adapter-out/persistence-mysql')
 project(':adapter-out:persistence-redis').projectDir = file('adapter-out/persistence-redis')
 project(':adapter-out:security').projectDir = file('adapter-out/security')
+
+project(':adapter-out:client:security-client').projectDir = file('adapter-out/client/security-client')
+project(':adapter-out:client:id-client').projectDir = file('adapter-out/client/id-client')
 
 project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')
 

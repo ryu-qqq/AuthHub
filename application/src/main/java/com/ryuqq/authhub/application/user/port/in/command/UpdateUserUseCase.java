@@ -1,19 +1,18 @@
 package com.ryuqq.authhub.application.user.port.in.command;
 
 import com.ryuqq.authhub.application.user.dto.command.UpdateUserCommand;
-import com.ryuqq.authhub.application.user.dto.response.UserResponse;
 
 /**
- * UpdateUserUseCase - 사용자 수정 Port-In
+ * UpdateUserUseCase - 사용자 정보 수정 UseCase (Port-In)
  *
- * <p>사용자 정보 수정 비즈니스 로직의 진입점입니다.
+ * <p>사용자 정보 수정 기능을 정의합니다.
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>*UseCase 네이밍 규칙
- *   <li>단일 메서드 (execute)
- *   <li>Command DTO 입력
+ *   <li>{@code {Action}{Bc}UseCase} 네이밍
+ *   <li>{@code execute()} 메서드 시그니처
+ *   <li>Command DTO 파라미터, void 반환
  * </ul>
  *
  * @author development-team
@@ -22,10 +21,9 @@ import com.ryuqq.authhub.application.user.dto.response.UserResponse;
 public interface UpdateUserUseCase {
 
     /**
-     * 사용자 수정 실행
+     * 사용자 정보 수정 실행
      *
      * @param command 사용자 수정 Command
-     * @return 수정된 사용자 응답
      */
-    UserResponse execute(UpdateUserCommand command);
+    void execute(UpdateUserCommand command);
 }

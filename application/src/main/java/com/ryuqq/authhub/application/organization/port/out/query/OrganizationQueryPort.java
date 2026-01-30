@@ -1,10 +1,10 @@
 package com.ryuqq.authhub.application.organization.port.out.query;
 
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
-import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationSearchCriteria;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,18 +55,18 @@ public interface OrganizationQueryPort {
     boolean existsByTenantIdAndName(TenantId tenantId, OrganizationName name);
 
     /**
-     * 조건에 맞는 조직 목록 조회 (Criteria 기반)
+     * 조건에 맞는 조직 목록 조회 (SearchCriteria 기반)
      *
-     * @param criteria 검색 조건 (OrganizationCriteria)
+     * @param criteria 검색 조건 (OrganizationSearchCriteria)
      * @return Organization Domain 목록
      */
-    List<Organization> findAllByCriteria(OrganizationCriteria criteria);
+    List<Organization> findAllBySearchCriteria(OrganizationSearchCriteria criteria);
 
     /**
-     * 조건에 맞는 조직 개수 조회 (Criteria 기반)
+     * 조건에 맞는 조직 개수 조회 (SearchCriteria 기반)
      *
-     * @param criteria 검색 조건 (OrganizationCriteria)
+     * @param criteria 검색 조건 (OrganizationSearchCriteria)
      * @return 조건에 맞는 Organization 총 개수
      */
-    long countByCriteria(OrganizationCriteria criteria);
+    long countBySearchCriteria(OrganizationSearchCriteria criteria);
 }

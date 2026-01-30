@@ -1,7 +1,5 @@
 package com.ryuqq.authhub.application.role.dto.command;
 
-import java.util.UUID;
-
 /**
  * DeleteRoleCommand - 역할 삭제 Command DTO
  *
@@ -13,8 +11,8 @@ import java.util.UUID;
  *   <li>비즈니스 로직 금지 (Domain 책임)
  * </ul>
  *
- * @param roleId 역할 ID
+ * @param roleId 역할 ID (필수)
  * @author development-team
  * @since 1.0.0
  */
-public record DeleteRoleCommand(UUID roleId) {}
+public record DeleteRoleCommand(Long roleId) {}

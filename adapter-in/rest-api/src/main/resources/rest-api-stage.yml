@@ -1,0 +1,53 @@
+# ===============================================
+# REST API Adapter Configuration - Stage Environment
+# ===============================================
+# 스테이징 환경 전용 설정
+# 공통 설정은 rest-api.yml 참조
+#
+# @author development-team
+# @since 1.0.0
+# ===============================================
+
+# ===============================================
+# Security Configuration Override
+# ===============================================
+security:
+  # 서비스 토큰 설정 (Internal API - Gateway → AuthHub)
+  service-token:
+    # Stage에서 서비스 토큰 인증 필수
+    enabled: true
+    # 서비스 토큰 시크릿 (Secrets Manager에서 주입)
+    secret: ${SERVICE_TOKEN_SECRET}
+  jwt:
+    # RSA 키 설정
+    rsa:
+      enabled: ${JWT_RSA_ENABLED:false}
+      key-id: ${JWT_RSA_KEY_ID:authhub-stage-key-1}
+      public-key-path: ${JWT_RSA_PUBLIC_KEY_PATH:}
+      private-key-path: ${JWT_RSA_PRIVATE_KEY_PATH:}
+  gateway:
+    # Stage에서 Gateway 인증 활성화
+    enabled: true
+  cookie:
+    # Stage에서 HTTPS 사용
+    secure: true
+    same-site: strict
+    domain: ${COOKIE_DOMAIN:stage.authhub.com}
+
+# ===============================================
+# SpringDoc OpenAPI Configuration Override
+# ===============================================
+# Stage에서는 Swagger 활성화 (테스트 용도)
+springdoc:
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+
+# ===============================================
+# API Error Configuration Override
+# ===============================================
+api:
+  error:
+    use-about-blank: false
+    base-url: ${ERROR_DOCS_BASE_URL:https://stage-api.authhub.com/problems}

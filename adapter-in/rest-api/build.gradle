@@ -31,7 +31,7 @@ dependencies {
     // Application layer (use cases)
     api project(':application')
     api project(':domain')
-    api project(':common-auth')
+    api project(':sdk:authhub-sdk-spring-boot-starter')
 
     // Spring Web
     implementation libs.spring.boot.starter.web

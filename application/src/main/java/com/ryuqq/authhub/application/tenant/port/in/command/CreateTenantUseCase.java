@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.application.tenant.port.in.command;
 
 import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
-import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
 
 /**
  * CreateTenantUseCase - 테넌트 생성 UseCase (Port-In)
@@ -13,7 +12,7 @@ import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
  * <ul>
  *   <li>{@code {Action}{Bc}UseCase} 네이밍
  *   <li>{@code execute()} 메서드 시그니처
- *   <li>Command DTO 파라미터, Response DTO 반환
+ *   <li>Command DTO 파라미터, ID 반환 (String 원시 타입)
  * </ul>
  *
  * @author development-team
@@ -25,7 +24,7 @@ public interface CreateTenantUseCase {
      * 테넌트 생성 실행
      *
      * @param command 테넌트 생성 Command
-     * @return 생성된 테넌트 Response
+     * @return 생성된 테넌트 ID (String)
      */
-    TenantResponse execute(CreateTenantCommand command);
+    String execute(CreateTenantCommand command);
 }

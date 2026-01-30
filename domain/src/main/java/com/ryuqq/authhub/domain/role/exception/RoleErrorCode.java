@@ -13,11 +13,9 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
 public enum RoleErrorCode implements ErrorCode {
     ROLE_NOT_FOUND("ROLE-001", 404, "Role not found"),
     DUPLICATE_ROLE_NAME("ROLE-002", 409, "Role name already exists"),
-    SYSTEM_ROLE_NOT_MODIFIABLE("ROLE-003", 400, "System role cannot be modified"),
-    SYSTEM_ROLE_NOT_DELETABLE("ROLE-004", 400, "System role cannot be deleted"),
-    INVALID_ROLE_SCOPE("ROLE-005", 400, "Invalid role scope for this operation"),
-    ROLE_PERMISSION_NOT_FOUND("ROLE-006", 404, "Role permission not found"),
-    DUPLICATE_ROLE_PERMISSION("ROLE-007", 409, "Role permission already granted");
+    SYSTEM_ROLE_NOT_MODIFIABLE("ROLE-003", 403, "System role cannot be modified"),
+    SYSTEM_ROLE_NOT_DELETABLE("ROLE-004", 403, "System role cannot be deleted"),
+    ROLE_IN_USE("ROLE-005", 409, "Role is currently in use and cannot be deleted");
 
     private final String code;
     private final int httpStatus;

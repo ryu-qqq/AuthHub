@@ -36,7 +36,8 @@ public class AuthErrorMapper implements ErrorMapper {
     }
 
     @Override
-    public boolean supports(String code) {
+    public boolean supports(DomainException ex) {
+        String code = ex.code();
         return code != null && code.startsWith(PREFIX);
     }
 

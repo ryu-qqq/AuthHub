@@ -1,24 +1,27 @@
 package com.ryuqq.authhub.application.role.port.out.query;
 
-import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
-import com.ryuqq.authhub.domain.role.identifier.RoleId;
+import com.ryuqq.authhub.domain.role.id.RoleId;
+import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * RoleQueryPort - 역할 조회 Port (Port-Out)
+ * RoleQueryPort - Role Aggregate 조회 포트 (Query)
  *
- * <p>역할 조회 기능을 정의합니다.
+ * <p>Domain Aggregate를 조회하는 읽기 전용 Port입니다.
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>{@code {Bc}QueryPort} 네이밍
- *   <li>Domain Aggregate/VO 파라미터/반환
- *   <li>구현은 Adapter 책임
+ *   <li>조회 메서드만 제공 (findById, existsById)
+ *   <li>저장/수정/삭제 메서드 금지 (PersistencePort로 분리)
+ *   <li>Value Object 파라미터 (원시 타입 금지)
+ *   <li>Domain 반환 (DTO/Entity 반환 금지)
+ *   <li>Optional 반환 (단건 조회 시 null 방지)
+ *   <li>Criteria 기반 조회 (개별 파라미터 금지)
  * </ul>
  *
  * @author development-team
@@ -27,52 +30,64 @@ import java.util.Optional;
 public interface RoleQueryPort {
 
     /**
-     * ID로 Role 조회
+     * ID로 Role 단건 조회
      *
-     * @param roleId 역할 ID
-     * @return Optional Role
+     * @param id Role ID (Value Object)
+     * @return Role Domain (Optional)
      */
-    Optional<Role> findById(RoleId roleId);
+    Optional<Role> findById(RoleId id);
 
     /**
-     * 테넌트 내 역할 이름으로 Role 조회
+     * ID로 Role 존재 여부 확인
      *
-     * @param tenantId 테넌트 ID (null일 경우 GLOBAL 범위)
-     * @param name 역할 이름
-     * @return Optional Role
+     * @param id Role ID (Value Object)
+     * @return 존재 여부
      */
-    Optional<Role> findByTenantIdAndName(TenantId tenantId, RoleName name);
+    boolean existsById(RoleId id);
 
     /**
-     * 테넌트 내 역할 이름 존재 여부 확인
+     * 테넌트 내 역할 이름으로 존재 여부 확인
      *
-     * @param tenantId 테넌트 ID (null일 경우 GLOBAL 범위)
+     * <p>tenantId가 null이면 Global 역할 내에서 중복 확인.
+     *
+     * @param tenantId 테넌트 ID (null이면 Global)
      * @param name 역할 이름
      * @return 존재 여부
      */
     boolean existsByTenantIdAndName(TenantId tenantId, RoleName name);
 
     /**
-     * 역할 검색
+     * 테넌트 내 역할 이름으로 Role 조회
      *
-     * @param query 검색 조건
-     * @return Role 목록
+     * <p>tenantId가 null이면 Global 역할 내에서 조회.
+     *
+     * @param tenantId 테넌트 ID (null이면 Global)
+     * @param name 역할 이름
+     * @return Role Domain (Optional)
      */
-    List<Role> search(SearchRolesQuery query);
+    Optional<Role> findByTenantIdAndName(TenantId tenantId, RoleName name);
 
     /**
-     * 역할 검색 총 개수
+     * 조건에 맞는 역할 목록 조회 (SearchCriteria 기반)
      *
-     * @param query 검색 조건
-     * @return 총 개수
+     * @param criteria 검색 조건 (RoleSearchCriteria)
+     * @return Role Domain 목록
      */
-    long count(SearchRolesQuery query);
+    List<Role> findAllBySearchCriteria(RoleSearchCriteria criteria);
 
     /**
-     * 여러 ID로 역할 목록 조회
+     * 조건에 맞는 역할 개수 조회 (SearchCriteria 기반)
      *
-     * @param roleIds 역할 ID Set
-     * @return Role 목록
+     * @param criteria 검색 조건 (RoleSearchCriteria)
+     * @return 조건에 맞는 Role 총 개수
      */
-    List<Role> findAllByIds(java.util.Set<RoleId> roleIds);
+    long countBySearchCriteria(RoleSearchCriteria criteria);
+
+    /**
+     * ID 목록으로 Role 다건 조회
+     *
+     * @param ids Role ID 목록
+     * @return Role Domain 목록
+     */
+    List<Role> findAllByIds(List<RoleId> ids);
 }

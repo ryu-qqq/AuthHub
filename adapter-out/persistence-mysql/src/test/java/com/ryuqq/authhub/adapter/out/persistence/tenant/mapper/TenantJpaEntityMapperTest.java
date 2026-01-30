@@ -3,13 +3,10 @@ package com.ryuqq.authhub.adapter.out.persistence.tenant.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.adapter.out.persistence.tenant.entity.TenantJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.tenant.fixture.TenantJpaEntityFixture;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +16,15 @@ import org.junit.jupiter.api.Test;
 /**
  * TenantJpaEntityMapper 단위 테스트
  *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Mapper는 순수 변환 로직 → Mock 불필요
+ *   <li>Domain ↔ Entity 양방향 변환 검증
+ *   <li>모든 필드가 올바르게 매핑되는지 검증
+ *   <li>Edge case (null deletedAt, 다양한 상태) 처리 검증
+ * </ul>
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -26,170 +32,178 @@ import org.junit.jupiter.api.Test;
 @DisplayName("TenantJpaEntityMapper 단위 테스트")
 class TenantJpaEntityMapperTest {
 
-    private TenantJpaEntityMapper mapper;
-
-    private static final UUID TENANT_UUID = UUID.fromString("01941234-5678-7000-8000-123456789abc");
-    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-    private static final LocalDateTime FIXED_LOCAL_DATE_TIME =
-            LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC);
+    private TenantJpaEntityMapper sut;
 
     @BeforeEach
     void setUp() {
-        mapper = new TenantJpaEntityMapper();
+        sut = new TenantJpaEntityMapper();
     }
 
     @Nested
-    @DisplayName("toEntity 메서드")
-    class ToEntityTest {
+    @DisplayName("toEntity 메서드 (Domain → Entity)")
+    class ToEntity {
 
         @Test
-        @DisplayName("Domain을 Entity로 변환한다")
-        void shouldConvertDomainToEntity() {
+        @DisplayName("성공: Domain의 모든 필드가 Entity로 올바르게 매핑됨")
+        void shouldMapAllFields_FromDomainToEntity() {
             // given
             Tenant domain = TenantFixture.create();
 
             // when
-            TenantJpaEntity entity = mapper.toEntity(domain);
+            TenantJpaEntity entity = sut.toEntity(domain);
 
             // then
-            assertThat(entity.getTenantId()).isEqualTo(domain.tenantIdValue());
+            assertThat(entity.getTenantId()).isEqualTo(domain.tenantIdValue().toString());
             assertThat(entity.getName()).isEqualTo(domain.nameValue());
             assertThat(entity.getStatus()).isEqualTo(domain.getStatus());
+            assertThat(entity.getCreatedAt()).isEqualTo(domain.createdAt());
+            assertThat(entity.getUpdatedAt()).isEqualTo(domain.updatedAt());
         }
 
         @Test
-        @DisplayName("시간 필드가 올바르게 변환된다")
-        void shouldConvertTimeFieldsCorrectly() {
+        @DisplayName("활성 Domain은 deletedAt이 null로 매핑됨")
+        void shouldMapDeletedAtToNull_WhenDomainIsActive() {
             // given
-            Tenant domain = TenantFixture.create();
+            Tenant activeDomain = TenantFixture.create();
 
             // when
-            TenantJpaEntity entity = mapper.toEntity(domain);
+            TenantJpaEntity entity = sut.toEntity(activeDomain);
 
             // then
-            assertThat(entity.getCreatedAt()).isEqualTo(FIXED_LOCAL_DATE_TIME);
-            assertThat(entity.getUpdatedAt()).isEqualTo(FIXED_LOCAL_DATE_TIME);
+            assertThat(entity.getDeletedAt()).isNull();
+            assertThat(entity.isDeleted()).isFalse();
+            assertThat(entity.isActive()).isTrue();
         }
 
         @Test
-        @DisplayName("신규 Domain(ID 있음)도 Entity로 변환된다")
-        void shouldConvertNewDomainToEntity() {
+        @DisplayName("삭제된 Domain은 deletedAt이 설정됨")
+        void shouldMapDeletedAt_WhenDomainIsDeleted() {
             // given
-            Tenant domain = TenantFixture.createNew();
+            Tenant deletedDomain = TenantFixture.createDeleted();
 
             // when
-            TenantJpaEntity entity = mapper.toEntity(domain);
+            TenantJpaEntity entity = sut.toEntity(deletedDomain);
 
             // then
-            assertThat(entity.getTenantId()).isNotNull();
-            assertThat(entity.getName()).isEqualTo("New Tenant");
-            assertThat(entity.getStatus()).isEqualTo(TenantStatus.ACTIVE);
+            assertThat(entity.getDeletedAt()).isNotNull();
+            assertThat(entity.isDeleted()).isTrue();
+        }
+
+        @Test
+        @DisplayName("비활성 Domain이 올바르게 매핑됨")
+        void shouldMapInactiveStatus_Correctly() {
+            // given
+            Tenant inactiveDomain = TenantFixture.createInactive();
+
+            // when
+            TenantJpaEntity entity = sut.toEntity(inactiveDomain);
+
+            // then
+            assertThat(entity.getStatus()).isEqualTo(TenantStatus.INACTIVE);
         }
     }
 
     @Nested
-    @DisplayName("toDomain 메서드")
-    class ToDomainTest {
+    @DisplayName("toDomain 메서드 (Entity → Domain)")
+    class ToDomain {
 
         @Test
-        @DisplayName("Entity를 Domain으로 변환한다")
-        void shouldConvertEntityToDomain() {
+        @DisplayName("성공: Entity의 모든 필드가 Domain으로 올바르게 매핑됨")
+        void shouldMapAllFields_FromEntityToDomain() {
             // given
-            TenantJpaEntity entity =
-                    TenantJpaEntity.of(
-                            TENANT_UUID,
-                            "Test Tenant",
-                            TenantStatus.ACTIVE,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            TenantJpaEntity entity = TenantJpaEntityFixture.create();
 
             // when
-            Tenant domain = mapper.toDomain(entity);
+            Tenant domain = sut.toDomain(entity);
 
             // then
-            assertThat(domain.tenantIdValue()).isEqualTo(TENANT_UUID);
-            assertThat(domain.nameValue()).isEqualTo("Test Tenant");
-            assertThat(domain.getStatus()).isEqualTo(TenantStatus.ACTIVE);
+            assertThat(domain.tenantIdValue().toString()).isEqualTo(entity.getTenantId());
+            assertThat(domain.nameValue()).isEqualTo(entity.getName());
+            assertThat(domain.getStatus()).isEqualTo(entity.getStatus());
+            assertThat(domain.createdAt()).isEqualTo(entity.getCreatedAt());
+            assertThat(domain.updatedAt()).isEqualTo(entity.getUpdatedAt());
         }
 
         @Test
-        @DisplayName("시간 필드가 올바르게 변환된다")
-        void shouldConvertTimeFieldsCorrectly() {
+        @DisplayName("활성 Entity는 DeletionStatus가 active로 매핑됨")
+        void shouldMapToDeletionStatusActive_WhenEntityIsActive() {
             // given
-            TenantJpaEntity entity =
-                    TenantJpaEntity.of(
-                            TENANT_UUID,
-                            "Test Tenant",
-                            TenantStatus.ACTIVE,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            TenantJpaEntity activeEntity = TenantJpaEntityFixture.create();
 
             // when
-            Tenant domain = mapper.toDomain(entity);
+            Tenant domain = sut.toDomain(activeEntity);
 
             // then
-            assertThat(domain.createdAt()).isEqualTo(FIXED_INSTANT);
-            assertThat(domain.updatedAt()).isEqualTo(FIXED_INSTANT);
+            assertThat(domain.isDeleted()).isFalse();
+            assertThat(domain.getDeletionStatus().isDeleted()).isFalse();
         }
 
         @Test
-        @DisplayName("다양한 상태의 Entity를 Domain으로 변환한다")
-        void shouldConvertEntityWithDifferentStatusToDomain() {
+        @DisplayName("삭제된 Entity는 DeletionStatus가 deleted로 매핑됨")
+        void shouldMapToDeletionStatusDeleted_WhenEntityIsDeleted() {
             // given
-            TenantJpaEntity inactiveEntity =
-                    TenantJpaEntity.of(
-                            TENANT_UUID,
-                            "Inactive",
-                            TenantStatus.INACTIVE,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
-
-            TenantJpaEntity deletedEntity =
-                    TenantJpaEntity.of(
-                            UUID.fromString("01941234-5678-7000-8000-123456789abd"),
-                            "Deleted",
-                            TenantStatus.DELETED,
-                            FIXED_LOCAL_DATE_TIME,
-                            FIXED_LOCAL_DATE_TIME);
+            TenantJpaEntity deletedEntity = TenantJpaEntityFixture.createDeleted();
 
             // when
-            Tenant inactiveDomain = mapper.toDomain(inactiveEntity);
-            Tenant deletedDomain = mapper.toDomain(deletedEntity);
+            Tenant domain = sut.toDomain(deletedEntity);
 
             // then
-            assertThat(inactiveDomain.getStatus()).isEqualTo(TenantStatus.INACTIVE);
-            assertThat(deletedDomain.getStatus()).isEqualTo(TenantStatus.DELETED);
+            assertThat(domain.isDeleted()).isTrue();
+            assertThat(domain.getDeletionStatus().isDeleted()).isTrue();
+            assertThat(domain.getDeletionStatus().deletedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("비활성 Entity가 올바르게 매핑됨")
+        void shouldMapInactiveStatus_Correctly() {
+            // given
+            TenantJpaEntity inactiveEntity = TenantJpaEntityFixture.createInactive();
+
+            // when
+            Tenant domain = sut.toDomain(inactiveEntity);
+
+            // then
+            assertThat(domain.getStatus()).isEqualTo(TenantStatus.INACTIVE);
         }
     }
 
     @Nested
-    @DisplayName("양방향 변환")
-    class BidirectionalConversionTest {
+    @DisplayName("양방향 변환 테스트")
+    class RoundTrip {
 
         @Test
-        @DisplayName("Domain → Entity → Domain 변환이 일관성을 유지한다")
-        void shouldMaintainConsistencyInBidirectionalConversion() {
+        @DisplayName("Domain → Entity → Domain 변환 시 데이터 보존")
+        void shouldPreserveData_OnRoundTrip() {
             // given
             Tenant originalDomain = TenantFixture.create();
 
             // when
-            TenantJpaEntity entity = mapper.toEntity(originalDomain);
-            // Entity에 ID가 설정되어야 reconstitute가 가능하므로, 새로운 Entity 생성
-            TenantJpaEntity entityWithId =
-                    TenantJpaEntity.of(
-                            originalDomain.tenantIdValue(),
-                            entity.getName(),
-                            entity.getStatus(),
-                            entity.getCreatedAt(),
-                            entity.getUpdatedAt());
-            Tenant convertedDomain = mapper.toDomain(entityWithId);
+            TenantJpaEntity entity = sut.toEntity(originalDomain);
+            Tenant reconstitutedDomain = sut.toDomain(entity);
 
             // then
-            assertThat(convertedDomain.tenantIdValue()).isEqualTo(originalDomain.tenantIdValue());
-            assertThat(convertedDomain.nameValue()).isEqualTo(originalDomain.nameValue());
-            assertThat(convertedDomain.getStatus()).isEqualTo(originalDomain.getStatus());
-            assertThat(convertedDomain.createdAt()).isEqualTo(originalDomain.createdAt());
-            assertThat(convertedDomain.updatedAt()).isEqualTo(originalDomain.updatedAt());
+            assertThat(reconstitutedDomain.tenantIdValue())
+                    .isEqualTo(originalDomain.tenantIdValue());
+            assertThat(reconstitutedDomain.nameValue()).isEqualTo(originalDomain.nameValue());
+            assertThat(reconstitutedDomain.getStatus()).isEqualTo(originalDomain.getStatus());
+            assertThat(reconstitutedDomain.createdAt()).isEqualTo(originalDomain.createdAt());
+            assertThat(reconstitutedDomain.updatedAt()).isEqualTo(originalDomain.updatedAt());
+        }
+
+        @Test
+        @DisplayName("삭제된 Domain도 양방향 변환 시 데이터 보존")
+        void shouldPreserveDeletedData_OnRoundTrip() {
+            // given
+            Tenant deletedDomain = TenantFixture.createDeleted();
+
+            // when
+            TenantJpaEntity entity = sut.toEntity(deletedDomain);
+            Tenant reconstitutedDomain = sut.toDomain(entity);
+
+            // then
+            assertThat(reconstitutedDomain.isDeleted()).isEqualTo(deletedDomain.isDeleted());
+            assertThat(reconstitutedDomain.getDeletionStatus().deletedAt())
+                    .isEqualTo(deletedDomain.getDeletionStatus().deletedAt());
         }
     }
 }

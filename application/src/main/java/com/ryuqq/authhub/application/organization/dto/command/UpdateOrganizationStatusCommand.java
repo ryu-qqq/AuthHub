@@ -1,7 +1,5 @@
 package com.ryuqq.authhub.application.organization.dto.command;
 
-import java.util.UUID;
-
 /**
  * UpdateOrganizationStatusCommand - 조직 상태 변경 Command DTO
  *
@@ -18,4 +16,4 @@ import java.util.UUID;
  * @author development-team
  * @since 1.0.0
  */
-public record UpdateOrganizationStatusCommand(UUID organizationId, String status) {}
+public record UpdateOrganizationStatusCommand(String organizationId, String status) {}

@@ -1,11 +1,7 @@
 package com.ryuqq.authhub.sdk.client;
 
+import com.ryuqq.authhub.sdk.api.AuthApi;
 import com.ryuqq.authhub.sdk.api.OnboardingApi;
-import com.ryuqq.authhub.sdk.api.OrganizationApi;
-import com.ryuqq.authhub.sdk.api.PermissionApi;
-import com.ryuqq.authhub.sdk.api.RoleApi;
-import com.ryuqq.authhub.sdk.api.TenantApi;
-import com.ryuqq.authhub.sdk.api.UserApi;
 
 /**
  * AuthHub REST API 클라이언트. 모든 AuthHub API에 대한 단일 진입점을 제공합니다.
@@ -18,52 +14,36 @@ import com.ryuqq.authhub.sdk.api.UserApi;
  *     .serviceToken("your-service-token")
  *     .build();
  *
- * // Tenant API 호출
- * TenantResponse tenant = client.tenants().create(createRequest);
+ * // 로그인
+ * ApiResponse<LoginResponse> loginResponse = client.auth().login(
+ *     new LoginRequest("user@example.com", "password"));
  *
- * // User API 호출
- * UserResponse user = client.users().getById(userId);
+ * // 토큰 갱신
+ * ApiResponse<TokenResponse> tokenResponse = client.auth().refresh(
+ *     new RefreshTokenRequest(refreshToken));
+ *
+ * // 내 정보 조회
+ * ApiResponse<MyContextResponse> me = client.auth().getMe();
+ *
+ * // 온보딩 (테넌트 + 조직 일괄 생성)
+ * ApiResponse<TenantOnboardingResponse> result = client.onboarding().onboard(request);
  * }</pre>
  */
 public interface AuthHubClient {
 
     /**
-     * Tenant 관련 API를 반환합니다.
+     * 인증 관련 API를 반환합니다.
      *
-     * @return TenantApi
-     */
-    TenantApi tenants();
-
-    /**
-     * Organization 관련 API를 반환합니다.
+     * <p>로그인, 로그아웃, 토큰 갱신, 내 정보 조회 기능을 제공합니다.
      *
-     * @return OrganizationApi
+     * @return AuthApi
      */
-    OrganizationApi organizations();
-
-    /**
-     * Role 관련 API를 반환합니다.
-     *
-     * @return RoleApi
-     */
-    RoleApi roles();
-
-    /**
-     * User 관련 API를 반환합니다.
-     *
-     * @return UserApi
-     */
-    UserApi users();
-
-    /**
-     * Permission 관련 API를 반환합니다.
-     *
-     * @return PermissionApi
-     */
-    PermissionApi permissions();
+    AuthApi auth();
 
     /**
      * Onboarding 관련 API를 반환합니다.
+     *
+     * <p>테넌트, 조직, 기본 역할, 관리자 사용자를 일괄 생성합니다.
      *
      * @return OnboardingApi
      */

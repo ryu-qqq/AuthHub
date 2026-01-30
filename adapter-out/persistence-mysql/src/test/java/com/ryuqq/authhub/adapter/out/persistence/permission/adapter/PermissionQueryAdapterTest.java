@@ -1,25 +1,20 @@
 package com.ryuqq.authhub.adapter.out.persistence.permission.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.PermissionJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.permission.fixture.PermissionJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.permission.mapper.PermissionJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.permission.repository.PermissionQueryDslRepository;
-import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
-import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
-import com.ryuqq.authhub.domain.permission.vo.PermissionType;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +26,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * PermissionQueryAdapter 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Adapter는 Repository 위임 + Mapper 변환 담당
+ *   <li>QueryDslRepository/Mapper를 Mock으로 대체
+ *   <li>Entity → Domain 변환 흐름 검증
+ *   <li>Global Only 설계 (tenantId 없음)
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -44,124 +48,96 @@ class PermissionQueryAdapterTest {
 
     @Mock private PermissionJpaEntityMapper mapper;
 
-    private PermissionQueryAdapter adapter;
-
-    private static final UUID PERMISSION_UUID = UUID.randomUUID();
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+    private PermissionQueryAdapter sut;
 
     @BeforeEach
     void setUp() {
-        adapter = new PermissionQueryAdapter(repository, mapper);
+        sut = new PermissionQueryAdapter(repository, mapper);
     }
 
     @Nested
     @DisplayName("findById 메서드")
-    class FindByIdTest {
+    class FindById {
 
         @Test
-        @DisplayName("ID로 권한을 성공적으로 조회한다")
-        void shouldFindPermissionByIdSuccessfully() {
+        @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
+        void shouldFindAndConvert_WhenEntityExists() {
             // given
-            PermissionId permissionId = PermissionId.of(PERMISSION_UUID);
-            Permission expectedPermission = PermissionFixture.createReconstituted(PERMISSION_UUID);
-            PermissionJpaEntity entity = createPermissionEntity();
+            PermissionId id = PermissionFixture.defaultId();
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
+            Permission expectedDomain = PermissionFixture.create();
 
-            given(repository.findByPermissionId(PERMISSION_UUID)).willReturn(Optional.of(entity));
-            given(mapper.toDomain(entity)).willReturn(expectedPermission);
+            given(repository.findByPermissionId(id.value())).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
             // when
-            Optional<Permission> result = adapter.findById(permissionId);
+            Optional<Permission> result = sut.findById(id);
 
             // then
             assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(expectedPermission);
-            verify(repository).findByPermissionId(PERMISSION_UUID);
+            assertThat(result.get()).isEqualTo(expectedDomain);
         }
 
         @Test
-        @DisplayName("존재하지 않는 ID로 조회하면 빈 Optional을 반환한다")
-        void shouldReturnEmptyWhenPermissionNotFound() {
+        @DisplayName("Entity가 없으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenEntityNotFound() {
             // given
-            PermissionId permissionId = PermissionId.of(UUID.randomUUID());
+            PermissionId id = PermissionFixture.defaultId();
 
-            given(repository.findByPermissionId(permissionId.value())).willReturn(Optional.empty());
+            given(repository.findByPermissionId(id.value())).willReturn(Optional.empty());
 
             // when
-            Optional<Permission> result = adapter.findById(permissionId);
+            Optional<Permission> result = sut.findById(id);
 
             // then
             assertThat(result).isEmpty();
         }
-    }
-
-    @Nested
-    @DisplayName("findByKey 메서드")
-    class FindByKeyTest {
 
         @Test
-        @DisplayName("권한 키로 권한을 조회한다")
-        void shouldFindPermissionByKey() {
+        @DisplayName("PermissionId에서 value 추출하여 Repository 호출")
+        void shouldExtractIdValue_AndCallRepository() {
             // given
-            PermissionKey key = PermissionKey.of("user:read");
-            Permission expectedPermission = PermissionFixture.createReconstituted(PERMISSION_UUID);
-            PermissionJpaEntity entity = createPermissionEntity();
+            PermissionId id = PermissionFixture.defaultId();
 
-            given(repository.findByKey("user:read")).willReturn(Optional.of(entity));
-            given(mapper.toDomain(entity)).willReturn(expectedPermission);
+            given(repository.findByPermissionId(id.value())).willReturn(Optional.empty());
 
             // when
-            Optional<Permission> result = adapter.findByKey(key);
+            sut.findById(id);
 
             // then
-            assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(expectedPermission);
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 키로 조회하면 빈 Optional을 반환한다")
-        void shouldReturnEmptyWhenKeyNotFound() {
-            // given
-            PermissionKey key = PermissionKey.of("nonexistent:key");
-
-            given(repository.findByKey("nonexistent:key")).willReturn(Optional.empty());
-
-            // when
-            Optional<Permission> result = adapter.findByKey(key);
-
-            // then
-            assertThat(result).isEmpty();
+            then(repository).should().findByPermissionId(id.value());
         }
     }
 
     @Nested
-    @DisplayName("existsByKey 메서드")
-    class ExistsByKeyTest {
+    @DisplayName("existsById 메서드")
+    class ExistsById {
 
         @Test
-        @DisplayName("권한 키가 존재하면 true를 반환한다")
-        void shouldReturnTrueWhenKeyExists() {
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
             // given
-            PermissionKey key = PermissionKey.of("user:read");
+            PermissionId id = PermissionFixture.defaultId();
 
-            given(repository.existsByKey("user:read")).willReturn(true);
+            given(repository.existsByPermissionId(id.value())).willReturn(true);
 
             // when
-            boolean result = adapter.existsByKey(key);
+            boolean result = sut.existsById(id);
 
             // then
             assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("권한 키가 존재하지 않으면 false를 반환한다")
-        void shouldReturnFalseWhenKeyNotExists() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            PermissionKey key = PermissionKey.of("nonexistent:key");
+            PermissionId id = PermissionFixture.defaultId();
 
-            given(repository.existsByKey("nonexistent:key")).willReturn(false);
+            given(repository.existsByPermissionId(id.value())).willReturn(false);
 
             // when
-            boolean result = adapter.existsByKey(key);
+            boolean result = sut.existsById(id);
 
             // then
             assertThat(result).isFalse();
@@ -169,179 +145,219 @@ class PermissionQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("search 메서드")
-    class SearchTest {
-
-        private static final Instant CREATED_FROM = Instant.parse("2024-01-01T00:00:00Z");
-        private static final Instant CREATED_TO = Instant.parse("2024-12-31T23:59:59Z");
+    @DisplayName("existsByPermissionKey 메서드")
+    class ExistsByPermissionKey {
 
         @Test
-        @DisplayName("검색 조건으로 권한 목록을 조회한다")
-        void shouldSearchPermissionsSuccessfully() {
+        @DisplayName("존재하면 true 반환 (Global 전역)")
+        void shouldReturnTrue_WhenExists() {
             // given
-            SearchPermissionsQuery query =
-                    SearchPermissionsQuery.of(null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
-            Permission permission1 =
-                    PermissionFixture.createReconstituted(UUID.randomUUID(), "user:read");
-            Permission permission2 =
-                    PermissionFixture.createReconstituted(UUID.randomUUID(), "user:write");
-            PermissionJpaEntity entity1 = createPermissionEntity();
-            PermissionJpaEntity entity2 = createPermissionEntity();
+            String permissionKey = PermissionFixture.defaultPermissionKey();
 
-            given(repository.searchByQuery(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of(entity1, entity2));
-            given(mapper.toDomain(any(PermissionJpaEntity.class)))
-                    .willReturn(permission1, permission2);
+            given(repository.existsByPermissionKey(permissionKey)).willReturn(true);
 
             // when
-            List<Permission> results = adapter.search(query);
+            boolean result = sut.existsByPermissionKey(permissionKey);
 
             // then
-            assertThat(results).hasSize(2);
+            assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenNoResults() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            SearchPermissionsQuery query =
-                    SearchPermissionsQuery.of(
-                            "nonexistent", null, null, CREATED_FROM, CREATED_TO, 0, 20);
+            String permissionKey = PermissionFixture.defaultPermissionKey();
 
-            given(repository.searchByQuery(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of());
+            given(repository.existsByPermissionKey(permissionKey)).willReturn(false);
 
             // when
-            List<Permission> results = adapter.search(query);
+            boolean result = sut.existsByPermissionKey(permissionKey);
 
             // then
-            assertThat(results).isEmpty();
+            assertThat(result).isFalse();
         }
 
         @Test
-        @DisplayName("타입 필터로 권한을 검색한다")
-        void shouldSearchPermissionsWithTypesFilter() {
+        @DisplayName("Repository에 permissionKey 전달")
+        void shouldPassPermissionKey_ToRepository() {
             // given
-            SearchPermissionsQuery query =
-                    SearchPermissionsQuery.of(
-                            null, null, List.of("SYSTEM"), CREATED_FROM, CREATED_TO, 0, 20);
-            Permission systemPermission =
-                    PermissionFixture.createReconstitutedSystem(PERMISSION_UUID, "user:admin");
-            PermissionJpaEntity entity = createSystemPermissionEntity();
+            String permissionKey = "organization:manage";
 
-            given(repository.searchByQuery(any(SearchPermissionsQuery.class)))
-                    .willReturn(List.of(entity));
-            given(mapper.toDomain(any(PermissionJpaEntity.class))).willReturn(systemPermission);
+            given(repository.existsByPermissionKey(permissionKey)).willReturn(true);
 
             // when
-            List<Permission> results = adapter.search(query);
+            sut.existsByPermissionKey(permissionKey);
 
             // then
-            assertThat(results).hasSize(1);
-            assertThat(results.get(0).isSystem()).isTrue();
+            then(repository).should().existsByPermissionKey(permissionKey);
         }
     }
 
     @Nested
-    @DisplayName("count 메서드")
-    class CountTest {
-
-        private static final Instant CREATED_FROM = Instant.parse("2024-01-01T00:00:00Z");
-        private static final Instant CREATED_TO = Instant.parse("2024-12-31T23:59:59Z");
+    @DisplayName("findByPermissionKey 메서드")
+    class FindByPermissionKey {
 
         @Test
-        @DisplayName("검색 조건으로 권한 개수를 조회한다")
-        void shouldCountPermissionsSuccessfully() {
+        @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
+        void shouldFindAndConvert_WhenEntityExists() {
             // given
-            SearchPermissionsQuery query =
-                    SearchPermissionsQuery.of(null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
+            String permissionKey = PermissionFixture.defaultPermissionKey();
+            PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
+            Permission expectedDomain = PermissionFixture.create();
 
-            given(repository.countByQuery(any(SearchPermissionsQuery.class))).willReturn(10L);
+            given(repository.findByPermissionKey(permissionKey)).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
             // when
-            long result = adapter.count(query);
+            Optional<Permission> result = sut.findByPermissionKey(permissionKey);
+
+            // then
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(expectedDomain);
+        }
+
+        @Test
+        @DisplayName("Entity가 없으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenEntityNotFound() {
+            // given
+            String permissionKey = "nonexistent:key";
+
+            given(repository.findByPermissionKey(permissionKey)).willReturn(Optional.empty());
+
+            // when
+            Optional<Permission> result = sut.findByPermissionKey(permissionKey);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllBySearchCriteria 메서드")
+    class FindAllBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Entity 목록을 Domain 목록으로 변환하여 반환")
+        void shouldFindAndConvertAll_ThenReturnDomainList() {
+            // given
+            PermissionSearchCriteria criteria = createTestCriteria();
+            PermissionJpaEntity entity1 =
+                    PermissionJpaEntityFixture.createWithResourceAndAction("user", "read");
+            PermissionJpaEntity entity2 =
+                    PermissionJpaEntityFixture.createWithResourceAndAction("user", "write");
+            Permission domain1 = PermissionFixture.createWithResourceAndAction("user", "read");
+            Permission domain2 = PermissionFixture.createWithResourceAndAction("user", "write");
+
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity1, entity2));
+            given(mapper.toDomain(entity1)).willReturn(domain1);
+            given(mapper.toDomain(entity2)).willReturn(domain2);
+
+            // when
+            List<Permission> result = sut.findAllBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).containsExactly(domain1, domain2);
+        }
+
+        @Test
+        @DisplayName("결과가 없으면 빈 목록 반환")
+        void shouldReturnEmptyList_WhenNoResults() {
+            // given
+            PermissionSearchCriteria criteria = createTestCriteria();
+
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of());
+
+            // when
+            List<Permission> result = sut.findAllBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Repository 결과를 그대로 반환")
+        void shouldReturnCount_FromRepository() {
+            // given
+            PermissionSearchCriteria criteria = createTestCriteria();
+
+            given(repository.countByCriteria(criteria)).willReturn(10L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
 
             // then
             assertThat(result).isEqualTo(10L);
+        }
+
+        @Test
+        @DisplayName("결과가 없으면 0 반환")
+        void shouldReturnZero_WhenNoResults() {
+            // given
+            PermissionSearchCriteria criteria = createTestCriteria();
+
+            given(repository.countByCriteria(criteria)).willReturn(0L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isZero();
         }
     }
 
     @Nested
     @DisplayName("findAllByIds 메서드")
-    class FindAllByIdsTest {
+    class FindAllByIds {
 
         @Test
-        @DisplayName("여러 ID로 권한 목록을 조회한다")
-        void shouldFindAllByIds() {
+        @DisplayName("성공: ID 목록으로 Entity 조회 후 Domain 변환")
+        void shouldFindAndConvertAll_ByIds() {
             // given
-            UUID permissionId1 = UUID.randomUUID();
-            UUID permissionId2 = UUID.randomUUID();
-            Set<PermissionId> permissionIds =
-                    Set.of(PermissionId.of(permissionId1), PermissionId.of(permissionId2));
-            Permission permission1 = PermissionFixture.createReconstituted(permissionId1);
-            Permission permission2 = PermissionFixture.createReconstituted(permissionId2);
-            PermissionJpaEntity entity1 = createPermissionEntity();
-            PermissionJpaEntity entity2 = createPermissionEntity();
+            List<PermissionId> ids = List.of(PermissionId.of(1L), PermissionId.of(2L));
+            List<Long> idValues = List.of(1L, 2L);
+            PermissionJpaEntity entity1 = PermissionJpaEntityFixture.createWithId(1L);
+            PermissionJpaEntity entity2 = PermissionJpaEntityFixture.createWithId(2L);
+            Permission domain1 = PermissionFixture.create();
+            Permission domain2 = PermissionFixture.create();
 
-            given(repository.findAllByIds(Set.of(permissionId1, permissionId2)))
-                    .willReturn(List.of(entity1, entity2));
-            given(mapper.toDomain(any(PermissionJpaEntity.class)))
-                    .willReturn(permission1, permission2);
+            given(repository.findAllByIds(idValues)).willReturn(List.of(entity1, entity2));
+            given(mapper.toDomain(entity1)).willReturn(domain1);
+            given(mapper.toDomain(entity2)).willReturn(domain2);
 
             // when
-            List<Permission> results = adapter.findAllByIds(permissionIds);
+            List<Permission> result = sut.findAllByIds(ids);
 
             // then
-            assertThat(results).hasSize(2);
+            assertThat(result).hasSize(2);
         }
 
         @Test
-        @DisplayName("빈 ID Set이면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenIdsEmpty() {
+        @DisplayName("빈 ID 목록이면 빈 목록 반환")
+        void shouldReturnEmptyList_WhenIdsEmpty() {
             // given
-            Set<PermissionId> emptyIds = Set.of();
+            List<PermissionId> ids = List.of();
+            List<Long> idValues = List.of();
+
+            given(repository.findAllByIds(idValues)).willReturn(List.of());
 
             // when
-            List<Permission> results = adapter.findAllByIds(emptyIds);
+            List<Permission> result = sut.findAllByIds(ids);
 
             // then
-            assertThat(results).isEmpty();
-        }
-
-        @Test
-        @DisplayName("null ID Set이면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenIdsNull() {
-            // when
-            List<Permission> results = adapter.findAllByIds(null);
-
-            // then
-            assertThat(results).isEmpty();
+            assertThat(result).isEmpty();
         }
     }
 
-    private PermissionJpaEntity createPermissionEntity() {
-        return PermissionJpaEntity.of(
-                PERMISSION_UUID,
-                "user:read",
-                "user",
-                "read",
-                "사용자 조회 권한",
-                PermissionType.CUSTOM,
-                false,
-                FIXED_TIME,
-                FIXED_TIME);
-    }
+    // ==================== Helper Methods ====================
 
-    private PermissionJpaEntity createSystemPermissionEntity() {
-        return PermissionJpaEntity.of(
-                PERMISSION_UUID,
-                "user:admin",
-                "user",
-                "admin",
-                "사용자 관리자 권한",
-                PermissionType.SYSTEM,
-                false,
-                FIXED_TIME,
-                FIXED_TIME);
+    private PermissionSearchCriteria createTestCriteria() {
+        return PermissionSearchCriteria.ofDefault(null, null, DateRange.of(null, null), 0, 10);
     }
 }

@@ -1,37 +1,27 @@
 package com.ryuqq.authhub.domain.user.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.id.UserId;
+import com.ryuqq.authhub.domain.user.vo.Identifier;
 import java.util.Map;
-import java.util.UUID;
 
 /**
- * UserNotFoundException - 사용자 찾을 수 없음 예외
- *
- * <p>존재하지 않는 사용자 조회 시 발생합니다.
- *
- * <p><strong>Zero-Tolerance 규칙:</strong>
- *
- * <ul>
- *   <li>DomainException 상속 필수
- *   <li>ErrorCode 사용 필수
- *   <li>Lombok 금지
- * </ul>
+ * UserNotFoundException - 사용자를 찾을 수 없을 때 발생하는 예외
  *
  * @author development-team
  * @since 1.0.0
  */
 public class UserNotFoundException extends DomainException {
 
-    public UserNotFoundException(UserId userId) {
-        super(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId.value()));
-    }
-
-    public UserNotFoundException(UUID userId) {
+    public UserNotFoundException(String userId) {
         super(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
     }
 
-    public UserNotFoundException(String identifier) {
-        super(UserErrorCode.USER_NOT_FOUND, Map.of("identifier", identifier));
+    public UserNotFoundException(UserId userId) {
+        this(userId.value());
+    }
+
+    public UserNotFoundException(Identifier identifier) {
+        super(UserErrorCode.USER_NOT_FOUND, Map.of("identifier", identifier.value()));
     }
 }

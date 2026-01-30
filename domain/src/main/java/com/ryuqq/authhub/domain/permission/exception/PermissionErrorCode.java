@@ -11,11 +11,11 @@ import com.ryuqq.authhub.domain.common.exception.ErrorCode;
  * @since 1.0.0
  */
 public enum PermissionErrorCode implements ErrorCode {
-    PERMISSION_NOT_FOUND("PERMISSION-001", 404, "Permission not found"),
-    DUPLICATE_PERMISSION_KEY("PERMISSION-002", 409, "Permission key already exists"),
-    SYSTEM_PERMISSION_NOT_MODIFIABLE("PERMISSION-003", 400, "System permission cannot be modified"),
-    SYSTEM_PERMISSION_NOT_DELETABLE("PERMISSION-004", 400, "System permission cannot be deleted"),
-    INVALID_PERMISSION_KEY("PERMISSION-005", 400, "Invalid permission key format");
+    PERMISSION_NOT_FOUND("PERM-001", 404, "Permission not found"),
+    DUPLICATE_PERMISSION_KEY("PERM-002", 409, "Permission key already exists"),
+    SYSTEM_PERMISSION_NOT_MODIFIABLE("PERM-003", 403, "System permission cannot be modified"),
+    SYSTEM_PERMISSION_NOT_DELETABLE("PERM-004", 403, "System permission cannot be deleted"),
+    PERMISSION_IN_USE("PERM-005", 409, "Permission is currently in use and cannot be deleted");
 
     private final String code;
     private final int httpStatus;

@@ -1,25 +1,22 @@
 package com.ryuqq.authhub.adapter.out.persistence.organization.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.authhub.adapter.out.persistence.organization.entity.OrganizationJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.organization.fixture.OrganizationJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.organization.mapper.OrganizationJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationQueryDslRepository;
-import com.ryuqq.authhub.domain.common.vo.PageRequest;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
-import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationCriteria;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationSearchCriteria;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationStatus;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.time.LocalDateTime;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +28,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * OrganizationQueryAdapter 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Adapter는 Repository 위임 + Mapper 변환 담당
+ *   <li>QueryDslRepository/Mapper를 Mock으로 대체
+ *   <li>Entity → Domain 변환 흐름 검증
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -44,87 +49,96 @@ class OrganizationQueryAdapterTest {
 
     @Mock private OrganizationJpaEntityMapper mapper;
 
-    private OrganizationQueryAdapter adapter;
-
-    private static final UUID ORG_UUID = OrganizationFixture.defaultUUID();
-    private static final UUID TENANT_UUID = OrganizationFixture.defaultTenantUUID();
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+    private OrganizationQueryAdapter sut;
 
     @BeforeEach
     void setUp() {
-        adapter = new OrganizationQueryAdapter(repository, mapper);
+        sut = new OrganizationQueryAdapter(repository, mapper);
     }
 
     @Nested
     @DisplayName("findById 메서드")
-    class FindByIdTest {
+    class FindById {
 
         @Test
-        @DisplayName("ID로 조직을 성공적으로 조회한다")
-        void shouldFindOrganizationByIdSuccessfully() {
+        @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
+        void shouldFindAndConvert_WhenEntityExists() {
             // given
-            OrganizationId organizationId = OrganizationId.of(ORG_UUID);
-            Organization expectedOrg = OrganizationFixture.create();
-            OrganizationJpaEntity entity = createOrganizationEntity();
+            OrganizationId id = OrganizationFixture.defaultId();
+            OrganizationJpaEntity entity = OrganizationJpaEntityFixture.create();
+            Organization expectedDomain = OrganizationFixture.create();
 
-            given(repository.findByOrganizationId(ORG_UUID)).willReturn(Optional.of(entity));
-            given(mapper.toDomain(entity)).willReturn(expectedOrg);
+            given(repository.findByOrganizationId(id.value())).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
             // when
-            Optional<Organization> result = adapter.findById(organizationId);
+            Optional<Organization> result = sut.findById(id);
 
             // then
             assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(expectedOrg);
-            verify(repository).findByOrganizationId(ORG_UUID);
+            assertThat(result.get()).isEqualTo(expectedDomain);
         }
 
         @Test
-        @DisplayName("존재하지 않는 ID로 조회하면 빈 Optional을 반환한다")
-        void shouldReturnEmptyWhenOrganizationNotFound() {
+        @DisplayName("Entity가 없으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenEntityNotFound() {
             // given
-            OrganizationId organizationId = OrganizationId.of(UUID.randomUUID());
+            OrganizationId id = OrganizationFixture.defaultId();
 
-            given(repository.findByOrganizationId(organizationId.value()))
-                    .willReturn(Optional.empty());
+            given(repository.findByOrganizationId(id.value())).willReturn(Optional.empty());
 
             // when
-            Optional<Organization> result = adapter.findById(organizationId);
+            Optional<Organization> result = sut.findById(id);
 
             // then
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("OrganizationId에서 value 추출하여 Repository 호출")
+        void shouldExtractIdValue_AndCallRepository() {
+            // given
+            OrganizationId id = OrganizationFixture.defaultId();
+
+            given(repository.findByOrganizationId(id.value())).willReturn(Optional.empty());
+
+            // when
+            sut.findById(id);
+
+            // then
+            then(repository).should().findByOrganizationId(id.value());
         }
     }
 
     @Nested
     @DisplayName("existsById 메서드")
-    class ExistsByIdTest {
+    class ExistsById {
 
         @Test
-        @DisplayName("조직 ID가 존재하면 true를 반환한다")
-        void shouldReturnTrueWhenIdExists() {
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
             // given
-            OrganizationId organizationId = OrganizationId.of(ORG_UUID);
+            OrganizationId id = OrganizationFixture.defaultId();
 
-            given(repository.existsByOrganizationId(ORG_UUID)).willReturn(true);
+            given(repository.existsByOrganizationId(id.value())).willReturn(true);
 
             // when
-            boolean result = adapter.existsById(organizationId);
+            boolean result = sut.existsById(id);
 
             // then
             assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("조직 ID가 존재하지 않으면 false를 반환한다")
-        void shouldReturnFalseWhenIdNotExists() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            OrganizationId organizationId = OrganizationId.of(UUID.randomUUID());
+            OrganizationId id = OrganizationFixture.defaultId();
 
-            given(repository.existsByOrganizationId(organizationId.value())).willReturn(false);
+            given(repository.existsByOrganizationId(id.value())).willReturn(false);
 
             // when
-            boolean result = adapter.existsById(organizationId);
+            boolean result = sut.existsById(id);
 
             // then
             assertThat(result).isFalse();
@@ -133,195 +147,146 @@ class OrganizationQueryAdapterTest {
 
     @Nested
     @DisplayName("existsByTenantIdAndName 메서드")
-    class ExistsByTenantIdAndNameTest {
+    class ExistsByTenantIdAndName {
 
         @Test
-        @DisplayName("테넌트 내 조직명이 존재하면 true를 반환한다")
-        void shouldReturnTrueWhenNameExists() {
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationName name = OrganizationName.of("Test Organization");
+            TenantId tenantId = OrganizationFixture.defaultTenantId();
+            OrganizationName name = OrganizationName.of("Test Org");
 
-            given(repository.existsByTenantIdAndName(TENANT_UUID, "Test Organization"))
+            given(repository.existsByTenantIdAndName(tenantId.value(), name.value()))
                     .willReturn(true);
 
             // when
-            boolean result = adapter.existsByTenantIdAndName(tenantId, name);
+            boolean result = sut.existsByTenantIdAndName(tenantId, name);
 
             // then
             assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("테넌트 내 조직명이 존재하지 않으면 false를 반환한다")
-        void shouldReturnFalseWhenNameNotExists() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationName name = OrganizationName.of("Nonexistent Organization");
+            TenantId tenantId = OrganizationFixture.defaultTenantId();
+            OrganizationName name = OrganizationName.of("NonExistent Org");
 
-            given(repository.existsByTenantIdAndName(TENANT_UUID, "Nonexistent Organization"))
+            given(repository.existsByTenantIdAndName(tenantId.value(), name.value()))
                     .willReturn(false);
 
             // when
-            boolean result = adapter.existsByTenantIdAndName(tenantId, name);
+            boolean result = sut.existsByTenantIdAndName(tenantId, name);
 
             // then
             assertThat(result).isFalse();
         }
+
+        @Test
+        @DisplayName("VO에서 value 추출하여 Repository 호출")
+        void shouldExtractValues_AndCallRepository() {
+            // given
+            TenantId tenantId = OrganizationFixture.defaultTenantId();
+            OrganizationName name = OrganizationName.of("Test Org");
+
+            given(repository.existsByTenantIdAndName(tenantId.value(), name.value()))
+                    .willReturn(false);
+
+            // when
+            sut.existsByTenantIdAndName(tenantId, name);
+
+            // then
+            then(repository).should().existsByTenantIdAndName(tenantId.value(), name.value());
+        }
     }
 
     @Nested
-    @DisplayName("findAllByCriteria 메서드")
-    class FindAllByCriteriaTest {
+    @DisplayName("findAllBySearchCriteria 메서드")
+    class FindAllBySearchCriteria {
 
         @Test
-        @DisplayName("Criteria 기반으로 조직 목록을 조회한다")
-        void shouldFindAllByCriteria() {
+        @DisplayName("성공: Entity 목록을 Domain 목록으로 변환하여 반환")
+        void shouldFindAndConvertAll_ThenReturnDomainList() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationCriteria criteria =
-                    OrganizationCriteria.of(
-                            tenantId, null, null, null, null, null, null, PageRequest.of(0, 20));
-            Organization org1 = OrganizationFixture.create();
-            Organization org2 = OrganizationFixture.createWithName("Another Organization");
-            OrganizationJpaEntity entity1 = createOrganizationEntity();
-            OrganizationJpaEntity entity2 = createOrganizationEntity();
+            OrganizationSearchCriteria criteria = createTestCriteria();
+            OrganizationJpaEntity entity1 = OrganizationJpaEntityFixture.createWithName("Org 1");
+            OrganizationJpaEntity entity2 = OrganizationJpaEntityFixture.createWithName("Org 2");
+            Organization domain1 = OrganizationFixture.createWithName("Org 1");
+            Organization domain2 = OrganizationFixture.createWithName("Org 2");
 
             given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity1, entity2));
-            given(mapper.toDomain(any(OrganizationJpaEntity.class))).willReturn(org1, org2);
+            given(mapper.toDomain(entity1)).willReturn(domain1);
+            given(mapper.toDomain(entity2)).willReturn(domain2);
 
             // when
-            List<Organization> results = adapter.findAllByCriteria(criteria);
+            List<Organization> result = sut.findAllBySearchCriteria(criteria);
 
             // then
-            assertThat(results).hasSize(2);
-            verify(repository).findAllByCriteria(criteria);
+            assertThat(result).hasSize(2);
+            assertThat(result).containsExactly(domain1, domain2);
         }
 
         @Test
-        @DisplayName("이름 필터로 조직을 검색한다")
-        void shouldFindAllWithNameFilter() {
+        @DisplayName("결과가 없으면 빈 목록 반환")
+        void shouldReturnEmptyList_WhenNoResults() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationCriteria criteria =
-                    OrganizationCriteria.of(
-                            tenantId, "Test", null, null, null, null, null, PageRequest.of(0, 20));
-            Organization org = OrganizationFixture.create();
-            OrganizationJpaEntity entity = createOrganizationEntity();
-
-            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity));
-            given(mapper.toDomain(any(OrganizationJpaEntity.class))).willReturn(org);
-
-            // when
-            List<Organization> results = adapter.findAllByCriteria(criteria);
-
-            // then
-            assertThat(results).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("상태 필터로 조직을 검색한다")
-        void shouldFindAllWithStatusFilter() {
-            // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationCriteria criteria =
-                    OrganizationCriteria.of(
-                            tenantId,
-                            null,
-                            null,
-                            List.of(OrganizationStatus.ACTIVE),
-                            null,
-                            null,
-                            null,
-                            PageRequest.of(0, 20));
-            Organization org = OrganizationFixture.create();
-            OrganizationJpaEntity entity = createOrganizationEntity();
-
-            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity));
-            given(mapper.toDomain(any(OrganizationJpaEntity.class))).willReturn(org);
-
-            // when
-            List<Organization> results = adapter.findAllByCriteria(criteria);
-
-            // then
-            assertThat(results).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenNoResults() {
-            // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationCriteria criteria =
-                    OrganizationCriteria.of(
-                            tenantId,
-                            "nonexistent",
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            PageRequest.of(0, 20));
+            OrganizationSearchCriteria criteria = createTestCriteria();
 
             given(repository.findAllByCriteria(criteria)).willReturn(List.of());
 
             // when
-            List<Organization> results = adapter.findAllByCriteria(criteria);
+            List<Organization> result = sut.findAllBySearchCriteria(criteria);
 
             // then
-            assertThat(results).isEmpty();
+            assertThat(result).isEmpty();
         }
     }
 
     @Nested
-    @DisplayName("countByCriteria 메서드")
-    class CountByCriteriaTest {
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
 
         @Test
-        @DisplayName("Criteria 기반으로 조직 개수를 조회한다")
-        void shouldCountByCriteria() {
+        @DisplayName("성공: Repository 결과를 그대로 반환")
+        void shouldReturnCount_FromRepository() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationCriteria criteria =
-                    OrganizationCriteria.of(
-                            tenantId, null, null, null, null, null, null, PageRequest.of(0, 20));
+            OrganizationSearchCriteria criteria = createTestCriteria();
 
-            given(repository.countByCriteria(criteria)).willReturn(5L);
+            given(repository.countByCriteria(criteria)).willReturn(15L);
 
             // when
-            long result = adapter.countByCriteria(criteria);
+            long result = sut.countBySearchCriteria(criteria);
 
             // then
-            assertThat(result).isEqualTo(5L);
-            verify(repository).countByCriteria(criteria);
+            assertThat(result).isEqualTo(15L);
         }
 
         @Test
-        @DisplayName("이름 필터로 조직 개수를 조회한다")
-        void shouldCountWithNameFilter() {
+        @DisplayName("결과가 없으면 0 반환")
+        void shouldReturnZero_WhenNoResults() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationCriteria criteria =
-                    OrganizationCriteria.of(
-                            tenantId, "Test", null, null, null, null, null, PageRequest.of(0, 20));
+            OrganizationSearchCriteria criteria = createTestCriteria();
 
-            given(repository.countByCriteria(criteria)).willReturn(2L);
+            given(repository.countByCriteria(criteria)).willReturn(0L);
 
             // when
-            long result = adapter.countByCriteria(criteria);
+            long result = sut.countBySearchCriteria(criteria);
 
             // then
-            assertThat(result).isEqualTo(2L);
+            assertThat(result).isZero();
         }
     }
 
-    private OrganizationJpaEntity createOrganizationEntity() {
-        return OrganizationJpaEntity.of(
-                ORG_UUID,
-                TENANT_UUID,
-                "Test Organization",
-                OrganizationStatus.ACTIVE,
-                FIXED_TIME,
-                FIXED_TIME);
+    // ==================== Helper Methods ====================
+
+    private OrganizationSearchCriteria createTestCriteria() {
+        return OrganizationSearchCriteria.ofSimple(
+                List.of(OrganizationFixture.defaultTenantId()),
+                null,
+                null,
+                DateRange.of(null, null),
+                0,
+                10);
     }
 }

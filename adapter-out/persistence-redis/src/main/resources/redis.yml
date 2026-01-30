@@ -5,6 +5,11 @@
 # Lettuce: 캐싱, 세션, 단순 K-V 조회
 # Redisson: 분산락, 분산 자료구조
 #
+# 환경별 설정은 redis-{profile}.yml 참조
+# - redis-local.yml: 로컬 개발 환경
+# - redis-stage.yml: 스테이징 환경
+# - redis-prod.yml: 운영 환경
+#
 # @author Development Team
 # @since 1.0.0
 # ===============================================
@@ -20,14 +25,13 @@ spring:
       # ===============================================
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      # password는 프로필별로 필요시 설정
       database: ${REDIS_DATABASE:0}
 
       # Command Timeout
       timeout: 3000ms
 
       # Client Name (모니터링용)
-      client-name: ${spring.application.name:spring-standards}-${HOSTNAME:unknown}
+      client-name: ${spring.application.name:authhub}-${HOSTNAME:unknown}
 
       # ===============================================
       # Lettuce Connection Pool (Caching)
@@ -66,7 +70,6 @@ redisson:
   # Single Server Mode (Default)
   single-server-config:
     address: "redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}"
-    # password는 프로필별로 필요시 설정
     database: ${REDIS_DATABASE:0}
 
     # Connection Pool
@@ -83,115 +86,3 @@ redisson:
   # Thread Settings
   threads: 4
   netty-threads: 4
-
----
-# ===============================================
-# Local Profile
-# ===============================================
-spring:
-  config:
-    activate:
-      on-profile: local
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      # password: (로컬은 비밀번호 없음)
-
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 2
-          max-wait: 1000ms
-
-redisson:
-  single-server-config:
-    address: "redis://localhost:6379"
-    connection-pool-size: 8
-    connection-minimum-idle-size: 2
-
----
-# ===============================================
-# Development Profile
-# ===============================================
-spring:
-  config:
-    activate:
-      on-profile: dev
-
-  data:
-    redis:
-      host: ${REDIS_HOST:redis-dev.internal}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-
-      lettuce:
-        pool:
-          max-active: 12
-          max-idle: 8
-          min-idle: 4
-
-redisson:
-  single-server-config:
-    address: "redis://${REDIS_HOST:redis-dev.internal}:${REDIS_PORT:6379}"
-    password: ${REDIS_PASSWORD:}
-    connection-pool-size: 12
-
----
-# ===============================================
-# Production Profile
-# ===============================================
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
-      # ElastiCache 비밀번호 미사용 - password 필드 제거
-      # password: ${REDIS_PASSWORD:}
-
-      # SSL 설정 (AWS ElastiCache 등)
-      ssl:
-        enabled: ${REDIS_SSL_ENABLED:false}
-
-      lettuce:
-        pool:
-          max-active: 32
-          max-idle: 16
-          min-idle: 8
-          max-wait: 3000ms
-
-      # Cluster 모드 (선택)
-      # cluster:
-      #   nodes: ${REDIS_CLUSTER_NODES}
-      #   max-redirects: 3
-
-      # Sentinel 모드 (선택)
-      # sentinel:
-      #   master: ${REDIS_SENTINEL_MASTER:mymaster}
-      #   nodes: ${REDIS_SENTINEL_NODES}
-
-redisson:
-  # Production: Cluster 모드 사용 시
-  # cluster-servers-config:
-  #   node-addresses:
-  #     - "redis://${REDIS_NODE_1}:6379"
-  #     - "redis://${REDIS_NODE_2}:6379"
-  #     - "redis://${REDIS_NODE_3}:6379"
-  #   password: ${REDIS_PASSWORD}
-  #   scan-interval: 2000
-  #   master-connection-pool-size: 16
-  #   slave-connection-pool-size: 16
-
-  single-server-config:
-    address: "redis://${REDIS_HOST}:${REDIS_PORT:6379}"
-    # ElastiCache 비밀번호 미사용 - password 필드 제거
-    # password: ${REDIS_PASSWORD:}
-    connection-pool-size: 32
-    connection-minimum-idle-size: 8
-    ssl-enable-endpoint-identification: ${REDIS_SSL_ENABLED:false}

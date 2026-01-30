@@ -1,9 +1,5 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ryuqq.auth.common.header.SecurityHeaders;
-import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor;
-import com.ryuqq.authhub.adapter.in.rest.auth.component.JwtClaimsExtractor.JwtClaims;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContext;
 import com.ryuqq.authhub.adapter.in.rest.auth.component.SecurityContextHolder;
 import jakarta.servlet.FilterChain;
@@ -11,7 +7,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -25,16 +20,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Gateway 헤더 기반 인증 필터 (JWT Fallback 지원)
+ * Gateway 헤더 기반 인증 필터
  *
  * <p>Gateway에서 전달하는 X-* 헤더를 파싱하여 SecurityContext를 설정합니다.
  *
- * <p><strong>인증 우선순위:</strong>
+ * <p><strong>인증 흐름:</strong>
  *
  * <ol>
- *   <li>X-User-Id 헤더가 있으면 Gateway 인증 사용 (프로덕션 권장)
- *   <li>X-User-Id 없고 Authorization: Bearer가 있으면 JWT 직접 검증 (로컬 개발용)
- *   <li>둘 다 없으면 Anonymous 처리
+ *   <li>X-User-Id 헤더가 있으면 Gateway 인증 사용
+ *   <li>X-User-Id 없으면 Anonymous 처리
  * </ol>
  *
  * @author development-team
@@ -45,15 +39,6 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayAuthenticationFilter.class);
     private static final String MDC_TRACE_ID_KEY = "traceId";
-
-    private final ObjectMapper objectMapper;
-    private final JwtClaimsExtractor jwtClaimsExtractor;
-
-    public GatewayAuthenticationFilter(
-            ObjectMapper objectMapper, JwtClaimsExtractor jwtClaimsExtractor) {
-        this.objectMapper = objectMapper;
-        this.jwtClaimsExtractor = jwtClaimsExtractor;
-    }
 
     @Override
     protected void doFilterInternal(
@@ -88,24 +73,19 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
         String userId = GatewayHeaderExtractor.getUserId(request);
         if (StringUtils.hasText(userId)) {
-            log.info("[AUTH] Gateway 인증 시도: userId={}", userId);
+            log.debug("[AUTH] Gateway 인증: userId={}", userId);
             return buildGatewaySecurityContext(request, userId);
         }
 
-        Optional<JwtClaims> jwtClaims = extractJwtClaims(request);
-        if (jwtClaims.isPresent()) {
-            log.info("[AUTH] JWT Fallback 인증 시도");
-            return buildJwtSecurityContext(jwtClaims.get());
-        }
-
-        log.info("[AUTH] Anonymous 처리 (인증 헤더 없음)");
+        log.debug("[AUTH] Anonymous 처리 (X-User-Id 헤더 없음)");
         return SecurityContext.anonymous();
     }
 
     private void logAuthHeaders(HttpServletRequest request) {
-        log.info("[AUTH-HEADERS] URI: {} {}", request.getMethod(), request.getRequestURI());
-        log.info(
-                "[AUTH-HEADERS] X-User-Id: {}",
+        log.debug(
+                "[AUTH] URI: {} {}, X-User-Id: {}",
+                request.getMethod(),
+                request.getRequestURI(),
                 request.getHeader(GatewayHeaderExtractor.HEADER_USER_ID));
     }
 
@@ -116,8 +96,8 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         Set<String> permissions = GatewayHeaderExtractor.getPermissions(request);
         String traceId = GatewayHeaderExtractor.getTraceId(request);
 
-        log.info(
-                "[AUTH] Gateway SecurityContext: userId={}, tenantId={}, roles={}",
+        log.debug(
+                "[AUTH] SecurityContext: userId={}, tenantId={}, roles={}",
                 userId,
                 tenantId,
                 roles);
@@ -129,25 +109,6 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
                 .roles(roles)
                 .permissions(permissions)
                 .traceId(traceId)
-                .build();
-    }
-
-    private Optional<JwtClaims> extractJwtClaims(HttpServletRequest request) {
-        String token = GatewayHeaderExtractor.extractBearerToken(request);
-        if (token == null) {
-            return Optional.empty();
-        }
-        return jwtClaimsExtractor.extractClaims(token);
-    }
-
-    private SecurityContext buildJwtSecurityContext(JwtClaims claims) {
-        return SecurityContext.builder()
-                .userId(claims.userId())
-                .tenantId(claims.tenantId())
-                .organizationId(claims.organizationId())
-                .roles(claims.roles())
-                .permissions(claims.permissions())
-                .traceId(null)
                 .build();
     }
 
@@ -166,11 +127,5 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
         org.springframework.security.core.context.SecurityContextHolder.getContext()
                 .setAuthentication(authentication);
-    }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String serviceToken = request.getHeader(SecurityHeaders.SERVICE_TOKEN);
-        return StringUtils.hasText(serviceToken);
     }
 }

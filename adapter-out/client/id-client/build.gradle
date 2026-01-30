@@ -1,0 +1,73 @@
+// ========================================
+// Adapter-Out: ID Client
+// ========================================
+// Outbound adapter for ID generation (UUIDv7)
+// Implements IdGeneratorPort from application layer
+// Technology: uuid-creator
+// NO Lombok allowed
+// ========================================
+
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+}
+
+dependencies {
+    // ========================================
+    // Core Dependencies
+    // ========================================
+    api project(':application')
+    api project(':domain')
+
+    // ========================================
+    // UUID Creator (UUIDv7)
+    // ========================================
+    implementation libs.uuid.creator
+
+    // ========================================
+    // Spring Boot (for @Component)
+    // ========================================
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+
+    // ========================================
+    // Test Dependencies
+    // ========================================
+    testImplementation libs.spring.boot.starter.test
+
+    // ArchUnit for architecture validation
+    testImplementation libs.archunit.junit5
+
+    // Domain testFixtures
+    testImplementation testFixtures(project(':domain'))
+
+    // ========================================
+    // Test Fixtures Dependencies
+    // ========================================
+    testFixturesApi project(':domain')
+    testFixturesApi project(':application')
+    testFixturesApi testFixtures(project(':domain'))
+    testFixturesApi testFixtures(project(':application'))
+}
+
+// ========================================
+// Test Coverage (80% for ID generator)
+// ========================================
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80
+            }
+        }
+        rule {
+            element = 'CLASS'
+            excludes = [
+                '*.config.*' // Configuration classes excluded
+            ]
+        }
+    }
+}
+
+tasks.test {
+    finalizedBy tasks.jacocoTestCoverageVerification
+}

@@ -2,303 +2,194 @@ package com.ryuqq.authhub.adapter.in.rest.tenant.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
-import com.ryuqq.authhub.adapter.in.rest.common.error.ErrorMapperRegistry;
-import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper;
-import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.tenant.mapper.TenantApiMapper;
-import com.ryuqq.authhub.application.common.dto.response.PageResponse;
-import com.ryuqq.authhub.application.tenant.dto.query.GetTenantQuery;
-import com.ryuqq.authhub.application.tenant.dto.query.SearchTenantsQuery;
-import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
-import com.ryuqq.authhub.application.tenant.port.in.query.GetTenantDetailUseCase;
-import com.ryuqq.authhub.application.tenant.port.in.query.GetTenantUseCase;
-import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsAdminUseCase;
-import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsUseCase;
-import com.ryuqq.authhub.domain.tenant.exception.TenantNotFoundException;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.net.URI;
+import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.tenant.TenantApiEndpoints;
+import com.ryuqq.authhub.adapter.in.rest.tenant.controller.query.TenantQueryController;
+import com.ryuqq.authhub.adapter.in.rest.tenant.fixture.TenantApiFixture;
+import com.ryuqq.authhub.adapter.in.rest.tenant.mapper.TenantQueryApiMapper;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantPageResult;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantResult;
+import com.ryuqq.authhub.application.tenant.port.in.query.SearchTenantsByOffsetUseCase;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 /**
  * TenantQueryController 단위 테스트
  *
- * <p>검증 범위:
- *
- * <ul>
- *   <li>HTTP 요청/응답 매핑
- *   <li>Query Parameter 바인딩
- *   <li>Response DTO 직렬화
- *   <li>HTTP Status Code
- *   <li>UseCase 호출 검증
- * </ul>
- *
  * @author development-team
  * @since 1.0.0
  */
-@WebMvcTest(TenantQueryController.class)
-@Import(ControllerTestSecurityConfig.class)
-@AutoConfigureMockMvc(addFilters = false)
-@DisplayName("TenantQueryController 단위 테스트")
 @Tag("unit")
-@Tag("adapter-rest")
-class TenantQueryControllerTest {
+@WebMvcTest(TenantQueryController.class)
+@Import({ControllerTestSecurityConfig.class, TenantQueryApiMapper.class})
+@DisplayName("TenantQueryController 테스트")
+class TenantQueryControllerTest extends RestDocsTestSupport {
 
-    private static final Instant NOW = Instant.now();
-    private static final Instant ONE_MONTH_AGO = NOW.minus(30, ChronoUnit.DAYS);
-
-    @Autowired private MockMvc mockMvc;
-
-    @MockBean private GetTenantUseCase getTenantUseCase;
-
-    @MockBean private GetTenantDetailUseCase getTenantDetailUseCase;
-
-    @MockBean private SearchTenantsUseCase searchTenantsUseCase;
-
-    @MockBean private SearchTenantsAdminUseCase searchTenantsAdminUseCase;
-
-    @MockBean private TenantApiMapper mapper;
-
-    @MockBean private ErrorMapperRegistry errorMapperRegistry;
+    @MockBean private SearchTenantsByOffsetUseCase searchTenantsByOffsetUseCase;
 
     @Nested
-    @DisplayName("GET /api/v1/tenants/{tenantId} - 테넌트 단건 조회")
-    class GetTenantTest {
+    @DisplayName("GET /api/v1/auth/tenants - 테넌트 목록 검색")
+    class SearchTests {
 
         @Test
-        @DisplayName("[성공] 존재하는 테넌트 ID로 조회 시 200 OK 반환")
-        void getTenant_withExistingId_returns200Ok() throws Exception {
-            // Given
-            UUID tenantId = UUID.randomUUID();
-            TenantResponse useCaseResponse =
-                    new TenantResponse(
-                            tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
-            TenantApiResponse apiResponse =
-                    new TenantApiResponse(
-                            tenantId.toString(),
-                            "TestTenant",
-                            "ACTIVE",
-                            Instant.now(),
-                            Instant.now());
+        @DisplayName("유효한 요청으로 테넌트 목록을 조회한다")
+        void shouldSearchTenantsSuccessfully() throws Exception {
+            // given
+            Instant fixedTime = TenantApiFixture.fixedTime();
+            TenantResult result =
+                    new TenantResult(
+                            TenantApiFixture.defaultTenantIdString(),
+                            TenantApiFixture.defaultTenantName(),
+                            TenantApiFixture.defaultStatus(),
+                            fixedTime,
+                            fixedTime);
+            TenantPageResult pageResult = TenantPageResult.of(List.of(result), 0, 20, 1L);
+            given(searchTenantsByOffsetUseCase.execute(any())).willReturn(pageResult);
 
-            given(getTenantUseCase.execute(any(GetTenantQuery.class))).willReturn(useCaseResponse);
-            given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/tenants/{tenantId}", tenantId)
-                                    .accept(MediaType.APPLICATION_JSON))
+            // when & then
+            mockMvc.perform(get(TenantApiEndpoints.TENANTS).param("page", "0").param("size", "20"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.tenantId").value(tenantId.toString()))
-                    .andExpect(jsonPath("$.data.name").value("TestTenant"))
-                    .andExpect(jsonPath("$.data.status").value("ACTIVE"));
-
-            verify(getTenantUseCase).execute(any(GetTenantQuery.class));
-        }
-
-        @Test
-        @DisplayName("[실패] 존재하지 않는 테넌트 ID로 조회 시 404 Not Found 반환")
-        void getTenant_withNonExistingId_returns404NotFound() throws Exception {
-            // Given
-            UUID tenantId = UUID.randomUUID();
-            given(getTenantUseCase.execute(any(GetTenantQuery.class)))
-                    .willThrow(new TenantNotFoundException(TenantId.of(tenantId)));
-
-            // ErrorMapperRegistry mock 설정 - 404 응답 매핑
-            ErrorMapper.MappedError mappedError =
-                    new ErrorMapper.MappedError(
-                            HttpStatus.NOT_FOUND,
-                            "Tenant Not Found",
-                            "Tenant not found",
-                            URI.create("https://authhub.ryuqq.com/errors/tenant-not-found"));
-            given(errorMapperRegistry.map(any(), any())).willReturn(Optional.of(mappedError));
-
-            // When & Then
-            // GlobalExceptionHandler가 ProblemDetail (RFC 7807) 형식으로 반환
-            mockMvc.perform(
-                            get("/api/v1/auth/tenants/{tenantId}", tenantId)
-                                    .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404))
-                    .andExpect(jsonPath("$.title").value("Tenant Not Found"));
-        }
-
-        @Test
-        @DisplayName("[실패] 잘못된 UUID 형식으로 조회 시 400 Bad Request 반환")
-        void getTenant_withInvalidUuid_returns400BadRequest() throws Exception {
-            // Given
-            String invalidUuid = "not-a-valid-uuid";
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/tenants/{tenantId}", invalidUuid)
-                                    .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /api/v1/tenants - 테넌트 목록 조회")
-    class SearchTenantsTest {
-
-        @Test
-        @DisplayName("[성공] 페이징 파라미터 없이 조회 시 기본값으로 200 OK 반환")
-        void searchTenants_withoutParams_returns200Ok() throws Exception {
-            // Given
-            UUID tenantId = UUID.randomUUID();
-            TenantResponse response =
-                    new TenantResponse(
-                            tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
-            PageResponse<TenantResponse> pageResponse =
-                    PageResponse.of(List.of(response), 0, 20, 1, 1, true, true);
-            TenantApiResponse apiResponse =
-                    new TenantApiResponse(
-                            tenantId.toString(),
-                            "TestTenant",
-                            "ACTIVE",
-                            Instant.now(),
-                            Instant.now());
-
-            given(mapper.toQuery(any()))
-                    .willReturn(SearchTenantsQuery.of(null, null, ONE_MONTH_AGO, NOW, 0, 20));
-            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
-                    .willReturn(pageResponse);
-            given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
-
-            // When & Then
-            // ApiResponse<PageApiResponse<T>> 형식으로 래핑
-            mockMvc.perform(
-                            get("/api/v1/auth/tenants")
-                                    .param("createdFrom", ONE_MONTH_AGO.toString())
-                                    .param("createdTo", NOW.toString())
-                                    .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.totalElements").value(1));
-
-            verify(searchTenantsUseCase).execute(any(SearchTenantsQuery.class));
+                    .andExpect(
+                            jsonPath("$.data.content[0].tenantId")
+                                    .value(TenantApiFixture.defaultTenantIdString()))
+                    .andExpect(
+                            jsonPath("$.data.content[0].name")
+                                    .value(TenantApiFixture.defaultTenantName()))
+                    .andExpect(
+                            jsonPath("$.data.content[0].status")
+                                    .value(TenantApiFixture.defaultStatus()))
+                    .andDo(
+                            document(
+                                    "tenant/search",
+                                    queryParameters(
+                                            parameterWithName("searchWord")
+                                                    .description("검색어")
+                                                    .optional(),
+                                            parameterWithName("searchField")
+                                                    .description("검색 필드 (NAME)")
+                                                    .optional(),
+                                            parameterWithName("statuses")
+                                                    .description(
+                                                            "상태 필터 목록 (ACTIVE, INACTIVE, DELETED)")
+                                                    .optional(),
+                                            parameterWithName("startDate")
+                                                    .description("조회 시작일 (YYYY-MM-DD)")
+                                                    .optional(),
+                                            parameterWithName("endDate")
+                                                    .description("조회 종료일 (YYYY-MM-DD)")
+                                                    .optional(),
+                                            parameterWithName("page")
+                                                    .description("페이지 번호 (기본값: 0, 0 이상)")
+                                                    .optional(),
+                                            parameterWithName("size")
+                                                    .description("페이지 크기 (기본값: 20, 1~100)")
+                                                    .optional()),
+                                    responseFields(
+                                            fieldWithPath("success")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("요청 성공 여부"),
+                                            fieldWithPath("data")
+                                                    .type(JsonFieldType.OBJECT)
+                                                    .description("페이지 응답 데이터"),
+                                            fieldWithPath("data.content")
+                                                    .type(JsonFieldType.ARRAY)
+                                                    .description("테넌트 목록"),
+                                            fieldWithPath("data.content[].tenantId")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("Tenant ID (UUID)"),
+                                            fieldWithPath("data.content[].name")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("테넌트 이름"),
+                                            fieldWithPath("data.content[].status")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("테넌트 상태"),
+                                            fieldWithPath("data.content[].createdAt")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("생성일시 (ISO 8601)"),
+                                            fieldWithPath("data.content[].updatedAt")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("수정일시 (ISO 8601)"),
+                                            fieldWithPath("data.page")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("현재 페이지 번호"),
+                                            fieldWithPath("data.size")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("페이지 크기"),
+                                            fieldWithPath("data.totalElements")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("전체 요소 수"),
+                                            fieldWithPath("data.totalPages")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("전체 페이지 수"),
+                                            fieldWithPath("data.first")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("첫 번째 페이지 여부"),
+                                            fieldWithPath("data.last")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("마지막 페이지 여부"),
+                                            fieldWithPath("timestamp")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("응답 시간"),
+                                            fieldWithPath("requestId")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("요청 ID"))));
         }
 
         @Test
-        @DisplayName("[성공] 이름 필터와 페이징 파라미터로 조회 시 200 OK 반환")
-        void searchTenants_withNameFilterAndPaging_returns200Ok() throws Exception {
-            // Given
-            UUID tenantId = UUID.randomUUID();
-            TenantResponse response =
-                    new TenantResponse(
-                            tenantId, "TestTenant", "ACTIVE", Instant.now(), Instant.now());
-            PageResponse<TenantResponse> pageResponse =
-                    PageResponse.of(List.of(response), 0, 10, 1, 1, true, true);
-            TenantApiResponse apiResponse =
-                    new TenantApiResponse(
-                            tenantId.toString(),
-                            "TestTenant",
-                            "ACTIVE",
-                            Instant.now(),
-                            Instant.now());
+        @DisplayName("다양한 검색 필터를 적용하여 조회한다")
+        void shouldSearchWithFilters() throws Exception {
+            // given
+            TenantPageResult pageResult = TenantPageResult.empty(10);
+            given(searchTenantsByOffsetUseCase.execute(any())).willReturn(pageResult);
 
-            given(mapper.toQuery(any()))
-                    .willReturn(SearchTenantsQuery.of("Test", null, ONE_MONTH_AGO, NOW, 0, 10));
-            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
-                    .willReturn(pageResponse);
-            given(mapper.toApiResponse(any(TenantResponse.class))).willReturn(apiResponse);
-
-            // When & Then
+            // when & then
             mockMvc.perform(
-                            get("/api/v1/auth/tenants")
-                                    .param("name", "Test")
-                                    .param("createdFrom", ONE_MONTH_AGO.toString())
-                                    .param("createdTo", NOW.toString())
+                            get(TenantApiEndpoints.TENANTS)
+                                    .param("searchWord", "테넌트")
+                                    .param("searchField", "NAME")
+                                    .param("statuses", "ACTIVE", "INACTIVE")
+                                    .param("startDate", "2024-01-01")
+                                    .param("endDate", "2024-12-31")
                                     .param("page", "0")
-                                    .param("size", "10")
-                                    .accept(MediaType.APPLICATION_JSON))
+                                    .param("size", "10"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.page").value(0))
-                    .andExpect(jsonPath("$.data.size").value(10));
-
-            verify(searchTenantsUseCase).execute(any(SearchTenantsQuery.class));
-        }
-
-        @Test
-        @DisplayName("[성공] 상태 필터로 조회 시 200 OK 반환")
-        void searchTenants_withStatusFilter_returns200Ok() throws Exception {
-            // Given
-            PageResponse<TenantResponse> pageResponse =
-                    PageResponse.of(List.of(), 0, 20, 0, 0, true, true);
-
-            given(mapper.toQuery(any()))
-                    .willReturn(
-                            SearchTenantsQuery.of(
-                                    null, List.of("ACTIVE"), ONE_MONTH_AGO, NOW, 0, 20));
-            given(searchTenantsUseCase.execute(any(SearchTenantsQuery.class)))
-                    .willReturn(pageResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/tenants")
-                                    .param("statuses", "ACTIVE")
-                                    .param("createdFrom", ONE_MONTH_AGO.toString())
-                                    .param("createdTo", NOW.toString())
-                                    .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray());
-
-            verify(searchTenantsUseCase).execute(any(SearchTenantsQuery.class));
         }
 
         @Test
-        @DisplayName("[실패] 페이지 번호가 음수면 400 Bad Request 반환")
-        void searchTenants_withNegativePage_returns400BadRequest() throws Exception {
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/tenants")
-                                    .param("page", "-1")
-                                    .accept(MediaType.APPLICATION_JSON))
+        @DisplayName("페이지 크기가 최대값을 초과하면 400 Bad Request")
+        void shouldFailWhenSizeExceedsMax() throws Exception {
+            // when & then
+            mockMvc.perform(get(TenantApiEndpoints.TENANTS).param("page", "0").param("size", "101"))
                     .andExpect(status().isBadRequest());
         }
 
         @Test
-        @DisplayName("[실패] 페이지 크기가 0이면 400 Bad Request 반환")
-        void searchTenants_withZeroSize_returns400BadRequest() throws Exception {
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/tenants")
-                                    .param("size", "0")
-                                    .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("[실패] 페이지 크기가 100 초과면 400 Bad Request 반환")
-        void searchTenants_withTooLargeSize_returns400BadRequest() throws Exception {
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/auth/tenants")
-                                    .param("size", "101")
-                                    .accept(MediaType.APPLICATION_JSON))
+        @DisplayName("페이지 번호가 음수이면 400 Bad Request")
+        void shouldFailWhenPageIsNegative() throws Exception {
+            // when & then
+            mockMvc.perform(get(TenantApiEndpoints.TENANTS).param("page", "-1").param("size", "20"))
                     .andExpect(status().isBadRequest());
         }
     }

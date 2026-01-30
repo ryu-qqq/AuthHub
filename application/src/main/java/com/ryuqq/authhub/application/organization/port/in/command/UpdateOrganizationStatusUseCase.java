@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.application.organization.port.in.command;
 
 import com.ryuqq.authhub.application.organization.dto.command.UpdateOrganizationStatusCommand;
-import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
 
 /**
  * UpdateOrganizationStatusUseCase - 조직 상태 변경 UseCase (Port-In)
@@ -13,7 +12,7 @@ import com.ryuqq.authhub.application.organization.dto.response.OrganizationRespo
  * <ul>
  *   <li>{@code {Action}{Bc}UseCase} 네이밍
  *   <li>{@code execute()} 메서드 시그니처
- *   <li>Command DTO 파라미터, Response DTO 반환
+ *   <li>Command DTO 파라미터, void 반환
  * </ul>
  *
  * @author development-team
@@ -25,7 +24,6 @@ public interface UpdateOrganizationStatusUseCase {
      * 조직 상태 변경 실행
      *
      * @param command 조직 상태 변경 Command
-     * @return 변경된 조직 Response
      */
-    OrganizationResponse execute(UpdateOrganizationStatusCommand command);
+    void execute(UpdateOrganizationStatusCommand command);
 }

@@ -2,9 +2,8 @@ package com.ryuqq.authhub.domain.organization.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * DuplicateOrganizationNameException - 동일 테넌트 내 조직 이름 중복 시 발생하는 예외
@@ -14,7 +13,7 @@ import java.util.UUID;
  */
 public class DuplicateOrganizationNameException extends DomainException {
 
-    public DuplicateOrganizationNameException(UUID tenantId, String organizationName) {
+    public DuplicateOrganizationNameException(String tenantId, String organizationName) {
         super(
                 OrganizationErrorCode.DUPLICATE_ORGANIZATION_NAME,
                 Map.of("tenantId", tenantId, "organizationName", organizationName));

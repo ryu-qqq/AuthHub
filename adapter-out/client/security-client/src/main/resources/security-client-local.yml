@@ -1,0 +1,17 @@
+# ===============================================
+# Security Client Configuration - Local Environment
+# ===============================================
+# 로컬 개발 환경 전용 설정
+# 공통 설정은 security-client.yml 참조
+#
+# @since 1.0.0
+# ===============================================
+
+security:
+  jwt:
+    # 로컬 개발용 시크릿 (프로덕션에서는 반드시 환경변수 사용)
+    secret: local-dev-secret-key-minimum-32-bytes-long-for-testing
+
+    # RSA 키 설정 (로컬에서는 HS256 사용)
+    rsa:
+      enabled: false

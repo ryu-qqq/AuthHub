@@ -1,8 +1,8 @@
 package com.ryuqq.authhub.application.tenant.port.out.query;
 
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantSearchCriteria;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import java.util.List;
 import java.util.Optional;
@@ -52,26 +52,29 @@ public interface TenantQueryPort {
     boolean existsByName(TenantName name);
 
     /**
-     * 이름으로 Tenant 조회
+     * 이름으로 Tenant 존재 여부 확인 (특정 ID 제외)
+     *
+     * <p>수정 시 자기 자신을 제외하고 중복 검증할 때 사용합니다.
      *
      * @param name Tenant 이름 (Value Object)
-     * @return Tenant Domain (Optional)
+     * @param excludeId 제외할 Tenant ID (Value Object)
+     * @return 존재 여부
      */
-    Optional<Tenant> findByName(TenantName name);
+    boolean existsByNameAndIdNot(TenantName name, TenantId excludeId);
 
     /**
      * 조건에 맞는 Tenant 목록 조회 (페이징)
      *
-     * @param criteria 검색 조건 (TenantCriteria)
+     * @param criteria 검색 조건 (TenantSearchCriteria)
      * @return Tenant Domain 목록
      */
-    List<Tenant> findAllByCriteria(TenantCriteria criteria);
+    List<Tenant> findAllByCriteria(TenantSearchCriteria criteria);
 
     /**
      * 조건에 맞는 Tenant 개수 조회
      *
-     * @param criteria 검색 조건 (TenantCriteria)
+     * @param criteria 검색 조건 (TenantSearchCriteria)
      * @return 조건에 맞는 Tenant 총 개수
      */
-    long countByCriteria(TenantCriteria criteria);
+    long countByCriteria(TenantSearchCriteria criteria);
 }

@@ -4,8 +4,8 @@ import com.ryuqq.authhub.adapter.out.persistence.tenant.mapper.TenantJpaEntityMa
 import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantQueryDslRepository;
 import com.ryuqq.authhub.application.tenant.port.out.query.TenantQueryPort;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import com.ryuqq.authhub.domain.tenant.query.criteria.TenantCriteria;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantSearchCriteria;
 import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +60,7 @@ public class TenantQueryAdapter implements TenantQueryPort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>TenantId에서 UUID 추출
+     *   <li>TenantId에서 UUID 추출 후 String 변환
      *   <li>QueryDSL Repository로 조회
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
@@ -70,7 +70,7 @@ public class TenantQueryAdapter implements TenantQueryPort {
      */
     @Override
     public Optional<Tenant> findById(TenantId tenantId) {
-        return repository.findByTenantId(tenantId.value()).map(mapper::toDomain);
+        return repository.findByTenantId(tenantId.value().toString()).map(mapper::toDomain);
     }
 
     /**
@@ -81,7 +81,7 @@ public class TenantQueryAdapter implements TenantQueryPort {
      */
     @Override
     public boolean existsById(TenantId tenantId) {
-        return repository.existsByTenantId(tenantId.value());
+        return repository.existsByTenantId(tenantId.value().toString());
     }
 
     /**
@@ -96,14 +96,17 @@ public class TenantQueryAdapter implements TenantQueryPort {
     }
 
     /**
-     * 이름으로 테넌트 조회
+     * 이름 존재 여부 확인 (특정 ID 제외)
+     *
+     * <p>이름 변경 시 중복 검증에 사용됩니다 (자기 자신 제외).
      *
      * @param name 테넌트 이름
-     * @return Optional<Tenant>
+     * @param excludeId 제외할 테넌트 ID
+     * @return 존재 여부
      */
     @Override
-    public Optional<Tenant> findByName(TenantName name) {
-        return repository.findByName(name.value()).map(mapper::toDomain);
+    public boolean existsByNameAndIdNot(TenantName name, TenantId excludeId) {
+        return repository.existsByNameAndIdNot(name.value(), excludeId.value().toString());
     }
 
     /**
@@ -112,27 +115,27 @@ public class TenantQueryAdapter implements TenantQueryPort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>TenantCriteria에서 검색 조건 추출
+     *   <li>TenantSearchCriteria에서 검색 조건 추출
      *   <li>QueryDSL Repository로 조건 조회
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
-     * @param criteria 검색 조건 (TenantCriteria)
+     * @param criteria 검색 조건 (TenantSearchCriteria)
      * @return Tenant Domain 목록
      */
     @Override
-    public List<Tenant> findAllByCriteria(TenantCriteria criteria) {
+    public List<Tenant> findAllByCriteria(TenantSearchCriteria criteria) {
         return repository.findAllByCriteria(criteria).stream().map(mapper::toDomain).toList();
     }
 
     /**
      * 조건에 맞는 테넌트 개수 조회
      *
-     * @param criteria 검색 조건 (TenantCriteria)
+     * @param criteria 검색 조건 (TenantSearchCriteria)
      * @return 조건에 맞는 테넌트 총 개수
      */
     @Override
-    public long countByCriteria(TenantCriteria criteria) {
+    public long countByCriteria(TenantSearchCriteria criteria) {
         return repository.countByCriteria(criteria);
     }
 }

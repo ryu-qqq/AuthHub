@@ -1,18 +1,18 @@
 package com.ryuqq.authhub.adapter.in.rest.organization.controller;
 
-import com.ryuqq.authhub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.OrganizationApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.CreateOrganizationApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.UpdateOrganizationApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.UpdateOrganizationNameApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.organization.dto.command.UpdateOrganizationStatusApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.CreateOrganizationApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationApiResponse;
-import com.ryuqq.authhub.adapter.in.rest.organization.mapper.OrganizationApiMapper;
-import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.dto.response.OrganizationIdApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.organization.mapper.OrganizationCommandApiMapper;
+import com.ryuqq.authhub.application.organization.dto.command.CreateOrganizationCommand;
+import com.ryuqq.authhub.application.organization.dto.command.UpdateOrganizationNameCommand;
+import com.ryuqq.authhub.application.organization.dto.command.UpdateOrganizationStatusCommand;
 import com.ryuqq.authhub.application.organization.port.in.command.CreateOrganizationUseCase;
-import com.ryuqq.authhub.application.organization.port.in.command.DeleteOrganizationUseCase;
+import com.ryuqq.authhub.application.organization.port.in.command.UpdateOrganizationNameUseCase;
 import com.ryuqq.authhub.application.organization.port.in.command.UpdateOrganizationStatusUseCase;
-import com.ryuqq.authhub.application.organization.port.in.command.UpdateOrganizationUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -30,104 +30,92 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * OrganizationCommandController - 조직 Command API 컨트롤러 (Admin)
+ * OrganizationCommandController - Organization 생성/수정 API
  *
- * <p>조직 생성, 수정, 삭제 등 Command 작업을 처리합니다.
+ * <p>조직 생성/수정 엔드포인트를 제공합니다.
  *
- * <p><strong>API 경로:</strong> /api/v1/auth/admin/organizations (admin.connectly.com)
+ * <p>CTR-001: Controller는 @RestController로 정의.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p>CTR-002: Controller는 UseCase만 주입받음.
  *
- * <ul>
- *   <li>{@code @RestController} + {@code @RequestMapping} 필수
- *   <li>{@code @Valid} 필수
- *   <li>UseCase 단일 의존
- *   <li>Thin Controller (비즈니스 로직 금지)
- *   <li>Lombok 금지
- *   <li>{@code @Transactional} 금지
- * </ul>
+ * <p>CTR-003: @Valid 필수 적용.
+ *
+ * <p>CTR-005: Controller에서 @Transactional 금지.
  *
  * @author development-team
  * @since 1.0.0
  */
-@Tag(name = "Organization", description = "조직 관리 API (Admin)")
+@Tag(name = "Organization", description = "조직 관리 API")
 @RestController
-@RequestMapping(ApiPaths.Organizations.BASE)
+@RequestMapping(OrganizationApiEndpoints.ORGANIZATIONS)
 public class OrganizationCommandController {
 
     private final CreateOrganizationUseCase createOrganizationUseCase;
-    private final UpdateOrganizationUseCase updateOrganizationUseCase;
+    private final UpdateOrganizationNameUseCase updateOrganizationNameUseCase;
     private final UpdateOrganizationStatusUseCase updateOrganizationStatusUseCase;
-    private final DeleteOrganizationUseCase deleteOrganizationUseCase;
-    private final OrganizationApiMapper mapper;
+    private final OrganizationCommandApiMapper mapper;
 
+    /**
+     * OrganizationCommandController 생성자
+     *
+     * @param createOrganizationUseCase Organization 생성 UseCase
+     * @param updateOrganizationNameUseCase Organization 이름 수정 UseCase
+     * @param updateOrganizationStatusUseCase Organization 상태 수정 UseCase
+     * @param mapper API 매퍼
+     */
     public OrganizationCommandController(
             CreateOrganizationUseCase createOrganizationUseCase,
-            UpdateOrganizationUseCase updateOrganizationUseCase,
+            UpdateOrganizationNameUseCase updateOrganizationNameUseCase,
             UpdateOrganizationStatusUseCase updateOrganizationStatusUseCase,
-            DeleteOrganizationUseCase deleteOrganizationUseCase,
-            OrganizationApiMapper mapper) {
+            OrganizationCommandApiMapper mapper) {
         this.createOrganizationUseCase = createOrganizationUseCase;
-        this.updateOrganizationUseCase = updateOrganizationUseCase;
+        this.updateOrganizationNameUseCase = updateOrganizationNameUseCase;
         this.updateOrganizationStatusUseCase = updateOrganizationStatusUseCase;
-        this.deleteOrganizationUseCase = deleteOrganizationUseCase;
         this.mapper = mapper;
     }
 
     /**
-     * 조직 생성
+     * Organization 생성 API
      *
-     * <p>POST /api/v1/organizations
+     * <p>새로운 조직을 생성합니다.
      *
-     * @param request 조직 생성 요청
-     * @return 201 Created + 생성된 조직 ID
+     * @param request 생성 요청 DTO
+     * @return 생성된 Organization ID
      */
-    @Operation(
-            summary = "조직 생성",
-            description =
-                    """
-                    새로운 조직을 생성합니다.
-
-                    **필요 권한**: Super Admin 또는 `organization:create`
-                    """)
+    @Operation(summary = "조직 생성", description = "새로운 조직을 생성합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "201",
-                description = "조직 생성 성공"),
+                description = "생성 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "409",
-                description = "중복된 조직")
+                description = "중복된 조직 이름")
     })
     @PreAuthorize("@access.superAdmin() or @access.hasPermission('organization:create')")
     @PostMapping
-    public ResponseEntity<ApiResponse<CreateOrganizationApiResponse>> createOrganization(
+    public ResponseEntity<ApiResponse<OrganizationIdApiResponse>> create(
             @Valid @RequestBody CreateOrganizationApiRequest request) {
-        OrganizationResponse response =
-                createOrganizationUseCase.execute(mapper.toCommand(request));
-        CreateOrganizationApiResponse apiResponse = mapper.toCreateResponse(response);
+
+        CreateOrganizationCommand command = mapper.toCommand(request);
+        String organizationId = createOrganizationUseCase.execute(command);
+
+        OrganizationIdApiResponse apiResponse = OrganizationIdApiResponse.of(organizationId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ofSuccess(apiResponse));
     }
 
     /**
-     * 조직 수정
+     * Organization 이름 수정 API
      *
-     * <p>PUT /api/v1/organizations/{organizationId}
+     * <p>기존 조직의 이름을 수정합니다.
      *
-     * @param organizationId 조직 ID
-     * @param request 조직 수정 요청
-     * @return 200 OK
+     * @param organizationId Organization ID
+     * @param request 수정 요청 DTO
+     * @return 수정된 Organization ID
      */
-    @Operation(
-            summary = "조직 수정",
-            description =
-                    """
-                    조직 정보를 수정합니다.
-
-                    **필요 권한**: 해당 조직에 대한 `organization:update` 권한
-                    """)
+    @Operation(summary = "조직 이름 수정", description = "기존 조직의 이름을 수정합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -140,35 +128,34 @@ public class OrganizationCommandController {
                 description = "조직을 찾을 수 없음")
     })
     @PreAuthorize("@access.organization(#organizationId, 'update')")
-    @PutMapping("/{organizationId}")
-    public ResponseEntity<ApiResponse<Void>> updateOrganization(
-            @Parameter(description = "조직 ID", required = true) @PathVariable String organizationId,
-            @Valid @RequestBody UpdateOrganizationApiRequest request) {
-        updateOrganizationUseCase.execute(mapper.toCommand(organizationId, request));
-        return ResponseEntity.ok(ApiResponse.ofSuccess(null));
+    @PutMapping(OrganizationApiEndpoints.NAME)
+    public ResponseEntity<ApiResponse<OrganizationIdApiResponse>> updateName(
+            @Parameter(description = "Organization ID", required = true)
+                    @PathVariable(OrganizationApiEndpoints.PATH_ORGANIZATION_ID)
+                    String organizationId,
+            @Valid @RequestBody UpdateOrganizationNameApiRequest request) {
+
+        UpdateOrganizationNameCommand command = mapper.toCommand(organizationId, request);
+        updateOrganizationNameUseCase.execute(command);
+
+        OrganizationIdApiResponse apiResponse = OrganizationIdApiResponse.of(organizationId);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 
     /**
-     * 조직 상태 변경
+     * Organization 상태 수정 API
      *
-     * <p>PATCH /api/v1/organizations/{organizationId}/status
+     * <p>기존 조직의 상태를 수정합니다.
      *
-     * @param organizationId 조직 ID
-     * @param request 상태 변경 요청
-     * @return 200 OK + 변경된 조직 정보
+     * @param organizationId Organization ID
+     * @param request 수정 요청 DTO
+     * @return 수정된 Organization ID
      */
-    @Operation(
-            summary = "조직 상태 변경",
-            description =
-                    """
-                    조직의 상태를 변경합니다.
-
-                    **필요 권한**: 해당 조직에 대한 `organization:update` 권한
-                    """)
+    @Operation(summary = "조직 상태 수정", description = "기존 조직의 상태를 수정합니다 (ACTIVE, INACTIVE, DELETED).")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
-                description = "상태 변경 성공"),
+                description = "수정 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청"),
@@ -177,46 +164,17 @@ public class OrganizationCommandController {
                 description = "조직을 찾을 수 없음")
     })
     @PreAuthorize("@access.organization(#organizationId, 'update')")
-    @PatchMapping("/{organizationId}/status")
-    public ResponseEntity<ApiResponse<OrganizationApiResponse>> updateOrganizationStatus(
-            @Parameter(description = "조직 ID", required = true) @PathVariable String organizationId,
+    @PatchMapping(OrganizationApiEndpoints.STATUS)
+    public ResponseEntity<ApiResponse<OrganizationIdApiResponse>> updateStatus(
+            @Parameter(description = "Organization ID", required = true)
+                    @PathVariable(OrganizationApiEndpoints.PATH_ORGANIZATION_ID)
+                    String organizationId,
             @Valid @RequestBody UpdateOrganizationStatusApiRequest request) {
-        OrganizationResponse response =
-                updateOrganizationStatusUseCase.execute(
-                        mapper.toStatusCommand(organizationId, request));
-        return ResponseEntity.ok(ApiResponse.ofSuccess(mapper.toApiResponse(response)));
-    }
 
-    /**
-     * 조직 삭제
-     *
-     * <p>DELETE /api/v1/organizations/{organizationId}
-     *
-     * @param organizationId 조직 ID
-     * @return 204 No Content
-     */
-    @Operation(
-            summary = "조직 삭제",
-            description =
-                    """
-                    조직을 삭제합니다.
+        UpdateOrganizationStatusCommand command = mapper.toCommand(organizationId, request);
+        updateOrganizationStatusUseCase.execute(command);
 
-                    **필요 권한**: 해당 조직에 대한 `organization:delete` 권한
-                    """)
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                responseCode = "204",
-                description = "삭제 성공"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                responseCode = "404",
-                description = "조직을 찾을 수 없음")
-    })
-    @PreAuthorize("@access.organization(#organizationId, 'delete')")
-    @PatchMapping("/{organizationId}/delete")
-    public ResponseEntity<Void> deleteOrganization(
-            @Parameter(description = "조직 ID", required = true) @PathVariable
-                    String organizationId) {
-        deleteOrganizationUseCase.execute(mapper.toDeleteCommand(organizationId));
-        return ResponseEntity.noContent().build();
+        OrganizationIdApiResponse apiResponse = OrganizationIdApiResponse.of(organizationId);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }
