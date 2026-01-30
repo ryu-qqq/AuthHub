@@ -89,8 +89,9 @@ class JwtTokenClientTest {
             assertThat(parsed.get("tid")).isEqualTo(claims.tenantId());
             assertThat(parsed.get("email")).isEqualTo(claims.email());
             assertThat(parsed.get("roles")).isInstanceOf(List.class);
-            assertThat((List<?>) parsed.get("roles"))
-                    .containsExactlyInAnyOrder("ROLE_USER", "ROLE_ADMIN");
+            @SuppressWarnings("unchecked")
+            List<String> roles = (List<String>) parsed.get("roles");
+            assertThat(roles).containsExactlyInAnyOrder("ROLE_USER", "ROLE_ADMIN");
         }
 
         @Test
