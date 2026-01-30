@@ -89,7 +89,7 @@ class OnboardingIdempotencyCommandAdapterTest {
         void shouldThrowIllegalStateExceptionWhenSerializationFails()
                 throws JsonProcessingException {
             // Given
-            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+            // Note: redisTemplate.opsForValue() stubbing 불필요 - 직렬화 실패 시 호출되지 않음
             when(objectMapper.writeValueAsString(TEST_RESULT))
                     .thenThrow(new JsonProcessingException("Serialization failed") {});
 
