@@ -1,4 +1,4 @@
-package com.ryuqq.adapter.in.rest.config;
+package com.ryuqq.authhub.adapter.in.rest.config;
 
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;

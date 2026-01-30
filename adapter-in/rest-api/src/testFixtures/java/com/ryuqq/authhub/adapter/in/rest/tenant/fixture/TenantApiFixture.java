@@ -5,6 +5,7 @@ import com.ryuqq.authhub.adapter.in.rest.tenant.dto.request.UpdateTenantNameApiR
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.request.UpdateTenantStatusApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.tenant.dto.response.TenantIdApiResponse;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantResult;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -90,6 +91,24 @@ public final class TenantApiFixture {
     public static TenantApiResponse tenantResponse(String name, String status) {
         return new TenantApiResponse(
                 DEFAULT_TENANT_ID.toString(), name, status, FIXED_TIME, FIXED_TIME);
+    }
+
+    // ========== TenantResult (Application Layer) ==========
+
+    /** 기본 TenantResult (TenantCommandApiMapper 테스트용) */
+    public static TenantResult tenantResult() {
+        return new TenantResult(
+                DEFAULT_TENANT_ID.toString(),
+                DEFAULT_TENANT_NAME,
+                DEFAULT_STATUS,
+                Instant.parse(FIXED_TIME),
+                Instant.parse(FIXED_TIME));
+    }
+
+    /** 커스텀 TenantResult */
+    public static TenantResult tenantResult(String tenantId, String name, String status) {
+        return new TenantResult(
+                tenantId, name, status, Instant.parse(FIXED_TIME), Instant.parse(FIXED_TIME));
     }
 
     // ========== Default Values ==========
