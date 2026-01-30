@@ -86,7 +86,7 @@ module "redis" {
 
   # Maintenance and Backup (Stage: 백업 비활성화로 비용 절감)
   snapshot_retention_limit = 0
-  snapshot_window          = null
+  # snapshot_window 생략 - 백업 비활성화 시 불필요
   maintenance_window       = "mon:09:00-mon:10:00"
 
   # CloudWatch Alarms

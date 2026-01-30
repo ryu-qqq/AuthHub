@@ -46,7 +46,7 @@ variable "project_name" {
 variable "environment" {
   description = "Environment name"
   type        = string
-  default     = "stage"
+  default     = "staging"
 }
 
 variable "aws_region" {
@@ -133,19 +133,18 @@ data "aws_ssm_parameter" "amp_remote_write_url" {
 # Redis Configuration (Stage)
 # ========================================
 # Stage Redis: stage-shared-redis (TLS 비활성화, 비밀번호 없음)
-# TODO: SSM Parameter Store로 이전 권장
-# data "aws_ssm_parameter" "redis_endpoint" {
-#   name = "/${var.project_name}/${var.environment}/elasticache/redis-endpoint"
-# }
-# data "aws_ssm_parameter" "redis_port" {
-#   name = "/${var.project_name}/${var.environment}/elasticache/redis-port"
-# }
+data "aws_ssm_parameter" "redis_endpoint" {
+  name = "/${var.project_name}/${var.environment}/elasticache/redis-endpoint"
+}
+data "aws_ssm_parameter" "redis_port" {
+  name = "/${var.project_name}/${var.environment}/elasticache/redis-port"
+}
 
 # ========================================
 # Service Token Configuration
 # ========================================
 data "aws_ssm_parameter" "service_token_secret" {
-  name = "/${var.project_name}/${var.environment}/security/service-token-secret"
+  name = "/${var.project_name}/stage/security/service-token-secret"  # stage 환경 고정 (SSM 경로)
 }
 
 # ========================================
@@ -162,9 +161,9 @@ locals {
   rds_dbname      = "auth"
   rds_username    = local.rds_credentials.username
 
-  # Redis Configuration (Stage - 하드코딩, TLS 비활성화, 비밀번호 없음)
-  redis_host = "stage-shared-redis.j9czrc.0001.apn2.cache.amazonaws.com"
-  redis_port = 6379
+  # Redis Configuration (Stage - SSM Parameter 참조)
+  redis_host = data.aws_ssm_parameter.redis_endpoint.value
+  redis_port = tonumber(data.aws_ssm_parameter.redis_port.value)
 
   # AMP Configuration
   amp_workspace_arn    = data.aws_ssm_parameter.amp_workspace_arn.value
