@@ -3,6 +3,7 @@ package com.ryuqq.authhub.application.role.service.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
@@ -17,7 +18,6 @@ import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.exception.DuplicateRoleNameException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -80,9 +80,7 @@ class CreateRoleServiceTest {
             // then
             assertThat(result).isEqualTo(expectedId);
 
-            then(validator)
-                    .should()
-                    .validateNameNotDuplicated(any(TenantId.class), any(RoleName.class));
+            then(validator).should().validateNameNotDuplicated(isNull(), any(RoleName.class));
             then(commandFactory).should().create(command);
             then(commandManager).should().persist(role);
         }
@@ -92,12 +90,11 @@ class CreateRoleServiceTest {
         void shouldThrowException_WhenNameIsDuplicated() {
             // given
             CreateRoleCommand command = RoleCommandFixtures.createCommand();
-            TenantId tenantId = TenantId.fromNullable(command.tenantId());
             RoleName name = RoleName.of(command.name());
 
             willThrow(new DuplicateRoleNameException(name))
                     .given(validator)
-                    .validateNameNotDuplicated(any(TenantId.class), any(RoleName.class));
+                    .validateNameNotDuplicated(isNull(), any(RoleName.class));
 
             // when & then
             assertThatThrownBy(() -> sut.execute(command))

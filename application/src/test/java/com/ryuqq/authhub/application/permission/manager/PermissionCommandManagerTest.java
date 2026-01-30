@@ -90,9 +90,10 @@ class PermissionCommandManagerTest {
         @Test
         @DisplayName("성공: 다건 영속화 후 permissionKey → ID 매핑 반환")
         void shouldPersistAllAndReturnKeyToIdMap() {
-            // given
-            Permission p1 = PermissionFixture.createWithResourceAndAction("user", "read");
-            Permission p2 = PermissionFixture.createWithResourceAndAction("role", "create");
+            // given - ID가 없는 새 Permission을 사용 (equals 충돌 방지)
+            Permission p1 = PermissionFixture.createNewCustomWithResourceAndAction("user", "read");
+            Permission p2 =
+                    PermissionFixture.createNewCustomWithResourceAndAction("role", "create");
             List<Permission> permissions = List.of(p1, p2);
 
             given(persistencePort.persist(p1)).willReturn(1L);

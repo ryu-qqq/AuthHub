@@ -28,7 +28,9 @@ public final class RefreshTokenJpaEntityFixture {
             UUID.fromString("01941234-5678-7000-8000-123456789abc");
     private static final UUID DEFAULT_USER_ID = UUID.fromString(UserFixture.defaultIdString());
     private static final String DEFAULT_TOKEN =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.Gfx6VO9tcxwk6xqx9yYzSfebfeakZp5JYIgP_edcw_A";
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                    + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0"
+                    + ".Gfx6VO9tcxwk6xqx9yYzSfebfeakZp5JYIgP_edcw_A";
     private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
 
     private RefreshTokenJpaEntityFixture() {}

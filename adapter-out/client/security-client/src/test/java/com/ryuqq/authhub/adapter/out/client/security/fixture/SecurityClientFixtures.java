@@ -58,7 +58,7 @@ public final class SecurityClientFixtures {
     /** RSA KeyPair 생성 */
     public static KeyPair generateRsaKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(512);
+        generator.initialize(2048); // JJWT는 RS256에 최소 2048비트 요구
         return generator.generateKeyPair();
     }
 

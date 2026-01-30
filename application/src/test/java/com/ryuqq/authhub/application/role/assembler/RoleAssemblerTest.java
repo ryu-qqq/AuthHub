@@ -73,8 +73,8 @@ class RoleAssemblerTest {
         @DisplayName("성공: Domain 목록이 Result 목록으로 올바르게 변환됨")
         void shouldMapAllRoles_ToResultList() {
             // given
-            Role r1 = RoleFixture.createCustomRoleWithName("Role 1");
-            Role r2 = RoleFixture.createCustomRoleWithName("Role 2");
+            Role r1 = RoleFixture.createCustomRoleWithName("ROLE_ONE");
+            Role r2 = RoleFixture.createCustomRoleWithName("ROLE_TWO");
             List<Role> roles = List.of(r1, r2);
 
             // when
@@ -82,8 +82,8 @@ class RoleAssemblerTest {
 
             // then
             assertThat(results).hasSize(2);
-            assertThat(results.get(0).name()).isEqualTo("Role 1");
-            assertThat(results.get(1).name()).isEqualTo("Role 2");
+            assertThat(results.get(0).name()).isEqualTo("ROLE_ONE");
+            assertThat(results.get(1).name()).isEqualTo("ROLE_TWO");
         }
 
         @Test
