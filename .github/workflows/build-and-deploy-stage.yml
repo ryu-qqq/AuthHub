@@ -1,7 +1,8 @@
 # ============================================================================
 # AuthHub Build & Deploy - STAGE Environment
 #
-# develop 브랜치 푸시 시 Stage 환경에 자동 배포
+# stage 브랜치 푸시 시 Stage 환경에 자동 배포
+# 배포 흐름: develop → stage (PR 머지) → Stage 배포 → main (PR 머지) → Prod 배포
 # ============================================================================
 
 name: Build and Deploy to ECS (Stage)
@@ -10,7 +11,7 @@ on:
   workflow_dispatch:  # 수동 트리거 허용
   push:
     branches:
-      - develop
+      - stage
     paths-ignore:
       - 'terraform/**'
       - '.github/workflows/terraform-*.yml'
