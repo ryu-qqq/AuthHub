@@ -1,7 +1,5 @@
 package com.ryuqq.authhub.application.organization.dto.command;
 
-import java.util.UUID;
-
 /**
  * CreateOrganizationCommand - 조직 생성 Command DTO
  *
@@ -18,4 +16,4 @@ import java.util.UUID;
  * @author development-team
  * @since 1.0.0
  */
-public record CreateOrganizationCommand(UUID tenantId, String name) {}
+public record CreateOrganizationCommand(String tenantId, String name) {}

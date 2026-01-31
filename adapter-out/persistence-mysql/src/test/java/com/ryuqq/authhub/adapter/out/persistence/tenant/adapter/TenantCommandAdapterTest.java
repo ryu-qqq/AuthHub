@@ -3,16 +3,14 @@ package com.ryuqq.authhub.adapter.out.persistence.tenant.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.authhub.adapter.out.persistence.tenant.entity.TenantJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.tenant.fixture.TenantJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.tenant.mapper.TenantJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.tenant.repository.TenantJpaRepository;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
-import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
-import java.time.LocalDateTime;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,6 +22,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * TenantCommandAdapter 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Adapter는 Repository 위임 + Mapper 변환 담당
+ *   <li>Repository/Mapper를 Mock으로 대체
+ *   <li>위임 및 변환 흐름 검증
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -37,84 +43,86 @@ class TenantCommandAdapterTest {
 
     @Mock private TenantJpaEntityMapper mapper;
 
-    private TenantCommandAdapter adapter;
-
-    private static final UUID TENANT_UUID = TenantFixture.defaultUUID();
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+    private TenantCommandAdapter sut;
 
     @BeforeEach
     void setUp() {
-        adapter = new TenantCommandAdapter(repository, mapper);
+        sut = new TenantCommandAdapter(repository, mapper);
     }
 
     @Nested
     @DisplayName("persist 메서드")
-    class PersistTest {
+    class Persist {
 
         @Test
-        @DisplayName("테넌트를 성공적으로 저장한다")
-        void shouldPersistTenantSuccessfully() {
+        @DisplayName("성공: Domain → Entity 변환 후 저장하고 ID 반환")
+        void shouldConvertAndPersist_ThenReturnId() {
             // given
-            Tenant domainToSave = TenantFixture.createNew();
-            Tenant savedDomain = TenantFixture.create();
+            Tenant domain = TenantFixture.create();
+            TenantJpaEntity entity = TenantJpaEntityFixture.create();
+            String expectedId = TenantJpaEntityFixture.defaultTenantId();
 
-            TenantJpaEntity entityToSave =
-                    TenantJpaEntity.of(
-                            TENANT_UUID, "New Tenant", TenantStatus.ACTIVE, FIXED_TIME, FIXED_TIME);
-            TenantJpaEntity savedEntity =
-                    TenantJpaEntity.of(
-                            TENANT_UUID,
-                            "Test Tenant",
-                            TenantStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(domainToSave)).willReturn(entityToSave);
-            given(repository.save(entityToSave)).willReturn(savedEntity);
-            given(mapper.toDomain(savedEntity)).willReturn(savedDomain);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            Tenant result = adapter.persist(domainToSave);
+            String result = sut.persist(domain);
 
             // then
-            assertThat(result).isEqualTo(savedDomain);
-            verify(mapper).toEntity(domainToSave);
-            verify(repository).save(entityToSave);
-            verify(mapper).toDomain(savedEntity);
+            assertThat(result).isEqualTo(expectedId);
         }
 
         @Test
-        @DisplayName("기존 테넌트를 수정한다")
-        void shouldUpdateExistingTenant() {
+        @DisplayName("Mapper를 통해 Domain → Entity 변환")
+        void shouldUseMapper_ToConvertDomainToEntity() {
             // given
-            Tenant existingDomain = TenantFixture.create();
-            Tenant updatedDomain = TenantFixture.createWithName("Updated Tenant");
+            Tenant domain = TenantFixture.create();
+            TenantJpaEntity entity = TenantJpaEntityFixture.create();
 
-            TenantJpaEntity entityToUpdate =
-                    TenantJpaEntity.of(
-                            TENANT_UUID,
-                            "Test Tenant",
-                            TenantStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            TenantJpaEntity updatedEntity =
-                    TenantJpaEntity.of(
-                            TENANT_UUID,
-                            "Updated Tenant",
-                            TenantStatus.ACTIVE,
-                            FIXED_TIME,
-                            FIXED_TIME);
-
-            given(mapper.toEntity(existingDomain)).willReturn(entityToUpdate);
-            given(repository.save(entityToUpdate)).willReturn(updatedEntity);
-            given(mapper.toDomain(updatedEntity)).willReturn(updatedDomain);
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
 
             // when
-            Tenant result = adapter.persist(existingDomain);
+            sut.persist(domain);
 
             // then
-            assertThat(result.nameValue()).isEqualTo("Updated Tenant");
-            verify(repository).save(any(TenantJpaEntity.class));
+            then(mapper).should().toEntity(domain);
+        }
+
+        @Test
+        @DisplayName("Repository를 통해 Entity 저장")
+        void shouldUseRepository_ToSaveEntity() {
+            // given
+            Tenant domain = TenantFixture.create();
+            TenantJpaEntity entity = TenantJpaEntityFixture.create();
+
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willReturn(entity);
+
+            // when
+            sut.persist(domain);
+
+            // then
+            then(repository).should().save(entity);
+        }
+
+        @Test
+        @DisplayName("새 Domain 저장 시에도 동일한 흐름")
+        void shouldFollowSameFlow_WhenPersistingNewDomain() {
+            // given
+            Tenant newDomain = TenantFixture.createNew();
+            TenantJpaEntity entity = TenantJpaEntityFixture.create();
+
+            given(mapper.toEntity(newDomain)).willReturn(entity);
+            given(repository.save(any(TenantJpaEntity.class))).willReturn(entity);
+
+            // when
+            String result = sut.persist(newDomain);
+
+            // then
+            assertThat(result).isNotNull();
+            then(mapper).should().toEntity(newDomain);
+            then(repository).should().save(entity);
         }
     }
 }

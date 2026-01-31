@@ -2,12 +2,8 @@ package com.ryuqq.authhub.sdk.autoconfigure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ryuqq.authhub.sdk.api.AuthApi;
 import com.ryuqq.authhub.sdk.api.OnboardingApi;
-import com.ryuqq.authhub.sdk.api.OrganizationApi;
-import com.ryuqq.authhub.sdk.api.PermissionApi;
-import com.ryuqq.authhub.sdk.api.RoleApi;
-import com.ryuqq.authhub.sdk.api.TenantApi;
-import com.ryuqq.authhub.sdk.api.UserApi;
 import com.ryuqq.authhub.sdk.auth.StaticTokenResolver;
 import com.ryuqq.authhub.sdk.auth.TokenResolver;
 import com.ryuqq.authhub.sdk.client.AuthHubClient;
@@ -126,27 +122,7 @@ class AuthHubAutoConfigurationTest {
             AuthHubClient customClient =
                     new AuthHubClient() {
                         @Override
-                        public TenantApi tenants() {
-                            return null;
-                        }
-
-                        @Override
-                        public OrganizationApi organizations() {
-                            return null;
-                        }
-
-                        @Override
-                        public RoleApi roles() {
-                            return null;
-                        }
-
-                        @Override
-                        public UserApi users() {
-                            return null;
-                        }
-
-                        @Override
-                        public PermissionApi permissions() {
+                        public AuthApi auth() {
                             return null;
                         }
 
@@ -175,67 +151,15 @@ class AuthHubAutoConfigurationTest {
     class ApiBeans {
 
         @Test
-        @DisplayName("TenantApi Bean이 생성된다")
-        void shouldCreateTenantApiBean() {
+        @DisplayName("AuthApi Bean이 생성된다")
+        void shouldCreateAuthApiBean() {
             contextRunner
                     .withPropertyValues(
                             "authhub.base-url=https://authhub.example.com",
                             "authhub.service-token=test-token")
                     .run(
                             context -> {
-                                assertThat(context).hasSingleBean(TenantApi.class);
-                            });
-        }
-
-        @Test
-        @DisplayName("OrganizationApi Bean이 생성된다")
-        void shouldCreateOrganizationApiBean() {
-            contextRunner
-                    .withPropertyValues(
-                            "authhub.base-url=https://authhub.example.com",
-                            "authhub.service-token=test-token")
-                    .run(
-                            context -> {
-                                assertThat(context).hasSingleBean(OrganizationApi.class);
-                            });
-        }
-
-        @Test
-        @DisplayName("RoleApi Bean이 생성된다")
-        void shouldCreateRoleApiBean() {
-            contextRunner
-                    .withPropertyValues(
-                            "authhub.base-url=https://authhub.example.com",
-                            "authhub.service-token=test-token")
-                    .run(
-                            context -> {
-                                assertThat(context).hasSingleBean(RoleApi.class);
-                            });
-        }
-
-        @Test
-        @DisplayName("UserApi Bean이 생성된다")
-        void shouldCreateUserApiBean() {
-            contextRunner
-                    .withPropertyValues(
-                            "authhub.base-url=https://authhub.example.com",
-                            "authhub.service-token=test-token")
-                    .run(
-                            context -> {
-                                assertThat(context).hasSingleBean(UserApi.class);
-                            });
-        }
-
-        @Test
-        @DisplayName("PermissionApi Bean이 생성된다")
-        void shouldCreatePermissionApiBean() {
-            contextRunner
-                    .withPropertyValues(
-                            "authhub.base-url=https://authhub.example.com",
-                            "authhub.service-token=test-token")
-                    .run(
-                            context -> {
-                                assertThat(context).hasSingleBean(PermissionApi.class);
+                                assertThat(context).hasSingleBean(AuthApi.class);
                             });
         }
 
@@ -261,11 +185,7 @@ class AuthHubAutoConfigurationTest {
                             "authhub.service-token=test-token")
                     .run(
                             context -> {
-                                assertThat(context).hasSingleBean(TenantApi.class);
-                                assertThat(context).hasSingleBean(OrganizationApi.class);
-                                assertThat(context).hasSingleBean(RoleApi.class);
-                                assertThat(context).hasSingleBean(UserApi.class);
-                                assertThat(context).hasSingleBean(PermissionApi.class);
+                                assertThat(context).hasSingleBean(AuthApi.class);
                                 assertThat(context).hasSingleBean(OnboardingApi.class);
                             });
         }

@@ -2,9 +2,13 @@ package com.ryuqq.authhub.adapter.in.rest.permission.error;
 
 import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper;
 import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.authhub.domain.permission.exception.DuplicatePermissionKeyException;
+import com.ryuqq.authhub.domain.permission.exception.PermissionInUseException;
+import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException;
+import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotDeletableException;
+import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotModifiableException;
 import java.net.URI;
 import java.util.Locale;
-import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -13,14 +17,14 @@ import org.springframework.stereotype.Component;
  *
  * <p>권한 도메인 예외를 RFC 7807 형식의 HTTP 응답으로 변환합니다.
  *
- * <p><strong>에러 코드 매핑:</strong>
+ * <p><strong>예외 타입 매핑:</strong>
  *
  * <ul>
- *   <li>PERMISSION-001: 권한 찾을 수 없음 → 404 Not Found
- *   <li>PERMISSION-002: 권한 키 중복 → 409 Conflict
- *   <li>PERMISSION-003: 시스템 권한 수정 불가 → 400 Bad Request
- *   <li>PERMISSION-004: 시스템 권한 삭제 불가 → 400 Bad Request
- *   <li>PERMISSION-005: 잘못된 권한 키 형식 → 400 Bad Request
+ *   <li>PermissionNotFoundException → 404 Not Found
+ *   <li>DuplicatePermissionKeyException → 409 Conflict
+ *   <li>SystemPermissionNotModifiableException → 403 Forbidden
+ *   <li>SystemPermissionNotDeletableException → 403 Forbidden
+ *   <li>PermissionInUseException → 409 Conflict
  * </ul>
  *
  * @author development-team
@@ -29,65 +33,61 @@ import org.springframework.stereotype.Component;
 @Component
 public class PermissionErrorMapper implements ErrorMapper {
 
-    private static final Set<String> SUPPORTED_CODES =
-            Set.of(
-                    "PERMISSION-001",
-                    "PERMISSION-002",
-                    "PERMISSION-003",
-                    "PERMISSION-004",
-                    "PERMISSION-005");
+    private static final String ERROR_TYPE_BASE = "https://authhub.ryuqq.com/errors/permission";
 
     @Override
-    public boolean supports(String code) {
-        if (code == null) {
-            return false;
-        }
-        return SUPPORTED_CODES.contains(code);
+    public boolean supports(DomainException ex) {
+        return ex instanceof PermissionNotFoundException
+                || ex instanceof DuplicatePermissionKeyException
+                || ex instanceof SystemPermissionNotModifiableException
+                || ex instanceof SystemPermissionNotDeletableException
+                || ex instanceof PermissionInUseException;
     }
 
     @Override
     public MappedError map(DomainException ex, Locale locale) {
-        String errorCode = ex.code();
-
-        return switch (errorCode) {
-            case "PERMISSION-001" ->
+        return switch (ex) {
+            case PermissionNotFoundException e ->
                     new MappedError(
                             HttpStatus.NOT_FOUND,
                             "Permission Not Found",
-                            ex.getMessage(),
-                            URI.create("https://authhub.ryuqq.com/errors/permission-not-found"));
-            case "PERMISSION-002" ->
+                            e.getMessage(),
+                            URI.create(ERROR_TYPE_BASE + "/not-found"));
+
+            case DuplicatePermissionKeyException e ->
                     new MappedError(
                             HttpStatus.CONFLICT,
-                            "Duplicate Permission Key",
-                            ex.getMessage(),
-                            URI.create("https://authhub.ryuqq.com/errors/permission-duplicate"));
-            case "PERMISSION-003" ->
+                            "Permission Key Duplicate",
+                            e.getMessage(),
+                            URI.create(ERROR_TYPE_BASE + "/duplicate-key"));
+
+            case SystemPermissionNotModifiableException e ->
                     new MappedError(
-                            HttpStatus.BAD_REQUEST,
+                            HttpStatus.FORBIDDEN,
                             "System Permission Not Modifiable",
-                            ex.getMessage(),
-                            URI.create(
-                                    "https://authhub.ryuqq.com/errors/permission-not-modifiable"));
-            case "PERMISSION-004" ->
+                            e.getMessage(),
+                            URI.create(ERROR_TYPE_BASE + "/system-permission-not-modifiable"));
+
+            case SystemPermissionNotDeletableException e ->
                     new MappedError(
-                            HttpStatus.BAD_REQUEST,
+                            HttpStatus.FORBIDDEN,
                             "System Permission Not Deletable",
-                            ex.getMessage(),
-                            URI.create(
-                                    "https://authhub.ryuqq.com/errors/permission-not-deletable"));
-            case "PERMISSION-005" ->
+                            e.getMessage(),
+                            URI.create(ERROR_TYPE_BASE + "/system-permission-not-deletable"));
+
+            case PermissionInUseException e ->
                     new MappedError(
-                            HttpStatus.BAD_REQUEST,
-                            "Invalid Permission Key Format",
-                            ex.getMessage(),
-                            URI.create("https://authhub.ryuqq.com/errors/permission-invalid-key"));
+                            HttpStatus.CONFLICT,
+                            "Permission In Use",
+                            e.getMessage(),
+                            URI.create(ERROR_TYPE_BASE + "/in-use"));
+
             default ->
                     new MappedError(
-                            HttpStatus.INTERNAL_SERVER_ERROR,
-                            "Internal Server Error",
+                            HttpStatus.BAD_REQUEST,
+                            "Permission Error",
                             ex.getMessage(),
-                            URI.create("https://authhub.ryuqq.com/errors/internal-error"));
+                            URI.create(ERROR_TYPE_BASE));
         };
     }
 }

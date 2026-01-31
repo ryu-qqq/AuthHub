@@ -1,0 +1,197 @@
+=== 로그인
+
+사용자 로그인을 수행하고 JWT 토큰을 발급합니다.
+
+==== 요청 필드
+
+[cols="1,1,1,3"]
+|===
+|필드 |타입 |필수 |설명
+
+|`identifier`
+|String
+|Y
+|사용자 식별자 (이메일 또는 사용자명)
+
+|`password`
+|String
+|Y
+|비밀번호
+|===
+
+==== 요청 예시
+
+include::{snippets}/token/login/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.accessToken`
+|String
+|JWT Access Token (Bearer 토큰)
+
+|`data.refreshToken`
+|String
+|JWT Refresh Token
+
+|`data.tokenType`
+|String
+|토큰 타입 (Bearer)
+
+|`data.expiresIn`
+|Number
+|Access Token 만료 시간 (초)
+|===
+
+==== 응답 예시
+
+include::{snippets}/token/login/http-response.adoc[]
+
+'''
+
+=== 토큰 갱신
+
+Refresh Token을 사용하여 새로운 Access Token을 발급합니다.
+
+==== 요청 필드
+
+[cols="1,1,1,3"]
+|===
+|필드 |타입 |필수 |설명
+
+|`refreshToken`
+|String
+|Y
+|Refresh Token
+|===
+
+==== 요청 예시
+
+include::{snippets}/token/refresh/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/token/refresh/http-response.adoc[]
+
+'''
+
+=== 로그아웃
+
+현재 세션을 종료하고 Refresh Token을 무효화합니다.
+
+==== 요청 필드
+
+[cols="1,1,1,3"]
+|===
+|필드 |타입 |필수 |설명
+
+|`refreshToken`
+|String
+|Y
+|Refresh Token
+|===
+
+==== 요청 예시
+
+include::{snippets}/token/logout/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/token/logout/http-response.adoc[]
+
+'''
+
+=== 내 정보 조회
+
+현재 로그인한 사용자의 정보를 조회합니다.
+
+==== 요청 예시
+
+include::{snippets}/token/me/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.userId`
+|String
+|사용자 ID (UUID)
+
+|`data.identifier`
+|String
+|사용자 식별자
+
+|`data.tenantId`
+|String
+|테넌트 ID
+
+|`data.organizationId`
+|String
+|조직 ID
+
+|`data.roles`
+|Array
+|할당된 역할 목록
+
+|`data.permissions`
+|Array
+|보유 권한 목록
+|===
+
+==== 응답 예시
+
+include::{snippets}/token/me/http-response.adoc[]
+
+'''
+
+=== JWKS 조회
+
+JWT 서명 검증을 위한 공개키 정보를 조회합니다. (RS256)
+
+==== 요청 예시
+
+include::{snippets}/token/jwks/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`keys`
+|Array
+|JWK (JSON Web Key) 목록
+
+|`keys[].kty`
+|String
+|키 타입 (RSA)
+
+|`keys[].use`
+|String
+|용도 (sig: 서명)
+
+|`keys[].kid`
+|String
+|키 ID
+
+|`keys[].alg`
+|String
+|알고리즘 (RS256)
+
+|`keys[].n`
+|String
+|RSA 공개키 모듈러스 (Base64URL)
+
+|`keys[].e`
+|String
+|RSA 공개키 지수 (Base64URL)
+|===
+
+==== 응답 예시
+
+include::{snippets}/token/jwks/http-response.adoc[]

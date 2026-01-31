@@ -1,0 +1,112 @@
+# ============================================================================
+# AuthHub - Terraform Plan (Stage Environment)
+# ============================================================================
+# Stage 환경 Terraform Plan 검증
+# 수동 트리거용 워크플로우
+# ============================================================================
+
+name: Terraform Plan (Stage)
+
+on:
+  workflow_dispatch:  # 수동 트리거만 허용
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+env:
+  ENVIRONMENT: stage
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan (Stage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        module:
+          # elasticache 제거 - stage-shared-redis 사용
+          - name: ecr
+            dir: terraform/environments/stage/ecr
+          - name: ecs-cluster
+            dir: terraform/environments/stage/ecs-cluster
+          - name: ecs-web-api
+            dir: terraform/environments/stage/ecs-web-api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        timeout-minutes: 2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-AuthHub-TerraformPlan-Stage
+
+      - name: Terraform Format Check - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: terraform init
+
+      - name: Terraform Validate - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: terraform validate
+
+      - name: Terraform Plan - ${{ matrix.module.name }}
+        id: plan
+        working-directory: ${{ matrix.module.dir }}
+        run: |
+          set +e
+          terraform plan -no-color -out=tfplan
+          PLAN_EXIT_CODE=$?
+          terraform show -no-color tfplan > plan-${{ matrix.module.name }}.txt
+          exit $PLAN_EXIT_CODE
+        continue-on-error: true
+
+      - name: Upload Plan Artifact - ${{ matrix.module.name }}
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plan-stage-${{ matrix.module.name }}
+          path: ${{ matrix.module.dir }}/plan-${{ matrix.module.name }}.txt
+          retention-days: 5
+
+  summary:
+    name: Plan Summary
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Download All Plan Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: plans
+
+      - name: Create Plan Summary
+        run: |
+          echo "## 📋 AuthHub Terraform Plan (Stage)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Stage" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ needs.terraform-plan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Modules Planned" >> $GITHUB_STEP_SUMMARY
+          echo "- ECR (authhub-web-api-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- ECS Cluster (authhub-cluster-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- ECS Web API (authhub-web-api-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- Redis: stage-shared-redis (Shared)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Review artifacts for detailed plan output." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,240 @@
+# ============================================================================
+# AuthHub - Terraform Apply (Stage Environment)
+# ============================================================================
+# Build & Deploy Stage 워크플로우에서 호출되어 Image Tag 업데이트
+# 또는 수동으로 Stage 인프라 변경 적용
+# ============================================================================
+
+name: Terraform Apply (Stage)
+
+on:
+  workflow_dispatch:  # 수동 트리거 허용
+  workflow_call:      # 다른 워크플로우에서 호출 가능
+    inputs:
+      web-api-image-tag:
+        description: 'Web API Docker image tag (e.g., web-api-92-f08d571)'
+        required: false
+        type: string
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  ENVIRONMENT: stage
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply (Stage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      # 순차 실행으로 변경 (의존성 고려)
+      max-parallel: 1
+      matrix:
+        module:
+          # 의존성 순서대로 배치 (elasticache 제거 - stage-shared-redis 사용)
+          - name: ecr
+            dir: terraform/environments/stage/ecr
+            order: 0
+          - name: ecs-cluster
+            dir: terraform/environments/stage/ecs-cluster
+            order: 1
+          - name: ecs-web-api
+            dir: terraform/environments/stage/ecs-web-api
+            order: 2
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-AuthHub-TerraformApply-Stage
+
+      - name: Terraform Init - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: terraform init -upgrade
+
+      - name: Check and Import Existing Resources - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: |
+          echo "🔍 기존 리소스 확인 및 Import 중..."
+
+          # Plan 실행하여 충돌 확인
+          set +e
+          terraform plan -out=tfplan 2>&1 | tee plan_output.txt
+          PLAN_EXIT_CODE=$?
+          set -e
+
+          # 409 에러 또는 "already exists" 패턴 확인
+          if grep -q "EntityAlreadyExists\|already exists" plan_output.txt; then
+            echo "⚠️  기존 리소스 발견! Import 작업 시작..."
+
+            # ECR 모듈
+            if [ "${{ matrix.module.name }}" == "ecr" ]; then
+              echo "📦 ECR Repository 리소스 Import 중..."
+              if aws ecr describe-repositories --repository-names authhub-web-api-stage --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → Importing authhub-web-api-stage ECR repository..."
+                terraform import -input=false aws_ecr_repository.web_api authhub-web-api-stage || echo "  ⚠️  Import failed or already in state"
+              fi
+            fi
+
+            # ECS Cluster 모듈
+            if [ "${{ matrix.module.name }}" == "ecs-cluster" ]; then
+              echo "📦 ECS Cluster 리소스 Import 중..."
+              CLUSTER_ARN=$(aws ecs describe-clusters --clusters authhub-cluster-stage --region ap-northeast-2 --query 'clusters[0].clusterArn' --output text 2>/dev/null || echo "")
+              if [ -n "$CLUSTER_ARN" ] && [ "$CLUSTER_ARN" != "None" ]; then
+                echo "  → Importing ECS Cluster: $CLUSTER_ARN"
+                terraform import -input=false aws_ecs_cluster.main "$CLUSTER_ARN" || echo "  ⚠️  Import failed or already in state"
+              fi
+            fi
+
+            # ECS Web API 모듈
+            if [ "${{ matrix.module.name }}" == "ecs-web-api" ]; then
+              echo "📦 ECS Service 리소스 Import 중..."
+
+              # IAM Execution Role
+              if aws iam get-role --role-name authhub-stage-ecs-execution-role --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → Importing authhub-stage-ecs-execution-role..."
+                terraform import -input=false aws_iam_role.execution_role authhub-stage-ecs-execution-role || echo "  ⚠️  Import failed or already in state"
+              fi
+
+              # IAM Task Role
+              if aws iam get-role --role-name authhub-stage-ecs-task-role --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → Importing authhub-stage-ecs-task-role..."
+                terraform import -input=false aws_iam_role.task_role authhub-stage-ecs-task-role || echo "  ⚠️  Import failed or already in state"
+              fi
+
+              # ALB
+              ALB_ARN=$(aws elbv2 describe-load-balancers --names authhub-stage-alb --region ap-northeast-2 --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null || echo "")
+              if [ -n "$ALB_ARN" ] && [ "$ALB_ARN" != "None" ]; then
+                echo "  → Importing ALB: $ALB_ARN"
+                terraform import -input=false aws_lb.web_api "$ALB_ARN" || echo "  ⚠️  Import failed or already in state"
+              fi
+
+              # Target Group
+              TG_ARN=$(aws elbv2 describe-target-groups --names authhub-stage-web-api-tg --region ap-northeast-2 --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || echo "")
+              if [ -n "$TG_ARN" ] && [ "$TG_ARN" != "None" ]; then
+                echo "  → Importing Target Group: $TG_ARN"
+                terraform import -input=false aws_lb_target_group.web_api "$TG_ARN" || echo "  ⚠️  Import failed or already in state"
+              fi
+            fi
+
+            echo "✅ Import 완료! Plan 재실행..."
+            terraform plan -out=tfplan
+          else
+            echo "✅ 기존 리소스 없음 또는 State와 일치. 정상 진행."
+          fi
+
+          rm -f plan_output.txt
+
+      - name: Pre-delete ECR if replacement needed - ${{ matrix.module.name }}
+        if: matrix.module.name == 'ecr'
+        working-directory: ${{ matrix.module.dir }}
+        run: |
+          echo "🔍 Checking if ECR replacement is needed..."
+
+          # Plan을 확인하여 ECR 교체가 필요한지 확인
+          terraform plan -out=check.tfplan 2>&1 | tee plan_check.txt
+
+          if grep -q "must be replaced" plan_check.txt; then
+            echo "⚠️ ECR replacement detected! Pre-deleting with AWS CLI..."
+
+            # ECR 이름 추출 (authhub-web-api-stage)
+            ECR_NAME="authhub-web-api-stage"
+
+            if aws ecr describe-repositories --repository-names $ECR_NAME --region ap-northeast-2 >/dev/null 2>&1; then
+              echo "🗑️ Deleting ECR repository: $ECR_NAME (with all images)"
+              aws ecr delete-repository --repository-name $ECR_NAME --force --region ap-northeast-2
+              echo "✅ ECR deleted successfully"
+
+              # Terraform state에서도 제거
+              echo "🔄 Removing from Terraform state..."
+              terraform state rm module.ecr_web_api.aws_ecr_repository.this || true
+              terraform state rm module.ecr_web_api.aws_ecr_lifecycle_policy.this[0] || true
+              terraform state rm module.ecr_web_api.aws_ecr_repository_policy.default[0] || true
+            else
+              echo "ℹ️ ECR not found, skipping deletion"
+            fi
+          else
+            echo "✅ No ECR replacement needed"
+          fi
+
+          rm -f plan_check.txt check.tfplan
+
+      - name: Terraform Apply - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: |
+          echo "🚀 Applying Terraform for ${{ matrix.module.name }} (Stage)..."
+
+          # Image Tag 변수 설정 (Build & Deploy 워크플로우에서 전달됨)
+          EXTRA_VARS=""
+
+          if [ "${{ matrix.module.name }}" == "ecs-web-api" ] && [ -n "${{ inputs.web-api-image-tag }}" ]; then
+            echo "📦 Using Web API image tag: ${{ inputs.web-api-image-tag }}"
+            EXTRA_VARS="-var=image_tag=${{ inputs.web-api-image-tag }}"
+          else
+            echo "ℹ️  No image tag provided for ${{ matrix.module.name }}, using default from provider.tf"
+          fi
+
+          # Terraform Plan with optional image_tag variable
+          echo "📋 Generating fresh terraform plan..."
+          terraform plan $EXTRA_VARS -out=tfplan
+
+          terraform apply -auto-approve -no-color tfplan
+          echo "✅ Apply completed for ${{ matrix.module.name }}"
+
+      - name: Terraform Output - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: |
+          echo "📋 Outputs for ${{ matrix.module.name }}:"
+          terraform output -json > outputs-${{ matrix.module.name }}.json
+          terraform output
+
+      - name: Upload Apply Results - ${{ matrix.module.name }}
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: apply-results-stage-${{ matrix.module.name }}
+          path: ${{ matrix.module.dir }}/outputs-${{ matrix.module.name }}.json
+          retention-days: 30
+
+  notify-completion:
+    name: Notify Deployment Completion
+    needs: terraform-apply
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Create Deployment Summary
+        run: |
+          echo "## 🎉 AuthHub Infrastructure Deployment (Stage)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ needs.terraform-apply.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Stage" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Modules Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECR Repository (authhub-web-api-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECS Cluster (authhub-cluster-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECS Web API (authhub-web-api-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Redis: stage-shared-redis (Shared)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Verify infrastructure in AWS Console" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check CloudWatch logs" >> $GITHUB_STEP_SUMMARY
+          echo "3. Test application endpoints" >> $GITHUB_STEP_SUMMARY

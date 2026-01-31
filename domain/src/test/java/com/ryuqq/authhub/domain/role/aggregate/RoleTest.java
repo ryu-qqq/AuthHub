@@ -3,474 +3,317 @@ package com.ryuqq.authhub.domain.role.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.authhub.domain.common.util.ClockHolder;
 import com.ryuqq.authhub.domain.role.exception.SystemRoleNotDeletableException;
 import com.ryuqq.authhub.domain.role.exception.SystemRoleNotModifiableException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
-import com.ryuqq.authhub.domain.role.identifier.RoleId;
-import com.ryuqq.authhub.domain.role.vo.RoleDescription;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.time.Clock;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Role Aggregate Root 단위 테스트
+ * Role Aggregate 단위 테스트
  *
  * @author development-team
  * @since 1.0.0
  */
+@ExtendWith(MockitoExtension.class)
 @Tag("unit")
 @DisplayName("Role Aggregate 테스트")
 class RoleTest {
 
-    private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
-    private static final ClockHolder FIXED_CLOCK_HOLDER =
-            () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
-    private static final Clock FIXED_CLOCK = FIXED_CLOCK_HOLDER.clock();
+    private static final Instant NOW = Instant.parse("2025-01-15T10:00:00Z");
 
     @Nested
-    @DisplayName("createSystemGlobal 팩토리 메서드")
-    class CreateSystemGlobalTest {
+    @DisplayName("Role 생성 테스트")
+    class CreateTests {
 
         @Test
-        @DisplayName("새로운 시스템 GLOBAL 역할을 생성한다")
-        void shouldCreateSystemGlobalRole() {
-            // given
-            RoleId roleId = RoleId.of(UUID.randomUUID());
-            RoleName name = RoleName.of("SUPER_ADMIN");
-            RoleDescription description = RoleDescription.of("Super admin role");
-
+        @DisplayName("시스템 역할을 성공적으로 생성한다")
+        void shouldCreateSystemRoleSuccessfully() {
             // when
-            Role role = Role.createSystemGlobal(roleId, name, description, FIXED_CLOCK);
+            Role role =
+                    Role.createSystem(RoleName.of("SUPER_ADMIN"), "슈퍼 관리자", "시스템 전체 관리 권한", NOW);
 
             // then
-            assertThat(role).isNotNull();
-            assertThat(role.isNew()).isFalse();
             assertThat(role.nameValue()).isEqualTo("SUPER_ADMIN");
-            assertThat(role.getScope()).isEqualTo(RoleScope.GLOBAL);
-            assertThat(role.getType()).isEqualTo(RoleType.SYSTEM);
+            assertThat(role.displayNameValue()).isEqualTo("슈퍼 관리자");
+            assertThat(role.descriptionValue()).isEqualTo("시스템 전체 관리 권한");
+            assertThat(role.isSystem()).isTrue();
+            assertThat(role.isCustom()).isFalse();
+            assertThat(role.isGlobal()).isTrue();
+            assertThat(role.isTenantSpecific()).isFalse();
+            assertThat(role.isNew()).isTrue();
+            assertThat(role.isDeleted()).isFalse();
+        }
+
+        @Test
+        @DisplayName("커스텀 역할을 성공적으로 생성한다")
+        void shouldCreateCustomRoleSuccessfully() {
+            // when
+            Role role = Role.createCustom(RoleName.of("CUSTOM_ROLE"), "커스텀 역할", "사용자 정의 역할", NOW);
+
+            // then
+            assertThat(role.nameValue()).isEqualTo("CUSTOM_ROLE");
+            assertThat(role.isSystem()).isFalse();
+            assertThat(role.isCustom()).isTrue();
+            assertThat(role.isGlobal()).isTrue();
+            assertThat(role.isNew()).isTrue();
+        }
+
+        @Test
+        @DisplayName("테넌트 전용 커스텀 역할을 성공적으로 생성한다")
+        void shouldCreateTenantCustomRoleSuccessfully() {
+            // given
+            TenantId tenantId = TenantId.of("01941234-5678-7000-8000-123456789abc");
+
+            // when
+            Role role =
+                    Role.createTenantCustom(
+                            tenantId, RoleName.of("TENANT_ROLE"), "테넌트 역할", "테넌트 전용 역할", NOW);
+
+            // then
+            assertThat(role.nameValue()).isEqualTo("TENANT_ROLE");
+            assertThat(role.tenantIdValue()).isEqualTo(tenantId.value());
+            assertThat(role.isCustom()).isTrue();
+            assertThat(role.isGlobal()).isFalse();
+            assertThat(role.isTenantSpecific()).isTrue();
+        }
+
+        @Test
+        @DisplayName("테넌트 역할 생성 시 tenantId가 null이면 예외가 발생한다")
+        void shouldThrowExceptionWhenTenantIdIsNullForTenantRole() {
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    Role.createTenantCustom(
+                                            null,
+                                            RoleName.of("TENANT_ROLE"),
+                                            "테넌트 역할",
+                                            "테넌트 전용 역할",
+                                            NOW))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("tenantId");
+        }
+
+        @Test
+        @DisplayName("name이 null이면 예외가 발생한다")
+        void shouldThrowExceptionWhenNameIsNull() {
+            // when & then
+            assertThatThrownBy(() -> Role.createSystem(null, "표시명", "설명", NOW))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("name");
+        }
+
+        @Test
+        @DisplayName("통합 create 메서드로 시스템 역할을 생성한다")
+        void shouldCreateSystemRoleViaUnifiedMethod() {
+            // when
+            Role role =
+                    Role.create(
+                            null,
+                            RoleName.of("UNIFIED_SYSTEM"),
+                            "통합 시스템 역할",
+                            "통합 메서드로 생성된 시스템 역할",
+                            true,
+                            NOW);
+
+            // then
             assertThat(role.isSystem()).isTrue();
             assertThat(role.isGlobal()).isTrue();
-            assertThat(role.getTenantId()).isNull();
-            assertThat(role.createdAt()).isEqualTo(FIXED_TIME);
-            assertThat(role.updatedAt()).isEqualTo(FIXED_TIME);
         }
 
         @Test
-        @DisplayName("설명이 null이면 빈 설명으로 생성된다")
-        void shouldCreateWithEmptyDescriptionWhenNull() {
+        @DisplayName("통합 create 메서드로 테넌트 커스텀 역할을 생성한다")
+        void shouldCreateTenantCustomRoleViaUnifiedMethod() {
             // given
-            RoleId roleId = RoleId.of(UUID.randomUUID());
-            RoleName name = RoleName.of("ADMIN");
-
-            // when
-            Role role = Role.createSystemGlobal(roleId, name, null, FIXED_CLOCK);
-
-            // then
-            assertThat(role.descriptionValue()).isEmpty();
-        }
-    }
-
-    @Nested
-    @DisplayName("createCustomTenant 팩토리 메서드")
-    class CreateCustomTenantTest {
-
-        @Test
-        @DisplayName("새로운 커스텀 TENANT 역할을 생성한다")
-        void shouldCreateCustomTenantRole() {
-            // given
-            RoleId roleId = RoleId.of(UUID.randomUUID());
-            TenantId tenantId = TenantId.of(UUID.randomUUID());
-            RoleName name = RoleName.of("CUSTOM_ROLE");
-            RoleDescription description = RoleDescription.of("Custom tenant role");
-
-            // when
-            Role role = Role.createCustomTenant(roleId, tenantId, name, description, FIXED_CLOCK);
-
-            // then
-            assertThat(role).isNotNull();
-            assertThat(role.isNew()).isFalse();
-            assertThat(role.nameValue()).isEqualTo("CUSTOM_ROLE");
-            assertThat(role.getScope()).isEqualTo(RoleScope.TENANT);
-            assertThat(role.getType()).isEqualTo(RoleType.CUSTOM);
-            assertThat(role.isCustom()).isTrue();
-            assertThat(role.isTenantScoped()).isTrue();
-            assertThat(role.getTenantId()).isEqualTo(tenantId);
-        }
-
-        @Test
-        @DisplayName("tenantId가 null이면 예외 발생")
-        void shouldThrowExceptionWhenTenantIdIsNull() {
-            // given
-            RoleId roleId = RoleId.of(UUID.randomUUID());
-            RoleName name = RoleName.of("CUSTOM_ROLE");
-            RoleDescription description = RoleDescription.of("Description");
-
-            // when/then
-            assertThatThrownBy(
-                            () ->
-                                    Role.createCustomTenant(
-                                            roleId, null, name, description, FIXED_CLOCK))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("TENANT 범위 역할은 tenantId가 필수입니다");
-        }
-    }
-
-    @Nested
-    @DisplayName("createCustomOrganization 팩토리 메서드")
-    class CreateCustomOrganizationTest {
-
-        @Test
-        @DisplayName("새로운 커스텀 ORGANIZATION 역할을 생성한다")
-        void shouldCreateCustomOrganizationRole() {
-            // given
-            RoleId roleId = RoleId.of(UUID.randomUUID());
-            TenantId tenantId = TenantId.of(UUID.randomUUID());
-            RoleName name = RoleName.of("ORG_ROLE");
-            RoleDescription description = RoleDescription.of("Organization role");
+            TenantId tenantId = TenantId.of("01941234-5678-7000-8000-123456789abc");
 
             // when
             Role role =
-                    Role.createCustomOrganization(roleId, tenantId, name, description, FIXED_CLOCK);
-
-            // then
-            assertThat(role).isNotNull();
-            assertThat(role.isNew()).isFalse();
-            assertThat(role.nameValue()).isEqualTo("ORG_ROLE");
-            assertThat(role.getScope()).isEqualTo(RoleScope.ORGANIZATION);
-            assertThat(role.getType()).isEqualTo(RoleType.CUSTOM);
-            assertThat(role.isOrganizationScoped()).isTrue();
-        }
-
-        @Test
-        @DisplayName("tenantId가 null이면 예외 발생")
-        void shouldThrowExceptionWhenTenantIdIsNull() {
-            // given
-            RoleId roleId = RoleId.of(UUID.randomUUID());
-            RoleName name = RoleName.of("ORG_ROLE");
-            RoleDescription description = RoleDescription.of("Description");
-
-            // when/then
-            assertThatThrownBy(
-                            () ->
-                                    Role.createCustomOrganization(
-                                            roleId, null, name, description, FIXED_CLOCK))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("ORGANIZATION 범위 역할은 tenantId가 필수입니다");
-        }
-    }
-
-    @Nested
-    @DisplayName("reconstitute 팩토리 메서드")
-    class ReconstituteTest {
-
-        @Test
-        @DisplayName("DB에서 Role을 재구성한다")
-        void shouldReconstituteRoleFromDb() {
-            // given
-            UUID uuid = UUID.randomUUID();
-            UUID tenantUuid = UUID.randomUUID();
-            RoleId roleId = RoleId.of(uuid);
-            TenantId tenantId = TenantId.of(tenantUuid);
-            RoleName name = RoleName.of("TEST_ROLE");
-            RoleDescription description = RoleDescription.of("Test role");
-            Instant createdAt = Instant.parse("2024-01-01T00:00:00Z");
-            Instant updatedAt = Instant.parse("2024-06-01T00:00:00Z");
-
-            // when
-            Role role =
-                    Role.reconstitute(
-                            roleId,
+                    Role.create(
                             tenantId,
-                            name,
-                            description,
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
+                            RoleName.of("UNIFIED_TENANT"),
+                            "통합 테넌트 역할",
+                            "통합 메서드로 생성된 테넌트 역할",
                             false,
-                            createdAt,
-                            updatedAt);
+                            NOW);
 
             // then
-            assertThat(role).isNotNull();
-            assertThat(role.isNew()).isFalse();
-            assertThat(role.roleIdValue()).isEqualTo(uuid);
-            assertThat(role.tenantIdValue()).isEqualTo(tenantUuid);
-            assertThat(role.nameValue()).isEqualTo("TEST_ROLE");
-            assertThat(role.createdAt()).isEqualTo(createdAt);
-            assertThat(role.updatedAt()).isEqualTo(updatedAt);
-        }
-
-        @Test
-        @DisplayName("roleId가 null이면 예외 발생")
-        void shouldThrowExceptionWhenRoleIdIsNull() {
-            assertThatThrownBy(
-                            () ->
-                                    Role.reconstitute(
-                                            null,
-                                            TenantId.of(UUID.randomUUID()),
-                                            RoleName.of("TEST"),
-                                            RoleDescription.of("Test"),
-                                            RoleScope.ORGANIZATION,
-                                            RoleType.CUSTOM,
-                                            false,
-                                            FIXED_TIME,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("reconstitute requires non-null roleId");
-        }
-
-        @Test
-        @DisplayName("필수 필드가 null이면 예외 발생")
-        void shouldThrowExceptionWhenRequiredFieldIsNull() {
-            RoleId id = RoleId.forNew(UUID.randomUUID());
-            TenantId tenantId = TenantId.of(UUID.randomUUID());
-
-            assertThatThrownBy(
-                            () ->
-                                    Role.reconstitute(
-                                            id,
-                                            tenantId,
-                                            null,
-                                            RoleDescription.of("Test"),
-                                            RoleScope.ORGANIZATION,
-                                            RoleType.CUSTOM,
-                                            false,
-                                            FIXED_TIME,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("RoleName은 null일 수 없습니다");
-
-            assertThatThrownBy(
-                            () ->
-                                    Role.reconstitute(
-                                            id,
-                                            tenantId,
-                                            RoleName.of("TEST"),
-                                            RoleDescription.of("Test"),
-                                            null,
-                                            RoleType.CUSTOM,
-                                            false,
-                                            FIXED_TIME,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("RoleScope는 null일 수 없습니다");
-
-            assertThatThrownBy(
-                            () ->
-                                    Role.reconstitute(
-                                            id,
-                                            tenantId,
-                                            RoleName.of("TEST"),
-                                            RoleDescription.of("Test"),
-                                            RoleScope.ORGANIZATION,
-                                            null,
-                                            false,
-                                            FIXED_TIME,
-                                            FIXED_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("RoleType은 null일 수 없습니다");
+            assertThat(role.isCustom()).isTrue();
+            assertThat(role.isTenantSpecific()).isTrue();
+            assertThat(role.tenantIdValue()).isEqualTo(tenantId.value());
         }
     }
 
     @Nested
-    @DisplayName("changeName 비즈니스 메서드")
-    class ChangeNameTest {
+    @DisplayName("Role 수정 테스트")
+    class UpdateTests {
 
         @Test
-        @DisplayName("커스텀 역할의 이름을 변경한다")
-        void shouldChangeNameForCustomRole() {
+        @DisplayName("커스텀 역할의 정보를 수정한다")
+        void shouldUpdateCustomRole() {
             // given
-            Role role = RoleFixture.create();
-            RoleName newName = RoleName.of("CHANGED_ROLE");
+            Role role = RoleFixture.createCustomRole();
+            RoleUpdateData updateData = RoleUpdateData.of("새로운 표시명", "새로운 설명");
 
             // when
-            Role changedRole = role.changeName(newName, FIXED_CLOCK);
+            role.update(updateData, NOW);
 
             // then
-            assertThat(changedRole.nameValue()).isEqualTo("CHANGED_ROLE");
-            assertThat(changedRole.updatedAt()).isEqualTo(FIXED_TIME);
+            assertThat(role.displayNameValue()).isEqualTo("새로운 표시명");
+            assertThat(role.descriptionValue()).isEqualTo("새로운 설명");
+            assertThat(role.updatedAt()).isEqualTo(NOW);
         }
 
         @Test
-        @DisplayName("시스템 역할 이름 변경 시 예외 발생")
-        void shouldThrowExceptionWhenChangingSystemRoleName() {
+        @DisplayName("표시명만 수정한다")
+        void shouldUpdateOnlyDisplayName() {
             // given
-            Role systemRole = RoleFixture.createSystemGlobal();
-            RoleName newName = RoleName.of("NEW_NAME");
+            Role role = RoleFixture.createCustomRole();
+            String originalDescription = role.descriptionValue();
+            RoleUpdateData updateData = RoleUpdateData.of("새로운 표시명", null);
 
-            // when/then
-            assertThatThrownBy(() -> systemRole.changeName(newName, FIXED_CLOCK))
+            // when
+            role.update(updateData, NOW);
+
+            // then
+            assertThat(role.displayNameValue()).isEqualTo("새로운 표시명");
+            assertThat(role.descriptionValue()).isEqualTo(originalDescription);
+        }
+
+        @Test
+        @DisplayName("설명만 수정한다")
+        void shouldUpdateOnlyDescription() {
+            // given
+            Role role = RoleFixture.createCustomRole();
+            String originalDisplayName = role.displayNameValue();
+            RoleUpdateData updateData = RoleUpdateData.of(null, "새로운 설명");
+
+            // when
+            role.update(updateData, NOW);
+
+            // then
+            assertThat(role.displayNameValue()).isEqualTo(originalDisplayName);
+            assertThat(role.descriptionValue()).isEqualTo("새로운 설명");
+        }
+
+        @Test
+        @DisplayName("시스템 역할은 수정할 수 없다")
+        void shouldThrowExceptionWhenUpdatingSystemRole() {
+            // given
+            Role systemRole = RoleFixture.createSystemRole();
+            RoleUpdateData updateData = RoleUpdateData.of("새로운 표시명", "새로운 설명");
+
+            // when & then
+            assertThatThrownBy(() -> systemRole.update(updateData, NOW))
                     .isInstanceOf(SystemRoleNotModifiableException.class);
         }
     }
 
     @Nested
-    @DisplayName("changeDescription 비즈니스 메서드")
-    class ChangeDescriptionTest {
+    @DisplayName("Role 삭제/복원 테스트")
+    class DeleteRestoreTests {
 
         @Test
-        @DisplayName("커스텀 역할의 설명을 변경한다")
-        void shouldChangeDescriptionForCustomRole() {
-            // given
-            Role role = RoleFixture.create();
-            RoleDescription newDescription = RoleDescription.of("Updated description");
-
-            // when
-            Role changedRole = role.changeDescription(newDescription, FIXED_CLOCK);
-
-            // then
-            assertThat(changedRole.descriptionValue()).isEqualTo("Updated description");
-            assertThat(changedRole.updatedAt()).isEqualTo(FIXED_TIME);
-        }
-
-        @Test
-        @DisplayName("시스템 역할 설명 변경 시 예외 발생")
-        void shouldThrowExceptionWhenChangingSystemRoleDescription() {
-            // given
-            Role systemRole = RoleFixture.createSystemGlobal();
-            RoleDescription newDescription = RoleDescription.of("New description");
-
-            // when/then
-            assertThatThrownBy(() -> systemRole.changeDescription(newDescription, FIXED_CLOCK))
-                    .isInstanceOf(SystemRoleNotModifiableException.class);
-        }
-    }
-
-    @Nested
-    @DisplayName("delete 비즈니스 메서드")
-    class DeleteTest {
-
-        @Test
-        @DisplayName("커스텀 역할을 삭제한다")
+        @DisplayName("커스텀 역할을 삭제(소프트 삭제)한다")
         void shouldDeleteCustomRole() {
             // given
-            Role role = RoleFixture.create();
+            Role role = RoleFixture.createCustomRole();
 
             // when
-            Role deletedRole = role.delete(FIXED_CLOCK);
+            role.delete(NOW);
 
             // then
-            assertThat(deletedRole.isDeleted()).isTrue();
-            assertThat(deletedRole.updatedAt()).isEqualTo(FIXED_TIME);
+            assertThat(role.isDeleted()).isTrue();
+            assertThat(role.isActive()).isFalse();
+            assertThat(role.updatedAt()).isEqualTo(NOW);
         }
 
         @Test
-        @DisplayName("시스템 역할 삭제 시 예외 발생")
+        @DisplayName("시스템 역할은 삭제할 수 없다")
         void shouldThrowExceptionWhenDeletingSystemRole() {
             // given
-            Role systemRole = RoleFixture.createSystemGlobal();
+            Role systemRole = RoleFixture.createSystemRole();
 
-            // when/then
-            assertThatThrownBy(() -> systemRole.delete(FIXED_CLOCK))
+            // when & then
+            assertThatThrownBy(() -> systemRole.delete(NOW))
                     .isInstanceOf(SystemRoleNotDeletableException.class);
+        }
+
+        @Test
+        @DisplayName("삭제된 역할을 복원한다")
+        void shouldRestoreRole() {
+            // given
+            Role role = RoleFixture.createDeleted();
+            assertThat(role.isDeleted()).isTrue();
+
+            // when
+            role.restore(NOW);
+
+            // then
+            assertThat(role.isDeleted()).isFalse();
+            assertThat(role.isActive()).isTrue();
+            assertThat(role.updatedAt()).isEqualTo(NOW);
         }
     }
 
     @Nested
-    @DisplayName("Helper 메서드")
-    class HelperMethodsTest {
+    @DisplayName("Role Query 메서드 테스트")
+    class QueryMethodTests {
 
         @Test
-        @DisplayName("isSystem은 시스템 역할일 때 true 반환")
-        void shouldReturnTrueWhenSystemRole() {
+        @DisplayName("Global 역할은 tenantId가 null이다")
+        void globalRoleShouldHaveNullTenantId() {
             // given
-            Role systemRole = RoleFixture.createSystemGlobal();
-            Role customRole = RoleFixture.create();
-
-            // then
-            assertThat(systemRole.isSystem()).isTrue();
-            assertThat(customRole.isSystem()).isFalse();
-        }
-
-        @Test
-        @DisplayName("isCustom은 커스텀 역할일 때 true 반환")
-        void shouldReturnTrueWhenCustomRole() {
-            // given
-            Role customRole = RoleFixture.create();
-            Role systemRole = RoleFixture.createSystemGlobal();
-
-            // then
-            assertThat(customRole.isCustom()).isTrue();
-            assertThat(systemRole.isCustom()).isFalse();
-        }
-
-        @Test
-        @DisplayName("isGlobal은 GLOBAL 범위일 때 true 반환")
-        void shouldReturnTrueWhenGlobalScope() {
-            // given
-            Role globalRole = RoleFixture.createSystemGlobal();
-            Role orgRole = RoleFixture.create();
+            Role globalRole = RoleFixture.create();
 
             // then
             assertThat(globalRole.isGlobal()).isTrue();
-            assertThat(orgRole.isGlobal()).isFalse();
+            assertThat(globalRole.isTenantSpecific()).isFalse();
+            assertThat(globalRole.tenantIdValue()).isNull();
         }
 
         @Test
-        @DisplayName("isTenantScoped는 TENANT 범위일 때 true 반환")
-        void shouldReturnTrueWhenTenantScope() {
+        @DisplayName("테넌트 전용 역할은 tenantId가 있다")
+        void tenantRoleShouldHaveTenantId() {
             // given
-            Role tenantRole = RoleFixture.createCustomTenant();
-            Role orgRole = RoleFixture.create();
+            Role tenantRole = RoleFixture.createTenantRole();
 
             // then
-            assertThat(tenantRole.isTenantScoped()).isTrue();
-            assertThat(orgRole.isTenantScoped()).isFalse();
+            assertThat(tenantRole.isGlobal()).isFalse();
+            assertThat(tenantRole.isTenantSpecific()).isTrue();
+            assertThat(tenantRole.tenantIdValue()).isNotNull();
         }
 
         @Test
-        @DisplayName("isOrganizationScoped는 ORGANIZATION 범위일 때 true 반환")
-        void shouldReturnTrueWhenOrganizationScope() {
+        @DisplayName("isNew는 ID가 없을 때 true를 반환한다")
+        void isNewShouldReturnTrueWhenIdIsNull() {
             // given
-            Role orgRole = RoleFixture.create();
-            Role tenantRole = RoleFixture.createCustomTenant();
+            Role newRole = RoleFixture.createNewCustomRole();
+            Role existingRole = RoleFixture.create();
 
             // then
-            assertThat(orgRole.isOrganizationScoped()).isTrue();
-            assertThat(tenantRole.isOrganizationScoped()).isFalse();
+            assertThat(newRole.isNew()).isTrue();
+            assertThat(existingRole.isNew()).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("equals 및 hashCode")
-    class EqualsHashCodeTest {
+    @DisplayName("Role equals/hashCode 테스트")
+    class EqualsHashCodeTests {
 
         @Test
-        @DisplayName("같은 ID를 가진 Role은 동일하다")
+        @DisplayName("같은 roleId를 가진 Role은 동등하다")
         void shouldBeEqualWhenSameRoleId() {
             // given
-            UUID uuid = UUID.randomUUID();
-            Role role1 =
-                    Role.reconstitute(
-                            RoleId.of(uuid),
-                            TenantId.of(UUID.randomUUID()),
-                            RoleName.of("ROLE1"),
-                            RoleDescription.of("Role 1"),
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            Role role2 =
-                    Role.reconstitute(
-                            RoleId.of(uuid),
-                            TenantId.of(UUID.randomUUID()),
-                            RoleName.of("ROLE2"),
-                            RoleDescription.of("Role 2"),
-                            RoleScope.TENANT,
-                            RoleType.SYSTEM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
+            Role role1 = RoleFixture.create();
+            Role role2 = RoleFixture.create();
 
             // then
             assertThat(role1).isEqualTo(role2);
@@ -478,87 +321,25 @@ class RoleTest {
         }
 
         @Test
-        @DisplayName("다른 ID를 가진 Role은 다르다")
-        void shouldNotBeEqualWhenDifferentRoleId() {
+        @DisplayName("ID가 없는 경우 name과 tenantId로 동등성을 판단한다")
+        void shouldUseNameAndTenantIdWhenIdIsNull() {
             // given
-            Role role1 =
-                    Role.reconstitute(
-                            RoleId.of(UUID.randomUUID()),
-                            TenantId.of(UUID.randomUUID()),
-                            RoleName.of("ROLE"),
-                            RoleDescription.of("Role"),
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
-            Role role2 =
-                    Role.reconstitute(
-                            RoleId.of(UUID.randomUUID()),
-                            TenantId.of(UUID.randomUUID()),
-                            RoleName.of("ROLE"),
-                            RoleDescription.of("Role"),
-                            RoleScope.ORGANIZATION,
-                            RoleType.CUSTOM,
-                            false,
-                            FIXED_TIME,
-                            FIXED_TIME);
+            Role newRole1 = Role.createCustom(RoleName.of("SAME_NAME"), "표시명1", "설명1", NOW);
+            Role newRole2 = Role.createCustom(RoleName.of("SAME_NAME"), "표시명2", "설명2", NOW);
+
+            // then - 같은 name, null tenantId이므로 동등함
+            assertThat(newRole1).isEqualTo(newRole2);
+        }
+
+        @Test
+        @DisplayName("name이 다르면 동등하지 않다 (ID가 없는 경우)")
+        void shouldNotBeEqualWhenDifferentName() {
+            // given
+            Role role1 = Role.createCustom(RoleName.of("ROLE_A"), "표시명1", "설명1", NOW);
+            Role role2 = Role.createCustom(RoleName.of("ROLE_B"), "표시명2", "설명2", NOW);
 
             // then
             assertThat(role1).isNotEqualTo(role2);
-        }
-
-        @Test
-        @DisplayName("ID가 null인 Role은 서로 다르다")
-        void shouldNotBeEqualWhenIdIsNull() {
-            // given
-            Role role1 = RoleFixture.createNew();
-            Role role2 = RoleFixture.createNew();
-
-            // then
-            assertThat(role1).isNotEqualTo(role2);
-        }
-
-        @Test
-        @DisplayName("자기 자신과 같다")
-        void shouldBeEqualToItself() {
-            // given
-            Role role = RoleFixture.create();
-
-            // then
-            assertThat(role).isEqualTo(role);
-        }
-
-        @Test
-        @DisplayName("null과 같지 않다")
-        void shouldNotBeEqualToNull() {
-            // given
-            Role role = RoleFixture.create();
-
-            // then
-            assertThat(role).isNotEqualTo(null);
-        }
-    }
-
-    @Nested
-    @DisplayName("toString")
-    class ToStringTest {
-
-        @Test
-        @DisplayName("Role의 문자열 표현을 반환한다")
-        void shouldReturnStringRepresentation() {
-            // given
-            Role role = RoleFixture.create();
-
-            // when
-            String toString = role.toString();
-
-            // then
-            assertThat(toString).contains("Role");
-            assertThat(toString).contains("roleId");
-            assertThat(toString).contains("name");
-            assertThat(toString).contains("scope");
-            assertThat(toString).contains("type");
         }
     }
 }

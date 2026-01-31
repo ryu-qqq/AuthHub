@@ -1,19 +1,18 @@
 package com.ryuqq.authhub.application.user.port.in.query;
 
-import com.ryuqq.authhub.application.user.dto.query.GetUserQuery;
-import com.ryuqq.authhub.application.user.dto.response.UserResponse;
+import com.ryuqq.authhub.application.user.dto.response.UserResult;
 
 /**
- * GetUserUseCase - 사용자 단건 조회 Port-In
+ * GetUserUseCase - 사용자 단건 조회 UseCase (Port-In)
  *
- * <p>사용자 단건 조회 비즈니스 로직의 진입점입니다.
+ * <p>사용자 단건 조회 기능을 정의합니다.
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>*UseCase 네이밍 규칙
- *   <li>단일 메서드 (execute)
- *   <li>Query DTO 입력, Response DTO 출력
+ *   <li>{@code Get{Bc}UseCase} 네이밍
+ *   <li>{@code execute()} 메서드 시그니처
+ *   <li>ID 파라미터, Result DTO 반환
  * </ul>
  *
  * @author development-team
@@ -24,8 +23,8 @@ public interface GetUserUseCase {
     /**
      * 사용자 단건 조회 실행
      *
-     * @param query 조회 Query
-     * @return 사용자 응답
+     * @param userId 조회할 사용자 ID
+     * @return 사용자 결과 DTO
      */
-    UserResponse execute(GetUserQuery query);
+    UserResult execute(String userId);
 }

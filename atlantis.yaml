@@ -2,6 +2,7 @@
 # AuthHub - Atlantis Configuration
 # ============================================================================
 # PR-based Terraform automation for AuthHub infrastructure
+# 배포 흐름: develop → stage (PR) → main (PR)
 # ============================================================================
 
 version: 3
@@ -14,10 +15,46 @@ parallel_apply: false
 
 projects:
   # ============================================================================
-  # Container Registry
+  # STAGE Environment
   # ============================================================================
 
-  # ECR repository for web-api
+  # ECR repository for web-api (Stage)
+  - name: authhub-ecr-stage
+    dir: terraform/environments/stage/ecr
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars"]
+      enabled: true
+
+  # ECS Cluster (Stage)
+  - name: authhub-ecs-cluster-stage
+    dir: terraform/environments/stage/ecs-cluster
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars"]
+      enabled: true
+
+  # ElastiCache (Stage)
+  - name: authhub-elasticache-stage
+    dir: terraform/environments/stage/elasticache
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars"]
+      enabled: true
+
+  # ECS Service for web-api (Stage)
+  - name: authhub-ecs-web-api-stage
+    dir: terraform/environments/stage/ecs-web-api
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars"]
+      enabled: true
+
+  # ============================================================================
+  # PROD Environment
+  # ============================================================================
+
+  # ECR repository for web-api (Prod)
   - name: authhub-ecr-prod
     dir: terraform/ecr
     workspace: default
@@ -25,11 +62,7 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
 
-  # ============================================================================
-  # Core Infrastructure
-  # ============================================================================
-
-  # ECS Cluster (dedicated for authhub)
+  # ECS Cluster (Prod)
   - name: authhub-ecs-cluster-prod
     dir: terraform/ecs-cluster
     workspace: default
@@ -37,7 +70,7 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
 
-  # ElastiCache (Redis for Redisson Lock + Cache)
+  # ElastiCache (Prod)
   - name: authhub-elasticache-prod
     dir: terraform/elasticache
     workspace: default
@@ -45,11 +78,7 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
 
-  # ============================================================================
-  # Application Infrastructure
-  # ============================================================================
-
-  # ECS Service for web-api (ALB + Auto Scaling)
+  # ECS Service for web-api (Prod)
   - name: authhub-ecs-web-api-prod
     dir: terraform/ecs-web-api
     workspace: default

@@ -4,17 +4,9 @@ import com.ryuqq.authhub.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
- * InvalidPasswordException - 잘못된 비밀번호 예외
+ * InvalidPasswordException - 비밀번호가 일치하지 않을 때 발생하는 예외
  *
- * <p>비밀번호 검증 실패 시 발생합니다.
- *
- * <p><strong>Zero-Tolerance 규칙:</strong>
- *
- * <ul>
- *   <li>DomainException 상속 필수
- *   <li>ErrorCode 사용 필수
- *   <li>Lombok 금지
- * </ul>
+ * <p>로그인 시 비밀번호 검증 실패 시 발생합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -22,6 +14,10 @@ import java.util.Map;
 public class InvalidPasswordException extends DomainException {
 
     public InvalidPasswordException() {
-        super(UserErrorCode.INVALID_USER_STATE, Map.of());
+        super(UserErrorCode.INVALID_PASSWORD, Map.of());
+    }
+
+    public InvalidPasswordException(String identifier) {
+        super(UserErrorCode.INVALID_PASSWORD, Map.of("identifier", identifier));
     }
 }

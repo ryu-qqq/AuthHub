@@ -1,27 +1,22 @@
 package com.ryuqq.authhub.adapter.out.persistence.role.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RoleJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.role.fixture.RoleJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.role.mapper.RoleJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.role.repository.RoleQueryDslRepository;
-import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
-import com.ryuqq.authhub.domain.role.identifier.RoleId;
+import com.ryuqq.authhub.domain.role.id.RoleId;
+import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.role.vo.RoleScope;
-import com.ryuqq.authhub.domain.role.vo.RoleType;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,6 +28,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * RoleQueryAdapter 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Adapter는 Repository 위임 + Mapper 변환 담당
+ *   <li>QueryDslRepository/Mapper를 Mock으로 대체
+ *   <li>Entity → Domain 변환 흐름 검증
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -46,137 +49,96 @@ class RoleQueryAdapterTest {
 
     @Mock private RoleJpaEntityMapper mapper;
 
-    private RoleQueryAdapter adapter;
-
-    private static final UUID ROLE_UUID = RoleFixture.defaultUUID();
-    private static final UUID TENANT_UUID = RoleFixture.defaultTenantUUID();
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
-    private static final Instant CREATED_FROM = Instant.parse("2025-01-01T00:00:00Z");
-    private static final Instant CREATED_TO = Instant.parse("2025-12-31T23:59:59Z");
+    private RoleQueryAdapter sut;
 
     @BeforeEach
     void setUp() {
-        adapter = new RoleQueryAdapter(repository, mapper);
+        sut = new RoleQueryAdapter(repository, mapper);
     }
 
     @Nested
     @DisplayName("findById 메서드")
-    class FindByIdTest {
+    class FindById {
 
         @Test
-        @DisplayName("ID로 역할을 성공적으로 조회한다")
-        void shouldFindRoleByIdSuccessfully() {
+        @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
+        void shouldFindAndConvert_WhenEntityExists() {
             // given
-            RoleId roleId = RoleId.of(ROLE_UUID);
-            Role expectedRole = RoleFixture.create();
-            RoleJpaEntity entity = createRoleEntity();
+            RoleId id = RoleFixture.defaultId();
+            RoleJpaEntity entity = RoleJpaEntityFixture.create();
+            Role expectedDomain = RoleFixture.create();
 
-            given(repository.findByRoleId(ROLE_UUID)).willReturn(Optional.of(entity));
-            given(mapper.toDomain(entity)).willReturn(expectedRole);
+            given(repository.findByRoleId(id.value())).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
             // when
-            Optional<Role> result = adapter.findById(roleId);
+            Optional<Role> result = sut.findById(id);
 
             // then
             assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(expectedRole);
-            verify(repository).findByRoleId(ROLE_UUID);
+            assertThat(result.get()).isEqualTo(expectedDomain);
         }
 
         @Test
-        @DisplayName("존재하지 않는 ID로 조회하면 빈 Optional을 반환한다")
-        void shouldReturnEmptyWhenRoleNotFound() {
+        @DisplayName("Entity가 없으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenEntityNotFound() {
             // given
-            RoleId roleId = RoleId.of(UUID.randomUUID());
+            RoleId id = RoleFixture.defaultId();
 
-            given(repository.findByRoleId(roleId.value())).willReturn(Optional.empty());
+            given(repository.findByRoleId(id.value())).willReturn(Optional.empty());
 
             // when
-            Optional<Role> result = adapter.findById(roleId);
+            Optional<Role> result = sut.findById(id);
 
             // then
             assertThat(result).isEmpty();
         }
-    }
-
-    @Nested
-    @DisplayName("findByTenantIdAndName 메서드")
-    class FindByTenantIdAndNameTest {
 
         @Test
-        @DisplayName("테넌트 ID와 이름으로 역할을 조회한다")
-        void shouldFindRoleByTenantIdAndName() {
+        @DisplayName("RoleId에서 value 추출하여 Repository 호출")
+        void shouldExtractIdValue_AndCallRepository() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            RoleName name = RoleName.of("TEST_ROLE");
-            Role expectedRole = RoleFixture.create();
-            RoleJpaEntity entity = createRoleEntity();
+            RoleId id = RoleFixture.defaultId();
 
-            given(repository.findByTenantIdAndName(TENANT_UUID, "TEST_ROLE"))
-                    .willReturn(Optional.of(entity));
-            given(mapper.toDomain(entity)).willReturn(expectedRole);
+            given(repository.findByRoleId(id.value())).willReturn(Optional.empty());
 
             // when
-            Optional<Role> result = adapter.findByTenantIdAndName(tenantId, name);
+            sut.findById(id);
 
             // then
-            assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(expectedRole);
-        }
-
-        @Test
-        @DisplayName("GLOBAL 역할 조회 시 tenantId를 null로 전달한다")
-        void shouldFindGlobalRoleWithNullTenantId() {
-            // given
-            RoleName name = RoleName.of("SUPER_ADMIN");
-            Role expectedRole = RoleFixture.createSystemGlobal();
-            RoleJpaEntity entity = createGlobalRoleEntity();
-
-            given(repository.findByTenantIdAndName(null, "SUPER_ADMIN"))
-                    .willReturn(Optional.of(entity));
-            given(mapper.toDomain(entity)).willReturn(expectedRole);
-
-            // when
-            Optional<Role> result = adapter.findByTenantIdAndName(null, name);
-
-            // then
-            assertThat(result).isPresent();
-            assertThat(result.get().getScope()).isEqualTo(RoleScope.GLOBAL);
+            then(repository).should().findByRoleId(id.value());
         }
     }
 
     @Nested
-    @DisplayName("existsByTenantIdAndName 메서드")
-    class ExistsByTenantIdAndNameTest {
+    @DisplayName("existsById 메서드")
+    class ExistsById {
 
         @Test
-        @DisplayName("역할이 존재하면 true를 반환한다")
-        void shouldReturnTrueWhenRoleExists() {
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            RoleName name = RoleName.of("TEST_ROLE");
+            RoleId id = RoleFixture.defaultId();
 
-            given(repository.existsByTenantIdAndName(TENANT_UUID, "TEST_ROLE")).willReturn(true);
+            given(repository.existsByRoleId(id.value())).willReturn(true);
 
             // when
-            boolean result = adapter.existsByTenantIdAndName(tenantId, name);
+            boolean result = sut.existsById(id);
 
             // then
             assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("역할이 존재하지 않으면 false를 반환한다")
-        void shouldReturnFalseWhenRoleNotExists() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            RoleName name = RoleName.of("NONEXISTENT_ROLE");
+            RoleId id = RoleFixture.defaultId();
 
-            given(repository.existsByTenantIdAndName(TENANT_UUID, "NONEXISTENT_ROLE"))
-                    .willReturn(false);
+            given(repository.existsByRoleId(id.value())).willReturn(false);
 
             // when
-            boolean result = adapter.existsByTenantIdAndName(tenantId, name);
+            boolean result = sut.existsById(id);
 
             // then
             assertThat(result).isFalse();
@@ -184,155 +146,225 @@ class RoleQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("search 메서드")
-    class SearchTest {
+    @DisplayName("existsByTenantIdAndName 메서드")
+    class ExistsByTenantIdAndName {
 
         @Test
-        @DisplayName("검색 조건으로 역할 목록을 조회한다")
-        void shouldSearchRolesSuccessfully() {
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
             // given
-            SearchRolesQuery query =
-                    SearchRolesQuery.of(
-                            TENANT_UUID, null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
-            Role role1 = RoleFixture.create();
-            Role role2 = RoleFixture.createWithName("ANOTHER_ROLE");
-            RoleJpaEntity entity1 = createRoleEntity();
-            RoleJpaEntity entity2 = createRoleEntity();
+            TenantId tenantId = RoleFixture.defaultTenantId();
+            RoleName name = RoleFixture.defaultRoleName();
 
-            given(repository.searchByQuery(query)).willReturn(List.of(entity1, entity2));
-            given(mapper.toDomain(any(RoleJpaEntity.class))).willReturn(role1, role2);
+            given(repository.existsByTenantIdAndName(tenantId.value(), name.value()))
+                    .willReturn(true);
 
             // when
-            List<Role> results = adapter.search(query);
+            boolean result = sut.existsByTenantIdAndName(tenantId, name);
 
             // then
-            assertThat(results).hasSize(2);
-            verify(repository).searchByQuery(query);
+            assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenNoResults() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            SearchRolesQuery query =
-                    SearchRolesQuery.of(
-                            TENANT_UUID,
-                            "nonexistent",
-                            null,
-                            null,
-                            CREATED_FROM,
-                            CREATED_TO,
-                            0,
-                            20);
+            TenantId tenantId = RoleFixture.defaultTenantId();
+            RoleName name = RoleFixture.defaultRoleName();
 
-            given(repository.searchByQuery(query)).willReturn(List.of());
+            given(repository.existsByTenantIdAndName(tenantId.value(), name.value()))
+                    .willReturn(false);
 
             // when
-            List<Role> results = adapter.search(query);
+            boolean result = sut.existsByTenantIdAndName(tenantId, name);
 
             // then
-            assertThat(results).isEmpty();
-            verify(repository).searchByQuery(query);
+            assertThat(result).isFalse();
+        }
+
+        @Test
+        @DisplayName("Global 역할 확인 시 tenantId가 null로 전달됨")
+        void shouldPassNullTenantId_WhenCheckingGlobalRole() {
+            // given
+            RoleName name = RoleFixture.defaultRoleName();
+
+            given(repository.existsByTenantIdAndName(null, name.value())).willReturn(true);
+
+            // when
+            boolean result = sut.existsByTenantIdAndName(null, name);
+
+            // then
+            assertThat(result).isTrue();
+            then(repository).should().existsByTenantIdAndName(null, name.value());
         }
     }
 
     @Nested
-    @DisplayName("count 메서드")
-    class CountTest {
+    @DisplayName("findByTenantIdAndName 메서드")
+    class FindByTenantIdAndName {
 
         @Test
-        @DisplayName("검색 조건으로 역할 개수를 조회한다")
-        void shouldCountRolesSuccessfully() {
+        @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
+        void shouldFindAndConvert_WhenEntityExists() {
             // given
-            SearchRolesQuery query =
-                    SearchRolesQuery.of(
-                            TENANT_UUID, null, null, null, CREATED_FROM, CREATED_TO, 0, 20);
+            TenantId tenantId = RoleFixture.defaultTenantId();
+            RoleName name = RoleFixture.defaultRoleName();
+            RoleJpaEntity entity = RoleJpaEntityFixture.createWithTenant();
+            Role expectedDomain = RoleFixture.createTenantRole();
 
-            given(repository.countByQuery(query)).willReturn(5L);
+            given(repository.findByTenantIdAndName(tenantId.value(), name.value()))
+                    .willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
             // when
-            long result = adapter.count(query);
+            Optional<Role> result = sut.findByTenantIdAndName(tenantId, name);
 
             // then
-            assertThat(result).isEqualTo(5L);
-            verify(repository).countByQuery(query);
+            assertThat(result).isPresent();
+        }
+
+        @Test
+        @DisplayName("Entity가 없으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenEntityNotFound() {
+            // given
+            TenantId tenantId = RoleFixture.defaultTenantId();
+            RoleName name = RoleFixture.defaultRoleName();
+
+            given(repository.findByTenantIdAndName(tenantId.value(), name.value()))
+                    .willReturn(Optional.empty());
+
+            // when
+            Optional<Role> result = sut.findByTenantIdAndName(tenantId, name);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllBySearchCriteria 메서드")
+    class FindAllBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Entity 목록을 Domain 목록으로 변환하여 반환")
+        void shouldFindAndConvertAll_ThenReturnDomainList() {
+            // given
+            RoleSearchCriteria criteria = createTestCriteria();
+            RoleJpaEntity entity1 = RoleJpaEntityFixture.createWithName("ROLE_1");
+            RoleJpaEntity entity2 = RoleJpaEntityFixture.createWithName("ROLE_2");
+            Role domain1 = RoleFixture.createCustomRoleWithName("ROLE_1");
+            Role domain2 = RoleFixture.createCustomRoleWithName("ROLE_2");
+
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity1, entity2));
+            given(mapper.toDomain(entity1)).willReturn(domain1);
+            given(mapper.toDomain(entity2)).willReturn(domain2);
+
+            // when
+            List<Role> result = sut.findAllBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).containsExactly(domain1, domain2);
+        }
+
+        @Test
+        @DisplayName("결과가 없으면 빈 목록 반환")
+        void shouldReturnEmptyList_WhenNoResults() {
+            // given
+            RoleSearchCriteria criteria = createTestCriteria();
+
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of());
+
+            // when
+            List<Role> result = sut.findAllBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Repository 결과를 그대로 반환")
+        void shouldReturnCount_FromRepository() {
+            // given
+            RoleSearchCriteria criteria = createTestCriteria();
+
+            given(repository.countByCriteria(criteria)).willReturn(10L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEqualTo(10L);
+        }
+
+        @Test
+        @DisplayName("결과가 없으면 0 반환")
+        void shouldReturnZero_WhenNoResults() {
+            // given
+            RoleSearchCriteria criteria = createTestCriteria();
+
+            given(repository.countByCriteria(criteria)).willReturn(0L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isZero();
         }
     }
 
     @Nested
     @DisplayName("findAllByIds 메서드")
-    class FindAllByIdsTest {
+    class FindAllByIds {
 
         @Test
-        @DisplayName("여러 ID로 역할 목록을 조회한다")
-        void shouldFindAllByIds() {
+        @DisplayName("성공: ID 목록으로 Entity 조회 후 Domain 변환")
+        void shouldFindAndConvertAll_ByIds() {
             // given
-            UUID roleId1 = UUID.randomUUID();
-            UUID roleId2 = UUID.randomUUID();
-            Set<RoleId> roleIds = Set.of(RoleId.of(roleId1), RoleId.of(roleId2));
-            Role role1 = RoleFixture.create();
-            Role role2 = RoleFixture.createWithName("ROLE2");
-            RoleJpaEntity entity1 = createRoleEntity();
-            RoleJpaEntity entity2 = createRoleEntity();
+            List<RoleId> ids = List.of(RoleId.of(1L), RoleId.of(2L));
+            List<Long> idValues = List.of(1L, 2L);
+            RoleJpaEntity entity1 = RoleJpaEntityFixture.createWithId(1L);
+            RoleJpaEntity entity2 = RoleJpaEntityFixture.createWithId(2L);
+            Role domain1 = RoleFixture.create();
+            Role domain2 = RoleFixture.create();
 
-            given(repository.findAllByIds(Set.of(roleId1, roleId2)))
-                    .willReturn(List.of(entity1, entity2));
-            given(mapper.toDomain(any(RoleJpaEntity.class))).willReturn(role1, role2);
+            given(repository.findAllByIds(idValues)).willReturn(List.of(entity1, entity2));
+            given(mapper.toDomain(entity1)).willReturn(domain1);
+            given(mapper.toDomain(entity2)).willReturn(domain2);
 
             // when
-            List<Role> results = adapter.findAllByIds(roleIds);
+            List<Role> result = sut.findAllByIds(ids);
 
             // then
-            assertThat(results).hasSize(2);
+            assertThat(result).hasSize(2);
         }
 
         @Test
-        @DisplayName("빈 ID Set이면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenIdsEmpty() {
+        @DisplayName("빈 ID 목록이면 빈 목록 반환")
+        void shouldReturnEmptyList_WhenIdsEmpty() {
             // given
-            Set<RoleId> emptyIds = Set.of();
+            List<RoleId> ids = List.of();
+            List<Long> idValues = List.of();
+
+            given(repository.findAllByIds(idValues)).willReturn(List.of());
 
             // when
-            List<Role> results = adapter.findAllByIds(emptyIds);
+            List<Role> result = sut.findAllByIds(ids);
 
             // then
-            assertThat(results).isEmpty();
-        }
-
-        @Test
-        @DisplayName("null ID Set이면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenIdsNull() {
-            // when
-            List<Role> results = adapter.findAllByIds(null);
-
-            // then
-            assertThat(results).isEmpty();
+            assertThat(result).isEmpty();
         }
     }
 
-    private RoleJpaEntity createRoleEntity() {
-        return RoleJpaEntity.of(
-                ROLE_UUID,
-                TENANT_UUID,
-                "TEST_ROLE",
-                "Test role description",
-                RoleScope.ORGANIZATION,
-                RoleType.CUSTOM,
-                false,
-                FIXED_TIME,
-                FIXED_TIME);
-    }
+    // ==================== Helper Methods ====================
 
-    private RoleJpaEntity createGlobalRoleEntity() {
-        return RoleJpaEntity.of(
-                ROLE_UUID,
-                null,
-                "SUPER_ADMIN",
-                "System super admin role",
-                RoleScope.GLOBAL,
-                RoleType.SYSTEM,
-                false,
-                FIXED_TIME,
-                FIXED_TIME);
+    private RoleSearchCriteria createTestCriteria() {
+        return RoleSearchCriteria.ofGlobal(null, null, DateRange.of(null, null), 0, 10);
     }
 }

@@ -1,7 +1,5 @@
 package com.ryuqq.authhub.application.tenant.dto.command;
 
-import java.util.UUID;
-
 /**
  * UpdateTenantStatusCommand - 테넌트 상태 변경 Command DTO
  *
@@ -18,4 +16,4 @@ import java.util.UUID;
  * @author development-team
  * @since 1.0.0
  */
-public record UpdateTenantStatusCommand(UUID tenantId, String status) {}
+public record UpdateTenantStatusCommand(String tenantId, String status) {}

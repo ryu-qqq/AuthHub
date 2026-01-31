@@ -3,10 +3,8 @@ package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserJpaRepository;
-import com.ryuqq.authhub.application.user.port.out.persistence.UserPersistencePort;
+import com.ryuqq.authhub.application.user.port.out.command.UserCommandPort;
 import com.ryuqq.authhub.domain.user.aggregate.User;
-import java.util.Optional;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Component;
  *
  * <ul>
  *   <li>persist() - 사용자 저장 (생성/수정)
- *   <li>delete() - 사용자 삭제
  * </ul>
  *
  * <p><strong>규칙:</strong>
@@ -34,13 +31,14 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>@Transactional 금지 (Manager/Facade에서 관리)
  *   <li>비즈니스 로직 금지 (단순 위임 + 변환만)
+ *   <li>Hibernate Dirty Checking 활용 (존재 여부 확인 불필요)
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
 @Component
-public class UserCommandAdapter implements UserPersistencePort {
+public class UserCommandAdapter implements UserCommandPort {
 
     private final UserJpaRepository repository;
     private final UserJpaEntityMapper mapper;
@@ -56,45 +54,26 @@ public class UserCommandAdapter implements UserPersistencePort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>기존 Entity 조회 (UUID로 조회)
-     *   <li>기존 Entity 존재 시: 기존 ID 유지하며 업데이트
-     *   <li>기존 Entity 없음 시: 신규 Entity 생성
+     *   <li>Domain → Entity 변환 (Mapper)
      *   <li>Entity 저장 (JpaRepository)
-     *   <li>Entity → Domain 변환 (Mapper)
+     *   <li>저장된 ID 반환 (String)
      * </ol>
      *
+     * <p><strong>Hibernate Dirty Checking:</strong>
+     *
+     * <ul>
+     *   <li>같은 ID의 Entity가 이미 존재하면 UPDATE
+     *   <li>새로운 ID면 INSERT
+     *   <li>Hibernate 구현체가 자동으로 판단
+     * </ul>
+     *
      * @param user 저장할 사용자 도메인
-     * @return 저장된 사용자 도메인 (ID 할당됨)
+     * @return 저장된 사용자 ID (String)
      */
     @Override
-    public User persist(User user) {
-        UUID userIdValue = user.userIdValue();
-        Optional<UserJpaEntity> existing = repository.findById(userIdValue);
-
-        UserJpaEntity entity;
-        if (existing.isPresent()) {
-            // UPDATE: 기존 Entity의 JPA internal ID 유지
-            entity = mapper.updateEntity(existing.get(), user);
-        } else {
-            // INSERT: 신규 Entity 생성
-            entity = mapper.toEntity(user);
-        }
-
-        UserJpaEntity savedEntity = repository.save(entity);
-        return mapper.toDomain(savedEntity);
-    }
-
-    /**
-     * 사용자 삭제
-     *
-     * <p><strong>참고:</strong> 실제로는 Soft Delete를 사용하므로 이 메서드는 persist()를 통해 status를 DELETED로 변경하는
-     * 방식을 권장합니다.
-     *
-     * @param user 삭제할 사용자 도메인
-     */
-    @Override
-    public void delete(User user) {
+    public String persist(User user) {
         UserJpaEntity entity = mapper.toEntity(user);
-        repository.delete(entity);
+        UserJpaEntity savedEntity = repository.save(entity);
+        return savedEntity.getUserId();
     }
 }

@@ -1,0 +1,54 @@
+# ========================================
+# ECR Repository for AuthHub - STAGE
+# ========================================
+# Container registry using Infrastructure module
+# - web-api: REST API server
+# ========================================
+
+# ========================================
+# Common Tags (for governance)
+# ========================================
+locals {
+  common_tags = {
+    environment  = var.environment
+    service_name = "${var.project_name}-ecr"
+    team         = "platform-team"
+    owner        = "platform@ryuqqq.com"
+    cost_center  = "engineering"
+    project      = var.project_name
+    data_class   = "internal"
+  }
+}
+
+# ========================================
+# ECR Repository: web-api
+# ========================================
+module "ecr_web_api" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecr?ref=main"
+
+  name                 = "${var.project_name}-web-api-${var.environment}"
+  image_tag_mutability = "IMMUTABLE"
+  scan_on_push         = true
+
+  # KMS encryption for ECR images
+  kms_key_arn  = "arn:aws:kms:ap-northeast-2:646886795421:key/086b1677-614f-46ba-863e-23c215fb5010"
+  force_delete = true
+
+  # Lifecycle Policy (Stage: 더 적은 이미지 보관)
+  enable_lifecycle_policy    = true
+  max_image_count            = 15
+  lifecycle_tag_prefixes     = ["v", "stage", "latest"]
+  untagged_image_expiry_days = 3
+
+  # SSM Parameter for cross-stack reference
+  create_ssm_parameter = true
+
+  # Required Tags (governance compliance)
+  environment  = local.common_tags.environment
+  service_name = "${var.project_name}-web-api"
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
+}

@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +20,7 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -28,6 +28,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,16 +45,22 @@ public class GlobalExceptionHandler {
         this.errorMapperRegistry = errorMapperRegistry;
     }
 
-    // ======= Common builder =======
+    // ======= Common builder (RFC 7807 완전 준수) =======
     private ResponseEntity<ProblemDetail> build(
-            HttpStatus status, String title, String detail, HttpServletRequest req) {
+            HttpStatus status,
+            String title,
+            String detail,
+            String errorCode,
+            HttpServletRequest req) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, detail);
         pd.setTitle(title != null ? title : status.getReasonPhrase());
-        // about:blank는 기본 타입—원하면 사내 문서 URL로 교체 권장 (예: https://api.example.com/problems/bad-request)
+
+        // 에러 타입 URI - 문서화된 URL 권장 (현재는 about:blank 유지, 추후 문서 URL로 교체)
         pd.setType(URI.create("about:blank"));
 
-        // RFC 7807 optional fields / extension members
+        // RFC 7807 확장 필드
         pd.setProperty("timestamp", Instant.now().toString());
+        pd.setProperty("code", errorCode);
 
         // 요청 경로를 instance로
         if (req != null) {
@@ -74,10 +81,17 @@ public class GlobalExceptionHandler {
             pd.setProperty("spanId", spanId);
         }
 
-        return ResponseEntity.status(status).body(pd);
+        // RFC 7807: Content-Type: application/problem+json
+        // x-error-code 헤더 추가 (클라이언트 에러 분기 용이)
+        return ResponseEntity.status(status)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .header("x-error-code", errorCode)
+                .body(pd);
     }
 
     // ======= 400 - Validation (@RequestBody) =======
+    private static final String VALIDATION_FAILED = "VALIDATION_FAILED";
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidationException(
             MethodArgumentNotValidException ex, HttpServletRequest req) {
@@ -88,14 +102,21 @@ public class GlobalExceptionHandler {
         }
 
         var res =
-                build(HttpStatus.BAD_REQUEST, "Bad Request", "Validation failed for request", req);
-        ProblemDetail body = Objects.requireNonNull(res.getBody(), "Response body cannot be null");
-        body.setProperty("errors", errors);
-        log.warn("MethodArgumentNotValid: errors={}", errors);
+                build(
+                        HttpStatus.BAD_REQUEST,
+                        "Bad Request",
+                        "Validation failed for request",
+                        VALIDATION_FAILED,
+                        req);
+        assert res.getBody() != null;
+        res.getBody().setProperty("errors", errors);
+        log.warn("MethodArgumentNotValid: code={}, errors={}", VALIDATION_FAILED, errors);
         return res;
     }
 
     // ======= 400 - Validation (@ModelAttribute, 바인딩 단계) =======
+    private static final String BINDING_FAILED = "BINDING_FAILED";
+
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ProblemDetail> handleBindException(
             BindException ex, HttpServletRequest req) {
@@ -104,14 +125,21 @@ public class GlobalExceptionHandler {
             errors.put(fe.getField(), fe.getDefaultMessage());
         }
         var res =
-                build(HttpStatus.BAD_REQUEST, "Bad Request", "Validation failed for request", req);
-        ProblemDetail body = Objects.requireNonNull(res.getBody(), "Response body cannot be null");
-        body.setProperty("errors", errors);
-        log.warn("BindException: errors={}", errors);
+                build(
+                        HttpStatus.BAD_REQUEST,
+                        "Bad Request",
+                        "Validation failed for request",
+                        BINDING_FAILED,
+                        req);
+        assert res.getBody() != null;
+        res.getBody().setProperty("errors", errors);
+        log.warn("BindException: code={}, errors={}", BINDING_FAILED, errors);
         return res;
     }
 
     // ======= 400 - Method-level validation (@Validated on params) =======
+    private static final String CONSTRAINT_VIOLATION = "CONSTRAINT_VIOLATION";
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ProblemDetail> handleConstraintViolation(
             ConstraintViolationException ex, HttpServletRequest req) {
@@ -121,71 +149,124 @@ public class GlobalExceptionHandler {
             errors.put(path, v.getMessage());
         }
         var res =
-                build(HttpStatus.BAD_REQUEST, "Bad Request", "Validation failed for request", req);
-        ProblemDetail body = Objects.requireNonNull(res.getBody(), "Response body cannot be null");
-        body.setProperty("errors", errors);
-        log.warn("ConstraintViolation: errors={}", errors);
+                build(
+                        HttpStatus.BAD_REQUEST,
+                        "Bad Request",
+                        "Validation failed for request",
+                        CONSTRAINT_VIOLATION,
+                        req);
+        assert res.getBody() != null;
+        res.getBody().setProperty("errors", errors);
+        log.warn("ConstraintViolation: code={}, errors={}", CONSTRAINT_VIOLATION, errors);
         return res;
     }
 
     // ======= 400 - 잘못된 인자 =======
+    private static final String INVALID_ARGUMENT = "INVALID_ARGUMENT";
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ProblemDetail> handleIllegalArgumentException(
             IllegalArgumentException ex, HttpServletRequest req) {
-        log.warn("IllegalArgument: {}", ex.getMessage());
+        log.warn("IllegalArgument: code={}, message={}", INVALID_ARGUMENT, ex.getMessage());
         return build(
                 HttpStatus.BAD_REQUEST,
                 "Bad Request",
                 Optional.ofNullable(ex.getMessage()).orElse("Invalid argument"),
+                INVALID_ARGUMENT,
                 req);
     }
 
     // ======= 400 - 본문 파싱 실패 =======
+    private static final String INVALID_FORMAT = "INVALID_FORMAT";
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ProblemDetail> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex, HttpServletRequest req) {
         // 과도한 내부 파서 메시지 노출 방지 (보안/UX)
-        ex.getMostSpecificCause();
-        log.warn("HttpMessageNotReadable: {}", ex.getMostSpecificCause().getMessage());
-        return build(HttpStatus.BAD_REQUEST, "Bad Request", "잘못된 요청 형식입니다. JSON 형식을 확인해주세요.", req);
+        log.warn(
+                "HttpMessageNotReadable: code={}, cause={}",
+                INVALID_FORMAT,
+                ex.getMostSpecificCause().getMessage());
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "Bad Request",
+                "잘못된 요청 형식입니다. JSON 형식을 확인해주세요.",
+                INVALID_FORMAT,
+                req);
     }
 
     // ======= 400 - 파라미터 타입 불일치 =======
+    private static final String TYPE_MISMATCH = "TYPE_MISMATCH";
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ProblemDetail> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
         String name = Optional.of(ex.getName()).orElse("unknown");
         Object value = ex.getValue();
-        Class<?> requiredType = ex.getRequiredType();
-        String required = requiredType != null ? requiredType.getSimpleName() : "required type";
+        String required =
+                ex.getRequiredType() != null
+                        ? ex.getRequiredType().getSimpleName()
+                        : "required type";
         String msg =
                 "파라미터 '%s'의 값 '%s'는 %s 타입으로 변환할 수 없습니다"
                         .formatted(name, String.valueOf(value), required);
 
-        log.warn("TypeMismatch: parameter={}, value={}, requiredType={}", name, value, required);
-        return build(HttpStatus.BAD_REQUEST, "Bad Request", msg, req);
+        log.warn(
+                "TypeMismatch: code={}, parameter={}, value={}, requiredType={}",
+                TYPE_MISMATCH,
+                name,
+                value,
+                required);
+        return build(HttpStatus.BAD_REQUEST, "Bad Request", msg, TYPE_MISMATCH, req);
     }
 
     // ======= 400 - 필수 파라미터 누락 =======
+    private static final String MISSING_PARAMETER = "MISSING_PARAMETER";
+
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ProblemDetail> handleMissingParam(
             MissingServletRequestParameterException ex, HttpServletRequest req) {
         String param = Optional.of(ex.getParameterName()).orElse("unknown");
         String msg = "필수 파라미터 '%s'가 누락되었습니다".formatted(param);
 
-        log.warn("MissingParam: parameter={}, type={}", param, ex.getParameterType());
-        return build(HttpStatus.BAD_REQUEST, "Bad Request", msg, req);
+        log.warn(
+                "MissingParam: code={}, parameter={}, type={}",
+                MISSING_PARAMETER,
+                param,
+                ex.getParameterType());
+        return build(HttpStatus.BAD_REQUEST, "Bad Request", msg, MISSING_PARAMETER, req);
+    }
+
+    // ======= 400 - 필수 헤더 누락 =======
+    private static final String MISSING_HEADER = "MISSING_HEADER";
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ProblemDetail> handleMissingHeader(
+            MissingRequestHeaderException ex, HttpServletRequest req) {
+        String header = Optional.of(ex.getHeaderName()).orElse("unknown");
+        String msg = "필수 헤더 '%s'가 누락되었습니다".formatted(header);
+
+        log.warn("MissingHeader: code={}, header={}", MISSING_HEADER, header);
+        return build(HttpStatus.BAD_REQUEST, "Bad Request", msg, MISSING_HEADER, req);
     }
 
     // ======= 404 - 리소스 없음 =======
+    private static final String RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND";
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ProblemDetail> handleNoResource(
             NoResourceFoundException ex, HttpServletRequest req) {
-        log.warn("NoResourceFound: resourcePath={}", ex.getResourcePath());
-        return build(HttpStatus.NOT_FOUND, "Not Found", "요청한 리소스를 찾을 수 없습니다", req);
+        log.debug(
+                "NoResourceFound: code={}, resourcePath={}",
+                RESOURCE_NOT_FOUND,
+                ex.getResourcePath());
+        return build(
+                HttpStatus.NOT_FOUND, "Not Found", "요청한 리소스를 찾을 수 없습니다", RESOURCE_NOT_FOUND, req);
     }
 
     // ======= 405 - 지원하지 않는 메서드 (Allow 헤더 포함) =======
+    private static final String METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED";
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ProblemDetail> handleMethodNotAllowed(
             HttpRequestMethodNotSupportedException ex, HttpServletRequest req) {
@@ -204,36 +285,54 @@ public class GlobalExceptionHandler {
 
         String message = "%s 메서드는 지원하지 않습니다. 지원되는 메서드: %s".formatted(method, supportedStr);
 
-        // ProblemDetail + Allow 헤더 세팅
-        var entity = build(HttpStatus.METHOD_NOT_ALLOWED, "Method Not Allowed", message, req);
+        // ProblemDetail 생성 (build 메서드의 헤더 설정을 재사용하지 않고 직접 구성)
+        var entity =
+                build(
+                        HttpStatus.METHOD_NOT_ALLOWED,
+                        "Method Not Allowed",
+                        message,
+                        METHOD_NOT_ALLOWED,
+                        req);
 
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        headers.add("x-error-code", METHOD_NOT_ALLOWED);
         if (!supported.isEmpty()) {
             headers.setAllow(supported);
         }
 
-        log.warn("MethodNotAllowed: method={}, supported={}", method, supportedStr);
+        log.warn(
+                "MethodNotAllowed: code={}, method={}, supported={}",
+                METHOD_NOT_ALLOWED,
+                method,
+                supportedStr);
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .headers(headers)
                 .body(entity.getBody());
     }
 
     // ======= 409 - 상태 충돌 =======
+    private static final String STATE_CONFLICT = "STATE_CONFLICT";
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ProblemDetail> handleIllegalState(
             IllegalStateException ex, HttpServletRequest req) {
         String msg = Optional.ofNullable(ex.getMessage()).orElse("State conflict");
-        return build(HttpStatus.CONFLICT, "Conflict", msg, req);
+        log.warn("IllegalState: code={}, message={}", STATE_CONFLICT, msg);
+        return build(HttpStatus.CONFLICT, "Conflict", msg, STATE_CONFLICT, req);
     }
 
     // ======= 500 - 나머지 잡기 =======
+    private static final String INTERNAL_ERROR = "INTERNAL_ERROR";
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleGlobal(Exception ex, HttpServletRequest req) {
-        log.error("Unexpected error occurred", ex);
+        log.error("Unexpected error occurred: code={}", INTERNAL_ERROR, ex);
         return build(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Internal Server Error",
                 "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                INTERNAL_ERROR,
                 req);
     }
 
@@ -265,10 +364,11 @@ public class GlobalExceptionHandler {
                         .map(ex, locale)
                         .orElseGet(() -> errorMapperRegistry.defaultMapping(ex));
 
-        var res = build(mapped.status(), mapped.title(), mapped.detail(), req);
-        ProblemDetail pd = Objects.requireNonNull(res.getBody(), "Response body cannot be null");
+        var res = build(mapped.status(), mapped.title(), mapped.detail(), ex.code(), req);
+        var pd = res.getBody();
+
+        assert pd != null;
         pd.setType(mapped.type());
-        pd.setProperty("code", ex.code());
         if (!ex.args().isEmpty()) {
             pd.setProperty("args", ex.args());
         }
@@ -301,6 +401,10 @@ public class GlobalExceptionHandler {
                     ex.args());
         }
 
-        return ResponseEntity.status(mapped.status()).body(pd);
+        // RFC 7807: Content-Type + x-error-code 헤더
+        return ResponseEntity.status(mapped.status())
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .header("x-error-code", ex.code())
+                .body(pd);
     }
 }

@@ -1,6 +1,6 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.entity;
 
-import com.ryuqq.authhub.adapter.out.persistence.common.entity.BaseAuditEntity;
+import com.ryuqq.authhub.adapter.out.persistence.common.entity.SoftDeletableEntity;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,8 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.time.Instant;
 
 /**
  * UserJpaEntity - 사용자 JPA Entity
@@ -21,16 +20,23 @@ import java.util.UUID;
  * <p><strong>UUIDv7 PK 전략:</strong>
  *
  * <ul>
- *   <li>userId(UUID)를 PK로 사용
+ *   <li>userId(String)를 PK로 사용
  *   <li>UUIDv7은 시간순 정렬 가능하여 B-tree 인덱스 성능 우수
  *   <li>분산 환경에서 충돌 없는 고유 ID 생성
  * </ul>
  *
- * <p><strong>Unique 제약:</strong>
+ * <p><strong>String FK 전략:</strong>
  *
  * <ul>
- *   <li>tenantId + organizationId + identifier 조합으로 유니크
- *   <li>같은 조직 내 동일 식별자 금지
+ *   <li>organizationId는 String 타입으로 관리 (JPA 관계 어노테이션 금지)
+ *   <li>조직과의 관계는 String ID를 통해 애플리케이션에서 관리
+ * </ul>
+ *
+ * <p><strong>SoftDeletableEntity 상속:</strong>
+ *
+ * <ul>
+ *   <li>createdAt, updatedAt (BaseAuditEntity)
+ *   <li>deletedAt (SoftDeletableEntity)
  * </ul>
  *
  * <p><strong>Lombok 금지:</strong>
@@ -49,40 +55,31 @@ import java.util.UUID;
         name = "users",
         uniqueConstraints = {
             @UniqueConstraint(
-                    name = "uk_users_tenant_org_identifier",
-                    columnNames = {"tenant_id", "organization_id", "identifier"}),
-            @UniqueConstraint(
-                    name = "uk_users_tenant_phone",
-                    columnNames = {"tenant_id", "phone_number"})
+                    name = "uk_users_org_identifier",
+                    columnNames = {"organization_id", "identifier"})
         },
         indexes = {
-            @Index(name = "idx_users_tenant_id", columnList = "tenant_id"),
             @Index(name = "idx_users_organization_id", columnList = "organization_id"),
             @Index(name = "idx_users_identifier", columnList = "identifier"),
-            @Index(name = "idx_users_phone_number", columnList = "phone_number"),
             @Index(name = "idx_users_status", columnList = "status")
         })
-public class UserJpaEntity extends BaseAuditEntity {
+public class UserJpaEntity extends SoftDeletableEntity {
 
-    /** 사용자 UUID - UUIDv7 (Primary Key) */
+    /** 사용자 UUID - UUIDv7 (Primary Key, String 저장) */
     @Id
-    @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID userId;
+    @Column(name = "user_id", nullable = false, length = 36)
+    private String userId;
 
-    /** 테넌트 UUID */
-    @Column(name = "tenant_id", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID tenantId;
+    /** 조직 UUID - FK (String FK 전략: JPA 관계 어노테이션 금지) */
+    @Column(name = "organization_id", nullable = false, length = 36)
+    private String organizationId;
 
-    /** 조직 UUID */
-    @Column(name = "organization_id", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID organizationId;
-
-    /** 사용자 식별자 (이메일 등) */
-    @Column(name = "identifier", nullable = false, length = 255)
+    /** 로그인 식별자 (이메일 또는 사용자명) */
+    @Column(name = "identifier", nullable = false, length = 100)
     private String identifier;
 
-    /** 핸드폰 번호 (한국 형식, 필수) */
-    @Column(name = "phone_number", nullable = false, length = 20)
+    /** 전화번호 (선택) */
+    @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
     /** 해시된 비밀번호 */
@@ -105,20 +102,29 @@ public class UserJpaEntity extends BaseAuditEntity {
      * 전체 필드 생성자 (private)
      *
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
+     *
+     * @param userId 사용자 UUID (PK, String)
+     * @param organizationId 조직 UUID (String)
+     * @param identifier 로그인 식별자
+     * @param phoneNumber 전화번호 (nullable)
+     * @param hashedPassword 해시된 비밀번호
+     * @param status 사용자 상태
+     * @param createdAt 생성 일시 (Instant, UTC)
+     * @param updatedAt 수정 일시 (Instant, UTC)
+     * @param deletedAt 삭제 일시 (Instant, UTC, nullable)
      */
     private UserJpaEntity(
-            UUID userId,
-            UUID tenantId,
-            UUID organizationId,
+            String userId,
+            String organizationId,
             String identifier,
             String phoneNumber,
             String hashedPassword,
             UserStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
-        super(createdAt, updatedAt);
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt) {
+        super(createdAt, updatedAt, deletedAt);
         this.userId = userId;
-        this.tenantId = tenantId;
         this.organizationId = organizationId;
         this.identifier = identifier;
         this.phoneNumber = phoneNumber;
@@ -131,50 +137,46 @@ public class UserJpaEntity extends BaseAuditEntity {
      *
      * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
      *
-     * @param userId 사용자 UUID (PK)
-     * @param tenantId 테넌트 UUID
-     * @param organizationId 조직 UUID
-     * @param identifier 사용자 식별자
-     * @param phoneNumber 핸드폰 번호
+     * @param userId 사용자 UUID (PK, String)
+     * @param organizationId 조직 UUID (String)
+     * @param identifier 로그인 식별자
+     * @param phoneNumber 전화번호 (nullable)
      * @param hashedPassword 해시된 비밀번호
      * @param status 사용자 상태
-     * @param createdAt 생성 일시
-     * @param updatedAt 수정 일시
+     * @param createdAt 생성 일시 (Instant, UTC)
+     * @param updatedAt 수정 일시 (Instant, UTC)
+     * @param deletedAt 삭제 일시 (Instant, UTC, nullable)
      * @return UserJpaEntity 인스턴스
      */
     public static UserJpaEntity of(
-            UUID userId,
-            UUID tenantId,
-            UUID organizationId,
+            String userId,
+            String organizationId,
             String identifier,
             String phoneNumber,
             String hashedPassword,
             UserStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt) {
         return new UserJpaEntity(
                 userId,
-                tenantId,
                 organizationId,
                 identifier,
                 phoneNumber,
                 hashedPassword,
                 status,
                 createdAt,
-                updatedAt);
+                updatedAt,
+                deletedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====
 
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public UUID getTenantId() {
-        return tenantId;
-    }
-
-    public UUID getOrganizationId() {
+    public String getOrganizationId() {
         return organizationId;
     }
 

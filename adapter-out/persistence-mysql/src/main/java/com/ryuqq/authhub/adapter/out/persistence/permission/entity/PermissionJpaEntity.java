@@ -1,36 +1,41 @@
 package com.ryuqq.authhub.adapter.out.persistence.permission.entity;
 
-import com.ryuqq.authhub.adapter.out.persistence.common.entity.BaseAuditEntity;
+import com.ryuqq.authhub.adapter.out.persistence.common.entity.SoftDeletableEntity;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.time.Instant;
 
 /**
- * PermissionJpaEntity - 권한 JPA Entity
+ * PermissionJpaEntity - 권한 JPA Entity (Global Only)
  *
  * <p>Persistence Layer의 JPA Entity로서 데이터베이스 테이블과 매핑됩니다.
  *
- * <p><strong>UUIDv7 PK 전략:</strong>
+ * <p><strong>Global Only 설계:</strong>
  *
  * <ul>
- *   <li>permissionId(UUID)를 PK로 사용
- *   <li>UUIDv7은 시간순 정렬 가능하여 B-tree 인덱스 성능 우수
- *   <li>분산 환경에서 충돌 없는 고유 ID 생성
+ *   <li>모든 Permission은 전체 시스템에서 공유됩니다
+ *   <li>테넌트별 권한 분리는 Permission이 아닌 Role 레벨에서 처리됩니다
+ *   <li>Gateway에서 URL-Permission 매핑은 PermissionEndpoint에서 관리됩니다
  * </ul>
  *
- * <p><strong>Permission Key 전략:</strong>
+ * <p><strong>Long FK 전략:</strong>
  *
  * <ul>
- *   <li>key: "{resource}:{action}" 형식 (예: "user:read", "organization:manage")
- *   <li>resource와 action을 개별 컬럼으로 저장하여 검색 최적화
+ *   <li>permissionId(Long)를 Auto Increment PK로 사용
+ * </ul>
+ *
+ * <p><strong>SoftDeletableEntity 상속:</strong>
+ *
+ * <ul>
+ *   <li>createdAt, updatedAt (BaseAuditEntity)
+ *   <li>deletedAt (SoftDeletableEntity)
  * </ul>
  *
  * <p><strong>Lombok 금지:</strong>
@@ -45,34 +50,24 @@ import java.util.UUID;
  * @since 1.0.0
  */
 @Entity
-@Table(
-        name = "permissions",
-        uniqueConstraints = {
-            @UniqueConstraint(
-                    name = "uk_permissions_key",
-                    columnNames = {"permission_key"})
-        },
-        indexes = {
-            @Index(name = "idx_permissions_resource", columnList = "resource"),
-            @Index(name = "idx_permissions_type", columnList = "type"),
-            @Index(name = "idx_permissions_deleted", columnList = "deleted")
-        })
-public class PermissionJpaEntity extends BaseAuditEntity {
+@Table(name = "permissions")
+public class PermissionJpaEntity extends SoftDeletableEntity {
 
-    /** 권한 UUID - UUIDv7 (Primary Key) */
+    /** 권한 ID - Auto Increment (Primary Key) */
     @Id
-    @Column(name = "permission_id", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID permissionId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "permission_id", nullable = false)
+    private Long permissionId;
 
-    /** 권한 키 - "{resource}:{action}" 형식 */
-    @Column(name = "permission_key", nullable = false, length = 100)
+    /** 권한 키 (resource:action 형식, 유니크) */
+    @Column(name = "permission_key", nullable = false, length = 100, unique = true)
     private String permissionKey;
 
-    /** 리소스 - 권한 대상 (예: user, organization, tenant) */
+    /** 리소스 (예: user, role, organization) */
     @Column(name = "resource", nullable = false, length = 50)
     private String resource;
 
-    /** 액션 - 권한 행위 (예: read, create, update, delete, manage) */
+    /** 행위 (예: read, create, update, delete, manage) */
     @Column(name = "action", nullable = false, length = 50)
     private String action;
 
@@ -80,14 +75,10 @@ public class PermissionJpaEntity extends BaseAuditEntity {
     @Column(name = "description", length = 500)
     private String description;
 
-    /** 권한 유형 */
+    /** 권한 유형 (SYSTEM, CUSTOM) */
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
     private PermissionType type;
-
-    /** 삭제 여부 (Soft Delete) */
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted;
 
     /**
      * JPA 기본 생성자 (protected)
@@ -100,25 +91,34 @@ public class PermissionJpaEntity extends BaseAuditEntity {
      * 전체 필드 생성자 (private)
      *
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
+     *
+     * @param permissionId 권한 ID (PK, Long - null이면 신규)
+     * @param permissionKey 권한 키
+     * @param resource 리소스
+     * @param action 행위
+     * @param description 권한 설명
+     * @param type 권한 유형
+     * @param createdAt 생성 일시 (Instant, UTC)
+     * @param updatedAt 수정 일시 (Instant, UTC)
+     * @param deletedAt 삭제 일시 (Instant, UTC)
      */
     private PermissionJpaEntity(
-            UUID permissionId,
+            Long permissionId,
             String permissionKey,
             String resource,
             String action,
             String description,
             PermissionType type,
-            boolean deleted,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
-        super(createdAt, updatedAt);
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt) {
+        super(createdAt, updatedAt, deletedAt);
         this.permissionId = permissionId;
         this.permissionKey = permissionKey;
         this.resource = resource;
         this.action = action;
         this.description = description;
         this.type = type;
-        this.deleted = deleted;
     }
 
     /**
@@ -126,27 +126,27 @@ public class PermissionJpaEntity extends BaseAuditEntity {
      *
      * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
      *
-     * @param permissionId 권한 UUID (PK)
+     * @param permissionId 권한 ID (PK, Long - null이면 신규)
      * @param permissionKey 권한 키
      * @param resource 리소스
-     * @param action 액션
+     * @param action 행위
      * @param description 권한 설명
      * @param type 권한 유형
-     * @param deleted 삭제 여부
-     * @param createdAt 생성 일시
-     * @param updatedAt 수정 일시
+     * @param createdAt 생성 일시 (Instant, UTC)
+     * @param updatedAt 수정 일시 (Instant, UTC)
+     * @param deletedAt 삭제 일시 (Instant, UTC)
      * @return PermissionJpaEntity 인스턴스
      */
     public static PermissionJpaEntity of(
-            UUID permissionId,
+            Long permissionId,
             String permissionKey,
             String resource,
             String action,
             String description,
             PermissionType type,
-            boolean deleted,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt) {
         return new PermissionJpaEntity(
                 permissionId,
                 permissionKey,
@@ -154,14 +154,14 @@ public class PermissionJpaEntity extends BaseAuditEntity {
                 action,
                 description,
                 type,
-                deleted,
                 createdAt,
-                updatedAt);
+                updatedAt,
+                deletedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====
 
-    public UUID getPermissionId() {
+    public Long getPermissionId() {
         return permissionId;
     }
 
@@ -183,9 +183,5 @@ public class PermissionJpaEntity extends BaseAuditEntity {
 
     public PermissionType getType() {
         return type;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
     }
 }

@@ -1,6 +1,6 @@
 package com.ryuqq.authhub.adapter.out.persistence.tenant.entity;
 
-import com.ryuqq.authhub.adapter.out.persistence.common.entity.BaseAuditEntity;
+import com.ryuqq.authhub.adapter.out.persistence.common.entity.SoftDeletableEntity;
 import com.ryuqq.authhub.domain.tenant.vo.TenantStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,8 +8,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.time.Instant;
 
 /**
  * TenantJpaEntity - 테넌트 JPA Entity
@@ -19,9 +18,16 @@ import java.util.UUID;
  * <p><strong>UUIDv7 PK 전략:</strong>
  *
  * <ul>
- *   <li>tenantId(UUID)를 PK로 사용
+ *   <li>tenantId(String)를 PK로 사용
  *   <li>UUIDv7은 시간순 정렬 가능하여 B-tree 인덱스 성능 우수
  *   <li>분산 환경에서 충돌 없는 고유 ID 생성
+ * </ul>
+ *
+ * <p><strong>SoftDeletableEntity 상속:</strong>
+ *
+ * <ul>
+ *   <li>createdAt, updatedAt (BaseAuditEntity)
+ *   <li>deletedAt (SoftDeletableEntity)
  * </ul>
  *
  * <p><strong>Lombok 금지:</strong>
@@ -37,12 +43,12 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "tenants")
-public class TenantJpaEntity extends BaseAuditEntity {
+public class TenantJpaEntity extends SoftDeletableEntity {
 
-    /** 테넌트 UUID - UUIDv7 (Primary Key) */
+    /** 테넌트 UUID - UUIDv7 (Primary Key, String 저장) */
     @Id
-    @Column(name = "tenant_id", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID tenantId;
+    @Column(name = "tenant_id", nullable = false, length = 36)
+    private String tenantId;
 
     /** 테넌트 이름 */
     @Column(name = "name", nullable = false, length = 100, unique = true)
@@ -65,19 +71,21 @@ public class TenantJpaEntity extends BaseAuditEntity {
      *
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
      *
-     * @param tenantId 테넌트 UUID (PK)
+     * @param tenantId 테넌트 UUID (PK, String)
      * @param name 테넌트 이름
      * @param status 테넌트 상태
-     * @param createdAt 생성 일시
-     * @param updatedAt 수정 일시
+     * @param createdAt 생성 일시 (Instant, UTC)
+     * @param updatedAt 수정 일시 (Instant, UTC)
+     * @param deletedAt 삭제 일시 (Instant, UTC)
      */
     private TenantJpaEntity(
-            UUID tenantId,
+            String tenantId,
             String name,
             TenantStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
-        super(createdAt, updatedAt);
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt) {
+        super(createdAt, updatedAt, deletedAt);
         this.tenantId = tenantId;
         this.name = name;
         this.status = status;
@@ -88,25 +96,27 @@ public class TenantJpaEntity extends BaseAuditEntity {
      *
      * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
      *
-     * @param tenantId 테넌트 UUID (PK)
+     * @param tenantId 테넌트 UUID (PK, String)
      * @param name 테넌트 이름
      * @param status 테넌트 상태
-     * @param createdAt 생성 일시
-     * @param updatedAt 수정 일시
+     * @param createdAt 생성 일시 (Instant, UTC)
+     * @param updatedAt 수정 일시 (Instant, UTC)
+     * @param deletedAt 삭제 일시 (Instant, UTC)
      * @return TenantJpaEntity 인스턴스
      */
     public static TenantJpaEntity of(
-            UUID tenantId,
+            String tenantId,
             String name,
             TenantStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
-        return new TenantJpaEntity(tenantId, name, status, createdAt, updatedAt);
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt) {
+        return new TenantJpaEntity(tenantId, name, status, createdAt, updatedAt, deletedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====
 
-    public UUID getTenantId() {
+    public String getTenantId() {
         return tenantId;
     }
 

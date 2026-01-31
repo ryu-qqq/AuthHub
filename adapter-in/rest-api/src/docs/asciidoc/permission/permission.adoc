@@ -1,0 +1,219 @@
+=== 권한 생성
+
+새로운 권한을 생성합니다.
+
+NOTE: 모든 Permission은 Global 범위입니다. (테넌트 구분 없음)
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`resource`
+|String
+|Y
+|2~50자, 소문자+하이픈
+|리소스명 (예: user, role, organization)
+
+|`action`
+|String
+|Y
+|2~50자, 소문자+하이픈
+|행위명 (예: read, create, update, delete)
+
+|`description`
+|String
+|N
+|최대 500자
+|권한 설명
+|===
+
+NOTE: `resource`와 `action`은 소문자와 하이픈(-)으로만 구성되어야 합니다. (예: `user`, `role-permission`, `tenant-config`)
+
+TIP: 권한 코드는 `resource:action` 형식으로 자동 생성됩니다. (예: `user:read`, `role:delete`)
+
+==== 요청 예시
+
+include::{snippets}/permission/create/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.permissionId`
+|String
+|생성된 권한 ID (UUID)
+|===
+
+==== 응답 예시
+
+include::{snippets}/permission/create/http-response.adoc[]
+
+'''
+
+=== 권한 목록 조회
+
+권한 목록을 페이징하여 조회합니다.
+
+==== 요청 파라미터
+
+[cols="1,1,1,3"]
+|===
+|파라미터 |타입 |필수 |설명
+
+|`page`
+|Number
+|N
+|페이지 번호 (기본값: 0)
+
+|`size`
+|Number
+|N
+|페이지 크기 (기본값: 20, 최대: 100)
+
+|`keyword`
+|String
+|N
+|검색 키워드
+
+|`searchField`
+|String
+|N
+|검색 필드 (RESOURCE, ACTION, CODE)
+
+|`types`
+|Array
+|N
+|권한 유형 필터 (SYSTEM, CUSTOM)
+
+|`sortKey`
+|String
+|N
+|정렬 키 (CREATED_AT, CODE)
+
+|`sortDirection`
+|String
+|N
+|정렬 방향 (ASC, DESC)
+|===
+
+==== 요청 예시
+
+include::{snippets}/permission/search/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.content`
+|Array
+|권한 목록
+
+|`data.content[].permissionId`
+|String
+|권한 ID
+
+|`data.content[].resource`
+|String
+|리소스명
+
+|`data.content[].action`
+|String
+|행위명
+
+|`data.content[].code`
+|String
+|권한 코드 (resource:action)
+
+|`data.content[].description`
+|String
+|권한 설명
+
+|`data.content[].type`
+|String
+|권한 유형 (SYSTEM, CUSTOM)
+
+|`data.content[].createdAt`
+|String
+|생성 일시
+
+|`data.content[].updatedAt`
+|String
+|수정 일시
+|===
+
+==== 응답 예시
+
+include::{snippets}/permission/search/http-response.adoc[]
+
+'''
+
+=== 권한 수정
+
+권한 정보를 수정합니다.
+
+WARNING: SYSTEM 타입 권한은 수정할 수 없습니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`permissionId`
+|String
+|권한 ID (UUID)
+|===
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`description`
+|String
+|N
+|최대 500자
+|권한 설명
+|===
+
+==== 요청 예시
+
+include::{snippets}/permission/update/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/permission/update/http-response.adoc[]
+
+'''
+
+=== 권한 삭제
+
+권한을 삭제합니다.
+
+WARNING: SYSTEM 타입 권한은 삭제할 수 없습니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`permissionId`
+|String
+|권한 ID (UUID)
+|===
+
+==== 요청 예시
+
+include::{snippets}/permission/delete/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/permission/delete/http-response.adoc[]

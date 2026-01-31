@@ -1,0 +1,286 @@
+=== 사용자 생성
+
+새로운 사용자를 생성합니다.
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`organizationId`
+|String
+|Y
+|UUID 형식
+|소속 조직 ID
+
+|`identifier`
+|String
+|Y
+|4~100자
+|로그인 식별자 (이메일 또는 사용자명)
+
+|`password`
+|String
+|Y
+|8~100자
+|비밀번호
+
+|`phoneNumber`
+|String
+|N
+|-
+|전화번호
+|===
+
+==== 요청 예시
+
+include::{snippets}/user/create/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.userId`
+|String
+|생성된 사용자 ID (UUID)
+|===
+
+==== 응답 예시
+
+include::{snippets}/user/create/http-response.adoc[]
+
+'''
+
+=== 사용자 목록 조회
+
+사용자 목록을 페이징하여 조회합니다.
+
+==== 요청 파라미터
+
+[cols="1,1,1,3"]
+|===
+|파라미터 |타입 |필수 |설명
+
+|`page`
+|Number
+|N
+|페이지 번호 (기본값: 0)
+
+|`size`
+|Number
+|N
+|페이지 크기 (기본값: 20, 최대: 100)
+
+|`organizationId`
+|String
+|N
+|조직 ID 필터
+
+|`keyword`
+|String
+|N
+|검색 키워드
+
+|`searchField`
+|String
+|N
+|검색 필드 (IDENTIFIER, PHONE_NUMBER)
+
+|`status`
+|String
+|N
+|상태 필터 (ACTIVE, INACTIVE, SUSPENDED)
+
+|`sortKey`
+|String
+|N
+|정렬 키 (CREATED_AT, IDENTIFIER)
+
+|`sortDirection`
+|String
+|N
+|정렬 방향 (ASC, DESC)
+|===
+
+==== 요청 예시
+
+include::{snippets}/user/search/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.content`
+|Array
+|사용자 목록
+
+|`data.content[].userId`
+|String
+|사용자 ID
+
+|`data.content[].organizationId`
+|String
+|조직 ID
+
+|`data.content[].tenantId`
+|String
+|테넌트 ID
+
+|`data.content[].identifier`
+|String
+|로그인 식별자
+
+|`data.content[].phoneNumber`
+|String
+|전화번호
+
+|`data.content[].status`
+|String
+|사용자 상태 (ACTIVE, INACTIVE, SUSPENDED)
+
+|`data.content[].createdAt`
+|String
+|생성 일시
+
+|`data.content[].updatedAt`
+|String
+|수정 일시
+
+|`data.page`
+|Number
+|현재 페이지
+
+|`data.size`
+|Number
+|페이지 크기
+
+|`data.totalElements`
+|Number
+|전체 항목 수
+
+|`data.totalPages`
+|Number
+|전체 페이지 수
+|===
+
+==== 응답 예시
+
+include::{snippets}/user/search/http-response.adoc[]
+
+'''
+
+=== 사용자 상세 조회
+
+사용자 상세 정보를 조회합니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`userId`
+|String
+|사용자 ID (UUID)
+|===
+
+==== 요청 예시
+
+include::{snippets}/user/get-by-id/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/user/get-by-id/http-response.adoc[]
+
+'''
+
+=== 사용자 정보 수정
+
+사용자 정보를 수정합니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`userId`
+|String
+|사용자 ID (UUID)
+|===
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`phoneNumber`
+|String
+|N
+|-
+|전화번호
+
+|`status`
+|String
+|N
+|ACTIVE, INACTIVE, SUSPENDED
+|상태
+|===
+
+==== 요청 예시
+
+include::{snippets}/user/update/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/user/update/http-response.adoc[]
+
+'''
+
+=== 비밀번호 변경
+
+사용자 비밀번호를 변경합니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`userId`
+|String
+|사용자 ID (UUID)
+|===
+
+==== 요청 필드
+
+[cols="1,1,1,2,3"]
+|===
+|필드 |타입 |필수 |검증 |설명
+
+|`currentPassword`
+|String
+|Y
+|-
+|현재 비밀번호
+
+|`newPassword`
+|String
+|Y
+|8~100자
+|새 비밀번호
+|===
+
+==== 요청 예시
+
+include::{snippets}/user/change-password/http-request.adoc[]
+
+==== 응답 예시
+
+include::{snippets}/user/change-password/http-response.adoc[]

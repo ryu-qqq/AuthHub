@@ -1,7 +1,5 @@
 package com.ryuqq.authhub.application.role.dto.command;
 
-import java.util.UUID;
-
 /**
  * CreateRoleCommand - 역할 생성 Command DTO
  *
@@ -13,13 +11,13 @@ import java.util.UUID;
  *   <li>비즈니스 로직 금지 (Domain 책임)
  * </ul>
  *
- * @param tenantId 테넌트 ID (GLOBAL 범위 역할인 경우 null)
- * @param name 역할 이름
+ * @param tenantId 테넌트 ID (null이면 Global 역할)
+ * @param name 역할 이름 (필수, 예: USER_MANAGER)
+ * @param displayName 표시 이름 (선택, 예: "사용자 관리자")
  * @param description 역할 설명 (선택)
- * @param scope 역할 범위 (GLOBAL, TENANT, ORGANIZATION)
- * @param isSystem 시스템 역할 여부
+ * @param isSystem 시스템 역할 여부 (true면 SYSTEM, false면 CUSTOM)
  * @author development-team
  * @since 1.0.0
  */
 public record CreateRoleCommand(
-        UUID tenantId, String name, String description, String scope, boolean isSystem) {}
+        String tenantId, String name, String displayName, String description, boolean isSystem) {}

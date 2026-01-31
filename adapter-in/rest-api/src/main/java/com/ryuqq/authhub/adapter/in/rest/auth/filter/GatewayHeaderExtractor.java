@@ -22,8 +22,6 @@ final class GatewayHeaderExtractor {
     static final String HEADER_ROLES = "X-User-Roles";
     static final String HEADER_PERMISSIONS = "X-Permissions";
     static final String HEADER_TRACE_ID = "X-Trace-Id";
-    static final String HEADER_AUTHORIZATION = "Authorization";
-    static final String BEARER_PREFIX = "Bearer ";
 
     private GatewayHeaderExtractor() {
         throw new AssertionError("Utility class");
@@ -134,19 +132,5 @@ final class GatewayHeaderExtractor {
      */
     static String getTraceId(HttpServletRequest request) {
         return request.getHeader(HEADER_TRACE_ID);
-    }
-
-    /**
-     * Authorization 헤더에서 Bearer 토큰 추출
-     *
-     * @param request HTTP 요청
-     * @return Bearer 토큰 (없거나 형식이 틀리면 null)
-     */
-    static String extractBearerToken(HttpServletRequest request) {
-        String authHeader = request.getHeader(HEADER_AUTHORIZATION);
-        if (!StringUtils.hasText(authHeader) || !authHeader.startsWith(BEARER_PREFIX)) {
-            return null;
-        }
-        return authHeader.substring(BEARER_PREFIX.length());
     }
 }

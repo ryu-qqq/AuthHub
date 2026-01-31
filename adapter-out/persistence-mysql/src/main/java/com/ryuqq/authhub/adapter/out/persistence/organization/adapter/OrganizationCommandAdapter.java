@@ -3,10 +3,8 @@ package com.ryuqq.authhub.adapter.out.persistence.organization.adapter;
 import com.ryuqq.authhub.adapter.out.persistence.organization.entity.OrganizationJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.organization.mapper.OrganizationJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.organization.repository.OrganizationJpaRepository;
-import com.ryuqq.authhub.application.organization.port.out.command.OrganizationPersistencePort;
+import com.ryuqq.authhub.application.organization.port.out.command.OrganizationCommandPort;
 import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import java.util.Optional;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,13 +31,14 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>@Transactional 금지 (Manager/Facade에서 관리)
  *   <li>비즈니스 로직 금지 (단순 위임 + 변환만)
+ *   <li>Hibernate Dirty Checking 활용 (존재 여부 확인 불필요)
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
 @Component
-public class OrganizationCommandAdapter implements OrganizationPersistencePort {
+public class OrganizationCommandAdapter implements OrganizationCommandPort {
 
     private final OrganizationJpaRepository repository;
     private final OrganizationJpaEntityMapper mapper;
@@ -56,31 +55,26 @@ public class OrganizationCommandAdapter implements OrganizationPersistencePort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>기존 Entity 조회 (UUID로 조회)
-     *   <li>기존 Entity 존재 시: 기존 ID 유지하며 업데이트
-     *   <li>기존 Entity 없음 시: 신규 Entity 생성
+     *   <li>Domain → Entity 변환 (Mapper)
      *   <li>Entity 저장 (JpaRepository)
-     *   <li>Entity → Domain 변환 (Mapper)
+     *   <li>저장된 ID 반환 (String)
      * </ol>
      *
+     * <p><strong>Hibernate Dirty Checking:</strong>
+     *
+     * <ul>
+     *   <li>같은 ID의 Entity가 이미 존재하면 UPDATE
+     *   <li>새로운 ID면 INSERT
+     *   <li>Hibernate 구현체가 자동으로 판단
+     * </ul>
+     *
      * @param organization 저장할 조직 도메인
-     * @return 저장된 조직 도메인 (ID 할당됨)
+     * @return 저장된 조직 ID (String)
      */
     @Override
-    public Organization persist(Organization organization) {
-        UUID organizationIdValue = organization.organizationIdValue();
-        Optional<OrganizationJpaEntity> existing = repository.findById(organizationIdValue);
-
-        OrganizationJpaEntity entity;
-        if (existing.isPresent()) {
-            // UPDATE: 기존 Entity의 JPA internal ID 유지
-            entity = mapper.updateEntity(existing.get(), organization);
-        } else {
-            // INSERT: 신규 Entity 생성
-            entity = mapper.toEntity(organization);
-        }
-
+    public String persist(Organization organization) {
+        OrganizationJpaEntity entity = mapper.toEntity(organization);
         OrganizationJpaEntity savedEntity = repository.save(entity);
-        return mapper.toDomain(savedEntity);
+        return savedEntity.getOrganizationId();
     }
 }

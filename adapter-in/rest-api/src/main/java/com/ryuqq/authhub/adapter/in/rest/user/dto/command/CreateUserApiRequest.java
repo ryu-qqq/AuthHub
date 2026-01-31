@@ -25,27 +25,18 @@ import jakarta.validation.constraints.Size;
  */
 @Schema(description = "사용자 생성 요청")
 public record CreateUserApiRequest(
-        @Schema(description = "테넌트 ID", requiredMode = Schema.RequiredMode.REQUIRED)
-                @NotBlank(message = "테넌트 ID는 필수입니다")
-                String tenantId,
-        @Schema(description = "조직 ID", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "소속 조직 ID", requiredMode = Schema.RequiredMode.REQUIRED)
                 @NotBlank(message = "조직 ID는 필수입니다")
                 String organizationId,
         @Schema(
-                        description = "사용자 식별자 (이메일 또는 사용자명)",
+                        description = "로그인 식별자 (이메일 또는 사용자명)",
                         requiredMode = Schema.RequiredMode.REQUIRED,
-                        minLength = 1,
-                        maxLength = 255)
-                @NotBlank(message = "사용자 식별자는 필수입니다")
-                @Size(min = 1, max = 255, message = "사용자 식별자는 1자 이상 255자 이하여야 합니다")
+                        minLength = 4,
+                        maxLength = 100)
+                @NotBlank(message = "식별자는 필수입니다")
+                @Size(min = 4, max = 100, message = "식별자는 4자 이상 100자 이하여야 합니다")
                 String identifier,
-        @Schema(
-                        description = "핸드폰 번호 (한국 형식)",
-                        requiredMode = Schema.RequiredMode.REQUIRED,
-                        minLength = 10,
-                        maxLength = 20)
-                @NotBlank(message = "핸드폰 번호는 필수입니다")
-                @Size(min = 10, max = 20, message = "핸드폰 번호는 10자 이상 20자 이하여야 합니다")
+        @Schema(description = "전화번호", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
                 String phoneNumber,
         @Schema(
                         description = "비밀번호",

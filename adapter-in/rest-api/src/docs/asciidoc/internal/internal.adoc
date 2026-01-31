@@ -1,0 +1,165 @@
+NOTE: 내부 API는 Gateway나 다른 서비스에서만 호출하며, Service Token 인증이 필요합니다.
+
+=== 엔드포인트 동기화
+
+Gateway에서 관리하는 API 엔드포인트를 AuthHub에 동기화합니다.
+
+==== 요청 필드
+
+[cols="1,1,1,3"]
+|===
+|필드 |타입 |필수 |설명
+
+|`endpoints`
+|Array
+|Y
+|엔드포인트 목록
+
+|`endpoints[].httpMethod`
+|String
+|Y
+|HTTP 메서드 (GET, POST, PUT, PATCH, DELETE)
+
+|`endpoints[].urlPattern`
+|String
+|Y
+|URL 패턴
+
+|`endpoints[].serviceId`
+|String
+|Y
+|서비스 ID
+
+|`endpoints[].description`
+|String
+|N
+|엔드포인트 설명
+|===
+
+==== 요청 예시
+
+include::{snippets}/internal/endpoint-sync/sync/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.created`
+|Number
+|생성된 엔드포인트 수
+
+|`data.updated`
+|Number
+|수정된 엔드포인트 수
+
+|`data.deleted`
+|Number
+|삭제된 엔드포인트 수
+|===
+
+==== 응답 예시
+
+include::{snippets}/internal/endpoint-sync/sync/http-response.adoc[]
+
+'''
+
+=== 권한 스펙 조회
+
+Gateway에서 URL 기반 권한 검사에 사용할 전체 권한 스펙을 조회합니다.
+
+==== 요청 예시
+
+include::{snippets}/internal/permission-spec/get-all/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.endpoints`
+|Array
+|엔드포인트-권한 매핑 목록
+
+|`data.endpoints[].httpMethod`
+|String
+|HTTP 메서드
+
+|`data.endpoints[].urlPattern`
+|String
+|URL 패턴
+
+|`data.endpoints[].permissionCode`
+|String
+|필요 권한 코드 (resource:action)
+
+|`data.endpoints[].isPublic`
+|Boolean
+|공개 엔드포인트 여부
+
+|`data.lastUpdatedAt`
+|String
+|마지막 업데이트 일시
+|===
+
+==== 응답 예시
+
+include::{snippets}/internal/permission-spec/get-all/http-response.adoc[]
+
+'''
+
+=== 테넌트 설정 조회
+
+테넌트의 인증/인가 설정을 조회합니다.
+
+==== 경로 파라미터
+
+[cols="1,1,3"]
+|===
+|파라미터 |타입 |설명
+
+|`tenantId`
+|String
+|테넌트 ID (UUID)
+|===
+
+==== 요청 예시
+
+include::{snippets}/internal/tenant-config/get/http-request.adoc[]
+
+==== 응답 필드
+
+[cols="1,1,3"]
+|===
+|필드 |타입 |설명
+
+|`data.tenantId`
+|String
+|테넌트 ID
+
+|`data.tenantName`
+|String
+|테넌트 이름
+
+|`data.status`
+|String
+|테넌트 상태 (ACTIVE, INACTIVE)
+
+|`data.jwtIssuer`
+|String
+|JWT 발급자
+
+|`data.accessTokenExpiration`
+|Number
+|Access Token 만료 시간 (초)
+
+|`data.refreshTokenExpiration`
+|Number
+|Refresh Token 만료 시간 (초)
+|===
+
+==== 응답 예시
+
+include::{snippets}/internal/tenant-config/get/http-response.adoc[]

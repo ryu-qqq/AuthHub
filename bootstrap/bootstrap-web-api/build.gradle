@@ -39,6 +39,10 @@ dependencies {
     implementation project(':adapter-out:persistence-redis')
     implementation project(':adapter-out:security')
 
+    // Outbound - Client
+    implementation project(':adapter-out:client:security-client')
+    implementation project(':adapter-out:client:id-client')
+
     // ========================================
     // Spring Boot Starters
     // ========================================
@@ -66,6 +70,10 @@ dependencies {
 
     // Logging
     implementation libs.logstash.logback.encoder
+
+    // Sentry (Error Tracking - Prod only, enabled via config)
+    implementation libs.sentry.spring.boot.starter
+    implementation libs.sentry.logback
 
     // ========================================
     // Database

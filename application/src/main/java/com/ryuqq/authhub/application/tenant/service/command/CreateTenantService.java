@@ -1,10 +1,8 @@
 package com.ryuqq.authhub.application.tenant.service.command;
 
-import com.ryuqq.authhub.application.tenant.assembler.TenantAssembler;
 import com.ryuqq.authhub.application.tenant.dto.command.CreateTenantCommand;
-import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
-import com.ryuqq.authhub.application.tenant.factory.command.TenantCommandFactory;
-import com.ryuqq.authhub.application.tenant.manager.command.TenantTransactionManager;
+import com.ryuqq.authhub.application.tenant.factory.TenantCommandFactory;
+import com.ryuqq.authhub.application.tenant.manager.TenantCommandManager;
 import com.ryuqq.authhub.application.tenant.port.in.command.CreateTenantUseCase;
 import com.ryuqq.authhub.application.tenant.validator.TenantValidator;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
@@ -16,15 +14,19 @@ import org.springframework.stereotype.Service;
  *
  * <p>CreateTenantUseCase를 구현합니다.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p>SVC-001: @Service 어노테이션 필수.
  *
- * <ul>
- *   <li>{@code @Service} 어노테이션
- *   <li>{@code @Transactional} 직접 사용 금지 (Manager/Facade 책임)
- *   <li>Validator → Factory → Manager → Assembler 흐름
- *   <li>Port 직접 호출 금지
- *   <li>Lombok 금지
- * </ul>
+ * <p>SVC-002: UseCase(Port-In) 인터페이스 구현 필수.
+ *
+ * <p>SVC-003: Domain 객체 직접 생성 금지 → Factory 사용.
+ *
+ * <p>SVC-006: @Transactional 금지 → Manager에서 처리.
+ *
+ * <p>SVC-007: Service에 비즈니스 로직 금지 → 오케스트레이션만.
+ *
+ * <p>SVC-008: Port(Out) 직접 주입 금지 → Manager 사용.
+ *
+ * <p>MGR-001: 파라미터는 원시타입 대신 VO를 사용합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -34,33 +36,26 @@ public class CreateTenantService implements CreateTenantUseCase {
 
     private final TenantValidator validator;
     private final TenantCommandFactory commandFactory;
-    private final TenantTransactionManager transactionManager;
-    private final TenantAssembler assembler;
+    private final TenantCommandManager commandManager;
 
     public CreateTenantService(
             TenantValidator validator,
             TenantCommandFactory commandFactory,
-            TenantTransactionManager transactionManager,
-            TenantAssembler assembler) {
+            TenantCommandManager commandManager) {
         this.validator = validator;
         this.commandFactory = commandFactory;
-        this.transactionManager = transactionManager;
-        this.assembler = assembler;
+        this.commandManager = commandManager;
     }
 
     @Override
-    public TenantResponse execute(CreateTenantCommand command) {
+    public String execute(CreateTenantCommand command) {
         // 1. Validator: 중복 이름 검증
-        TenantName name = TenantName.of(command.name());
-        validator.validateNameNotDuplicated(name);
+        validator.validateNameNotDuplicated(TenantName.of(command.name()));
 
         // 2. Factory: Command → Domain
         Tenant tenant = commandFactory.create(command);
 
-        // 3. Manager: 영속화
-        Tenant saved = transactionManager.persist(tenant);
-
-        // 4. Assembler: Response 변환
-        return assembler.toResponse(saved);
+        // 3. Manager: 영속화 → ID 반환
+        return commandManager.persist(tenant);
     }
 }

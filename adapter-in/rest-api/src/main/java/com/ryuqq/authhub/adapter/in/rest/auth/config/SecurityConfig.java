@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.config;
 
 import com.ryuqq.authhub.adapter.in.rest.auth.filter.GatewayAuthenticationFilter;
-import com.ryuqq.authhub.adapter.in.rest.auth.filter.ServiceTokenFilter;
 import com.ryuqq.authhub.adapter.in.rest.auth.handler.SecurityExceptionHandler;
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.SecurityPaths;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +29,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * Gateway (JWT 검증) → X-* 헤더 → GatewayAuthenticationFilter → SecurityContext
  *                                                              ↓
  *                                              @PreAuthorize (권한 기반 접근 제어)
- *
- * Service Token → X-Service-Token → ServiceTokenFilter → SecurityContext (serviceAccount=true)
  * </pre>
  *
  * <p>엔드포인트 권한 분류 (SecurityPaths 참조):
  *
  * <ul>
  *   <li>PUBLIC: 인증 불필요 (로그인, 헬스체크, OAuth2)
- *   <li>DOCS: 인증된 사용자면 접근 가능 (API 문서)
+ *   <li>DOCS: 인증 불필요 (API 문서 - Swagger, REST Docs)
  *   <li>AUTHENTICATED: 인증된 사용자 + @PreAuthorize 권한 검사 (관리 API)
  * </ul>
  *
@@ -59,18 +56,15 @@ public class SecurityConfig {
 
     private final CorsProperties corsProperties;
     private final GatewayAuthenticationFilter gatewayAuthenticationFilter;
-    private final ServiceTokenFilter serviceTokenFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
 
     @Autowired
     public SecurityConfig(
             CorsProperties corsProperties,
             GatewayAuthenticationFilter gatewayAuthenticationFilter,
-            ServiceTokenFilter serviceTokenFilter,
             SecurityExceptionHandler securityExceptionHandler) {
         this.corsProperties = corsProperties;
         this.gatewayAuthenticationFilter = gatewayAuthenticationFilter;
-        this.serviceTokenFilter = serviceTokenFilter;
         this.securityExceptionHandler = securityExceptionHandler;
     }
 
@@ -92,10 +86,9 @@ public class SecurityConfig {
                                         .accessDeniedHandler(securityExceptionHandler))
                 // 엔드포인트 권한 설정
                 .authorizeHttpRequests(this::configureAuthorization)
-                // Service Token 필터 추가 (서버간 통신, X-Service-Token 기반)
-                .addFilterBefore(serviceTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 // Gateway 인증 필터 추가 (X-* 헤더 기반)
-                .addFilterAfter(gatewayAuthenticationFilter, ServiceTokenFilter.class);
+                .addFilterBefore(
+                        gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -112,8 +105,8 @@ public class SecurityConfig {
         // PUBLIC 엔드포인트 설정 (인증 불필요)
         auth.requestMatchers(SecurityPaths.Public.PATTERNS.toArray(String[]::new)).permitAll();
 
-        // DOCS 엔드포인트 설정 (인증된 사용자만 접근 가능)
-        auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).authenticated();
+        // DOCS 엔드포인트 설정 (공개 - API 문서 접근)
+        auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).permitAll();
 
         // 그 외 모든 요청은 인증 필요 + @PreAuthorize로 세부 권한 검사
         auth.anyRequest().authenticated();

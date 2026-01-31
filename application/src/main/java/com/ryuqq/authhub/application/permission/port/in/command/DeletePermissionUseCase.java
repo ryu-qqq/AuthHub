@@ -5,14 +5,14 @@ import com.ryuqq.authhub.application.permission.dto.command.DeletePermissionComm
 /**
  * DeletePermissionUseCase - 권한 삭제 UseCase (Port-In)
  *
- * <p>CUSTOM 권한의 삭제 기능을 정의합니다.
+ * <p>권한 삭제 기능을 정의합니다. CUSTOM 권한만 삭제 가능합니다. 삭제 전 해당 권한이 Role에 할당되어 있는지 검증합니다.
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
  *   <li>{@code {Action}{Bc}UseCase} 네이밍
  *   <li>{@code execute()} 메서드 시그니처
- *   <li>Command DTO 파라미터, void 반환 (삭제)
+ *   <li>Command DTO 파라미터, void 반환
  * </ul>
  *
  * @author development-team
@@ -21,7 +21,7 @@ import com.ryuqq.authhub.application.permission.dto.command.DeletePermissionComm
 public interface DeletePermissionUseCase {
 
     /**
-     * 권한 삭제 실행
+     * 권한 삭제 실행 (Soft Delete)
      *
      * @param command 권한 삭제 Command
      */

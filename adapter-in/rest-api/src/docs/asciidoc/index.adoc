@@ -5,357 +5,225 @@
 :toc: left
 :toclevels: 3
 :sectlinks:
-:sectnums:
+:stylesheet: custom-style.css
 
 [[overview]]
-== Overview
+== 개요
 
-AuthHub는 마이크로서비스 아키텍처의 **인증/인가 중앙 서버**입니다.
+AuthHub API V1 문서입니다.
 
-JWT 발급, 사용자/테넌트/조직/역할/권한 관리를 담당합니다.
-
-=== Base URL
+=== 기본 정보
 
 [cols="1,3"]
 |===
-| Environment | URL
+|항목 |값
 
-| Development
-| `http://localhost:8080`
+|Base URL
+|`/api/v1/auth`
 
-| Production
-| `https://api.authhub.com`
+|인증 방식
+|JWT Bearer Token / Gateway Header
+
+|Content-Type
+|`application/json`
 |===
 
-[[architecture]]
-== 아키텍처
+=== 공통 응답 형식
 
-[[architecture-system-overview]]
-=== 시스템 개요
-
-[source]
-----
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              Client (Web/Mobile)                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           Connectly Gateway                                      │
-│  ┌───────────────────────────────────────────────────────────────────────────┐  │
-│  │ 1. JWT 검증 (AuthHub JWKS로 RS256 공개키 조회)                             │  │
-│  │ 2. Rate Limiting (IP/User 기반)                                           │  │
-│  │ 3. Permission 검사 (@PreAuthorize 어노테이션 기반)                          │  │
-│  │ 4. 헤더 주입 → X-User-Id, X-Tenant-Id, X-User-Roles                       │  │
-│  └───────────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────────┘
-          │                              │                              │
-          ▼                              ▼                              ▼
-┌──────────────────┐          ┌──────────────────┐          ┌──────────────────┐
-│     AuthHub      │          │   Order Service  │          │  Product Service │
-│  (인증/권한 중앙) │          │   (주문 서비스)   │          │   (상품 서비스)   │
-├──────────────────┤          ├──────────────────┤          ├──────────────────┤
-│ • 로그인/토큰발급 │          │ • 헤더로 인증정보 │          │ • 헤더로 인증정보 │
-│ • JWKS 제공      │          │   수신           │          │   수신           │
-│ • 사용자 관리    │          │ • 비즈니스 로직만 │          │ • 비즈니스 로직만 │
-│ • 테넌트/조직관리│          │   집중           │          │   집중           │
-│ • 역할/권한 관리 │          │                  │          │                  │
-└──────────────────┘          └──────────────────┘          └──────────────────┘
-----
-
-[[architecture-server-roles]]
-=== 서버별 역할
-
-[cols="1,4", options="header"]
-|===
-| 서버 | 역할
-
-| **AuthHub**
-| 인증(JWT 발급), JWKS 제공, 사용자/테넌트/조직/역할/권한 관리
-
-| **Gateway**
-| JWT 검증(RS256), Rate Limiting, Permission 검사, 헤더 주입
-
-| **Backend Services**
-| 비즈니스 로직만 집중, 헤더로 인증정보 수신 (JWT 검증 없음)
-|===
-
-[[architecture-jwt]]
-=== JWT 인증 흐름
-
-[source]
-----
-┌──────────┐                  ┌─────────────┐                  ┌──────────┐
-│  Client  │                  │   Gateway   │                  │ AuthHub  │
-└────┬─────┘                  └──────┬──────┘                  └────┬─────┘
-     │                               │                              │
-     │  1. Request + Bearer Token    │                              │
-     │ ─────────────────────────────▶│                              │
-     │                               │                              │
-     │                               │  2. Get Public Key (JWKS)    │
-     │                               │ ────────────────────────────▶│
-     │                               │                              │
-     │                               │◀──────────────────────────── │
-     │                               │     RS256 Public Key         │
-     │                               │                              │
-     │                               │  3. Verify JWT Signature     │
-     │                               │  4. Extract Claims           │
-     │                               │  5. Check User Permissions   │
-     │                               │  6. Inject Headers           │
-     │                               │                              │
-     │  7. Response                  │                              │
-     │ ◀─────────────────────────────│                              │
-     │                               │                              │
-----
-
-==== JWT Claims 구조
+모든 API 응답은 다음 형식을 따릅니다.
 
 [source,json]
 ----
 {
-  "sub": "user-uuid-v7",
-  "tid": "tenant-uuid-v7",
-  "tenant_name": "테넌트명",
-  "oid": "organization-uuid-v7",
-  "org_name": "조직명",
-  "email": "user@example.com",
-  "roles": ["TENANT_ADMIN", "ORDER_MANAGER"],
-  "permissions": ["user:read", "order:create"],
-  "iat": 1704067200,
-  "exp": 1704070800
-}
-----
-
-[[architecture-permission]]
-=== 권한 검사 흐름
-
-[source]
-----
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                     @PreAuthorize 기반 권한 검사                                 │
-│  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │ 1. Gateway에서 JWT 검증 및 헤더 주입                                      │    │
-│  │    - X-User-Id, X-Tenant-Id, X-Roles, X-Permissions                      │    │
-│  │                                                                          │    │
-│  │ 2. AuthHub Controller에서 @PreAuthorize로 권한 검사                       │    │
-│  │    - @PreAuthorize("@access.hasPermission('user:read')")                 │    │
-│  │    - @PreAuthorize("@access.hasRole('SUPER_ADMIN')")                     │    │
-│  │    - @PreAuthorize("@access.superAdmin()")                               │    │
-│  │                                                                          │    │
-│  │ 3. 권한 없으면 403 Forbidden 반환                                         │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────────┘
-----
-
-[[architecture-role-hierarchy]]
-=== 역할 계층 구조
-
-[source]
-----
-SUPER_ADMIN (tenant_id = NULL, scope = GLOBAL)
-    │
-    └── 모든 테넌트 관리, 시스템 설정, 엔드포인트 권한 관리
-
-TENANT_ADMIN (tenant_id = N, scope = TENANT)
-    │
-    └── 특정 테넌트 내 조직/사용자/역할 관리
-
-ORG_ADMIN (tenant_id = N, organization_id = M, scope = ORGANIZATION)
-    │
-    └── 특정 조직 내 사용자 관리
-
-ORG_USER (tenant_id = N, organization_id = M, scope = ORGANIZATION)
-    │
-    └── 일반 사용자 (본인 정보 조회만)
-----
-
-==== 역할별 기본 권한
-
-[cols="1,3", options="header"]
-|===
-| 역할 | 권한
-
-| SUPER_ADMIN
-| tenant:*, user:*, role:*, permission:*, endpoint:*, organization:*, system:*
-
-| TENANT_ADMIN
-| user:create/read/update/delete, role:read/assign, organization:*
-
-| ORG_ADMIN
-| user:read/update (조직 내), role:assign (조직 내)
-
-| ORG_USER
-| user:read (본인만)
-|===
-
-[[architecture-gateway-integration]]
-=== Gateway 연동 (Webhook)
-
-AuthHub에서 권한/설정 변경 시 Gateway 캐시를 무효화합니다.
-
-[cols="2,2,3", options="header"]
-|===
-| Webhook | 트리거 | Gateway 엔드포인트
-
-| Public Key 변경
-| RSA 키 로테이션
-| `/actuator/refresh-public-keys`
-
-| 사용자 권한 변경
-| 역할 할당/해제
-| `/webhooks/permission/user-invalidate`
-
-| Tenant Config 변경
-| 테넌트 설정 변경
-| `/internal/gateway/tenants/config-changed`
-|===
-
-[[response-format]]
-== 응답 형식
-
-=== 성공 응답
-
-[source,json]
-----
-{
-    "result": "SUCCESS",
     "data": { ... },
-    "message": null
+    "timestamp": "2025-01-27T10:30:00",
+    "traceId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ----
 
-=== 에러 응답
+=== 페이징 응답 (Offset 기반)
 
 [source,json]
 ----
 {
-    "result": "FAIL",
-    "data": null,
-    "message": "에러 메시지",
+    "data": {
+        "content": [ ... ],
+        "page": 0,
+        "size": 20,
+        "totalElements": 100,
+        "totalPages": 5
+    },
+    "timestamp": "2025-01-27T10:30:00",
+    "traceId": "550e8400-e29b-41d4-a716-446655440000"
+}
+----
+
+=== 에러 응답 (RFC 7807 Problem Details)
+
+[source,json]
+----
+{
+    "type": "about:blank",
+    "title": "Bad Request",
+    "status": 400,
+    "detail": "요청 파라미터가 유효하지 않습니다.",
+    "instance": "/api/v1/auth/users",
+    "traceId": "550e8400-e29b-41d4-a716-446655440000",
+    "timestamp": "2025-01-27T10:30:00",
     "errors": [
         {
-            "field": "필드명",
-            "message": "필드 에러 메시지"
+            "field": "email",
+            "message": "이메일 형식이 올바르지 않습니다."
         }
     ]
 }
 ----
 
-[[http-status-codes]]
-== HTTP 상태 코드
+[[common-enums]]
+== 공통 Enum 정의
 
-[cols="1,3", options="header"]
+=== TenantStatus (테넌트 상태)
+
+[cols="1,2"]
 |===
-| 상태 코드 | 설명
+|값 |설명
 
-| `200 OK`
-| 요청 성공 (조회, 수정, 삭제)
+|`ACTIVE`
+|활성 상태
 
-| `201 Created`
-| 리소스 생성 성공
-
-| `400 Bad Request`
-| 잘못된 요청 (유효성 검증 실패)
-
-| `401 Unauthorized`
-| 인증 실패 (JWT 없음, 만료, 유효하지 않음)
-
-| `403 Forbidden`
-| 권한 없음 (인증은 됐으나 접근 권한 없음)
-
-| `404 Not Found`
-| 리소스를 찾을 수 없음
-
-| `409 Conflict`
-| 리소스 충돌 (중복 등)
-
-| `500 Internal Server Error`
-| 서버 내부 오류
+|`INACTIVE`
+|비활성 상태
 |===
 
-[[api-permissions]]
-== API 권한 요약
+=== OrganizationStatus (조직 상태)
 
-[cols="1,2,2,2", options="header"]
+[cols="1,2"]
 |===
-| Method | Endpoint | 권한 | 설명
+|값 |설명
 
-| POST
-| /api/v1/auth/login
-| **Public**
-| 로그인
+|`ACTIVE`
+|활성 상태
 
-| POST
-| /api/v1/auth/refresh
-| **Public**
-| 토큰 갱신
-
-| GET
-| /api/v1/auth/.well-known/jwks.json
-| **Public**
-| JWKS 조회
-
-| POST
-| /api/v1/auth/tenants
-| SUPER_ADMIN
-| 테넌트 생성
-
-| GET
-| /api/v1/auth/tenants
-| SUPER_ADMIN
-| 테넌트 목록 조회
-
-| POST
-| /api/v1/auth/organizations
-| TENANT_ADMIN
-| 조직 생성
-
-| POST
-| /api/v1/auth/users
-| user:create
-| 사용자 생성
-
-| GET
-| /api/v1/auth/users
-| user:read
-| 사용자 목록 조회
-
-| GET
-| /api/v1/auth/users/me
-| Authenticated
-| 내 정보 조회
-
-| GET
-| /api/v1/auth/roles
-| role:read
-| 역할 목록 조회
-
-| GET
-| /api/v1/auth/permissions/users/{userId}
-| SUPER_ADMIN
-| 사용자 권한 조회
-
-| POST
-| /api/v1/auth/system/tenants/onboarding
-| **X-Service-Token**
-| 테넌트 온보딩 (입점 승인)
+|`INACTIVE`
+|비활성 상태
 |===
 
-[[api-v1]]
-== API V1
+=== UserStatus (사용자 상태)
 
-include::v1/auth/auth.adoc[]
+[cols="1,2"]
+|===
+|값 |설명
 
-include::v1/tenant/tenant.adoc[]
+|`ACTIVE`
+|정상 활성 상태 (로그인 가능)
 
-include::v1/organization/organization.adoc[]
+|`INACTIVE`
+|비활성 상태 (이메일 미인증 등)
 
-include::v1/user/user.adoc[]
+|`SUSPENDED`
+|일시 정지 상태 (관리자에 의한 정지)
+|===
 
-include::v1/role/role.adoc[]
+=== RoleType (역할 유형)
 
-include::v1/permission/permission.adoc[]
+[cols="1,2"]
+|===
+|값 |설명
 
-include::v1/system/system.adoc[]
+|`SYSTEM`
+|시스템 기본 역할 (수정/삭제 불가)
 
-include::v1/internal/internal.adoc[]
+|`CUSTOM`
+|사용자 정의 역할 (수정/삭제 가능)
+|===
+
+=== PermissionType (권한 유형)
+
+[cols="1,2"]
+|===
+|값 |설명
+
+|`SYSTEM`
+|시스템 기본 권한 (수정/삭제 불가)
+
+|`CUSTOM`
+|사용자 정의 권한 (수정/삭제 가능)
+|===
+
+=== HttpMethod (HTTP 메서드)
+
+[cols="1,2"]
+|===
+|값 |설명
+
+|`GET`
+|리소스 조회
+
+|`POST`
+|리소스 생성
+
+|`PUT`
+|리소스 전체 수정
+
+|`PATCH`
+|리소스 부분 수정
+
+|`DELETE`
+|리소스 삭제
+
+|`HEAD`
+|헤더만 조회
+
+|`OPTIONS`
+|지원 메서드 조회
+|===
+
+[[api-token]]
+== 인증 API
+
+include::token/token.adoc[leveloffset=+1]
+
+[[api-tenant]]
+== 테넌트 API
+
+include::tenant/tenant.adoc[leveloffset=+1]
+
+[[api-organization]]
+== 조직 API
+
+include::organization/organization.adoc[leveloffset=+1]
+
+[[api-user]]
+== 사용자 API
+
+include::user/user.adoc[leveloffset=+1]
+
+[[api-role]]
+== 역할 API
+
+include::role/role.adoc[leveloffset=+1]
+
+[[api-permission]]
+== 권한 API
+
+include::permission/permission.adoc[leveloffset=+1]
+
+[[api-permission-endpoint]]
+== 권한 엔드포인트 API
+
+include::permission-endpoint/permission-endpoint.adoc[leveloffset=+1]
+
+[[api-role-permission]]
+== 역할-권한 API
+
+include::role-permission/role-permission.adoc[leveloffset=+1]
+
+[[api-user-role]]
+== 사용자-역할 API
+
+include::user-role/user-role.adoc[leveloffset=+1]
+
+[[api-internal]]
+== 내부 API (Internal)
+
+include::internal/internal.adoc[leveloffset=+1]

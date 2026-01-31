@@ -1,24 +1,23 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.authhub.adapter.out.persistence.user.entity.UserJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.user.fixture.UserJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.user.mapper.UserJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserQueryDslRepository;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
-import com.ryuqq.authhub.domain.user.identifier.UserId;
-import com.ryuqq.authhub.domain.user.query.criteria.UserCriteria;
-import com.ryuqq.authhub.domain.user.vo.UserStatus;
-import java.time.LocalDateTime;
+import com.ryuqq.authhub.domain.user.id.UserId;
+import com.ryuqq.authhub.domain.user.query.criteria.UserSearchCriteria;
+import com.ryuqq.authhub.domain.user.vo.Identifier;
+import com.ryuqq.authhub.domain.user.vo.PhoneNumber;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,6 +29,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * UserQueryAdapter 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Adapter는 Repository 위임 + Mapper 변환 담당
+ *   <li>QueryDslRepository/Mapper를 Mock으로 대체
+ *   <li>Entity → Domain 변환 흐름 검증
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -43,144 +50,96 @@ class UserQueryAdapterTest {
 
     @Mock private UserJpaEntityMapper mapper;
 
-    private UserQueryAdapter adapter;
-
-    private static final UUID USER_UUID = UserFixture.defaultUUID();
-    private static final UUID TENANT_UUID = UserFixture.defaultTenantUUID();
-    private static final UUID ORG_UUID = UserFixture.defaultOrganizationUUID();
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+    private UserQueryAdapter sut;
 
     @BeforeEach
     void setUp() {
-        adapter = new UserQueryAdapter(repository, mapper);
+        sut = new UserQueryAdapter(repository, mapper);
     }
 
     @Nested
     @DisplayName("findById 메서드")
-    class FindByIdTest {
+    class FindById {
 
         @Test
-        @DisplayName("ID로 사용자를 성공적으로 조회한다")
-        void shouldFindUserByIdSuccessfully() {
+        @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
+        void shouldFindAndConvert_WhenEntityExists() {
             // given
-            UserId userId = UserId.of(USER_UUID);
-            User expectedUser = UserFixture.create();
-            UserJpaEntity entity = createUserEntity();
+            UserId id = UserFixture.defaultId();
+            UserJpaEntity entity = UserJpaEntityFixture.create();
+            User expectedDomain = UserFixture.create();
 
-            given(repository.findByUserId(USER_UUID)).willReturn(Optional.of(entity));
-            given(mapper.toDomain(entity)).willReturn(expectedUser);
+            given(repository.findByUserId(id.value())).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
             // when
-            Optional<User> result = adapter.findById(userId);
+            Optional<User> result = sut.findById(id);
 
             // then
             assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(expectedUser);
-            verify(repository).findByUserId(USER_UUID);
+            assertThat(result.get()).isEqualTo(expectedDomain);
         }
 
         @Test
-        @DisplayName("존재하지 않는 ID로 조회하면 빈 Optional을 반환한다")
-        void shouldReturnEmptyWhenUserNotFound() {
+        @DisplayName("Entity가 없으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenEntityNotFound() {
             // given
-            UserId userId = UserId.of(UUID.randomUUID());
+            UserId id = UserFixture.defaultId();
 
-            given(repository.findByUserId(userId.value())).willReturn(Optional.empty());
+            given(repository.findByUserId(id.value())).willReturn(Optional.empty());
 
             // when
-            Optional<User> result = adapter.findById(userId);
+            Optional<User> result = sut.findById(id);
 
             // then
             assertThat(result).isEmpty();
         }
-    }
-
-    @Nested
-    @DisplayName("findByTenantIdAndIdentifier 메서드")
-    class FindByTenantIdAndIdentifierTest {
 
         @Test
-        @DisplayName("테넌트 ID와 식별자로 사용자를 조회한다")
-        void shouldFindUserByTenantIdAndIdentifier() {
+        @DisplayName("UserId에서 value 추출하여 Repository 호출")
+        void shouldExtractIdValue_AndCallRepository() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            String identifier = "user@example.com";
-            User expectedUser = UserFixture.create();
-            UserJpaEntity entity = createUserEntity();
+            UserId id = UserFixture.defaultId();
 
-            given(repository.findByTenantIdAndIdentifier(TENANT_UUID, identifier))
-                    .willReturn(Optional.of(entity));
-            given(mapper.toDomain(entity)).willReturn(expectedUser);
+            given(repository.findByUserId(id.value())).willReturn(Optional.empty());
 
             // when
-            Optional<User> result = adapter.findByTenantIdAndIdentifier(tenantId, identifier);
+            sut.findById(id);
 
             // then
-            assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(expectedUser);
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 식별자로 조회하면 빈 Optional을 반환한다")
-        void shouldReturnEmptyWhenIdentifierNotFound() {
-            // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            String identifier = "nonexistent@example.com";
-
-            given(repository.findByTenantIdAndIdentifier(TENANT_UUID, identifier))
-                    .willReturn(Optional.empty());
-
-            // when
-            Optional<User> result = adapter.findByTenantIdAndIdentifier(tenantId, identifier);
-
-            // then
-            assertThat(result).isEmpty();
+            then(repository).should().findByUserId(id.value());
         }
     }
 
     @Nested
-    @DisplayName("existsByTenantIdAndOrganizationIdAndIdentifier 메서드")
-    class ExistsByTenantIdAndOrganizationIdAndIdentifierTest {
+    @DisplayName("existsById 메서드")
+    class ExistsById {
 
         @Test
-        @DisplayName("식별자가 존재하면 true를 반환한다")
-        void shouldReturnTrueWhenIdentifierExists() {
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationId organizationId = OrganizationId.of(ORG_UUID);
-            String identifier = "user@example.com";
+            UserId id = UserFixture.defaultId();
 
-            given(
-                            repository.existsByTenantIdAndOrganizationIdAndIdentifier(
-                                    TENANT_UUID, ORG_UUID, identifier))
-                    .willReturn(true);
+            given(repository.existsByUserId(id.value())).willReturn(true);
 
             // when
-            boolean result =
-                    adapter.existsByTenantIdAndOrganizationIdAndIdentifier(
-                            tenantId, organizationId, identifier);
+            boolean result = sut.existsById(id);
 
             // then
             assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("식별자가 존재하지 않으면 false를 반환한다")
-        void shouldReturnFalseWhenIdentifierNotExists() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            TenantId tenantId = TenantId.of(TENANT_UUID);
-            OrganizationId organizationId = OrganizationId.of(ORG_UUID);
-            String identifier = "nonexistent@example.com";
+            UserId id = UserFixture.defaultId();
 
-            given(
-                            repository.existsByTenantIdAndOrganizationIdAndIdentifier(
-                                    TENANT_UUID, ORG_UUID, identifier))
-                    .willReturn(false);
+            given(repository.existsByUserId(id.value())).willReturn(false);
 
             // when
-            boolean result =
-                    adapter.existsByTenantIdAndOrganizationIdAndIdentifier(
-                            tenantId, organizationId, identifier);
+            boolean result = sut.existsById(id);
 
             // then
             assertThat(result).isFalse();
@@ -188,119 +147,210 @@ class UserQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("findAllByCriteria 메서드")
-    class FindAllByCriteriaTest {
+    @DisplayName("existsByOrganizationIdAndIdentifier 메서드")
+    class ExistsByOrganizationIdAndIdentifier {
 
         @Test
-        @DisplayName("검색 조건으로 사용자 목록을 조회한다")
-        void shouldFindUsersByCriteriaSuccessfully() {
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
             // given
-            UserCriteria criteria =
-                    UserCriteria.ofSimple(TENANT_UUID, ORG_UUID, null, null, null, 0, 20);
-            User user1 = UserFixture.create();
-            User user2 = UserFixture.createWithIdentifier("user2@example.com");
-            UserJpaEntity entity1 = createUserEntity();
-            UserJpaEntity entity2 = createUserEntity();
+            OrganizationId organizationId = UserFixture.defaultOrganizationId();
+            Identifier identifier = UserFixture.defaultIdentifier();
 
-            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity1, entity2));
-            given(mapper.toDomain(any(UserJpaEntity.class))).willReturn(user1, user2);
+            given(
+                            repository.existsByOrganizationIdAndIdentifier(
+                                    organizationId.value(), identifier.value()))
+                    .willReturn(true);
 
             // when
-            List<User> results = adapter.findAllByCriteria(criteria);
+            boolean result = sut.existsByOrganizationIdAndIdentifier(organizationId, identifier);
 
             // then
-            assertThat(results).hasSize(2);
-            verify(repository).findAllByCriteria(criteria);
+            assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
-        void shouldReturnEmptyListWhenNoResults() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            UserCriteria criteria =
-                    UserCriteria.ofSimple(TENANT_UUID, ORG_UUID, "nonexistent", null, null, 0, 20);
+            OrganizationId organizationId = UserFixture.defaultOrganizationId();
+            Identifier identifier = UserFixture.defaultIdentifier();
 
-            given(repository.findAllByCriteria(criteria)).willReturn(List.of());
+            given(
+                            repository.existsByOrganizationIdAndIdentifier(
+                                    organizationId.value(), identifier.value()))
+                    .willReturn(false);
 
             // when
-            List<User> results = adapter.findAllByCriteria(criteria);
+            boolean result = sut.existsByOrganizationIdAndIdentifier(organizationId, identifier);
 
             // then
-            assertThat(results).isEmpty();
-            verify(repository).findAllByCriteria(criteria);
-        }
-
-        @Test
-        @DisplayName("상태 필터로 사용자를 검색한다")
-        void shouldFindUsersWithStatusFilter() {
-            // given
-            UserCriteria criteria =
-                    UserCriteria.ofSimple(
-                            TENANT_UUID, ORG_UUID, null, UserStatus.ACTIVE, null, 0, 20);
-            User user = UserFixture.create();
-            UserJpaEntity entity = createUserEntity();
-
-            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity));
-            given(mapper.toDomain(any(UserJpaEntity.class))).willReturn(user);
-
-            // when
-            List<User> results = adapter.findAllByCriteria(criteria);
-
-            // then
-            assertThat(results).hasSize(1);
-            verify(repository).findAllByCriteria(criteria);
+            assertThat(result).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("countByCriteria 메서드")
-    class CountByCriteriaTest {
+    @DisplayName("existsByOrganizationIdAndPhoneNumber 메서드")
+    class ExistsByOrganizationIdAndPhoneNumber {
 
         @Test
-        @DisplayName("검색 조건에 맞는 사용자 수를 반환한다")
-        void shouldReturnCountSuccessfully() {
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
             // given
-            UserCriteria criteria =
-                    UserCriteria.ofSimple(TENANT_UUID, ORG_UUID, null, null, null, 0, 20);
+            OrganizationId organizationId = UserFixture.defaultOrganizationId();
+            PhoneNumber phoneNumber = PhoneNumber.of("010-1234-5678");
 
-            given(repository.countByCriteria(criteria)).willReturn(5L);
+            given(
+                            repository.existsByOrganizationIdAndPhoneNumber(
+                                    organizationId.value(), phoneNumber.value()))
+                    .willReturn(true);
 
             // when
-            long count = adapter.countByCriteria(criteria);
+            boolean result = sut.existsByOrganizationIdAndPhoneNumber(organizationId, phoneNumber);
 
             // then
-            assertThat(count).isEqualTo(5L);
-            verify(repository).countByCriteria(criteria);
+            assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("검색 결과가 없으면 0을 반환한다")
-        void shouldReturnZeroWhenNoResults() {
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
             // given
-            UserCriteria criteria =
-                    UserCriteria.ofSimple(TENANT_UUID, ORG_UUID, "nonexistent", null, null, 0, 20);
+            OrganizationId organizationId = UserFixture.defaultOrganizationId();
+            PhoneNumber phoneNumber = PhoneNumber.of("010-1234-5678");
+
+            given(
+                            repository.existsByOrganizationIdAndPhoneNumber(
+                                    organizationId.value(), phoneNumber.value()))
+                    .willReturn(false);
+
+            // when
+            boolean result = sut.existsByOrganizationIdAndPhoneNumber(organizationId, phoneNumber);
+
+            // then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("findByIdentifier 메서드")
+    class FindByIdentifier {
+
+        @Test
+        @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
+        void shouldFindAndConvert_WhenEntityExists() {
+            // given
+            Identifier identifier = UserFixture.defaultIdentifier();
+            UserJpaEntity entity = UserJpaEntityFixture.create();
+            User expectedDomain = UserFixture.create();
+
+            given(repository.findByIdentifier(identifier.value())).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
+
+            // when
+            Optional<User> result = sut.findByIdentifier(identifier);
+
+            // then
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(expectedDomain);
+        }
+
+        @Test
+        @DisplayName("Entity가 없으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenEntityNotFound() {
+            // given
+            Identifier identifier = UserFixture.defaultIdentifier();
+
+            given(repository.findByIdentifier(identifier.value())).willReturn(Optional.empty());
+
+            // when
+            Optional<User> result = sut.findByIdentifier(identifier);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllBySearchCriteria 메서드")
+    class FindAllBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Entity 목록을 Domain 목록으로 변환하여 반환")
+        void shouldFindAndConvertAll_ThenReturnDomainList() {
+            // given
+            UserSearchCriteria criteria = createTestCriteria();
+            UserJpaEntity entity1 = UserJpaEntityFixture.createWithIdentifier("user1@example.com");
+            UserJpaEntity entity2 = UserJpaEntityFixture.createWithIdentifier("user2@example.com");
+            User domain1 = UserFixture.createWithIdentifier("user1@example.com");
+            User domain2 = UserFixture.createWithIdentifier("user2@example.com");
+
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of(entity1, entity2));
+            given(mapper.toDomain(entity1)).willReturn(domain1);
+            given(mapper.toDomain(entity2)).willReturn(domain2);
+
+            // when
+            List<User> result = sut.findAllBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).containsExactly(domain1, domain2);
+        }
+
+        @Test
+        @DisplayName("결과가 없으면 빈 목록 반환")
+        void shouldReturnEmptyList_WhenNoResults() {
+            // given
+            UserSearchCriteria criteria = createTestCriteria();
+
+            given(repository.findAllByCriteria(criteria)).willReturn(List.of());
+
+            // when
+            List<User> result = sut.findAllBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Repository 결과를 그대로 반환")
+        void shouldReturnCount_FromRepository() {
+            // given
+            UserSearchCriteria criteria = createTestCriteria();
+
+            given(repository.countByCriteria(criteria)).willReturn(25L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEqualTo(25L);
+        }
+
+        @Test
+        @DisplayName("결과가 없으면 0 반환")
+        void shouldReturnZero_WhenNoResults() {
+            // given
+            UserSearchCriteria criteria = createTestCriteria();
 
             given(repository.countByCriteria(criteria)).willReturn(0L);
 
             // when
-            long count = adapter.countByCriteria(criteria);
+            long result = sut.countBySearchCriteria(criteria);
 
             // then
-            assertThat(count).isZero();
-            verify(repository).countByCriteria(criteria);
+            assertThat(result).isZero();
         }
     }
 
-    private UserJpaEntity createUserEntity() {
-        return UserJpaEntity.of(
-                USER_UUID,
-                TENANT_UUID,
-                ORG_UUID,
-                "user@example.com",
-                "010-1234-5678",
-                "hashed_password",
-                UserStatus.ACTIVE,
-                FIXED_TIME,
-                FIXED_TIME);
+    // ==================== Helper Methods ====================
+
+    private UserSearchCriteria createTestCriteria() {
+        return UserSearchCriteria.ofDefault(null, null, null, DateRange.of(null, null), 0, 10);
     }
 }

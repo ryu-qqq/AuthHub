@@ -1,14 +1,14 @@
 package com.ryuqq.authhub.domain.user.fixture;
 
-import com.ryuqq.authhub.domain.common.util.ClockHolder;
-import com.ryuqq.authhub.domain.organization.identifier.OrganizationId;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.user.aggregate.User;
-import com.ryuqq.authhub.domain.user.identifier.UserId;
+import com.ryuqq.authhub.domain.user.id.UserId;
+import com.ryuqq.authhub.domain.user.vo.HashedPassword;
+import com.ryuqq.authhub.domain.user.vo.Identifier;
+import com.ryuqq.authhub.domain.user.vo.PhoneNumber;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
@@ -20,28 +20,24 @@ import java.util.UUID;
 public final class UserFixture {
 
     private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
-    private static final UUID DEFAULT_USER_UUID =
-            UUID.fromString("01941234-5678-7000-8000-000000000001");
-    private static final UUID DEFAULT_TENANT_UUID =
-            UUID.fromString("01941234-5678-7000-8000-123456789abc");
-    private static final UUID DEFAULT_ORG_UUID =
-            UUID.fromString("01941234-5678-7000-8000-123456789def");
-    private static final String DEFAULT_IDENTIFIER = "user@example.com";
-    private static final String DEFAULT_PHONE_NUMBER = "01012345678";
-    private static final String DEFAULT_HASHED_PASSWORD = "hashed_password_123";
+    private static final String DEFAULT_USER_ID = "01941234-5678-7000-8000-123456789001";
+    private static final String DEFAULT_ORG_ID = "01941234-5678-7000-8000-123456789def";
+    private static final String DEFAULT_IDENTIFIER = "test@example.com";
+    private static final String DEFAULT_PHONE = "010-1234-5678";
+    private static final String DEFAULT_HASHED_PASSWORD = "$2a$10$hashedpasswordvalue";
 
     private UserFixture() {}
 
     /** 기본 User 생성 (ID 할당됨, ACTIVE) */
     public static User create() {
         return User.reconstitute(
-                UserId.of(DEFAULT_USER_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                DEFAULT_IDENTIFIER,
-                DEFAULT_PHONE_NUMBER,
-                DEFAULT_HASHED_PASSWORD,
+                UserId.of(DEFAULT_USER_ID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                Identifier.of(DEFAULT_IDENTIFIER),
+                PhoneNumber.of(DEFAULT_PHONE),
+                HashedPassword.of(DEFAULT_HASHED_PASSWORD),
                 UserStatus.ACTIVE,
+                DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
     }
@@ -49,142 +45,132 @@ public final class UserFixture {
     /** 지정된 식별자로 User 생성 */
     public static User createWithIdentifier(String identifier) {
         return User.reconstitute(
-                UserId.of(DEFAULT_USER_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                identifier,
-                DEFAULT_PHONE_NUMBER,
-                DEFAULT_HASHED_PASSWORD,
+                UserId.of(DEFAULT_USER_ID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                Identifier.of(identifier),
+                PhoneNumber.of(DEFAULT_PHONE),
+                HashedPassword.of(DEFAULT_HASHED_PASSWORD),
                 UserStatus.ACTIVE,
+                DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
     }
 
-    /** 지정된 핸드폰 번호로 User 생성 */
-    public static User createWithPhoneNumber(String phoneNumber) {
+    /** 지정된 조직으로 User 생성 */
+    public static User createWithOrganization(String organizationId) {
         return User.reconstitute(
-                UserId.of(DEFAULT_USER_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                DEFAULT_IDENTIFIER,
-                phoneNumber,
-                DEFAULT_HASHED_PASSWORD,
+                UserId.of(DEFAULT_USER_ID),
+                OrganizationId.of(organizationId),
+                Identifier.of(DEFAULT_IDENTIFIER),
+                PhoneNumber.of(DEFAULT_PHONE),
+                HashedPassword.of(DEFAULT_HASHED_PASSWORD),
                 UserStatus.ACTIVE,
+                DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
     }
 
-    /** 지정된 Organization으로 User 생성 */
-    public static User createWithOrganization(UUID organizationUUID) {
-        return User.reconstitute(
-                UserId.of(DEFAULT_USER_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
-                OrganizationId.of(organizationUUID),
-                DEFAULT_IDENTIFIER,
-                DEFAULT_PHONE_NUMBER,
-                DEFAULT_HASHED_PASSWORD,
-                UserStatus.ACTIVE,
-                FIXED_TIME,
-                FIXED_TIME);
-    }
-
-    /** 지정된 Tenant로 User 생성 */
-    public static User createWithTenant(UUID tenantUUID) {
-        return User.reconstitute(
-                UserId.of(DEFAULT_USER_UUID),
-                TenantId.of(tenantUUID),
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                DEFAULT_IDENTIFIER,
-                DEFAULT_PHONE_NUMBER,
-                DEFAULT_HASHED_PASSWORD,
-                UserStatus.ACTIVE,
-                FIXED_TIME,
-                FIXED_TIME);
-    }
-
-    /** 새로운 User 생성 (create 팩토리 사용) */
+    /** 새로운 User 생성 (ID 할당됨) */
     public static User createNew() {
+        UserId userId = UserId.forNew(UUID.randomUUID().toString());
         return User.create(
-                UserId.forNew(DEFAULT_USER_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                DEFAULT_IDENTIFIER,
-                DEFAULT_PHONE_NUMBER,
-                DEFAULT_HASHED_PASSWORD,
-                fixedClock());
+                userId,
+                OrganizationId.of(DEFAULT_ORG_ID),
+                Identifier.of(DEFAULT_IDENTIFIER),
+                PhoneNumber.of(DEFAULT_PHONE),
+                HashedPassword.of(DEFAULT_HASHED_PASSWORD),
+                FIXED_TIME);
+    }
+
+    /** 전화번호 없이 User 생성 */
+    public static User createWithoutPhone() {
+        return User.reconstitute(
+                UserId.of(DEFAULT_USER_ID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                Identifier.of(DEFAULT_IDENTIFIER),
+                null,
+                HashedPassword.of(DEFAULT_HASHED_PASSWORD),
+                UserStatus.ACTIVE,
+                DeletionStatus.active(),
+                FIXED_TIME,
+                FIXED_TIME);
     }
 
     /** 지정된 상태로 User 생성 */
     public static User createWithStatus(UserStatus status) {
         return User.reconstitute(
-                UserId.of(DEFAULT_USER_UUID),
-                TenantId.of(DEFAULT_TENANT_UUID),
-                OrganizationId.of(DEFAULT_ORG_UUID),
-                DEFAULT_IDENTIFIER,
-                DEFAULT_PHONE_NUMBER,
-                DEFAULT_HASHED_PASSWORD,
+                UserId.of(DEFAULT_USER_ID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                Identifier.of(DEFAULT_IDENTIFIER),
+                PhoneNumber.of(DEFAULT_PHONE),
+                HashedPassword.of(DEFAULT_HASHED_PASSWORD),
                 status,
+                DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
     }
 
-    /** 비활성화된 User 생성 */
+    /** INACTIVE 상태의 User 생성 */
     public static User createInactive() {
         return createWithStatus(UserStatus.INACTIVE);
     }
 
-    /** 테스트용 고정 ClockHolder 반환 */
-    public static ClockHolder fixedClockHolder() {
-        return () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
+    /** SUSPENDED 상태의 User 생성 */
+    public static User createSuspended() {
+        return createWithStatus(UserStatus.SUSPENDED);
     }
 
-    /** 테스트용 고정 Clock 반환 */
-    public static Clock fixedClock() {
-        return fixedClockHolder().clock();
+    /** 삭제된 User 생성 */
+    public static User createDeleted() {
+        return User.reconstitute(
+                UserId.of(DEFAULT_USER_ID),
+                OrganizationId.of(DEFAULT_ORG_ID),
+                Identifier.of(DEFAULT_IDENTIFIER),
+                PhoneNumber.of(DEFAULT_PHONE),
+                HashedPassword.of(DEFAULT_HASHED_PASSWORD),
+                UserStatus.INACTIVE,
+                DeletionStatus.deletedAt(FIXED_TIME),
+                FIXED_TIME,
+                FIXED_TIME);
+    }
+
+    /** 테스트용 고정 시간 반환 */
+    public static Instant fixedTime() {
+        return FIXED_TIME;
     }
 
     /** 기본 UserId 반환 */
     public static UserId defaultId() {
-        return UserId.of(DEFAULT_USER_UUID);
+        return UserId.of(DEFAULT_USER_ID);
     }
 
-    /** 기본 User UUID 반환 */
-    public static UUID defaultUUID() {
-        return DEFAULT_USER_UUID;
-    }
-
-    /** 기본 TenantId 반환 */
-    public static TenantId defaultTenantId() {
-        return TenantId.of(DEFAULT_TENANT_UUID);
-    }
-
-    /** 기본 Tenant UUID 반환 */
-    public static UUID defaultTenantUUID() {
-        return DEFAULT_TENANT_UUID;
+    /** 기본 User ID 문자열 반환 */
+    public static String defaultIdString() {
+        return DEFAULT_USER_ID;
     }
 
     /** 기본 OrganizationId 반환 */
     public static OrganizationId defaultOrganizationId() {
-        return OrganizationId.of(DEFAULT_ORG_UUID);
+        return OrganizationId.of(DEFAULT_ORG_ID);
     }
 
-    /** 기본 Organization UUID 반환 */
-    public static UUID defaultOrganizationUUID() {
-        return DEFAULT_ORG_UUID;
+    /** 기본 Organization ID 문자열 반환 */
+    public static String defaultOrganizationIdString() {
+        return DEFAULT_ORG_ID;
     }
 
-    /** 기본 식별자 반환 */
-    public static String defaultIdentifier() {
+    /** 기본 Identifier 반환 */
+    public static Identifier defaultIdentifier() {
+        return Identifier.of(DEFAULT_IDENTIFIER);
+    }
+
+    /** 기본 Identifier 문자열 반환 */
+    public static String defaultIdentifierString() {
         return DEFAULT_IDENTIFIER;
     }
 
-    /** 기본 해시된 비밀번호 반환 */
-    public static String defaultHashedPassword() {
-        return DEFAULT_HASHED_PASSWORD;
-    }
-
-    /** 기본 핸드폰 번호 반환 */
-    public static String defaultPhoneNumber() {
-        return DEFAULT_PHONE_NUMBER;
+    /** 기본 HashedPassword 반환 */
+    public static HashedPassword defaultHashedPassword() {
+        return HashedPassword.of(DEFAULT_HASHED_PASSWORD);
     }
 }

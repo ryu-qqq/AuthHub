@@ -1,23 +1,25 @@
 package com.ryuqq.authhub.application.permission.port.out.query;
 
-import com.ryuqq.authhub.application.permission.dto.query.SearchPermissionsQuery;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
-import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * PermissionQueryPort - 권한 조회 Port (Port-Out)
+ * PermissionQueryPort - Permission Aggregate 조회 포트 (Query)
  *
- * <p>권한 조회 기능을 정의합니다.
+ * <p>Domain Aggregate를 조회하는 읽기 전용 Port입니다.
  *
  * <p><strong>Zero-Tolerance 규칙:</strong>
  *
  * <ul>
- *   <li>{@code {Bc}QueryPort} 네이밍
- *   <li>Domain Aggregate/VO 파라미터/반환
- *   <li>구현은 Adapter 책임
+ *   <li>조회 메서드만 제공 (findById, existsById)
+ *   <li>저장/수정/삭제 메서드 금지 (PersistencePort로 분리)
+ *   <li>Value Object 파라미터 (원시 타입 금지)
+ *   <li>Domain 반환 (DTO/Entity 반환 금지)
+ *   <li>Optional 반환 (단건 조회 시 null 방지)
+ *   <li>Criteria 기반 조회 (개별 파라미터 금지)
  * </ul>
  *
  * @author development-team
@@ -26,60 +28,70 @@ import java.util.Optional;
 public interface PermissionQueryPort {
 
     /**
-     * ID로 Permission 조회
+     * ID로 Permission 단건 조회
      *
-     * @param permissionId 권한 ID
-     * @return Optional Permission
+     * @param id Permission ID (Value Object)
+     * @return Permission Domain (Optional)
      */
-    Optional<Permission> findById(PermissionId permissionId);
+    Optional<Permission> findById(PermissionId id);
 
     /**
-     * 권한 키로 Permission 조회
+     * ID로 Permission 존재 여부 확인
      *
-     * @param key 권한 키 (resource:action)
-     * @return Optional Permission
-     */
-    Optional<Permission> findByKey(PermissionKey key);
-
-    /**
-     * 권한 키 존재 여부 확인
-     *
-     * @param key 권한 키 (resource:action)
+     * @param id Permission ID (Value Object)
      * @return 존재 여부
      */
-    boolean existsByKey(PermissionKey key);
+    boolean existsById(PermissionId id);
 
     /**
-     * 권한 검색
+     * permissionKey로 Permission 존재 여부 확인 (Global 전역)
      *
-     * @param query 검색 조건
-     * @return Permission 목록
+     * <p>tenantId와 관계없이 전역적으로 permissionKey 존재 여부를 확인합니다.
+     *
+     * @param permissionKey 권한 키 (예: "user:read")
+     * @return 존재 여부
      */
-    List<Permission> search(SearchPermissionsQuery query);
+    boolean existsByPermissionKey(String permissionKey);
 
     /**
-     * 권한 검색 총 개수
+     * permissionKey로 Permission 단건 조회
      *
-     * @param query 검색 조건
-     * @return 총 개수
+     * @param permissionKey 권한 키 (예: "user:read")
+     * @return Permission Domain (Optional)
      */
-    long count(SearchPermissionsQuery query);
+    Optional<Permission> findByPermissionKey(String permissionKey);
 
     /**
-     * 여러 ID로 권한 목록 조회
+     * 조건에 맞는 권한 목록 조회 (SearchCriteria 기반)
      *
-     * @param permissionIds 권한 ID Set
-     * @return Permission 목록
+     * @param criteria 검색 조건 (PermissionSearchCriteria)
+     * @return Permission Domain 목록
      */
-    List<Permission> findAllByIds(java.util.Set<PermissionId> permissionIds);
+    List<Permission> findAllBySearchCriteria(PermissionSearchCriteria criteria);
 
     /**
-     * 여러 권한 키로 권한 목록 조회 (Bulk 조회)
+     * 조건에 맞는 권한 개수 조회 (SearchCriteria 기반)
      *
-     * <p>CI/CD 권한 검증에서 사용됩니다.
-     *
-     * @param keys 권한 키 Set
-     * @return Permission 목록 (존재하는 권한만)
+     * @param criteria 검색 조건 (PermissionSearchCriteria)
+     * @return 조건에 맞는 Permission 총 개수
      */
-    List<Permission> findAllByKeys(java.util.Set<PermissionKey> keys);
+    long countBySearchCriteria(PermissionSearchCriteria criteria);
+
+    /**
+     * ID 목록으로 Permission 다건 조회
+     *
+     * @param ids Permission ID 목록
+     * @return Permission Domain 목록
+     */
+    List<Permission> findAllByIds(List<PermissionId> ids);
+
+    /**
+     * permissionKey 목록으로 Permission 다건 조회 (IN절)
+     *
+     * <p>벌크 동기화 시 기존 Permission을 한 번에 조회합니다.
+     *
+     * @param permissionKeys 권한 키 목록
+     * @return Permission Domain 목록
+     */
+    List<Permission> findAllByPermissionKeys(List<String> permissionKeys);
 }

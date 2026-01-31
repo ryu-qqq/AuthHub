@@ -30,7 +30,8 @@ public class OrganizationErrorMapper implements ErrorMapper {
     private static final Set<String> SUPPORTED_CODES = Set.of("ORG-001", "ORG-002", "ORG-003");
 
     @Override
-    public boolean supports(String code) {
+    public boolean supports(DomainException ex) {
+        String code = ex.code();
         if (code == null) {
             return false;
         }

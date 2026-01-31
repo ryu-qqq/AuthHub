@@ -1,9 +1,8 @@
 package com.ryuqq.authhub.domain.permission.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
-import com.ryuqq.authhub.domain.permission.identifier.PermissionId;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * PermissionNotFoundException - 권한을 찾을 수 없을 때 발생하는 예외
@@ -13,7 +12,7 @@ import java.util.UUID;
  */
 public class PermissionNotFoundException extends DomainException {
 
-    public PermissionNotFoundException(UUID permissionId) {
+    public PermissionNotFoundException(Long permissionId) {
         super(PermissionErrorCode.PERMISSION_NOT_FOUND, Map.of("permissionId", permissionId));
     }
 

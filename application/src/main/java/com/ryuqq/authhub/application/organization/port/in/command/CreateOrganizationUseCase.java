@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.application.organization.port.in.command;
 
 import com.ryuqq.authhub.application.organization.dto.command.CreateOrganizationCommand;
-import com.ryuqq.authhub.application.organization.dto.response.OrganizationResponse;
 
 /**
  * CreateOrganizationUseCase - 조직 생성 UseCase (Port-In)
@@ -13,7 +12,7 @@ import com.ryuqq.authhub.application.organization.dto.response.OrganizationRespo
  * <ul>
  *   <li>{@code {Action}{Bc}UseCase} 네이밍
  *   <li>{@code execute()} 메서드 시그니처
- *   <li>Command DTO 파라미터, Response DTO 반환
+ *   <li>Command DTO 파라미터, ID 반환 (String 원시 타입)
  * </ul>
  *
  * @author development-team
@@ -25,7 +24,7 @@ public interface CreateOrganizationUseCase {
      * 조직 생성 실행
      *
      * @param command 조직 생성 Command
-     * @return 생성된 조직 Response
+     * @return 생성된 조직 ID (String)
      */
-    OrganizationResponse execute(CreateOrganizationCommand command);
+    String execute(CreateOrganizationCommand command);
 }

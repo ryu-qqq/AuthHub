@@ -112,6 +112,38 @@ class HttpClientSupport {
         return execute(request, responseType);
     }
 
+    /** POST 요청을 수행합니다 (인증 없이 - Public API용). */
+    public <T> T postPublic(String path, Object body, Class<T> responseType) {
+        String url = buildUrl(path, Map.of());
+        String jsonBody = toJson(body);
+
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header(CONTENT_TYPE_HEADER, APPLICATION_JSON)
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .timeout(config.readTimeout())
+                        .build();
+
+        return execute(request, responseType);
+    }
+
+    /** POST 요청을 수행합니다 (인증 없이 - Public API용, 제네릭 타입 지원). */
+    public <T> T postPublic(String path, Object body, TypeReference<T> typeReference) {
+        String url = buildUrl(path, Map.of());
+        String jsonBody = toJson(body);
+
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header(CONTENT_TYPE_HEADER, APPLICATION_JSON)
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .timeout(config.readTimeout())
+                        .build();
+
+        return executeWithTypeReference(request, typeReference);
+    }
+
     /** POST 요청을 수행합니다 (제네릭 타입 지원). */
     public <T> T post(String path, Object body, TypeReference<T> typeReference) {
         String url = buildUrl(path, Map.of());
@@ -127,6 +159,44 @@ class HttpClientSupport {
                         .build();
 
         return executeWithTypeReference(request, typeReference);
+    }
+
+    /**
+     * POST 요청을 수행합니다 (제네릭 타입 지원, 커스텀 헤더 포함).
+     *
+     * @param path API 경로
+     * @param body 요청 본문
+     * @param typeReference 응답 타입 참조
+     * @param extraHeaders 추가 헤더 (key-value)
+     * @return 응답 객체
+     */
+    public <T> T post(
+            String path,
+            Object body,
+            TypeReference<T> typeReference,
+            Map<String, String> extraHeaders) {
+        String url = buildUrl(path, Map.of());
+        String jsonBody = toJson(body);
+
+        HttpRequest.Builder builder =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header(CONTENT_TYPE_HEADER, APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, getAuthorizationHeader())
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .timeout(config.readTimeout());
+
+        // 추가 헤더 설정
+        if (extraHeaders != null) {
+            extraHeaders.forEach(
+                    (key, value) -> {
+                        if (value != null && !value.isBlank()) {
+                            builder.header(key, value);
+                        }
+                    });
+        }
+
+        return executeWithTypeReference(builder.build(), typeReference);
     }
 
     /** PUT 요청을 수행합니다. */

@@ -1,0 +1,37 @@
+# ===============================================
+# Security Client Configuration - Common
+# ===============================================
+# JWT 토큰 및 암호화 관련 공통 설정
+# 환경별 설정은 security-client-{profile}.yml 참조
+#
+# @since 1.0.0
+# ===============================================
+
+security:
+  # ===============================================
+  # JWT Configuration
+  # ===============================================
+  jwt:
+    # JWT 서명 키 (HS256 사용 시 필요, 최소 256bit = 32바이트)
+    secret: ${JWT_SECRET:local-dev-secret-key-minimum-32-bytes-long}
+    # Access Token 만료 시간 (초) - 기본 1시간
+    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600}
+    # Refresh Token 만료 시간 (초) - 기본 7일
+    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800}
+    # 발급자
+    issuer: ${JWT_ISSUER:authhub}
+
+    # RSA 키 설정 (RS256 사용 시)
+    rsa:
+      # RS256 활성화 여부 (true: RS256, false: HS256)
+      enabled: ${SECURITY_JWT_RSA_ENABLED:false}
+      # JWKS에서 키 식별용 Key ID
+      key-id: ${SECURITY_JWT_RSA_KEY_ID:authhub-key-1}
+      # RSA 공개키 경로 (로컬 개발용)
+      public-key-path: ${SECURITY_JWT_RSA_PUBLIC_KEY_PATH:}
+      # RSA 개인키 경로 (로컬 개발용)
+      private-key-path: ${SECURITY_JWT_RSA_PRIVATE_KEY_PATH:}
+      # RSA 공개키 내용 (ECS 환경변수용)
+      public-key-content: ${SECURITY_JWT_RSA_PUBLIC_KEY_CONTENT:}
+      # RSA 개인키 내용 (ECS 환경변수용)
+      private-key-content: ${SECURITY_JWT_RSA_PRIVATE_KEY_CONTENT:}

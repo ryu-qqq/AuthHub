@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.application.tenant.port.in.command;
 
 import com.ryuqq.authhub.application.tenant.dto.command.UpdateTenantNameCommand;
-import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
 
 /**
  * UpdateTenantNameUseCase - 테넌트 이름 변경 UseCase (Port-In)
@@ -13,7 +12,7 @@ import com.ryuqq.authhub.application.tenant.dto.response.TenantResponse;
  * <ul>
  *   <li>{@code {Action}{Bc}UseCase} 네이밍
  *   <li>{@code execute()} 메서드 시그니처
- *   <li>Command DTO 파라미터, Response DTO 반환
+ *   <li>Command DTO 파라미터, void 반환
  * </ul>
  *
  * @author development-team
@@ -25,7 +24,6 @@ public interface UpdateTenantNameUseCase {
      * 테넌트 이름 변경 실행
      *
      * @param command 테넌트 이름 변경 Command
-     * @return 변경된 테넌트 Response
      */
-    TenantResponse execute(UpdateTenantNameCommand command);
+    void execute(UpdateTenantNameCommand command);
 }

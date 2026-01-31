@@ -1,14 +1,11 @@
 package com.ryuqq.authhub.adapter.out.persistence.role.mapper;
 
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RoleJpaEntity;
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
-import com.ryuqq.authhub.domain.role.identifier.RoleId;
-import com.ryuqq.authhub.domain.role.vo.RoleDescription;
+import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,11 +20,11 @@ import org.springframework.stereotype.Component;
  *   <li>RoleJpaEntity → Role (조회용)
  * </ul>
  *
- * <p><strong>시간 변환:</strong>
+ * <p><strong>시간 처리:</strong>
  *
  * <ul>
  *   <li>Domain: Instant (UTC)
- *   <li>Entity: LocalDateTime (UTC 기준)
+ *   <li>Entity: Instant (UTC) - 변환 없이 직접 전달
  * </ul>
  *
  * <p><strong>Hexagonal Architecture 관점:</strong>
@@ -45,50 +42,44 @@ import org.springframework.stereotype.Component;
 public class RoleJpaEntityMapper {
 
     /**
-     * Domain → Entity 변환 (신규 생성용)
+     * Domain → Entity 변환
      *
      * <p><strong>사용 시나리오:</strong>
      *
      * <ul>
-     *   <li>신규 Role 저장 (ID가 null)
+     *   <li>신규 Role 저장
+     *   <li>기존 Role 수정 (Hibernate Dirty Checking)
+     * </ul>
+     *
+     * <p><strong>변환 규칙:</strong>
+     *
+     * <ul>
+     *   <li>roleId: Domain.roleIdValue() → Entity.roleId (Long)
+     *   <li>tenantId: Domain.tenantIdValue() → Entity.tenantId (String)
+     *   <li>name: Domain.nameValue() → Entity.name
+     *   <li>displayName: Domain.displayNameValue() → Entity.displayName
+     *   <li>description: Domain.descriptionValue() → Entity.description
+     *   <li>type: Domain.getType() → Entity.type
+     *   <li>createdAt: Instant → Instant (직접 전달)
+     *   <li>updatedAt: Instant → Instant (직접 전달)
+     *   <li>deletedAt: DeletionStatus.deletedAt() → Instant (직접 전달)
      * </ul>
      *
      * @param domain Role 도메인
-     * @return RoleJpaEntity (JPA internal ID = null)
+     * @return RoleJpaEntity
      */
     public RoleJpaEntity toEntity(Role domain) {
+        DeletionStatus deletionStatus = domain.getDeletionStatus();
         return RoleJpaEntity.of(
                 domain.roleIdValue(),
                 domain.tenantIdValue(),
                 domain.nameValue(),
+                domain.displayNameValue(),
                 domain.descriptionValue(),
-                domain.getScope(),
                 domain.getType(),
-                domain.isDeleted(),
-                toLocalDateTime(domain.createdAt()),
-                toLocalDateTime(domain.updatedAt()));
-    }
-
-    /**
-     * 기존 Entity 업데이트 (UPDATE용)
-     *
-     * <p>기존 Entity의 JPA internal ID를 유지하면서 Domain 값으로 업데이트합니다.
-     *
-     * @param existing 기존 JPA Entity (ID 유지용)
-     * @param domain 업데이트할 Role 도메인
-     * @return RoleJpaEntity (기존 JPA internal ID 유지)
-     */
-    public RoleJpaEntity updateEntity(RoleJpaEntity existing, Role domain) {
-        return RoleJpaEntity.of(
-                domain.roleIdValue(),
-                domain.tenantIdValue(),
-                domain.nameValue(),
-                domain.descriptionValue(),
-                domain.getScope(),
-                domain.getType(),
-                domain.isDeleted(),
-                existing.getCreatedAt(),
-                toLocalDateTime(domain.updatedAt()));
+                domain.createdAt(),
+                domain.updatedAt(),
+                deletionStatus.deletedAt());
     }
 
     /**
@@ -101,35 +92,43 @@ public class RoleJpaEntityMapper {
      *   <li>Application Layer로 전달
      * </ul>
      *
+     * <p><strong>변환 규칙:</strong>
+     *
+     * <ul>
+     *   <li>roleId: Entity.roleId (Long) → RoleId VO
+     *   <li>tenantId: Entity.tenantId (String) → TenantId VO (nullable)
+     *   <li>name: Entity.name → RoleName VO
+     *   <li>displayName: Entity.displayName → String
+     *   <li>description: Entity.description → String
+     *   <li>type: Entity.type → RoleType Enum
+     *   <li>deletedAt: Entity.getDeletedAt() → DeletionStatus
+     *   <li>createdAt: Instant → Instant (직접 전달)
+     *   <li>updatedAt: Instant → Instant (직접 전달)
+     * </ul>
+     *
      * @param entity RoleJpaEntity
      * @return Role 도메인
      */
     public Role toDomain(RoleJpaEntity entity) {
-        TenantId tenantId = entity.getTenantId() != null ? TenantId.of(entity.getTenantId()) : null;
-        RoleDescription description =
-                entity.getDescription() != null
-                        ? RoleDescription.of(entity.getDescription())
-                        : RoleDescription.empty();
-
         return Role.reconstitute(
                 RoleId.of(entity.getRoleId()),
-                tenantId,
+                parseTenantId(entity.getTenantId()),
                 RoleName.of(entity.getName()),
-                description,
-                entity.getScope(),
+                entity.getDisplayName(),
+                entity.getDescription(),
                 entity.getType(),
-                entity.isDeleted(),
-                toInstant(entity.getCreatedAt()),
-                toInstant(entity.getUpdatedAt()));
+                DeletionStatus.reconstitute(entity.isDeleted(), entity.getDeletedAt()),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 
-    /** Instant → LocalDateTime 변환 (UTC 기준) */
-    private LocalDateTime toLocalDateTime(Instant instant) {
-        return instant != null ? LocalDateTime.ofInstant(instant, ZoneOffset.UTC) : null;
-    }
-
-    /** LocalDateTime → Instant 변환 (UTC 기준) */
-    private Instant toInstant(LocalDateTime localDateTime) {
-        return localDateTime != null ? localDateTime.toInstant(ZoneOffset.UTC) : null;
+    /**
+     * nullable한 문자열로부터 TenantId 변환
+     *
+     * @param tenantId 테넌트 ID 문자열 (nullable)
+     * @return TenantId 또는 null
+     */
+    private TenantId parseTenantId(String tenantId) {
+        return TenantId.fromNullable(tenantId);
     }
 }

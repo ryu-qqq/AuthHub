@@ -2,17 +2,14 @@ package com.ryuqq.authhub.adapter.out.persistence.role.adapter;
 
 import com.ryuqq.authhub.adapter.out.persistence.role.mapper.RoleJpaEntityMapper;
 import com.ryuqq.authhub.adapter.out.persistence.role.repository.RoleQueryDslRepository;
-import com.ryuqq.authhub.application.role.dto.query.SearchRolesQuery;
 import com.ryuqq.authhub.application.role.port.out.query.RoleQueryPort;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
-import com.ryuqq.authhub.domain.role.identifier.RoleId;
+import com.ryuqq.authhub.domain.role.id.RoleId;
+import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,10 +29,12 @@ import org.springframework.stereotype.Component;
  *
  * <ul>
  *   <li>findById() - ID로 단건 조회
- *   <li>findByTenantIdAndName() - 테넌트 내 역할 이름으로 조회
+ *   <li>existsById() - ID 존재 여부 확인
  *   <li>existsByTenantIdAndName() - 테넌트 내 역할 이름 존재 여부 확인
- *   <li>search() - 조건 검색
- *   <li>count() - 조건 개수 조회
+ *   <li>findByTenantIdAndName() - 테넌트 내 역할 이름으로 단건 조회
+ *   <li>findAllBySearchCriteria() - 조건 검색
+ *   <li>countBySearchCriteria() - 조건 검색 개수
+ *   <li>findAllByIds() - ID 목록으로 다건 조회
  * </ul>
  *
  * <p><strong>규칙:</strong>
@@ -66,86 +65,99 @@ public class RoleQueryAdapter implements RoleQueryPort {
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>RoleId에서 UUID 추출
+     *   <li>RoleId에서 Long 추출
      *   <li>QueryDSL Repository로 조회
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
-     * @param roleId 역할 ID
+     * @param id 역할 ID
      * @return Optional<Role>
      */
     @Override
-    public Optional<Role> findById(RoleId roleId) {
-        return repository.findByRoleId(roleId.value()).map(mapper::toDomain);
+    public Optional<Role> findById(RoleId id) {
+        return repository.findByRoleId(id.value()).map(mapper::toDomain);
     }
 
     /**
-     * 테넌트 내 역할 이름으로 역할 단건 조회
+     * ID 존재 여부 확인
      *
-     * @param tenantId 테넌트 ID (null일 경우 GLOBAL 범위)
-     * @param name 역할 이름
-     * @return Optional<Role>
+     * @param id 역할 ID
+     * @return 존재 여부
      */
     @Override
-    public Optional<Role> findByTenantIdAndName(TenantId tenantId, RoleName name) {
-        UUID tenantUuid = tenantId != null ? tenantId.value() : null;
-        return repository.findByTenantIdAndName(tenantUuid, name.value()).map(mapper::toDomain);
+    public boolean existsById(RoleId id) {
+        return repository.existsByRoleId(id.value());
     }
 
     /**
-     * 테넌트 내 역할 이름 존재 여부 확인
+     * 테넌트 내 역할 이름으로 존재 여부 확인
      *
-     * @param tenantId 테넌트 ID (null일 경우 GLOBAL 범위)
+     * <p>tenantId가 null이면 Global 역할 내에서 중복 확인합니다.
+     *
+     * @param tenantId 테넌트 ID (null이면 Global)
      * @param name 역할 이름
      * @return 존재 여부
      */
     @Override
     public boolean existsByTenantIdAndName(TenantId tenantId, RoleName name) {
-        UUID tenantUuid = tenantId != null ? tenantId.value() : null;
-        return repository.existsByTenantIdAndName(tenantUuid, name.value());
+        String tenantIdValue = tenantId != null ? tenantId.value() : null;
+        return repository.existsByTenantIdAndName(tenantIdValue, name.value());
     }
 
     /**
-     * 역할 검색 (페이징)
+     * 테넌트 내 역할 이름으로 Role 조회
+     *
+     * <p>tenantId가 null이면 Global 역할 내에서 조회합니다.
+     *
+     * @param tenantId 테넌트 ID (null이면 Global)
+     * @param name 역할 이름
+     * @return Optional<Role>
+     */
+    @Override
+    public Optional<Role> findByTenantIdAndName(TenantId tenantId, RoleName name) {
+        String tenantIdValue = tenantId != null ? tenantId.value() : null;
+        return repository.findByTenantIdAndName(tenantIdValue, name.value()).map(mapper::toDomain);
+    }
+
+    /**
+     * 조건에 맞는 역할 목록 조회 (페이징)
      *
      * <p><strong>처리 흐름:</strong>
      *
      * <ol>
-     *   <li>Query 객체를 직접 Repository로 전달
+     *   <li>RoleSearchCriteria에서 검색 조건 추출
+     *   <li>QueryDSL Repository로 조건 조회
      *   <li>Entity → Domain 변환 (Mapper)
      * </ol>
      *
-     * @param query 검색 조건
-     * @return Role 목록
+     * @param criteria 검색 조건 (RoleSearchCriteria)
+     * @return Role Domain 목록
      */
     @Override
-    public List<Role> search(SearchRolesQuery query) {
-        return repository.searchByQuery(query).stream().map(mapper::toDomain).toList();
+    public List<Role> findAllBySearchCriteria(RoleSearchCriteria criteria) {
+        return repository.findAllByCriteria(criteria).stream().map(mapper::toDomain).toList();
     }
 
     /**
-     * 역할 검색 개수 조회
+     * 조건에 맞는 역할 개수 조회
      *
-     * @param query 검색 조건
+     * @param criteria 검색 조건 (RoleSearchCriteria)
      * @return 조건에 맞는 역할 총 개수
      */
     @Override
-    public long count(SearchRolesQuery query) {
-        return repository.countByQuery(query);
+    public long countBySearchCriteria(RoleSearchCriteria criteria) {
+        return repository.countByCriteria(criteria);
     }
 
     /**
-     * 여러 ID로 역할 목록 조회
+     * ID 목록으로 역할 다건 조회
      *
-     * @param roleIds 역할 ID Set
-     * @return Role 목록
+     * @param ids 역할 ID 목록
+     * @return Role Domain 목록
      */
     @Override
-    public List<Role> findAllByIds(Set<RoleId> roleIds) {
-        if (roleIds == null || roleIds.isEmpty()) {
-            return List.of();
-        }
-        Set<UUID> uuids = roleIds.stream().map(RoleId::value).collect(Collectors.toSet());
-        return repository.findAllByIds(uuids).stream().map(mapper::toDomain).toList();
+    public List<Role> findAllByIds(List<RoleId> ids) {
+        List<Long> roleIds = ids.stream().map(RoleId::value).toList();
+        return repository.findAllByIds(roleIds).stream().map(mapper::toDomain).toList();
     }
 }

@@ -1,15 +1,13 @@
 package com.ryuqq.authhub.application.role.service.command;
 
-import com.ryuqq.authhub.application.role.assembler.RoleAssembler;
 import com.ryuqq.authhub.application.role.dto.command.CreateRoleCommand;
-import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
-import com.ryuqq.authhub.application.role.factory.command.RoleCommandFactory;
-import com.ryuqq.authhub.application.role.manager.command.RoleTransactionManager;
+import com.ryuqq.authhub.application.role.factory.RoleCommandFactory;
+import com.ryuqq.authhub.application.role.manager.RoleCommandManager;
 import com.ryuqq.authhub.application.role.port.in.command.CreateRoleUseCase;
 import com.ryuqq.authhub.application.role.validator.RoleValidator;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,15 +15,13 @@ import org.springframework.stereotype.Service;
  *
  * <p>CreateRoleUseCase를 구현합니다.
  *
- * <p><strong>Zero-Tolerance 규칙:</strong>
+ * <p>SVC-001: @Service 어노테이션 필수.
  *
- * <ul>
- *   <li>{@code @Service} 어노테이션
- *   <li>{@code @Transactional} 직접 사용 금지 (Manager/Facade 책임)
- *   <li>Validator → Factory → Manager/Facade → Assembler 흐름
- *   <li>Port 직접 호출 금지
- *   <li>Lombok 금지
- * </ul>
+ * <p>SVC-002: UseCase(Port-In) 인터페이스 구현 필수.
+ *
+ * <p>SVC-006: @Transactional 금지 → Manager에서 처리.
+ *
+ * <p>SVC-007: Service에 비즈니스 로직 금지 → 오케스트레이션만.
  *
  * @author development-team
  * @since 1.0.0
@@ -35,34 +31,28 @@ public class CreateRoleService implements CreateRoleUseCase {
 
     private final RoleValidator validator;
     private final RoleCommandFactory commandFactory;
-    private final RoleTransactionManager transactionManager;
-    private final RoleAssembler assembler;
+    private final RoleCommandManager commandManager;
 
     public CreateRoleService(
             RoleValidator validator,
             RoleCommandFactory commandFactory,
-            RoleTransactionManager transactionManager,
-            RoleAssembler assembler) {
+            RoleCommandManager commandManager) {
         this.validator = validator;
         this.commandFactory = commandFactory;
-        this.transactionManager = transactionManager;
-        this.assembler = assembler;
+        this.commandManager = commandManager;
     }
 
     @Override
-    public RoleResponse execute(CreateRoleCommand command) {
-        // 1. Validator: 중복 이름 검사 (테넌트 범위 내)
-        TenantId tenantId = command.tenantId() != null ? TenantId.of(command.tenantId()) : null;
+    public Long execute(CreateRoleCommand command) {
+        // 1. Validator: 역할 이름 중복 검증 (테넌트 범위 내)
+        TenantId tenantId = TenantId.fromNullable(command.tenantId());
         RoleName roleName = RoleName.of(command.name());
         validator.validateNameNotDuplicated(tenantId, roleName);
 
-        // 2. Factory: Command → Domain
+        // 2. Factory: Command → Domain 생성
         Role role = commandFactory.create(command);
 
-        // 3. Manager: 영속화
-        Role saved = transactionManager.persist(role);
-
-        // 4. Assembler: Response 변환
-        return assembler.toResponse(saved);
+        // 3. Manager: 영속화 및 ID 반환
+        return commandManager.persist(role);
     }
 }

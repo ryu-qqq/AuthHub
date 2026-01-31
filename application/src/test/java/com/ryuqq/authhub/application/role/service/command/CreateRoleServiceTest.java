@@ -3,21 +3,21 @@ package com.ryuqq.authhub.application.role.service.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
-import com.ryuqq.authhub.application.role.assembler.RoleAssembler;
 import com.ryuqq.authhub.application.role.dto.command.CreateRoleCommand;
-import com.ryuqq.authhub.application.role.dto.response.RoleResponse;
-import com.ryuqq.authhub.application.role.factory.command.RoleCommandFactory;
-import com.ryuqq.authhub.application.role.manager.command.RoleTransactionManager;
+import com.ryuqq.authhub.application.role.factory.RoleCommandFactory;
+import com.ryuqq.authhub.application.role.fixture.RoleCommandFixtures;
+import com.ryuqq.authhub.application.role.manager.RoleCommandManager;
 import com.ryuqq.authhub.application.role.validator.RoleValidator;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.exception.DuplicateRoleNameException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.tenant.identifier.TenantId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,11 +25,18 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * CreateRoleService 단위 테스트
+ *
+ * <p><strong>테스트 설계 원칙:</strong>
+ *
+ * <ul>
+ *   <li>Service는 오케스트레이션만 담당 → 협력 객체 호출 순서/조건 검증
+ *   <li>비즈니스 로직은 Domain/Validator에서 테스트
+ *   <li>BDDMockito 스타일로 Given-When-Then 구조 명확화
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -43,104 +50,75 @@ class CreateRoleServiceTest {
 
     @Mock private RoleCommandFactory commandFactory;
 
-    @Mock private RoleTransactionManager transactionManager;
+    @Mock private RoleCommandManager commandManager;
 
-    @Mock private RoleAssembler assembler;
-
-    private CreateRoleService service;
+    private CreateRoleService sut;
 
     @BeforeEach
     void setUp() {
-        service = new CreateRoleService(validator, commandFactory, transactionManager, assembler);
+        sut = new CreateRoleService(validator, commandFactory, commandManager);
     }
 
     @Nested
     @DisplayName("execute 메서드")
-    class ExecuteTest {
+    class Execute {
 
         @Test
-        @DisplayName("역할을 성공적으로 생성한다")
-        void shouldCreateRoleSuccessfully() {
+        @DisplayName("성공: Validator → Factory → Manager 순서로 호출하고 ID 반환")
+        void shouldOrchestrate_ValidatorThenFactoryThenManager_AndReturnId() {
             // given
-            Role role = RoleFixture.create();
-            CreateRoleCommand command =
-                    new CreateRoleCommand(
-                            RoleFixture.defaultTenantUUID(),
-                            "TEST_ROLE",
-                            "Test role description",
-                            "ORGANIZATION",
-                            false);
-            RoleResponse expectedResponse =
-                    new RoleResponse(
-                            role.roleIdValue(),
-                            role.tenantIdValue(),
-                            role.nameValue(),
-                            role.descriptionValue(),
-                            role.getScope().name(),
-                            role.getType().name(),
-                            role.createdAt(),
-                            role.updatedAt());
+            CreateRoleCommand command = RoleCommandFixtures.createCommand();
+            Role role = RoleFixture.createNewCustomRole();
+            Long expectedId = RoleFixture.defaultIdValue();
 
-            // validator는 예외를 던지지 않으면 통과 (doNothing 기본 동작)
             given(commandFactory.create(command)).willReturn(role);
-            given(transactionManager.persist(role)).willReturn(role);
-            given(assembler.toResponse(role)).willReturn(expectedResponse);
+            given(commandManager.persist(role)).willReturn(expectedId);
 
             // when
-            RoleResponse response = service.execute(command);
+            Long result = sut.execute(command);
 
             // then
-            assertThat(response).isEqualTo(expectedResponse);
-            assertThat(response.name()).isEqualTo("TEST_ROLE");
-            verify(validator).validateNameNotDuplicated(any(TenantId.class), any(RoleName.class));
-            verify(commandFactory).create(command);
-            verify(transactionManager).persist(role);
-            verify(assembler).toResponse(role);
+            assertThat(result).isEqualTo(expectedId);
+
+            then(validator).should().validateNameNotDuplicated(isNull(), any(RoleName.class));
+            then(commandFactory).should().create(command);
+            then(commandManager).should().persist(role);
         }
 
         @Test
-        @DisplayName("중복 역할 이름 시 예외를 발생시킨다")
-        void shouldThrowExceptionWhenDuplicateName() {
+        @DisplayName("실패: 중복 이름일 경우 DuplicateRoleNameException 발생")
+        void shouldThrowException_WhenNameIsDuplicated() {
             // given
-            CreateRoleCommand command =
-                    new CreateRoleCommand(
-                            RoleFixture.defaultTenantUUID(),
-                            "DUPLICATE_ROLE",
-                            "Description",
-                            "ORGANIZATION",
-                            false);
+            CreateRoleCommand command = RoleCommandFixtures.createCommand();
+            RoleName name = RoleName.of(command.name());
 
-            Mockito.doThrow(
-                            new DuplicateRoleNameException(
-                                    RoleFixture.defaultTenantUUID(), "DUPLICATE_ROLE"))
-                    .when(validator)
-                    .validateNameNotDuplicated(any(TenantId.class), any(RoleName.class));
+            willThrow(new DuplicateRoleNameException(name))
+                    .given(validator)
+                    .validateNameNotDuplicated(isNull(), any(RoleName.class));
 
             // when & then
-            assertThatThrownBy(() -> service.execute(command))
+            assertThatThrownBy(() -> sut.execute(command))
                     .isInstanceOf(DuplicateRoleNameException.class);
 
-            verify(commandFactory, never()).create(any());
-            verify(transactionManager, never()).persist(any());
+            then(commandFactory).should(never()).create(any());
+            then(commandManager).should(never()).persist(any());
         }
 
         @Test
-        @DisplayName("GLOBAL 역할에서 중복 이름 시 예외를 발생시킨다")
-        void shouldThrowExceptionWhenDuplicateGlobalRoleName() {
+        @DisplayName("검증 통과 후 Manager를 통해 영속화 수행")
+        void shouldPersistRole_ThroughManager() {
             // given
-            CreateRoleCommand command =
-                    new CreateRoleCommand(null, "GLOBAL_ROLE", "Description", "GLOBAL", true);
+            CreateRoleCommand command = RoleCommandFixtures.createCommand();
+            Role role = RoleFixture.createNewCustomRole();
 
-            Mockito.doThrow(new DuplicateRoleNameException("GLOBAL_ROLE"))
-                    .when(validator)
-                    .validateNameNotDuplicated(null, RoleName.of("GLOBAL_ROLE"));
+            given(commandFactory.create(command)).willReturn(role);
+            given(commandManager.persist(role)).willReturn(1L);
 
-            // when & then
-            assertThatThrownBy(() -> service.execute(command))
-                    .isInstanceOf(DuplicateRoleNameException.class);
+            // when
+            sut.execute(command);
 
-            verify(commandFactory, never()).create(any());
-            verify(transactionManager, never()).persist(any());
+            // then
+            then(commandManager).should().persist(role);
         }
     }
 }

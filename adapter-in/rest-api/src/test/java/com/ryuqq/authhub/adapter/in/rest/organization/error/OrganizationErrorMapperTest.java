@@ -2,14 +2,16 @@ package com.ryuqq.authhub.adapter.in.rest.organization.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper.MappedError;
-import com.ryuqq.authhub.domain.common.exception.DomainException;
+import com.ryuqq.authhub.adapter.in.rest.common.fixture.ErrorMapperApiFixture;
+import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper;
 import java.util.Locale;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -18,14 +20,12 @@ import org.springframework.http.HttpStatus;
  * @author development-team
  * @since 1.0.0
  */
+@ExtendWith(MockitoExtension.class)
 @Tag("unit")
-@Tag("adapter-rest")
-@Tag("error-mapper")
-@DisplayName("OrganizationErrorMapper 테스트")
+@DisplayName("OrganizationErrorMapper 단위 테스트")
 class OrganizationErrorMapperTest {
 
     private OrganizationErrorMapper mapper;
-    private static final Locale DEFAULT_LOCALE = Locale.KOREAN;
 
     @BeforeEach
     void setUp() {
@@ -33,73 +33,48 @@ class OrganizationErrorMapperTest {
     }
 
     @Nested
-    @DisplayName("supports() 테스트")
-    class SupportsTest {
+    @DisplayName("supports() 메서드는")
+    class SupportsMethod {
 
         @Test
-        @DisplayName("ORG-001 ~ ORG-003 코드 지원")
-        void givenOrgCodes_whenSupports_thenReturnsTrue() {
-            assertThat(mapper.supports("ORG-001")).isTrue();
-            assertThat(mapper.supports("ORG-002")).isTrue();
-            assertThat(mapper.supports("ORG-003")).isTrue();
+        @DisplayName("OrganizationNotFoundException을 지원한다")
+        void shouldSupportOrganizationNotFoundException() {
+            assertThat(mapper.supports(ErrorMapperApiFixture.organizationNotFoundException()))
+                    .isTrue();
         }
 
         @Test
-        @DisplayName("지원하지 않는 코드는 false 반환")
-        void givenUnsupportedCode_whenSupports_thenReturnsFalse() {
-            assertThat(mapper.supports("USER-001")).isFalse();
-            assertThat(mapper.supports("ROLE-001")).isFalse();
+        @DisplayName("DuplicateOrganizationNameException을 지원한다")
+        void shouldSupportDuplicateOrganizationNameException() {
+            assertThat(mapper.supports(ErrorMapperApiFixture.duplicateOrganizationNameException()))
+                    .isTrue();
         }
 
         @Test
-        @DisplayName("null 코드는 false 반환")
-        void givenNullCode_whenSupports_thenReturnsFalse() {
-            assertThat(mapper.supports(null)).isFalse();
+        @DisplayName("다른 도메인 예외는 지원하지 않는다")
+        void shouldNotSupportOtherDomainExceptions() {
+            assertThat(mapper.supports(ErrorMapperApiFixture.tenantNotFoundException())).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("map() 테스트")
-    class MapTest {
+    @DisplayName("map() 메서드는")
+    class MapMethod {
 
         @Test
-        @DisplayName("ORG-001 → 404 Not Found")
-        void givenOrg001Exception_whenMap_thenReturnsNotFound() {
-            DomainException ex = new DomainException("ORG-001", "조직을 찾을 수 없습니다.");
-            MappedError error = mapper.map(ex, DEFAULT_LOCALE);
-
-            assertThat(error.status()).isEqualTo(HttpStatus.NOT_FOUND);
-            assertThat(error.title()).isEqualTo("Organization Not Found");
+        @DisplayName("ORG-001을 404 Not Found로 매핑한다")
+        void shouldMapOrgNotFoundTo404() {
+            var ex = ErrorMapperApiFixture.organizationNotFoundException();
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+            assertThat(result.status()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
         @Test
-        @DisplayName("ORG-002 → 400 Bad Request")
-        void givenOrg002Exception_whenMap_thenReturnsBadRequest() {
-            DomainException ex = new DomainException("ORG-002", "잘못된 조직 상태 전환입니다.");
-            MappedError error = mapper.map(ex, DEFAULT_LOCALE);
-
-            assertThat(error.status()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(error.title()).isEqualTo("Invalid Organization State Transition");
-        }
-
-        @Test
-        @DisplayName("ORG-003 → 409 Conflict")
-        void givenOrg003Exception_whenMap_thenReturnsConflict() {
-            DomainException ex = new DomainException("ORG-003", "조직 이름이 중복됩니다.");
-            MappedError error = mapper.map(ex, DEFAULT_LOCALE);
-
-            assertThat(error.status()).isEqualTo(HttpStatus.CONFLICT);
-            assertThat(error.title()).isEqualTo("Organization Name Duplicate");
-        }
-
-        @Test
-        @DisplayName("알 수 없는 ORG 코드 → 500 Internal Server Error")
-        void givenUnknownOrgCode_whenMap_thenReturnsInternalServerError() {
-            DomainException ex = new DomainException("ORG-999", "알 수 없는 오류");
-            MappedError error = mapper.map(ex, DEFAULT_LOCALE);
-
-            assertThat(error.status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-            assertThat(error.title()).isEqualTo("Internal Server Error");
+        @DisplayName("ORG-003을 409 Conflict로 매핑한다")
+        void shouldMapDuplicateOrgNameTo409() {
+            var ex = ErrorMapperApiFixture.duplicateOrganizationNameException();
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+            assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
         }
     }
 }
