@@ -4,22 +4,20 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * JPA 및 QueryDSL 설정
  *
+ * <p>Note: @EnableJpaRepositories와 @EntityScan은 AuthHubWebApiApplication에서 선언됨
+ *
  * @author Development Team
  * @since 1.0.0
  */
 @Configuration
-@EntityScan(basePackages = "com.ryuqq.authhub.adapter.out.persistence")
-@EnableJpaRepositories(basePackages = "com.ryuqq.authhub.adapter.out.persistence")
 @EnableJpaAuditing
 @EnableTransactionManagement
 public class JpaConfig {
