@@ -53,7 +53,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
             "com.ryuqq.authhub.adapter.in.rest",
             "com.ryuqq.authhub.adapter.out.persistence",
             "com.ryuqq.authhub.adapter.out.client",
-            "com.ryuqq.bootstrap"
+            "com.ryuqq.authhub.bootstrap"
         })
 @EnableJpaRepositories(basePackages = "com.ryuqq.authhub.adapter.out.persistence")
 @EntityScan(basePackages = "com.ryuqq.authhub.adapter.out.persistence")
