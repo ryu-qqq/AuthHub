@@ -38,7 +38,7 @@ resource "aws_ecs_cluster" "main" {
     Owner       = local.common_tags.owner
     CostCenter  = local.common_tags.cost_center
     DataClass   = local.common_tags.data_class
-    Lifecycle   = "staging"
+    Lifecycle   = var.environment
     ManagedBy   = "terraform"
     Project     = var.project_name
   }

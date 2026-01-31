@@ -93,7 +93,7 @@ resource "aws_kms_key" "logs" {
 
   tags = merge(local.common_tags, {
     Name      = "${var.project_name}-web-api-logs-kms-${var.environment}"
-    Lifecycle = "staging"
+    Lifecycle = var.environment
     ManagedBy = "terraform"
   })
 }
@@ -360,7 +360,7 @@ module "ecs_service" {
 
   # Container Environment Variables
   container_environment = [
-    { name = "SPRING_PROFILES_ACTIVE", value = "stage" },  # var.environment은 staging이지만 Spring profile은 stage 사용
+    { name = "SPRING_PROFILES_ACTIVE", value = "stage" },
     { name = "DB_HOST", value = local.rds_host },
     { name = "DB_PORT", value = local.rds_port },
     { name = "DB_NAME", value = local.rds_dbname },
