@@ -360,7 +360,7 @@ module "ecs_service" {
 
   # Container Environment Variables
   container_environment = [
-    { name = "SPRING_PROFILES_ACTIVE", value = var.environment },
+    { name = "SPRING_PROFILES_ACTIVE", value = "stage" },  # var.environment은 staging이지만 Spring profile은 stage 사용
     { name = "DB_HOST", value = local.rds_host },
     { name = "DB_PORT", value = local.rds_port },
     { name = "DB_NAME", value = local.rds_dbname },

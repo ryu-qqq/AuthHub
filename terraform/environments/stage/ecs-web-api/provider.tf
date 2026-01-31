@@ -58,13 +58,13 @@ variable "aws_region" {
 variable "web_api_cpu" {
   description = "CPU units for web-api task"
   type        = number
-  default     = 256
+  default     = 512
 }
 
 variable "web_api_memory" {
   description = "Memory for web-api task"
   type        = number
-  default     = 512
+  default     = 1024
 }
 
 variable "web_api_desired_count" {
@@ -76,7 +76,7 @@ variable "web_api_desired_count" {
 variable "image_tag" {
   description = "Docker image tag to deploy"
   type        = string
-  default     = "web-api-1-initial"
+  default     = "web-api-3-3a325dc"
 
   validation {
     condition     = can(regex("^web-api-[0-9]+-[a-z0-9]+$", var.image_tag))
