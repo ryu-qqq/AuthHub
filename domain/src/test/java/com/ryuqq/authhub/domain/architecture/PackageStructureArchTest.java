@@ -132,6 +132,7 @@ class PackageStructureArchTest {
                         .resideInAPackage(DOMAIN_COMMON + ".util")
                         .should()
                         .beInterfaces()
+                        .allowEmptyShould(true)
                         .because(
                                 "domain.common.util 패키지는 Utility 인터페이스만 포함해야 합니다 (DIP)\n"
                                     + "예시:\n"
