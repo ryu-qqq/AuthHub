@@ -29,13 +29,6 @@ security:
   gateway:
     # 운영에서 Gateway 인증 필수
     enabled: true
-  cookie:
-    # 운영에서 HTTPS 필수
-    secure: true
-    # CSRF 보호를 위한 strict 권장
-    same-site: strict
-    # 환경변수로 도메인 설정
-    domain: ${COOKIE_DOMAIN:authhub.com}
 
 # ===============================================
 # SpringDoc OpenAPI Configuration Override

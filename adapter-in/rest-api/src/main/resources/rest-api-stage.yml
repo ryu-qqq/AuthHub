@@ -28,11 +28,6 @@ security:
   gateway:
     # Stage에서 Gateway 인증 활성화
     enabled: true
-  cookie:
-    # Stage에서 HTTPS 사용
-    secure: true
-    same-site: strict
-    domain: ${COOKIE_DOMAIN:stage.authhub.com}
 
 # ===============================================
 # SpringDoc OpenAPI Configuration Override
