@@ -8,9 +8,9 @@ import com.ryuqq.authhub.application.permissionendpoint.dto.command.DeletePermis
 import com.ryuqq.authhub.application.permissionendpoint.dto.command.UpdatePermissionEndpointCommand;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpoint;
+import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpointUpdateData;
 import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
-import com.ryuqq.authhub.domain.permissionendpoint.vo.PermissionEndpointUpdateData;
 import org.springframework.stereotype.Component;
 
 /**

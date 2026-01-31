@@ -1,4 +1,4 @@
-package com.ryuqq.authhub.domain.auth.exception;
+package com.ryuqq.authhub.domain.token.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import java.util.Map;
@@ -14,12 +14,12 @@ import java.util.Map;
 public class InvalidCredentialsException extends DomainException {
 
     public InvalidCredentialsException() {
-        super(AuthErrorCode.INVALID_CREDENTIALS);
+        super(TokenErrorCode.INVALID_CREDENTIALS);
     }
 
     public InvalidCredentialsException(String tenantId, String identifier) {
         super(
-                AuthErrorCode.INVALID_CREDENTIALS,
+                TokenErrorCode.INVALID_CREDENTIALS,
                 Map.of(
                         "tenantId", tenantId,
                         "identifier", identifier));

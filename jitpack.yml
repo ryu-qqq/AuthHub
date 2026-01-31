@@ -10,8 +10,7 @@ before_install:
   - chmod +x gradlew
 
 # Build all publishable modules
-# - common-auth: 서버 내부 공유 인증 모듈
 # - authhub-sdk-core: SDK 코어 (순수 Java)
 # - authhub-sdk-spring-boot-starter: Spring Boot 통합
 install:
-  - ./gradlew :common-auth:publishToMavenLocal :sdk:authhub-sdk-core:publishToMavenLocal :sdk:authhub-sdk-spring-boot-starter:publishToMavenLocal -x test -x check
+  - ./gradlew :sdk:authhub-sdk-core:publishToMavenLocal :sdk:authhub-sdk-spring-boot-starter:publishToMavenLocal -x test -x check

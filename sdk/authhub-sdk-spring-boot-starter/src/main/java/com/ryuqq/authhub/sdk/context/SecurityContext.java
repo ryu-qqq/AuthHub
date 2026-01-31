@@ -5,8 +5,8 @@ import java.util.Set;
 /**
  * SecurityContext - 보안 컨텍스트 인터페이스
  *
- * <p>권한 검사에 필요한 최소 계약을 정의합니다. 각 프로젝트는 자체 UserContext를 유지하면서 이 인터페이스만 구현하면 common-auth의 권한 검사 기능을
- * 사용할 수 있습니다.
+ * <p>권한 검사에 필요한 최소 계약을 정의합니다. 각 프로젝트는 자체 UserContext를 유지하면서 이 인터페이스만 구현하면 SDK의 권한 검사 기능을 사용할 수
+ * 있습니다.
  *
  * <p><strong>사용 목적:</strong>
  *

@@ -1,4 +1,4 @@
-package com.ryuqq.authhub.domain.permission.vo;
+package com.ryuqq.authhub.domain.permission.aggregate;
 
 /**
  * PermissionUpdateData - 권한 수정 데이터 Value Object

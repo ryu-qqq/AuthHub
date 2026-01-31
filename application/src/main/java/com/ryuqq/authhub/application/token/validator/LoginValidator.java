@@ -1,7 +1,7 @@
 package com.ryuqq.authhub.application.token.validator;
 
 import com.ryuqq.authhub.application.user.port.out.client.PasswordEncoderClient;
-import com.ryuqq.authhub.domain.auth.exception.InvalidCredentialsException;
+import com.ryuqq.authhub.domain.token.exception.InvalidCredentialsException;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import org.springframework.stereotype.Component;
 

@@ -2,15 +2,7 @@ package com.ryuqq.authhub.application.organization.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import java.time.Instant;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.ryuqq.authhub.application.common.dto.command.StatusChangeContext;
 import com.ryuqq.authhub.application.common.dto.command.UpdateContext;
 import com.ryuqq.authhub.application.common.port.out.IdGeneratorPort;
@@ -23,18 +15,25 @@ import com.ryuqq.authhub.domain.organization.aggregate.Organization;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import java.time.Instant;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * OrganizationCommandFactory 단위 테스트
  *
  * <p><strong>테스트 설계 원칙:</strong>
  *
- * 
  * <ul>
  *   <li>Factory는 Command → Domain 변환 담당
- * <li>시간/ID 생성 로직이 올바르게 적용되는지 검증
- * <li>Domain 객체의 상태가 올바르게 초기화되는지 검증
- * ul>
+ *   <li>시간/ID 생성 로직이 올바르게 적용되는지 검증
+ *   <li>Domain 객체의 상태가 올바르게 초기화되는지 검증 ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -46,10 +45,8 @@ class OrganizationCommandFactoryTest {
 
     @Mock private TimeProvider timeProvider;
 
-    
     @Mock private IdGeneratorPort idGeneratorPort;
 
-    
     private OrganizationCommandFactory sut;
 
     private static final Instant FIXED_TIME = OrganizationFixture.fixedTime();

@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotDeletableException;
 import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotModifiableException;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
-import com.ryuqq.authhub.domain.permission.vo.PermissionUpdateData;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

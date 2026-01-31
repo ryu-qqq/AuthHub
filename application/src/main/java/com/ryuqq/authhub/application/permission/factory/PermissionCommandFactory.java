@@ -7,8 +7,8 @@ import com.ryuqq.authhub.application.permission.dto.command.CreatePermissionComm
 import com.ryuqq.authhub.application.permission.dto.command.DeletePermissionCommand;
 import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionCommand;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
+import com.ryuqq.authhub.domain.permission.aggregate.PermissionUpdateData;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.PermissionUpdateData;
 import org.springframework.stereotype.Component;
 
 /**

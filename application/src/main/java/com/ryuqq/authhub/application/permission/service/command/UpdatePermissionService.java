@@ -7,8 +7,8 @@ import com.ryuqq.authhub.application.permission.manager.PermissionCommandManager
 import com.ryuqq.authhub.application.permission.port.in.command.UpdatePermissionUseCase;
 import com.ryuqq.authhub.application.permission.validator.PermissionValidator;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
+import com.ryuqq.authhub.domain.permission.aggregate.PermissionUpdateData;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
-import com.ryuqq.authhub.domain.permission.vo.PermissionUpdateData;
 import org.springframework.stereotype.Service;
 
 /**

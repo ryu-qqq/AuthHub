@@ -11,9 +11,9 @@ import com.ryuqq.authhub.application.permissionendpoint.dto.command.DeletePermis
 import com.ryuqq.authhub.application.permissionendpoint.dto.command.UpdatePermissionEndpointCommand;
 import com.ryuqq.authhub.application.permissionendpoint.fixture.PermissionEndpointCommandFixtures;
 import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpoint;
+import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpointUpdateData;
 import com.ryuqq.authhub.domain.permissionendpoint.fixture.PermissionEndpointFixture;
 import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
-import com.ryuqq.authhub.domain.permissionendpoint.vo.PermissionEndpointUpdateData;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

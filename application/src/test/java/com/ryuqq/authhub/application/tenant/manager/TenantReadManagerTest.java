@@ -4,6 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+
+import com.ryuqq.authhub.application.tenant.port.out.query.TenantQueryPort;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
+import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
+import com.ryuqq.authhub.domain.tenant.exception.TenantNotFoundException;
+import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
+import com.ryuqq.authhub.domain.tenant.query.criteria.TenantSearchCriteria;
+import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,14 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.ryuqq.authhub.application.tenant.port.out.query.TenantQueryPort;
-import com.ryuqq.authhub.domain.common.vo.DateRange;
-import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
-import com.ryuqq.authhub.domain.tenant.exception.TenantNotFoundException;
-import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
-import com.ryuqq.authhub.domain.tenant.id.TenantId;
-import com.ryuqq.authhub.domain.tenant.query.criteria.TenantSearchCriteria;
-import com.ryuqq.authhub.domain.tenant.vo.TenantName;
 
 /**
  * TenantReadManager 단위 테스트
@@ -36,7 +37,6 @@ class TenantReadManagerTest {
 
     @Mock private TenantQueryPort queryPort;
 
-    
     private TenantReadManager sut;
 
     @BeforeEach

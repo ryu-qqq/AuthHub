@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permissionendpoint.fixture.PermissionEndpointFixture;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
-import com.ryuqq.authhub.domain.permissionendpoint.vo.PermissionEndpointUpdateData;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

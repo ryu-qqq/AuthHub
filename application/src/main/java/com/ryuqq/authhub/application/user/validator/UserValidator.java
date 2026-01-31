@@ -2,8 +2,8 @@ package com.ryuqq.authhub.application.user.validator;
 
 import com.ryuqq.authhub.application.user.manager.UserReadManager;
 import com.ryuqq.authhub.application.user.port.out.client.PasswordEncoderClient;
-import com.ryuqq.authhub.domain.auth.exception.InvalidCredentialsException;
 import com.ryuqq.authhub.domain.organization.id.OrganizationId;
+import com.ryuqq.authhub.domain.token.exception.InvalidCredentialsException;
 import com.ryuqq.authhub.domain.user.aggregate.User;
 import com.ryuqq.authhub.domain.user.exception.DuplicateUserIdentifierException;
 import com.ryuqq.authhub.domain.user.exception.DuplicateUserPhoneNumberException;

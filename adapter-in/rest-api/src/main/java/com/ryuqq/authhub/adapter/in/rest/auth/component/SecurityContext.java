@@ -1,6 +1,5 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.component;
 
-import com.ryuqq.authhub.domain.auth.vo.Role;
 import java.util.Objects;
 import java.util.Set;
 
@@ -29,6 +28,19 @@ import java.util.Set;
 public final class SecurityContext {
 
     private static final SecurityContext ANONYMOUS = new Builder().build();
+
+    // ========== Role Constants (Gateway 계약) ==========
+    /** 시스템 전체 관리자 */
+    public static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
+
+    /** 테넌트 관리자 */
+    public static final String ROLE_TENANT_ADMIN = "ROLE_TENANT_ADMIN";
+
+    /** 조직 관리자 */
+    public static final String ROLE_ORG_ADMIN = "ROLE_ORG_ADMIN";
+
+    /** 일반 사용자 */
+    public static final String ROLE_MEMBER = "ROLE_MEMBER";
 
     /** 모든 리소스에 대한 와일드카드 권한 */
     private static final String WILDCARD_ALL_PERMISSIONS = "*:*";
@@ -231,7 +243,7 @@ public final class SecurityContext {
      * @return SUPER_ADMIN 보유 시 true
      */
     public boolean isSuperAdmin() {
-        return hasRole(Role.SUPER_ADMIN);
+        return hasRole(ROLE_SUPER_ADMIN);
     }
 
     /**
@@ -240,7 +252,7 @@ public final class SecurityContext {
      * @return TENANT_ADMIN 보유 시 true
      */
     public boolean isTenantAdmin() {
-        return hasRole(Role.TENANT_ADMIN);
+        return hasRole(ROLE_TENANT_ADMIN);
     }
 
     /**
@@ -249,7 +261,7 @@ public final class SecurityContext {
      * @return ORG_ADMIN 보유 시 true
      */
     public boolean isOrgAdmin() {
-        return hasRole(Role.ORG_ADMIN);
+        return hasRole(ROLE_ORG_ADMIN);
     }
 
     @Override

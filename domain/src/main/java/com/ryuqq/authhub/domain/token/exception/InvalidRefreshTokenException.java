@@ -1,4 +1,4 @@
-package com.ryuqq.authhub.domain.auth.exception;
+package com.ryuqq.authhub.domain.token.exception;
 
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 
@@ -13,6 +13,6 @@ import com.ryuqq.authhub.domain.common.exception.DomainException;
 public class InvalidRefreshTokenException extends DomainException {
 
     public InvalidRefreshTokenException() {
-        super(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        super(TokenErrorCode.INVALID_REFRESH_TOKEN);
     }
 }

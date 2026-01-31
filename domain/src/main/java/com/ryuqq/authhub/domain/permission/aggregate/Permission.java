@@ -5,7 +5,6 @@ import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotDeletabl
 import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotModifiableException;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
-import com.ryuqq.authhub.domain.permission.vo.PermissionUpdateData;
 import java.time.Instant;
 import java.util.Objects;
 

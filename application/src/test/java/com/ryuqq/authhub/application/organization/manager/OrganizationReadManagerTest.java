@@ -4,6 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+
+import com.ryuqq.authhub.application.organization.port.out.query.OrganizationQueryPort;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
+import com.ryuqq.authhub.domain.organization.aggregate.Organization;
+import com.ryuqq.authhub.domain.organization.exception.OrganizationNotFoundException;
+import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
+import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationSearchCriteria;
+import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,27 +24,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.ryuqq.authhub.application.organization.port.out.query.OrganizationQueryPort;
-import com.ryuqq.authhub.domain.common.vo.DateRange;
-import com.ryuqq.authhub.domain.organization.aggregate.Organization;
-import com.ryuqq.authhub.domain.organization.exception.OrganizationNotFoundException;
-import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
-import com.ryuqq.authhub.domain.organization.id.OrganizationId;
-import com.ryuqq.authhub.domain.organization.query.criteria.OrganizationSearchCriteria;
-import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
-import com.ryuqq.authhub.domain.tenant.id.TenantId;
 
 /**
  * OrganizationReadManager 단위 테스트
  *
  * <p><strong>테스트 설계 원칙:</strong>
  *
- * 
  * <ul>
  *   <li>ReadManager는 QueryPort 위임 + 예외 변환 담당
- * <li>Port 호출이 올바르게 위임되는지 검증
- * <li>조회 실패 시 적절한 DomainException 발생 검증
- * ul>
+ *   <li>Port 호출이 올바르게 위임되는지 검증
+ *   <li>조회 실패 시 적절한 DomainException 발생 검증
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -46,7 +46,6 @@ class OrganizationReadManagerTest {
 
     @Mock private OrganizationQueryPort queryPort;
 
-    
     private OrganizationReadManager sut;
 
     @BeforeEach
@@ -170,11 +169,18 @@ class OrganizationReadManagerTest {
         void shouldReturnOrganizations_MatchingCriteria() {
             // given
             OrganizationSearchCriteria criteria =
-                    OrganizationSearchCriteria.of         List.of(OrganizationFixture.
-                    null, null, DateR
-                    0, 10 n> expected =
-                    List.of(         OrganizationFixture.createWithName("Org 2"))
-                    
+                    OrganizationSearchCriteria.ofSimple(
+                            List.of(OrganizationFixture.defaultTenantId()),
+                            null,
+                            null,
+                            DateRange.of(null, null),
+                            0,
+                            10);
+            List<Organization> expected =
+                    List.of(
+                            OrganizationFixture.createWithName("Org 1"),
+                            OrganizationFixture.createWithName("Org 2"));
+
             given(queryPort.findAllBySearchCriteria(criteria)).willReturn(expected);
 
             // when
@@ -190,8 +196,9 @@ class OrganizationReadManagerTest {
         void shouldReturnEmptyList_WhenNoMatch() {
             // given
             OrganizationSearchCriteria criteria =
-                    OrganizationSearchCriteria.of         null, "NonExistent", null, D
-                    
+                    OrganizationSearchCriteria.ofSimple(
+                            null, "NonExistent", null, DateRange.of(null, null), 0, 10);
+
             given(queryPort.findAllBySearchCriteria(criteria)).willReturn(List.of());
 
             // when
@@ -211,9 +218,14 @@ class OrganizationReadManagerTest {
         void shouldReturnCount_MatchingCriteria() {
             // given
             OrganizationSearchCriteria criteria =
-                    OrganizationSearchCriteria.of         List.of(OrganizationFixture.
-                    null, null, DateR
-                    0, 10 
+                    OrganizationSearchCriteria.ofSimple(
+                            List.of(OrganizationFixture.defaultTenantId()),
+                            null,
+                            null,
+                            DateRange.of(null, null),
+                            0,
+                            10);
+
             given(queryPort.countBySearchCriteria(criteria)).willReturn(15L);
 
             // when
@@ -229,8 +241,9 @@ class OrganizationReadManagerTest {
         void shouldReturnZero_WhenNoMatch() {
             // given
             OrganizationSearchCriteria criteria =
-                    OrganizationSearchCriteria.of         null, "NonExistent", null, D
-                    
+                    OrganizationSearchCriteria.ofSimple(
+                            null, "NonExistent", null, DateRange.of(null, null), 0, 10);
+
             given(queryPort.countBySearchCriteria(criteria)).willReturn(0L);
 
             // when

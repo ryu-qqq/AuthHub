@@ -1,6 +1,5 @@
 package com.ryuqq.authhub.adapter.in.rest.common.fixture;
 
-import com.ryuqq.authhub.domain.auth.exception.InvalidCredentialsException;
 import com.ryuqq.authhub.domain.common.exception.DomainException;
 import com.ryuqq.authhub.domain.organization.exception.DuplicateOrganizationNameException;
 import com.ryuqq.authhub.domain.organization.exception.OrganizationNotFoundException;
@@ -15,6 +14,7 @@ import com.ryuqq.authhub.domain.rolepermission.exception.DuplicateRolePermission
 import com.ryuqq.authhub.domain.rolepermission.exception.RolePermissionNotFoundException;
 import com.ryuqq.authhub.domain.tenant.exception.DuplicateTenantNameException;
 import com.ryuqq.authhub.domain.tenant.exception.TenantNotFoundException;
+import com.ryuqq.authhub.domain.token.exception.InvalidCredentialsException;
 import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
 import com.ryuqq.authhub.domain.user.id.UserId;
 import com.ryuqq.authhub.domain.userrole.exception.DuplicateUserRoleException;

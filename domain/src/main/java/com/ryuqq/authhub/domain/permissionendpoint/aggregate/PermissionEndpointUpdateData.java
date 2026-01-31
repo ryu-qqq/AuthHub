@@ -1,4 +1,6 @@
-package com.ryuqq.authhub.domain.permissionendpoint.vo;
+package com.ryuqq.authhub.domain.permissionendpoint.aggregate;
+
+import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
 
 /**
  * PermissionEndpointUpdateData - PermissionEndpoint 수정 데이터 Value Object

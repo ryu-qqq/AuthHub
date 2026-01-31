@@ -1,6 +1,12 @@
 package com.ryuqq.authhub.application.tenant.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.ryuqq.authhub.application.tenant.dto.response.TenantConfigResult;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantPageResult;
+import com.ryuqq.authhub.application.tenant.dto.response.TenantResult;
+import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
+import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,11 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import com.ryuqq.authhub.application.tenant.dto.response.TenantConfigResult;
-import com.ryuqq.authhub.application.tenant.dto.response.TenantPageResult;
-import com.ryuqq.authhub.application.tenant.dto.response.TenantResult;
-import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
-import com.ryuqq.authhub.domain.tenant.fixture.TenantFixture;
 
 /**
  * TenantAssembler 단위 테스트

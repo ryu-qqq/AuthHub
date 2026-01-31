@@ -2,15 +2,7 @@ package com.ryuqq.authhub.application.permission.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import java.time.Instant;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.ryuqq.authhub.application.common.dto.command.StatusChangeContext;
 import com.ryuqq.authhub.application.common.dto.command.UpdateContext;
 import com.ryuqq.authhub.application.common.time.TimeProvider;
@@ -22,18 +14,25 @@ import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.aggregate.PermissionUpdateData;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import java.time.Instant;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * PermissionCommandFactory 단위 테스트
  *
  * <p><strong>테스트 설계 원칙:</strong>
  *
- * 
  * <ul>
  *   <li>Factory는 Command → Domain 변환 담당
- * <li>시간 생성 로직이 올바르게 적용되는지 검증
- * <li>Domain 객체의 상태가 올바르게 초기화되는지 검증
- * ul>
+ *   <li>시간 생성 로직이 올바르게 적용되는지 검증
+ *   <li>Domain 객체의 상태가 올바르게 초기화되는지 검증 ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -45,7 +44,6 @@ class PermissionCommandFactoryTest {
 
     @Mock private TimeProvider timeProvider;
 
-    
     private PermissionCommandFactory sut;
 
     private static final Instant FIXED_TIME = PermissionFixture.fixedTime();

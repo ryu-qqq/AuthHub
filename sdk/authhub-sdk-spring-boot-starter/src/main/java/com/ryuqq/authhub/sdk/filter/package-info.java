@@ -12,8 +12,8 @@
  *
  * <p><strong>의존성:</strong>
  *
- * <p>이 패키지의 필터들은 Spring Web과 Jakarta Servlet API에 의존합니다. common-auth 모듈에서는 compileOnly로 선언되어 있으므로,
- * 사용하는 서비스에서 해당 의존성을 제공해야 합니다.
+ * <p>이 패키지의 필터들은 Spring Web과 Jakarta Servlet API에 의존합니다. SDK에서는 compileOnly로 선언되어 있으므로, 사용하는 서비스에서
+ * 해당 의존성을 제공해야 합니다.
  *
  * <p><strong>Spring Boot 사용 시:</strong>
  *

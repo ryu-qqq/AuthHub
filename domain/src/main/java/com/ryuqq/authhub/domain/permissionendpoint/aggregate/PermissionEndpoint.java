@@ -4,7 +4,6 @@ import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
-import com.ryuqq.authhub.domain.permissionendpoint.vo.PermissionEndpointUpdateData;
 import java.time.Instant;
 import java.util.Objects;
 

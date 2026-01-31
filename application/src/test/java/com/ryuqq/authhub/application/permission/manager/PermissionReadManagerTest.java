@@ -4,6 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+
+import com.ryuqq.authhub.application.permission.port.out.query.PermissionQueryPort;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
+import com.ryuqq.authhub.domain.permission.aggregate.Permission;
+import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException;
+import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,25 +22,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.ryuqq.authhub.application.permission.port.out.query.PermissionQueryPort;
-import com.ryuqq.authhub.domain.common.vo.DateRange;
-import com.ryuqq.authhub.domain.permission.aggregate.Permission;
-import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException;
-import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
-import com.ryuqq.authhub.domain.permission.id.PermissionId;
-import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
 
 /**
  * PermissionReadManager 단위 테스트
  *
  * <p><strong>테스트 설계 원칙:</strong>
  *
- * 
  * <ul>
  *   <li>ReadManager는 QueryPort 위임 + 예외 변환 담당
- * <li>Port 호출이 올바르게 위임되는지 검증
- * <li>조회 실패 시 적절한 DomainException 발생 검증
- * ul>
+ *   <li>Port 호출이 올바르게 위임되는지 검증
+ *   <li>조회 실패 시 적절한 DomainException 발생 검증 ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -44,7 +43,6 @@ class PermissionReadManagerTest {
 
     @Mock private PermissionQueryPort queryPort;
 
-    
     private PermissionReadManager sut;
 
     @BeforeEach
