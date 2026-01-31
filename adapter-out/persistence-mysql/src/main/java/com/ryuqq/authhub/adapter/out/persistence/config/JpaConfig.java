@@ -1,4 +1,4 @@
-package com.ryuqq.setof.adapter.out.persistence.config;
+package com.ryuqq.authhub.adapter.out.persistence.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
