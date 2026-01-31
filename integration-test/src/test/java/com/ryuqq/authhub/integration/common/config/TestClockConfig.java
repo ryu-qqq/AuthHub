@@ -1,11 +1,8 @@
 package com.ryuqq.authhub.integration.common.config;
 
-import com.ryuqq.authhub.domain.common.util.ClockHolder;
-import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.UUID;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -35,28 +32,5 @@ public class TestClockConfig {
     @Primary
     public Clock clock() {
         return Clock.fixed(FIXED_INSTANT, TEST_ZONE);
-    }
-
-    /**
-     * 테스트용 ClockHolder Bean. Domain Layer의 ClockHolder 인터페이스를 구현하여 고정된 시간 제공.
-     *
-     * @return ClockHolder (고정 시간 사용)
-     */
-    @Bean
-    @Primary
-    public ClockHolder clockHolder() {
-        Clock fixedClock = Clock.fixed(FIXED_INSTANT, TEST_ZONE);
-        return () -> fixedClock;
-    }
-
-    /**
-     * 테스트용 UuidHolder Bean. Domain Layer의 UuidHolder 인터페이스를 구현하여 UUID 제공.
-     *
-     * @return UuidHolder (랜덤 UUID 생성)
-     */
-    @Bean
-    @Primary
-    public UuidHolder uuidHolder() {
-        return UUID::randomUUID;
     }
 }

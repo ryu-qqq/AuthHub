@@ -4,16 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-
-import com.ryuqq.authhub.application.role.port.out.query.RoleQueryPort;
-import com.ryuqq.authhub.domain.common.vo.DateRange;
-import com.ryuqq.authhub.domain.role.aggregate.Role;
-import com.ryuqq.authhub.domain.role.exception.RoleNotFoundException;
-import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
-import com.ryuqq.authhub.domain.role.id.RoleId;
-import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
-import com.ryuqq.authhub.domain.role.vo.RoleName;
-import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,17 +14,27 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.ryuqq.authhub.application.role.port.out.query.RoleQueryPort;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
+import com.ryuqq.authhub.domain.role.aggregate.Role;
+import com.ryuqq.authhub.domain.role.exception.RoleNotFoundException;
+import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
+import com.ryuqq.authhub.domain.role.id.RoleId;
+import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
+import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.tenant.id.TenantId;
 
 /**
  * RoleReadManager 단위 테스트
  *
  * <p><strong>테스트 설계 원칙:</strong>
  *
+ * 
  * <ul>
  *   <li>ReadManager는 QueryPort 위임 + 예외 변환 담당
- *   <li>Port 호출이 올바르게 위임되는지 검증
- *   <li>조회 실패 시 적절한 DomainException 발생 검증
- * </ul>
+ * <li>Port 호출이 올바르게 위임되는지 검증
+ * <li>조회 실패 시 적절한 DomainException 발생 검증
+ * ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -46,6 +46,7 @@ class RoleReadManagerTest {
 
     @Mock private RoleQueryPort queryPort;
 
+    
     private RoleReadManager sut;
 
     @BeforeEach

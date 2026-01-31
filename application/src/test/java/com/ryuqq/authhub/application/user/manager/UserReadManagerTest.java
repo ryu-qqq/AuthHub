@@ -4,16 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-
-import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
-import com.ryuqq.authhub.domain.common.vo.DateRange;
-import com.ryuqq.authhub.domain.organization.id.OrganizationId;
-import com.ryuqq.authhub.domain.user.aggregate.User;
-import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
-import com.ryuqq.authhub.domain.user.fixture.UserFixture;
-import com.ryuqq.authhub.domain.user.id.UserId;
-import com.ryuqq.authhub.domain.user.query.criteria.UserSearchCriteria;
-import com.ryuqq.authhub.domain.user.vo.Identifier;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +14,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.ryuqq.authhub.application.user.port.out.query.UserQueryPort;
+import com.ryuqq.authhub.domain.common.vo.DateRange;
+import com.ryuqq.authhub.domain.organization.id.OrganizationId;
+import com.ryuqq.authhub.domain.user.aggregate.User;
+import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
+import com.ryuqq.authhub.domain.user.fixture.UserFixture;
+import com.ryuqq.authhub.domain.user.id.UserId;
+import com.ryuqq.authhub.domain.user.query.criteria.UserSearchCriteria;
+import com.ryuqq.authhub.domain.user.vo.Identifier;
 
 /**
  * UserReadManager 단위 테스트
@@ -38,6 +37,7 @@ class UserReadManagerTest {
 
     @Mock private UserQueryPort queryPort;
 
+    
     private UserReadManager sut;
 
     @BeforeEach
@@ -111,13 +111,8 @@ class UserReadManagerTest {
             // given
             UserSearchCriteria criteria =
                     UserSearchCriteria.ofDefault(
-                            List.of(UserFixture.defaultOrganizationId()),
-                            null,
-                            null,
-                            DateRange.of(null, null),
-                            0,
-                            10);
-            List<User> expected = List.of(UserFixture.create());
+                            List.of(UserFixture.dnull, null,
+                            DateR 0, 10 ted = List.of(UserFixture.create());
 
             given(queryPort.findAllBySearchCriteria(criteria)).willReturn(expected);
 

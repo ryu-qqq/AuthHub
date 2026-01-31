@@ -1,6 +1,5 @@
 package com.ryuqq.authhub.domain.tenant.fixture;
 
-import com.ryuqq.authhub.domain.common.util.ClockHolder;
 import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.tenant.aggregate.Tenant;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
@@ -79,14 +78,9 @@ public final class TenantFixture {
                 FIXED_TIME);
     }
 
-    /** 테스트용 고정 ClockHolder 반환 */
-    public static ClockHolder fixedClockHolder() {
-        return () -> Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
-    }
-
     /** 테스트용 고정 Clock 반환 */
     public static Clock fixedClock() {
-        return fixedClockHolder().clock();
+        return Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
     }
 
     /** 기본 TenantId 반환 */

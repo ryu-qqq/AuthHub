@@ -9,13 +9,10 @@ import com.ryuqq.authhub.adapter.out.persistence.token.entity.RefreshTokenJpaEnt
 import com.ryuqq.authhub.adapter.out.persistence.token.fixture.RefreshTokenJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.token.repository.RefreshTokenJpaRepository;
 import com.ryuqq.authhub.adapter.out.persistence.token.repository.RefreshTokenQueryDslRepository;
-import com.ryuqq.authhub.domain.common.util.ClockHolder;
-import com.ryuqq.authhub.domain.common.util.UuidHolder;
+import com.ryuqq.authhub.application.common.time.TimeProvider;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.id.UserId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  * <ul>
  *   <li>Adapter는 Repository 위임 담당
- *   <li>Repository/ClockHolder/UuidHolder를 Mock으로 대체
+ *   <li>Repository/TimeProvider를 Mock으로 대체
  *   <li>persist는 기존 토큰 존재 여부에 따라 다른 흐름
  *   <li>deleteByUserId는 JpaRepository에 위임
  * </ul>
@@ -51,9 +48,7 @@ class RefreshTokenCommandAdapterTest {
 
     @Mock private RefreshTokenQueryDslRepository queryDslRepository;
 
-    @Mock private ClockHolder clockHolder;
-
-    @Mock private UuidHolder uuidHolder;
+    @Mock private TimeProvider timeProvider;
 
     private RefreshTokenCommandAdapter sut;
 
@@ -61,9 +56,7 @@ class RefreshTokenCommandAdapterTest {
 
     @BeforeEach
     void setUp() {
-        sut =
-                new RefreshTokenCommandAdapter(
-                        jpaRepository, queryDslRepository, clockHolder, uuidHolder);
+        sut = new RefreshTokenCommandAdapter(jpaRepository, queryDslRepository, timeProvider);
     }
 
     @Nested
@@ -76,13 +69,10 @@ class RefreshTokenCommandAdapterTest {
             // given
             UserId userId = UserFixture.defaultId();
             String refreshToken = "new_refresh_token";
-            UUID newRefreshTokenId = UUID.randomUUID();
-            Clock clock = Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
 
-            given(clockHolder.clock()).willReturn(clock);
+            given(timeProvider.now()).willReturn(FIXED_TIME);
             given(queryDslRepository.findByUserId(UUID.fromString(userId.value())))
                     .willReturn(Optional.empty());
-            given(uuidHolder.random()).willReturn(newRefreshTokenId);
 
             // when
             sut.persist(userId, refreshToken);
@@ -98,9 +88,8 @@ class RefreshTokenCommandAdapterTest {
             UserId userId = UserFixture.defaultId();
             String newRefreshToken = "updated_refresh_token";
             RefreshTokenJpaEntity existingEntity = RefreshTokenJpaEntityFixture.create();
-            Clock clock = Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
 
-            given(clockHolder.clock()).willReturn(clock);
+            given(timeProvider.now()).willReturn(FIXED_TIME);
             given(queryDslRepository.findByUserId(UUID.fromString(userId.value())))
                     .willReturn(Optional.of(existingEntity));
 
@@ -112,65 +101,21 @@ class RefreshTokenCommandAdapterTest {
         }
 
         @Test
-        @DisplayName("ClockHolder에서 현재 시각 획득")
-        void shouldGetCurrentTime_FromClockHolder() {
+        @DisplayName("TimeProvider에서 현재 시각 획득")
+        void shouldGetCurrentTime_FromTimeProvider() {
             // given
             UserId userId = UserFixture.defaultId();
             String refreshToken = "test_token";
-            UUID newRefreshTokenId = UUID.randomUUID();
-            Clock clock = Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
 
-            given(clockHolder.clock()).willReturn(clock);
+            given(timeProvider.now()).willReturn(FIXED_TIME);
             given(queryDslRepository.findByUserId(UUID.fromString(userId.value())))
                     .willReturn(Optional.empty());
-            given(uuidHolder.random()).willReturn(newRefreshTokenId);
 
             // when
             sut.persist(userId, refreshToken);
 
             // then
-            then(clockHolder).should().clock();
-        }
-
-        @Test
-        @DisplayName("신규 저장 시 UuidHolder에서 UUID 생성")
-        void shouldGenerateUuid_FromUuidHolder_WhenCreatingNew() {
-            // given
-            UserId userId = UserFixture.defaultId();
-            String refreshToken = "test_token";
-            UUID newRefreshTokenId = UUID.randomUUID();
-            Clock clock = Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
-
-            given(clockHolder.clock()).willReturn(clock);
-            given(queryDslRepository.findByUserId(UUID.fromString(userId.value())))
-                    .willReturn(Optional.empty());
-            given(uuidHolder.random()).willReturn(newRefreshTokenId);
-
-            // when
-            sut.persist(userId, refreshToken);
-
-            // then
-            then(uuidHolder).should().random();
-        }
-
-        @Test
-        @DisplayName("업데이트 시 UuidHolder 호출하지 않음")
-        void shouldNotCallUuidHolder_WhenUpdating() {
-            // given
-            UserId userId = UserFixture.defaultId();
-            String newRefreshToken = "updated_refresh_token";
-            RefreshTokenJpaEntity existingEntity = RefreshTokenJpaEntityFixture.create();
-            Clock clock = Clock.fixed(FIXED_TIME, ZoneOffset.UTC);
-
-            given(clockHolder.clock()).willReturn(clock);
-            given(queryDslRepository.findByUserId(UUID.fromString(userId.value())))
-                    .willReturn(Optional.of(existingEntity));
-
-            // when
-            sut.persist(userId, newRefreshToken);
-
-            // then
-            then(uuidHolder).should(never()).random();
+            then(timeProvider).should().now();
         }
     }
 

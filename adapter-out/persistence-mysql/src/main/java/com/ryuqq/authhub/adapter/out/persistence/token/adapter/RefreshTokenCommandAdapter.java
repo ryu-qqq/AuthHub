@@ -3,9 +3,8 @@ package com.ryuqq.authhub.adapter.out.persistence.token.adapter;
 import com.ryuqq.authhub.adapter.out.persistence.token.entity.RefreshTokenJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.token.repository.RefreshTokenJpaRepository;
 import com.ryuqq.authhub.adapter.out.persistence.token.repository.RefreshTokenQueryDslRepository;
+import com.ryuqq.authhub.application.common.time.TimeProvider;
 import com.ryuqq.authhub.application.token.port.out.command.RefreshTokenCommandPort;
-import com.ryuqq.authhub.domain.common.util.ClockHolder;
-import com.ryuqq.authhub.domain.common.util.UuidHolder;
 import com.ryuqq.authhub.domain.user.id.UserId;
 import java.time.Instant;
 import java.util.UUID;
@@ -20,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <p><strong>시간 처리:</strong>
  *
  * <ul>
- *   <li>ClockHolder.now()로 현재 시각 획득 (Instant)
+ *   <li>TimeProvider.now()로 현재 시각 획득 (Instant)
  *   <li>Entity 저장 시 Instant (UTC) 직접 전달
  * </ul>
  *
@@ -40,18 +39,15 @@ public class RefreshTokenCommandAdapter implements RefreshTokenCommandPort {
 
     private final RefreshTokenJpaRepository refreshTokenJpaRepository;
     private final RefreshTokenQueryDslRepository refreshTokenQueryDslRepository;
-    private final ClockHolder clockHolder;
-    private final UuidHolder uuidHolder;
+    private final TimeProvider timeProvider;
 
     public RefreshTokenCommandAdapter(
             RefreshTokenJpaRepository refreshTokenJpaRepository,
             RefreshTokenQueryDslRepository refreshTokenQueryDslRepository,
-            ClockHolder clockHolder,
-            UuidHolder uuidHolder) {
+            TimeProvider timeProvider) {
         this.refreshTokenJpaRepository = refreshTokenJpaRepository;
         this.refreshTokenQueryDslRepository = refreshTokenQueryDslRepository;
-        this.clockHolder = clockHolder;
-        this.uuidHolder = uuidHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -65,7 +61,7 @@ public class RefreshTokenCommandAdapter implements RefreshTokenCommandPort {
     @Override
     @Transactional
     public void persist(UserId userId, String refreshToken) {
-        Instant now = clockHolder.clock().instant();
+        Instant now = timeProvider.now();
 
         refreshTokenQueryDslRepository
                 .findByUserId(UUID.fromString(userId.value()))
@@ -74,7 +70,7 @@ public class RefreshTokenCommandAdapter implements RefreshTokenCommandPort {
                         () -> {
                             RefreshTokenJpaEntity newEntity =
                                     RefreshTokenJpaEntity.forNew(
-                                            uuidHolder.random(),
+                                            UUID.randomUUID(),
                                             UUID.fromString(userId.value()),
                                             refreshToken,
                                             now);
