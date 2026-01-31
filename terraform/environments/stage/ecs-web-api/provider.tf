@@ -134,10 +134,11 @@ data "aws_ssm_parameter" "amp_remote_write_url" {
 # ========================================
 # Stage Redis: stage-shared-redis (TLS 비활성화, 비밀번호 없음)
 data "aws_ssm_parameter" "redis_endpoint" {
-  name = "/${var.project_name}/${var.environment}/elasticache/redis-endpoint"
+  name = "/shared/stage/elasticache/redis-endpoint"
 }
+
 data "aws_ssm_parameter" "redis_port" {
-  name = "/${var.project_name}/${var.environment}/elasticache/redis-port"
+  name = "/shared/stage/elasticache/redis-port"
 }
 
 # ========================================
@@ -161,7 +162,7 @@ locals {
   rds_dbname      = "auth"
   rds_username    = local.rds_credentials.username
 
-  # Redis Configuration (Stage - SSM Parameter 참조)
+  # Redis Configuration (Stage - stage-shared-redis SSM 참조)
   redis_host = data.aws_ssm_parameter.redis_endpoint.value
   redis_port = tonumber(data.aws_ssm_parameter.redis_port.value)
 

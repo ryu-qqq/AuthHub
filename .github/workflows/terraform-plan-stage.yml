@@ -26,12 +26,11 @@ jobs:
     strategy:
       matrix:
         module:
+          # elasticache 제거 - stage-shared-redis 사용
           - name: ecr
             dir: terraform/environments/stage/ecr
           - name: ecs-cluster
             dir: terraform/environments/stage/ecs-cluster
-          - name: elasticache
-            dir: terraform/environments/stage/elasticache
           - name: ecs-web-api
             dir: terraform/environments/stage/ecs-web-api
 
@@ -105,9 +104,9 @@ jobs:
           echo "**Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Modules Planned" >> $GITHUB_STEP_SUMMARY
-          echo "- ECR (authhub-web-api-stage)" >> $GITHUB_STEP_SUMMARY
-          echo "- ECS Cluster (authhub-cluster-stage)" >> $GITHUB_STEP_SUMMARY
-          echo "- ElastiCache (Stage config)" >> $GITHUB_STEP_SUMMARY
-          echo "- ECS Web API (authhub-web-api-stage)" >> $GITHUB_STEP_SUMMARY
+          echo "- ECR (authhub-web-api-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- ECS Cluster (authhub-cluster-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- ECS Web API (authhub-web-api-staging)" >> $GITHUB_STEP_SUMMARY
+          echo "- Redis: stage-shared-redis (Shared)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Note**: Review artifacts for detailed plan output." >> $GITHUB_STEP_SUMMARY
