@@ -17,7 +17,7 @@ security:
     # Stage에서 서비스 토큰 인증 필수
     enabled: true
     # 서비스 토큰 시크릿 (Secrets Manager에서 주입)
-    secret: ${SERVICE_TOKEN_SECRET}
+    secret: ${SECURITY_SERVICE_TOKEN_SECRET}
   jwt:
     # RSA 키 설정
     rsa:

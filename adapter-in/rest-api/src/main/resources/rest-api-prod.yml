@@ -17,7 +17,7 @@ security:
     # 운영에서 서비스 토큰 인증 필수
     enabled: true
     # 서비스 토큰 시크릿 (Secrets Manager에서 주입)
-    secret: ${SERVICE_TOKEN_SECRET}
+    secret: ${SECURITY_SERVICE_TOKEN_SECRET}
   jwt:
     # RSA 키 설정 (RSA 키가 Secrets Manager에 등록되면 활성화)
     # TODO: RSA 키 등록 후 enabled: true로 변경
@@ -34,8 +34,8 @@ security:
     secure: true
     # CSRF 보호를 위한 strict 권장
     same-site: strict
-    # 환경변수로 도메인 설정 (하드코딩 금지)
-    domain: ${COOKIE_DOMAIN}
+    # 환경변수로 도메인 설정
+    domain: ${COOKIE_DOMAIN:authhub.com}
 
 # ===============================================
 # SpringDoc OpenAPI Configuration Override
