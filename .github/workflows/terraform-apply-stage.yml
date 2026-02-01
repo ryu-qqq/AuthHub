@@ -36,16 +36,13 @@ jobs:
       max-parallel: 1
       matrix:
         module:
-          # 의존성 순서대로 배치 (elasticache 제거 - stage-shared-redis 사용)
-          - name: ecr
-            dir: terraform/environments/stage/ecr
-            order: 0
+          # 의존성 순서대로 배치 (ECR, elasticache 제거 - 수동 관리)
           - name: ecs-cluster
             dir: terraform/environments/stage/ecs-cluster
-            order: 1
+            order: 0
           - name: ecs-web-api
             dir: terraform/environments/stage/ecs-web-api
-            order: 2
+            order: 1
 
     steps:
       - name: Checkout code
