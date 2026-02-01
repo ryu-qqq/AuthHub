@@ -27,12 +27,12 @@ module "ecr_web_api" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecr?ref=main"
 
   name                 = "${var.project_name}-web-api-${var.environment}"
-  image_tag_mutability = "IMMUTABLE"
+  image_tag_mutability = "MUTABLE"  # 기존 AWS 설정 유지
   scan_on_push         = true
 
-  # KMS encryption for ECR images
-  kms_key_arn  = "arn:aws:kms:ap-northeast-2:646886795421:key/086b1677-614f-46ba-863e-23c215fb5010"
-  force_delete = true
+  # 기존 ECR이 AES256 암호화를 사용
+  encryption_type = "AES256"
+  force_delete    = true
 
   # Lifecycle Policy (Stage: 더 적은 이미지 보관)
   enable_lifecycle_policy    = true
