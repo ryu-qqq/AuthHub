@@ -419,6 +419,7 @@ public final class PermissionEndpoint {
         PermissionEndpoint that = (PermissionEndpoint) o;
         if (permissionEndpointId == null || that.permissionEndpointId == null) {
             return Objects.equals(permissionId, that.permissionId)
+                    && Objects.equals(serviceName, that.serviceName)
                     && Objects.equals(urlPattern, that.urlPattern)
                     && Objects.equals(httpMethod, that.httpMethod);
         }
@@ -430,7 +431,7 @@ public final class PermissionEndpoint {
         if (permissionEndpointId != null) {
             return Objects.hash(permissionEndpointId);
         }
-        return Objects.hash(permissionId, urlPattern, httpMethod);
+        return Objects.hash(permissionId, serviceName, urlPattern, httpMethod);
     }
 
     @Override

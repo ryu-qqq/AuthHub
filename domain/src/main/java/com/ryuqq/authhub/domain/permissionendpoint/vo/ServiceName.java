@@ -1,5 +1,7 @@
 package com.ryuqq.authhub.domain.permissionendpoint.vo;
 
+import java.util.regex.Pattern;
+
 /**
  * ServiceName - 서비스 이름 Value Object
  *
@@ -20,7 +22,8 @@ package com.ryuqq.authhub.domain.permissionendpoint.vo;
 public record ServiceName(String value) {
 
     private static final int MAX_LENGTH = 100;
-    private static final String PATTERN = "^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$";
+    private static final Pattern COMPILED_PATTERN =
+            Pattern.compile("^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$");
 
     public ServiceName {
         if (value == null || value.isBlank()) {
@@ -29,7 +32,7 @@ public record ServiceName(String value) {
         if (value.length() > MAX_LENGTH) {
             throw new IllegalArgumentException("serviceName은 " + MAX_LENGTH + "자를 초과할 수 없습니다");
         }
-        if (!value.matches(PATTERN)) {
+        if (!COMPILED_PATTERN.matcher(value).matches()) {
             throw new IllegalArgumentException("serviceName은 영문 소문자, 숫자, 하이픈만 허용됩니다: " + value);
         }
     }

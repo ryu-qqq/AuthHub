@@ -244,8 +244,13 @@ public class PermissionFilter implements GlobalFilter {
         boolean hasPermission = hasAnyPermission(userPermissions, ep.requiredPermissions());
         boolean hasRole = hasAnyRole(userRoles, ep.requiredRoles());
 
-        // 6. requiredPermissions와 requiredRoles 중 하나라도 만족하면 통과
-        if (hasPermission || hasRole) {
+        // 6. requiredPermissions와 requiredRoles가 모두 만족해야 통과 (AND 조건)
+        //    - 빈 배열이면 해당 조건은 자동 통과
+        //    - 예: requiredPermissions=[], requiredRoles=["ADMIN"] → role만 체크
+        boolean permissionSatisfied = ep.requiredPermissions().isEmpty() || hasPermission;
+        boolean roleSatisfied = ep.requiredRoles().isEmpty() || hasRole;
+
+        if (permissionSatisfied && roleSatisfied) {
             return chain.filter(exchange);
         }
 
@@ -398,23 +403,28 @@ authhub:
     read: 10s
 ```
 
-### 4.3 PermissionSpec API 호출 (SDK 확장 예정)
+### 4.3 PermissionSpec API 호출
 
-> **Note**: 현재 SDK에는 PermissionSpec API가 없습니다. 아래는 추가 예정 스펙입니다.
+SDK의 `GatewayClient`를 사용하여 PermissionSpec을 조회할 수 있습니다.
 
 ```java
-// SDK에 추가될 API (예정)
 @Service
 public class PermissionSpecService {
 
-    private final AuthHubClient authHub;
+    private final GatewayClient gatewayClient;
 
-    public PermissionSpec getSpec() {
-        return authHub.internal().getPermissionSpec();
+    public PermissionSpecService(GatewayClient gatewayClient) {
+        this.gatewayClient = gatewayClient;
     }
 
-    public PermissionSpecVersion getSpecVersion() {
-        return authHub.internal().getPermissionSpecVersion();
+    public EndpointPermissionSpecList getSpec() {
+        ApiResponse<EndpointPermissionSpecList> response =
+            gatewayClient.internal().getPermissionSpec();
+
+        if (response.success()) {
+            return response.data();
+        }
+        throw new RuntimeException("Permission Spec 조회 실패: " + response.error());
     }
 }
 ```
