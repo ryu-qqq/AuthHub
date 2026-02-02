@@ -182,26 +182,35 @@ public class EndpointSyncCoordinator {
         // 1. urlPattern 목록 추출
         List<String> urlPatterns = items.stream().map(EndpointSyncItem::pathPattern).toList();
 
-        // 2. IN절로 기존 PermissionEndpoint 한방 조회
+        // 2. IN절로 기존 PermissionEndpoint 한방 조회 후 서비스명으로 필터링
         List<PermissionEndpoint> existingEndpoints =
-                permissionEndpointReadManager.findAllByUrlPatterns(urlPatterns);
+                permissionEndpointReadManager.findAllByUrlPatterns(urlPatterns).stream()
+                        .filter(endpoint -> serviceName.equals(endpoint.serviceNameValue()))
+                        .toList();
 
-        // 3. 기존 엔드포인트의 (urlPattern, httpMethod) Set 생성
+        // 3. 기존 엔드포인트의 (serviceName, urlPattern, httpMethod) Set 생성
         Set<String> existingEndpointKeys =
                 existingEndpoints.stream()
                         .map(
                                 endpoint ->
-                                        endpoint.urlPatternValue()
+                                        endpoint.serviceNameValue()
+                                                + "|"
+                                                + endpoint.urlPatternValue()
                                                 + "|"
                                                 + endpoint.httpMethodValue())
                         .collect(Collectors.toSet());
 
-        // 4. 누락된 엔드포인트 필터링
+        // 4. 누락된 엔드포인트 필터링 (serviceName 포함 키 비교)
         List<EndpointSyncItem> newEndpointItems =
                 items.stream()
                         .filter(
                                 item -> {
-                                    String key = item.pathPattern() + "|" + item.httpMethod();
+                                    String key =
+                                            serviceName
+                                                    + "|"
+                                                    + item.pathPattern()
+                                                    + "|"
+                                                    + item.httpMethod();
                                     return !existingEndpointKeys.contains(key);
                                 })
                         .toList();

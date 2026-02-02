@@ -317,4 +317,4 @@ ApiResponse<EndpointPermissionSpecList> response =
 | 버전 | 날짜 | 변경 내용 |
 |------|------|----------|
 | 1.1.0 | 2026-02-02 | GatewayClient 추가 (Internal API 지원) |
-| 1.0.0 | 2025-xx-xx | 최초 릴리즈 (AuthHubClient) |
+| 1.0.0 | 2025-01-15 | 최초 릴리즈 (AuthHubClient) |
