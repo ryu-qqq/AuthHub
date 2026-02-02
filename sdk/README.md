@@ -14,6 +14,10 @@ AuthHub REST API와 통합하기 위한 공식 Java SDK입니다. 멀티 테넌�
 - [에러 처리](#에러-처리)
 - [고급 사용법](#고급-사용법)
 - [예제](#예제)
+- [멀티모듈 프로젝트 통합](#멀티모듈-프로젝트-통합)
+- [권한 체크 (Access Control)](#권한-체크-access-control)
+- [서비스 토큰 인증](#서비스-토큰-인증)
+- [엔드포인트 자동 동기화](#엔드포인트-자동-동기화)
 
 ---
 
@@ -34,6 +38,9 @@ AuthHub SDK는 두 개의 모듈로 구성됩니다:
 - **타입 안전성**: Java Record 기반의 강타입 DTO
 - **Spring Boot 통합**: 자동 설정, 토큰 컨텍스트 필터 자동 등록
 - **유연한 인증**: 서비스 토큰 / 사용자 토큰 자동 전파
+- **권한 체크**: `@RequirePermission` 어노테이션 및 `BaseAccessChecker` 지원
+- **서비스 토큰 인증**: 내부 서비스 간 통신을 위한 `ServiceTokenAuthenticationFilter`
+- **엔드포인트 자동 동기화**: 애플리케이션 시작 시 권한 자동 등록
 
 ---
 
@@ -62,7 +69,7 @@ repositories {
 
 ```groovy
 dependencies {
-    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v1.0.0'
+    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v2.0.0'
 }
 ```
 
@@ -70,7 +77,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v1.0.0'
+    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v2.0.0'
 }
 ```
 
@@ -87,7 +94,7 @@ dependencies {
 <dependency>
     <groupId>com.github.ryu-qqq.AuthHub</groupId>
     <artifactId>authhub-sdk-spring-boot-starter</artifactId>
-    <version>v1.0.0</version>
+    <version>v2.0.0</version>
 </dependency>
 ```
 
@@ -643,11 +650,7 @@ sdk/
 │   └── src/main/java/
 │       └── com/ryuqq/authhub/sdk/
 │           ├── api/                      # API 인터페이스
-│           │   ├── TenantApi.java
-│           │   ├── OrganizationApi.java
-│           │   ├── UserApi.java
-│           │   ├── RoleApi.java
-│           │   ├── PermissionApi.java
+│           │   ├── AuthApi.java
 │           │   └── OnboardingApi.java
 │           ├── client/                   # 클라이언트 구현
 │           │   ├── AuthHubClient.java
@@ -656,21 +659,499 @@ sdk/
 │           ├── exception/                # 예외
 │           ├── model/                    # DTO 모델
 │           │   ├── common/               # 공통 응답
-│           │   ├── tenant/
-│           │   ├── organization/
-│           │   ├── user/
-│           │   ├── role/
-│           │   ├── permission/
-│           │   └── onboarding/
-│           └── auth/                     # 인증
+│           │   ├── auth/                 # 인증 관련
+│           │   ├── user/                 # 사용자 관련
+│           │   └── onboarding/           # 온보딩 관련
+│           └── auth/                     # 토큰 리졸버
+│               ├── TokenResolver.java
+│               ├── ChainTokenResolver.java
+│               ├── StaticTokenResolver.java
+│               └── ThreadLocalTokenResolver.java
 │
 └── authhub-sdk-spring-boot-starter/     # Spring Boot 통합
     └── src/main/java/
-        └── com/ryuqq/authhub/sdk/autoconfigure/
-            ├── AuthHubAutoConfiguration.java
-            ├── AuthHubProperties.java
-            └── AuthHubTokenContextFilter.java
+        └── com/ryuqq/authhub/sdk/
+            ├── autoconfigure/            # 자동 설정
+            │   ├── AuthHubAutoConfiguration.java
+            │   ├── AuthHubProperties.java
+            │   └── AuthHubTokenContextFilter.java
+            ├── access/                   # 권한 체크
+            │   ├── AccessChecker.java
+            │   └── BaseAccessChecker.java
+            ├── annotation/               # 어노테이션
+            │   └── RequirePermission.java
+            ├── context/                  # 사용자 컨텍스트
+            │   ├── SecurityContext.java
+            │   ├── UserContext.java
+            │   └── UserContextHolder.java
+            ├── filter/                   # 필터
+            │   ├── GatewayAuthenticationFilter.java
+            │   └── ServiceTokenAuthenticationFilter.java
+            ├── header/                   # 헤더 처리
+            │   ├── GatewayHeaderParser.java
+            │   └── SecurityHeaders.java
+            ├── sync/                     # 엔드포인트 동기화
+            │   ├── EndpointInfo.java
+            │   ├── EndpointScanner.java
+            │   ├── EndpointSyncClient.java
+            │   ├── EndpointSyncRequest.java
+            │   └── EndpointSyncRunner.java
+            ├── constant/                 # 상수
+            │   ├── Permissions.java
+            │   ├── Roles.java
+            │   └── Scopes.java
+            └── util/                     # 유틸리티
+                ├── PermissionMatcher.java
+                └── ScopeValidator.java
 ```
+
+---
+
+## 멀티모듈 프로젝트 통합
+
+헥사고날 아키텍처 멀티모듈 프로젝트에서 SDK를 사용하는 방법입니다.
+
+### 의존성 흐름
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        YOUR PROJECT                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌─────────────┐                                                    │
+│  │   DOMAIN    │  ← SDK 사용 ❌ (순수 Java 유지)                     │
+│  └──────┬──────┘                                                    │
+│         │                                                            │
+│  ┌──────▼──────┐                                                    │
+│  │ APPLICATION │  ← SDK 사용 ❌ (도메인 로직만)                      │
+│  └──────┬──────┘                                                    │
+│         │                                                            │
+│  ┌──────▼──────────────────────────────────────────────────────┐    │
+│  │                    ADAPTER LAYER                              │    │
+│  │  ┌────────────────┐           ┌─────────────────────────┐   │    │
+│  │  │  adapter-in    │           │     adapter-out         │   │    │
+│  │  │  (REST API)    │           │  ┌─────────────────┐    │   │    │
+│  │  │                │           │  │  client/authhub │    │   │    │
+│  │  │ ✅ SDK 사용    │           │  │  ✅ SDK 사용    │    │   │    │
+│  │  │ - @RequirePerm │           │  │ - AuthHubClient │    │   │    │
+│  │  │ - AccessChecker│           │  │ - AuthApi       │    │   │    │
+│  │  │ - UserContext  │           │  └─────────────────┘    │   │    │
+│  │  └────────────────┘           └─────────────────────────┘   │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│         │                                                            │
+│  ┌──────▼──────┐                                                    │
+│  │  BOOTSTRAP  │  ← SDK AutoConfiguration 활성화                     │
+│  │             │  ← 필터 등록 (ServiceToken, Gateway)                │
+│  └─────────────┘                                                    │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 모듈별 의존성 설정
+
+#### adapter-in/rest-api/build.gradle
+
+```groovy
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    api project(':application')
+    api project(':domain')
+
+    // ✅ AuthHub SDK - api로 선언하여 bootstrap에 전이
+    api 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v2.0.0'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+}
+```
+
+> **Note**: `api`로 선언하면 bootstrap 모듈에서 별도 의존성 추가가 불필요합니다.
+
+#### bootstrap/web-api/build.gradle
+
+```groovy
+dependencies {
+    implementation project(':domain')
+    implementation project(':application')
+    implementation project(':adapter-in:rest-api')  // SDK가 전이적으로 포함됨
+
+    // SDK 별도 추가 불필요!
+}
+```
+
+### 모듈별 SDK 사용 원칙
+
+| 레이어 | SDK 사용 | 이유 |
+|--------|----------|------|
+| **Domain** | ❌ 금지 | 순수 Java 유지, 외부 의존성 없음 |
+| **Application** | ❌ 금지 | 도메인 로직만, 인프라 관심사 분리 |
+| **Adapter-In** | ✅ 허용 | HTTP 요청 처리, 권한 체크는 인프라 관심사 |
+| **Adapter-Out** | ✅ 허용 | 외부 시스템(AuthHub) 연동 |
+| **Bootstrap** | ✅ 허용 | 필터 등록, AutoConfiguration |
+
+---
+
+## 권한 체크 (Access Control)
+
+SDK는 선언적 권한 체크와 프로그래매틱 권한 체크를 모두 지원합니다.
+
+### @RequirePermission 어노테이션
+
+엔드포인트에 필요한 권한을 선언적으로 명시합니다.
+
+```java
+@RestController
+@RequestMapping("/api/v1/products")
+public class ProductController {
+
+    @GetMapping("/{id}")
+    @RequirePermission("product:read")
+    public ProductResponse getProduct(@PathVariable Long id) {
+        // ...
+    }
+
+    @PostMapping
+    @RequirePermission(value = "product:create", description = "상품 생성")
+    public ProductResponse createProduct(@RequestBody CreateProductRequest request) {
+        // ...
+    }
+
+    @DeleteMapping("/{id}")
+    @RequirePermission("product:delete")
+    public void deleteProduct(@PathVariable Long id) {
+        // ...
+    }
+}
+```
+
+> **Note**: `@RequirePermission`은 문서화 및 엔드포인트 자동 동기화 목적이며, 실제 권한 체크는 Gateway 또는 AccessChecker에서 수행됩니다.
+
+### BaseAccessChecker 확장
+
+프로그래매틱 권한 체크를 위해 `BaseAccessChecker`를 확장합니다.
+
+```java
+@Component("access")  // SpEL에서 사용할 이름
+public class ProductAccessChecker extends BaseAccessChecker {
+
+    // 도메인별 권한 체크 메서드
+    public boolean canReadProduct() {
+        return hasPermission("product:read");
+    }
+
+    public boolean canWriteProduct() {
+        return hasPermission("product:write");
+    }
+
+    public boolean canDeleteProduct() {
+        return hasPermission("product:delete");
+    }
+
+    // 복합 권한 체크
+    public boolean canManageProduct() {
+        return hasAllPermissions("product:read", "product:write", "product:delete");
+    }
+
+    // 리소스 격리 + 권한 체크
+    public boolean canAccessProduct(String productTenantId) {
+        return sameTenant(productTenantId) && hasPermission("product:read");
+    }
+}
+```
+
+### Controller에서 권한 체크
+
+```java
+@RestController
+@RequestMapping("/api/v1/products")
+public class ProductController {
+
+    private final ProductAccessChecker access;
+    private final GetProductUseCase getProductUseCase;
+
+    public ProductController(ProductAccessChecker access, GetProductUseCase getProductUseCase) {
+        this.access = access;
+        this.getProductUseCase = getProductUseCase;
+    }
+
+    @GetMapping("/{id}")
+    @RequirePermission("product:read")
+    public ProductResponse getProduct(@PathVariable Long id) {
+        // 권한 체크
+        if (!access.canReadProduct()) {
+            throw new AccessDeniedException("상품 조회 권한이 없습니다");
+        }
+
+        // 현재 사용자 컨텍스트 조회
+        UserContext context = UserContextHolder.getContext();
+        String tenantId = context.getTenantId();
+
+        return getProductUseCase.execute(id, tenantId);
+    }
+}
+```
+
+### BaseAccessChecker 주요 메서드
+
+| 메서드 | 설명 |
+|--------|------|
+| `authenticated()` | 인증된 사용자인지 확인 |
+| `superAdmin()` | SUPER_ADMIN 역할인지 확인 |
+| `admin()` | 관리자 역할(SUPER_ADMIN, TENANT_ADMIN, ORG_ADMIN) 중 하나인지 확인 |
+| `hasRole(role)` | 특정 역할 보유 여부 |
+| `hasAnyRole(roles...)` | 역할 중 하나라도 보유 여부 |
+| `hasPermission(perm)` | 특정 권한 보유 여부 |
+| `hasAnyPermission(perms...)` | 권한 중 하나라도 보유 여부 |
+| `hasAllPermissions(perms...)` | 모든 권한 보유 여부 |
+| `sameTenant(tenantId)` | 같은 테넌트인지 확인 |
+| `sameOrganization(orgId)` | 같은 조직인지 확인 |
+| `myself(userId)` | 본인인지 확인 |
+| `myselfOr(userId, perm)` | 본인이거나 특정 권한 보유 여부 |
+| `serviceAccount()` | 서비스 계정인지 확인 |
+
+### UserContext 사용
+
+현재 요청의 사용자 정보를 조회합니다.
+
+```java
+// 현재 사용자 컨텍스트 조회
+UserContext context = UserContextHolder.getContext();
+
+// 사용자 정보
+String userId = context.getUserId();
+String tenantId = context.getTenantId();
+String organizationId = context.getOrganizationId();
+String email = context.getEmail();
+
+// 역할/권한 확인
+Set<String> roles = context.getRoles();
+Set<String> permissions = context.getPermissions();
+boolean hasRole = context.hasRole("ADMIN");
+boolean hasPerm = context.hasPermission("product:read");
+
+// 서비스 계정 여부
+boolean isServiceAccount = context.isServiceAccount();
+
+// 요청 추적
+String correlationId = context.getCorrelationId();
+String requestSource = context.getRequestSource();
+```
+
+---
+
+## 서비스 토큰 인증
+
+내부 서비스 간 통신을 위한 서비스 토큰 인증을 지원합니다.
+
+### ServiceTokenAuthenticationFilter 설정
+
+```java
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public FilterRegistrationBean<ServiceTokenAuthenticationFilter> serviceTokenFilter() {
+        ServiceTokenAuthenticationFilter filter = new ServiceTokenAuthenticationFilter(
+            (serviceName, token) -> validateServiceToken(serviceName, token)
+        );
+
+        FilterRegistrationBean<ServiceTokenAuthenticationFilter> registration =
+            new FilterRegistrationBean<>();
+        registration.setFilter(filter);
+        registration.addUrlPatterns("/api/v1/internal/*");
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 2);
+        return registration;
+    }
+
+    private boolean validateServiceToken(String serviceName, String token) {
+        // 서비스별 토큰 검증
+        Map<String, String> serviceTokens = Map.of(
+            "order-service", System.getenv("ORDER_SERVICE_TOKEN"),
+            "inventory-service", System.getenv("INVENTORY_SERVICE_TOKEN")
+        );
+        String expectedToken = serviceTokens.get(serviceName);
+        return expectedToken != null && expectedToken.equals(token);
+    }
+}
+```
+
+### 다른 서비스에서 호출 시
+
+```java
+// HTTP 헤더 설정
+HttpHeaders headers = new HttpHeaders();
+headers.set("X-Service-Name", "order-service");
+headers.set("X-Service-Token", "${ORDER_SERVICE_TOKEN}");
+
+// 원본 사용자 정보 전달 (선택)
+headers.set("X-Original-User-Id", "user-123");
+headers.set("X-Original-Tenant-Id", "tenant-456");
+headers.set("X-Correlation-Id", UUID.randomUUID().toString());
+```
+
+### 보안 헤더 상수
+
+```java
+// SecurityHeaders 클래스에서 제공
+public static final String SERVICE_NAME = "X-Service-Name";
+public static final String SERVICE_TOKEN = "X-Service-Token";
+public static final String ORIGINAL_USER_ID = "X-Original-User-Id";
+public static final String ORIGINAL_TENANT_ID = "X-Original-Tenant-Id";
+public static final String ORIGINAL_ORGANIZATION_ID = "X-Original-Organization-Id";
+public static final String CORRELATION_ID = "X-Correlation-Id";
+```
+
+---
+
+## 엔드포인트 자동 동기화
+
+애플리케이션 시작 시 `@RequirePermission` 어노테이션이 붙은 엔드포인트를 AuthHub에 자동 동기화합니다.
+
+### 동작 흐름
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  1. 애플리케이션 시작                                            │
+│         ↓                                                       │
+│  2. EndpointSyncRunner 실행 (ApplicationRunner)                 │
+│         ↓                                                       │
+│  3. EndpointScanner가 @RequirePermission 어노테이션 스캔         │
+│         ↓                                                       │
+│  4. EndpointSyncClient를 통해 AuthHub에 동기화 요청              │
+│     POST /api/v1/internal/endpoints/sync                        │
+│         ↓                                                       │
+│  5. AuthHub가 권한 자동 등록                                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 설정 방법
+
+#### 1. EndpointSyncClient 구현
+
+```java
+@Component
+public class HttpEndpointSyncClient implements EndpointSyncClient {
+
+    private final RestTemplate restTemplate;
+    private final String authHubUrl;
+    private final String serviceToken;
+
+    public HttpEndpointSyncClient(
+            RestTemplate restTemplate,
+            @Value("${authhub.base-url}") String authHubUrl,
+            @Value("${authhub.service-token}") String serviceToken) {
+        this.restTemplate = restTemplate;
+        this.authHubUrl = authHubUrl;
+        this.serviceToken = serviceToken;
+    }
+
+    @Override
+    public void sync(EndpointSyncRequest request) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Service-Name", request.serviceName());
+        headers.set("X-Service-Token", serviceToken);
+
+        HttpEntity<EndpointSyncRequest> entity = new HttpEntity<>(request, headers);
+
+        restTemplate.postForEntity(
+            authHubUrl + "/api/v1/internal/endpoints/sync",
+            entity,
+            Void.class
+        );
+    }
+}
+```
+
+#### 2. EndpointSyncRunner Bean 등록
+
+```java
+@Configuration
+@ConditionalOnProperty(name = "authhub.endpoint-sync.enabled", havingValue = "true")
+public class EndpointSyncConfig {
+
+    @Value("${spring.application.name}")
+    private String serviceName;
+
+    @Bean
+    public EndpointSyncRunner endpointSyncRunner(
+            RequestMappingHandlerMapping handlerMapping,
+            EndpointSyncClient syncClient) {
+        return new EndpointSyncRunner(handlerMapping, syncClient, serviceName);
+    }
+}
+```
+
+#### 3. application.yml 설정
+
+```yaml
+spring:
+  application:
+    name: product-service
+
+authhub:
+  base-url: https://auth.example.com
+  service-token: ${AUTHHUB_SERVICE_TOKEN}
+  endpoint-sync:
+    enabled: true  # 엔드포인트 동기화 활성화
+```
+
+### 동기화 요청 형식
+
+AuthHub에 전송되는 요청 형식입니다:
+
+```json
+{
+  "serviceName": "product-service",
+  "endpoints": [
+    {
+      "httpMethod": "GET",
+      "pathPattern": "/api/v1/products/{id}",
+      "permissionKey": "product:read",
+      "description": "상품 조회"
+    },
+    {
+      "httpMethod": "POST",
+      "pathPattern": "/api/v1/products",
+      "permissionKey": "product:create",
+      "description": "상품 생성"
+    },
+    {
+      "httpMethod": "DELETE",
+      "pathPattern": "/api/v1/products/{id}",
+      "permissionKey": "product:delete",
+      "description": ""
+    }
+  ]
+}
+```
+
+### 동기화 비활성화
+
+개발 환경이나 테스트에서 동기화를 비활성화하려면:
+
+```yaml
+authhub:
+  endpoint-sync:
+    enabled: false
+```
+
+또는 EndpointSyncRunner 생성 시:
+
+```java
+new EndpointSyncRunner(handlerMapping, syncClient, serviceName, false);  // enabled = false
+```
+
+### 주의사항
+
+- 동기화 실패 시에도 애플리케이션 시작은 계속 진행됩니다 (fail-safe)
+- 동기화는 애플리케이션 시작 시 한 번만 실행됩니다
+- AuthHub 서버가 내부 네트워크에서만 접근 가능해야 보안이 유지됩니다
+- 서비스 토큰은 환경 변수로 관리하세요
 
 ---
 
