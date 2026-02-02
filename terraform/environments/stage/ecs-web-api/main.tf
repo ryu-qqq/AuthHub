@@ -154,6 +154,20 @@ module "ecs_security_group" {
 }
 
 # ========================================
+# RDS Security Group Rule
+# ========================================
+# Allow ECS web-api tasks to access staging RDS on port 3306
+resource "aws_security_group_rule" "ecs_to_rds" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = local.rds_security_group_id
+  source_security_group_id = module.ecs_security_group.security_group_id
+  description              = "Allow ${var.project_name}-web-api-${var.environment} ECS to access staging RDS"
+}
+
+# ========================================
 # IAM Roles (using Infrastructure module)
 # ========================================
 

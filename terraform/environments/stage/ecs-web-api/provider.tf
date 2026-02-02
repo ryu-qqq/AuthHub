@@ -156,11 +156,12 @@ locals {
   private_subnets = split(",", data.aws_ssm_parameter.private_subnets.value)
 
   # RDS Configuration (Stage MySQL)
-  rds_credentials = jsondecode(data.aws_secretsmanager_secret_version.rds.secret_string)
-  rds_host        = "staging-shared-mysql.cfacertspqbw.ap-northeast-2.rds.amazonaws.com"
-  rds_port        = "3306"
-  rds_dbname      = "auth"
-  rds_username    = local.rds_credentials.username
+  rds_credentials       = jsondecode(data.aws_secretsmanager_secret_version.rds.secret_string)
+  rds_host              = "staging-shared-mysql.cfacertspqbw.ap-northeast-2.rds.amazonaws.com"
+  rds_port              = "3306"
+  rds_dbname            = "auth"
+  rds_username          = local.rds_credentials.username
+  rds_security_group_id = "sg-037a83859fadc008e"  # staging-shared-mysql RDS security group
 
   # Redis Configuration (Stage - stage-shared-redis SSM 참조)
   redis_host = data.aws_ssm_parameter.redis_endpoint.value
