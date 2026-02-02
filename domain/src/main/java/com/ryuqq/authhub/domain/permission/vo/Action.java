@@ -1,5 +1,7 @@
 package com.ryuqq.authhub.domain.permission.vo;
 
+import java.util.regex.Pattern;
+
 /**
  * Action - 권한 행위 Value Object
  *
@@ -20,7 +22,7 @@ package com.ryuqq.authhub.domain.permission.vo;
 public record Action(String value) {
 
     private static final int MAX_LENGTH = 50;
-    private static final String PATTERN = "^[a-z][a-z0-9-]*$";
+    private static final Pattern COMPILED_PATTERN = Pattern.compile("^[a-z][a-z0-9-]*$");
 
     public Action {
         if (value == null || value.isBlank()) {
@@ -29,7 +31,7 @@ public record Action(String value) {
         if (value.length() > MAX_LENGTH) {
             throw new IllegalArgumentException("action은 " + MAX_LENGTH + "자를 초과할 수 없습니다");
         }
-        if (!value.matches(PATTERN)) {
+        if (!COMPILED_PATTERN.matcher(value).matches()) {
             throw new IllegalArgumentException(
                     "action은 영문 소문자로 시작하고, 영문 소문자, 숫자, 하이픈만 허용됩니다: " + value);
         }
