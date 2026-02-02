@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.adapter;
 import com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.repository.PermissionEndpointQueryDslRepository;
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.EndpointPermissionSpecResult;
 import com.ryuqq.authhub.application.permissionendpoint.port.out.query.PermissionEndpointSpecQueryPort;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -34,5 +35,10 @@ public class PermissionEndpointSpecQueryAdapter implements PermissionEndpointSpe
     @Override
     public List<EndpointPermissionSpecResult> findAllActiveSpecs() {
         return queryDslRepository.findAllActiveSpecs();
+    }
+
+    @Override
+    public Instant findLatestUpdatedAt() {
+        return queryDslRepository.findLatestUpdatedAt();
     }
 }

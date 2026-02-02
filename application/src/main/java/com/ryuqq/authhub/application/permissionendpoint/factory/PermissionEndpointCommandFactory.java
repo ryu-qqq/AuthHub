@@ -6,7 +6,6 @@ import com.ryuqq.authhub.application.common.time.TimeProvider;
 import com.ryuqq.authhub.application.permissionendpoint.dto.command.CreatePermissionEndpointCommand;
 import com.ryuqq.authhub.application.permissionendpoint.dto.command.DeletePermissionEndpointCommand;
 import com.ryuqq.authhub.application.permissionendpoint.dto.command.UpdatePermissionEndpointCommand;
-import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpoint;
 import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpointUpdateData;
 import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
@@ -44,10 +43,12 @@ public class PermissionEndpointCommandFactory {
      */
     public PermissionEndpoint create(CreatePermissionEndpointCommand command) {
         return PermissionEndpoint.create(
-                PermissionId.of(command.permissionId()),
+                command.permissionId(),
+                command.serviceName(),
                 command.urlPattern(),
                 HttpMethod.from(command.httpMethod()),
                 command.description(),
+                command.isPublic(),
                 timeProvider.now());
     }
 
@@ -64,7 +65,11 @@ public class PermissionEndpointCommandFactory {
         PermissionEndpointId id = PermissionEndpointId.of(command.permissionEndpointId());
         PermissionEndpointUpdateData updateData =
                 PermissionEndpointUpdateData.of(
-                        command.urlPattern(), command.httpMethod(), command.description());
+                        command.serviceName(),
+                        command.urlPattern(),
+                        command.httpMethod(),
+                        command.description(),
+                        command.isPublic());
         return new UpdateContext<>(id, updateData, timeProvider.now());
     }
 

@@ -105,7 +105,8 @@ public class EndpointSyncCoordinator {
 
         // 3. PermissionEndpoint 동기화 (IN절 조회 + 필터링 + 저장)
         EndpointSyncResultInternal endpointResult =
-                syncEndpoints(items, permissionResult.permissionKeyToIdMap());
+                syncEndpoints(
+                        command.serviceName(), items, permissionResult.permissionKeyToIdMap());
 
         return SyncEndpointsResult.of(
                 command.serviceName(),
@@ -169,12 +170,15 @@ public class EndpointSyncCoordinator {
      *
      * <p>IN절로 기존 PermissionEndpoint 조회 → 누락된 것만 생성
      *
+     * @param serviceName 서비스 이름
      * @param items 모든 EndpointSyncItem
      * @param permissionKeyToIdMap permissionKey → permissionId 매핑
      * @return PermissionEndpoint 동기화 결과
      */
     private EndpointSyncResultInternal syncEndpoints(
-            List<EndpointSyncItem> items, Map<String, Long> permissionKeyToIdMap) {
+            String serviceName,
+            List<EndpointSyncItem> items,
+            Map<String, Long> permissionKeyToIdMap) {
         // 1. urlPattern 목록 추출
         List<String> urlPatterns = items.stream().map(EndpointSyncItem::pathPattern).toList();
 
@@ -208,7 +212,8 @@ public class EndpointSyncCoordinator {
         // 5. 누락된 PermissionEndpoint 생성 및 저장
         if (!newEndpointItems.isEmpty()) {
             List<PermissionEndpoint> newEndpoints =
-                    factory.createMissingEndpoints(newEndpointItems, permissionKeyToIdMap);
+                    factory.createMissingEndpoints(
+                            serviceName, newEndpointItems, permissionKeyToIdMap);
             permissionEndpointCommandManager.persistAll(newEndpoints);
             createdCount = newEndpoints.size();
         }

@@ -4,6 +4,8 @@ import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
+import com.ryuqq.authhub.domain.permissionendpoint.vo.ServiceName;
+import com.ryuqq.authhub.domain.permissionendpoint.vo.UrlPattern;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -34,20 +36,21 @@ import java.util.Objects;
  *   <li>Lombok 금지 - Plain Java 사용
  *   <li>Law of Demeter 준수 - Getter 체이닝 금지
  *   <li>Long FK 전략 - JPA 관계 어노테이션 금지
- *   <li>Null 검증은 생성 시점에서 처리
+ *   <li>Null 검증은 VO 생성 시점에서 처리
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
-@SuppressWarnings("PMD.GodClass")
 public final class PermissionEndpoint {
 
     private final PermissionEndpointId permissionEndpointId;
     private final PermissionId permissionId;
-    private String urlPattern;
+    private ServiceName serviceName;
+    private UrlPattern urlPattern;
     private HttpMethod httpMethod;
     private String description;
+    private boolean isPublic;
     private DeletionStatus deletionStatus;
     private final Instant createdAt;
     private Instant updatedAt;
@@ -55,37 +58,24 @@ public final class PermissionEndpoint {
     private PermissionEndpoint(
             PermissionEndpointId permissionEndpointId,
             PermissionId permissionId,
-            String urlPattern,
+            ServiceName serviceName,
+            UrlPattern urlPattern,
             HttpMethod httpMethod,
             String description,
+            boolean isPublic,
             DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
-        validateRequired(permissionId, urlPattern, httpMethod);
         this.permissionEndpointId = permissionEndpointId;
         this.permissionId = permissionId;
+        this.serviceName = serviceName;
         this.urlPattern = urlPattern;
         this.httpMethod = httpMethod;
         this.description = description;
+        this.isPublic = isPublic;
         this.deletionStatus = deletionStatus != null ? deletionStatus : DeletionStatus.active();
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    private void validateRequired(
-            PermissionId permissionId, String urlPattern, HttpMethod httpMethod) {
-        if (permissionId == null) {
-            throw new IllegalArgumentException("permissionId는 null일 수 없습니다");
-        }
-        if (urlPattern == null || urlPattern.isBlank()) {
-            throw new IllegalArgumentException("urlPattern은 null이거나 빈 값일 수 없습니다");
-        }
-        if (!urlPattern.startsWith("/")) {
-            throw new IllegalArgumentException("urlPattern은 '/'로 시작해야 합니다");
-        }
-        if (httpMethod == null) {
-            throw new IllegalArgumentException("httpMethod는 null일 수 없습니다");
-        }
     }
 
     // ========== Factory Methods ==========
@@ -94,24 +84,30 @@ public final class PermissionEndpoint {
      * 새로운 PermissionEndpoint 생성
      *
      * @param permissionId 권한 ID
-     * @param urlPattern URL 패턴 (예: /api/v1/users/{id})
+     * @param serviceName 서비스 이름
+     * @param urlPattern URL 패턴
      * @param httpMethod HTTP 메서드
      * @param description 설명
+     * @param isPublic 공개 엔드포인트 여부
      * @param now 현재 시간 (외부 주입)
      * @return 새로운 PermissionEndpoint 인스턴스
      */
     public static PermissionEndpoint create(
             PermissionId permissionId,
-            String urlPattern,
+            ServiceName serviceName,
+            UrlPattern urlPattern,
             HttpMethod httpMethod,
             String description,
+            boolean isPublic,
             Instant now) {
         return new PermissionEndpoint(
                 null,
                 permissionId,
+                serviceName,
                 urlPattern,
                 httpMethod,
                 description,
+                isPublic,
                 DeletionStatus.active(),
                 now,
                 now);
@@ -121,19 +117,30 @@ public final class PermissionEndpoint {
      * Long permissionId로 새로운 PermissionEndpoint 생성 (편의 메서드)
      *
      * @param permissionId 권한 ID (Long)
-     * @param urlPattern URL 패턴
+     * @param serviceName 서비스 이름 (String)
+     * @param urlPattern URL 패턴 (String)
      * @param httpMethod HTTP 메서드
      * @param description 설명
+     * @param isPublic 공개 엔드포인트 여부
      * @param now 현재 시간
      * @return 새로운 PermissionEndpoint 인스턴스
      */
     public static PermissionEndpoint create(
             Long permissionId,
+            String serviceName,
             String urlPattern,
             HttpMethod httpMethod,
             String description,
+            boolean isPublic,
             Instant now) {
-        return create(PermissionId.of(permissionId), urlPattern, httpMethod, description, now);
+        return create(
+                PermissionId.of(permissionId),
+                ServiceName.of(serviceName),
+                UrlPattern.of(urlPattern),
+                httpMethod,
+                description,
+                isPublic,
+                now);
     }
 
     /**
@@ -141,9 +148,11 @@ public final class PermissionEndpoint {
      *
      * @param permissionEndpointId 엔드포인트 ID
      * @param permissionId 권한 ID
+     * @param serviceName 서비스 이름
      * @param urlPattern URL 패턴
      * @param httpMethod HTTP 메서드
      * @param description 설명
+     * @param isPublic 공개 엔드포인트 여부
      * @param deletionStatus 삭제 상태
      * @param createdAt 생성 시간
      * @param updatedAt 수정 시간
@@ -152,18 +161,61 @@ public final class PermissionEndpoint {
     public static PermissionEndpoint reconstitute(
             PermissionEndpointId permissionEndpointId,
             PermissionId permissionId,
-            String urlPattern,
+            ServiceName serviceName,
+            UrlPattern urlPattern,
             HttpMethod httpMethod,
             String description,
+            boolean isPublic,
             DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
         return new PermissionEndpoint(
                 permissionEndpointId,
                 permissionId,
+                serviceName,
                 urlPattern,
                 httpMethod,
                 description,
+                isPublic,
+                deletionStatus,
+                createdAt,
+                updatedAt);
+    }
+
+    /**
+     * DB에서 PermissionEndpoint 재구성 (문자열 파라미터 편의 메서드)
+     *
+     * @param permissionEndpointId 엔드포인트 ID (Long)
+     * @param permissionId 권한 ID (Long)
+     * @param serviceName 서비스 이름 (String)
+     * @param urlPattern URL 패턴 (String)
+     * @param httpMethod HTTP 메서드
+     * @param description 설명
+     * @param isPublic 공개 엔드포인트 여부
+     * @param deletionStatus 삭제 상태
+     * @param createdAt 생성 시간
+     * @param updatedAt 수정 시간
+     * @return 재구성된 PermissionEndpoint 인스턴스
+     */
+    public static PermissionEndpoint reconstitute(
+            Long permissionEndpointId,
+            Long permissionId,
+            String serviceName,
+            String urlPattern,
+            HttpMethod httpMethod,
+            String description,
+            boolean isPublic,
+            DeletionStatus deletionStatus,
+            Instant createdAt,
+            Instant updatedAt) {
+        return reconstitute(
+                PermissionEndpointId.of(permissionEndpointId),
+                PermissionId.of(permissionId),
+                ServiceName.of(serviceName),
+                UrlPattern.of(urlPattern),
+                httpMethod,
+                description,
+                isPublic,
                 deletionStatus,
                 createdAt,
                 updatedAt);
@@ -172,59 +224,18 @@ public final class PermissionEndpoint {
     // ========== Business Methods ==========
 
     /**
-     * 엔드포인트 정보 수정 (UpdateData 패턴)
+     * 엔드포인트 정보 수정
      *
-     * <p>Permission 도메인과 동일한 UpdateData 패턴을 사용합니다.
-     *
-     * @param updateData 수정할 데이터
+     * @param updateData 수정할 데이터 (모든 필드가 채워져 있어야 함)
      * @param changedAt 변경 시간 (외부 주입)
      */
     public void update(PermissionEndpointUpdateData updateData, Instant changedAt) {
-        if (updateData.hasUrlPattern()) {
-            validateUrlPattern(updateData.urlPattern());
-            this.urlPattern = updateData.urlPattern();
-        }
-        if (updateData.hasHttpMethod()) {
-            this.httpMethod = updateData.httpMethodEnum();
-        }
-        if (updateData.hasDescription()) {
-            this.description = updateData.description();
-        }
+        this.serviceName = updateData.serviceName();
+        this.urlPattern = updateData.urlPattern();
+        this.httpMethod = updateData.httpMethod();
+        this.description = updateData.description();
+        this.isPublic = updateData.isPublic();
         this.updatedAt = changedAt;
-    }
-
-    /**
-     * 엔드포인트 정보 수정 (개별 파라미터 - 하위 호환성)
-     *
-     * @param newUrlPattern 새 URL 패턴
-     * @param newHttpMethod 새 HTTP 메서드
-     * @param newDescription 새 설명
-     * @param changedAt 변경 시간 (외부 주입)
-     * @deprecated UpdateData 패턴 사용을 권장합니다
-     */
-    @Deprecated
-    public void update(
-            String newUrlPattern,
-            HttpMethod newHttpMethod,
-            String newDescription,
-            Instant changedAt) {
-        if (newUrlPattern != null && !newUrlPattern.isBlank()) {
-            validateUrlPattern(newUrlPattern);
-            this.urlPattern = newUrlPattern;
-        }
-        if (newHttpMethod != null) {
-            this.httpMethod = newHttpMethod;
-        }
-        if (newDescription != null) {
-            this.description = newDescription;
-        }
-        this.updatedAt = changedAt;
-    }
-
-    private void validateUrlPattern(String pattern) {
-        if (!pattern.startsWith("/")) {
-            throw new IllegalArgumentException("urlPattern은 '/'로 시작해야 합니다");
-        }
     }
 
     /**
@@ -268,12 +279,30 @@ public final class PermissionEndpoint {
     }
 
     /**
+     * 서비스 이름 값 반환
+     *
+     * @return 서비스 이름 문자열
+     */
+    public String serviceNameValue() {
+        return serviceName.value();
+    }
+
+    /**
      * URL 패턴 값 반환
      *
-     * @return URL 패턴
+     * @return URL 패턴 문자열
      */
     public String urlPatternValue() {
-        return urlPattern;
+        return urlPattern.value();
+    }
+
+    /**
+     * 공개 엔드포인트 여부 반환
+     *
+     * @return 공개 엔드포인트이면 true
+     */
+    public boolean isPublicEndpoint() {
+        return isPublic;
     }
 
     /**
@@ -332,16 +361,7 @@ public final class PermissionEndpoint {
         if (!this.httpMethod.equals(requestMethod)) {
             return false;
         }
-        return matchesUrlPattern(requestUrl);
-    }
-
-    private boolean matchesUrlPattern(String requestUrl) {
-        String pattern = this.urlPattern;
-        String withPathVariables = pattern.replaceAll("\\{[^}]+\\}", "[^/]+");
-        String withDoubleWildcardPlaceholder = withPathVariables.replace("**", "\0");
-        String withSingleWildcard = withDoubleWildcardPlaceholder.replace("*", "[^/]*");
-        String regex = withSingleWildcard.replace("\0", ".*");
-        return requestUrl.matches("^" + regex + "$");
+        return urlPattern.matches(requestUrl);
     }
 
     // ========== Getter Methods ==========
@@ -354,8 +374,16 @@ public final class PermissionEndpoint {
         return permissionId;
     }
 
-    public String getUrlPattern() {
+    public ServiceName getServiceName() {
+        return serviceName;
+    }
+
+    public UrlPattern getUrlPattern() {
         return urlPattern;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
     }
 
     public HttpMethod getHttpMethod() {
@@ -412,11 +440,14 @@ public final class PermissionEndpoint {
                 + permissionEndpointId
                 + ", permissionId="
                 + permissionId
-                + ", urlPattern='"
+                + ", serviceName="
+                + serviceName
+                + ", urlPattern="
                 + urlPattern
-                + '\''
                 + ", httpMethod="
                 + httpMethod
+                + ", isPublic="
+                + isPublic
                 + ", deleted="
                 + deletionStatus.isDeleted()
                 + '}';

@@ -83,12 +83,15 @@ public class EndpointSyncCommandFactory {
     /**
      * 누락된 PermissionEndpoint 목록 생성
      *
+     * @param serviceName 서비스 이름
      * @param newEndpointItems 생성이 필요한 EndpointSyncItem 목록
      * @param permissionKeyToIdMap permissionKey → permissionId 매핑
      * @return 생성된 PermissionEndpoint 목록
      */
     public List<PermissionEndpoint> createMissingEndpoints(
-            List<EndpointSyncItem> newEndpointItems, Map<String, Long> permissionKeyToIdMap) {
+            String serviceName,
+            List<EndpointSyncItem> newEndpointItems,
+            Map<String, Long> permissionKeyToIdMap) {
         Instant now = timeProvider.now();
         return newEndpointItems.stream()
                 .map(
@@ -98,7 +101,7 @@ public class EndpointSyncCommandFactory {
                                 throw new IllegalStateException(
                                         "Permission not found for key: " + item.permissionKey());
                             }
-                            return createPermissionEndpoint(item, permissionId, now);
+                            return createPermissionEndpoint(serviceName, item, permissionId, now);
                         })
                 .toList();
     }
@@ -106,18 +109,21 @@ public class EndpointSyncCommandFactory {
     /**
      * PermissionEndpoint 생성
      *
+     * @param serviceName 서비스 이름
      * @param item EndpointSyncItem
      * @param permissionId 권한 ID
      * @param now 현재 시간
      * @return 생성된 PermissionEndpoint
      */
     public PermissionEndpoint createPermissionEndpoint(
-            EndpointSyncItem item, Long permissionId, Instant now) {
+            String serviceName, EndpointSyncItem item, Long permissionId, Instant now) {
         return PermissionEndpoint.create(
                 permissionId,
+                serviceName,
                 item.pathPattern(),
                 HttpMethod.from(item.httpMethod()),
                 item.description(),
+                item.isPublic(),
                 now);
     }
 

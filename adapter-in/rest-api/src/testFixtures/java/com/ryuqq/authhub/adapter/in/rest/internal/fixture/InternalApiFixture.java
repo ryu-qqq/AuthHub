@@ -8,6 +8,7 @@ import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.EndpointPermissio
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.EndpointSyncResultApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.OnboardingResultApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.TenantConfigApiResponse;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -91,35 +92,48 @@ public final class InternalApiFixture {
     /** 기본 스펙 응답 */
     public static EndpointPermissionSpecApiResponse endpointPermissionSpecResponse() {
         return new EndpointPermissionSpecApiResponse(
-                DEFAULT_PERMISSION_ENDPOINT_ID,
-                DEFAULT_PERMISSION_ID,
-                DEFAULT_PERMISSION_KEY,
+                DEFAULT_SERVICE_NAME,
                 DEFAULT_PATH_PATTERN,
-                DEFAULT_HTTP_METHOD);
+                DEFAULT_HTTP_METHOD,
+                List.of(DEFAULT_PERMISSION_KEY),
+                List.of(),
+                false,
+                DEFAULT_DESCRIPTION);
     }
 
     /** 커스텀 스펙 응답 */
     public static EndpointPermissionSpecApiResponse endpointPermissionSpecResponse(
-            Long permissionEndpointId,
-            Long permissionId,
-            String permissionKey,
-            String urlPattern,
-            String httpMethod) {
+            String serviceName,
+            String pathPattern,
+            String httpMethod,
+            List<String> requiredPermissions,
+            List<String> requiredRoles,
+            boolean isPublic,
+            String description) {
         return new EndpointPermissionSpecApiResponse(
-                permissionEndpointId, permissionId, permissionKey, urlPattern, httpMethod);
+                serviceName,
+                pathPattern,
+                httpMethod,
+                requiredPermissions,
+                requiredRoles,
+                isPublic,
+                description);
     }
 
     // ========== EndpointPermissionSpecListApiResponse ==========
 
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
+    private static final String FIXED_VERSION = String.valueOf(FIXED_INSTANT.toEpochMilli());
+
     /** 기본 스펙 목록 응답 */
     public static EndpointPermissionSpecListApiResponse endpointPermissionSpecListResponse() {
         return new EndpointPermissionSpecListApiResponse(
-                List.of(endpointPermissionSpecResponse()), 1);
+                FIXED_VERSION, FIXED_INSTANT, List.of(endpointPermissionSpecResponse()));
     }
 
     /** 빈 스펙 목록 응답 */
     public static EndpointPermissionSpecListApiResponse emptyEndpointPermissionSpecListResponse() {
-        return new EndpointPermissionSpecListApiResponse(List.of(), 0);
+        return new EndpointPermissionSpecListApiResponse("0", null, List.of());
     }
 
     // ========== OnboardingApiRequest ==========

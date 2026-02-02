@@ -91,7 +91,7 @@ class PermissionEndpointCommandFactoryTest {
             // then
             assertThat(result).isNotNull();
             assertThat(result.id().value()).isEqualTo(command.permissionEndpointId());
-            assertThat(result.updateData().urlPattern()).isEqualTo(command.urlPattern());
+            assertThat(result.updateData().urlPattern().value()).isEqualTo(command.urlPattern());
             assertThat(result.changedAt()).isEqualTo(FIXED_TIME);
         }
     }

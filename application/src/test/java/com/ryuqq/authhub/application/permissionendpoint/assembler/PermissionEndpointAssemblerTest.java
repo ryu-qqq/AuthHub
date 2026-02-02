@@ -8,6 +8,7 @@ import com.ryuqq.authhub.application.permissionendpoint.dto.response.PermissionE
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.PermissionEndpointResult;
 import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpoint;
 import com.ryuqq.authhub.domain.permissionendpoint.fixture.PermissionEndpointFixture;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,17 +125,25 @@ class PermissionEndpointAssemblerTest {
         @DisplayName("성공: EndpointPermissionSpecResult 목록을 EndpointPermissionSpecListResult로 변환")
         void shouldCreateSpecListResult() {
             // given
+            Instant latestUpdatedAt = Instant.parse("2025-01-15T10:00:00Z");
             List<EndpointPermissionSpecResult> specs =
                     List.of(
                             new EndpointPermissionSpecResult(
-                                    1L, 1L, "user:read", "/api/v1/users", "GET"));
+                                    "authhub",
+                                    "/api/v1/users",
+                                    "GET",
+                                    "user:read",
+                                    false,
+                                    "사용자 목록 조회"));
 
             // when
-            EndpointPermissionSpecListResult result = sut.toSpecListResult(specs);
+            EndpointPermissionSpecListResult result = sut.toSpecListResult(specs, latestUpdatedAt);
 
             // then
             assertThat(result.endpoints()).hasSize(1);
-            assertThat(result.endpoints().get(0).urlPattern()).isEqualTo("/api/v1/users");
+            assertThat(result.endpoints().get(0).pathPattern()).isEqualTo("/api/v1/users");
+            assertThat(result.version()).isEqualTo(String.valueOf(latestUpdatedAt.toEpochMilli()));
+            assertThat(result.updatedAt()).isEqualTo(latestUpdatedAt);
         }
     }
 }

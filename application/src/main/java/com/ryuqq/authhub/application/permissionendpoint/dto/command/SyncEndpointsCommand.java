@@ -21,7 +21,19 @@ public record SyncEndpointsCommand(String serviceName, List<EndpointSyncItem> en
      * @param pathPattern URL 패턴
      * @param permissionKey 권한 키 (예: "product:create")
      * @param description 설명
+     * @param isPublic 공개 엔드포인트 여부 (인증 없이 접근 가능)
      */
     public record EndpointSyncItem(
-            String httpMethod, String pathPattern, String permissionKey, String description) {}
+            String httpMethod,
+            String pathPattern,
+            String permissionKey,
+            String description,
+            boolean isPublic) {
+
+        /** 기본 isPublic=false 편의 생성자 */
+        public EndpointSyncItem(
+                String httpMethod, String pathPattern, String permissionKey, String description) {
+            this(httpMethod, pathPattern, permissionKey, description, false);
+        }
+    }
 }

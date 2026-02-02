@@ -34,6 +34,8 @@ class PermissionEndpointRepositoryIntegrationTest extends RepositoryTestBase {
     @Autowired private PermissionJpaRepository permissionJpaRepository;
 
     private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
+    private static final String DEFAULT_SERVICE_NAME = "authhub";
+    private static final boolean DEFAULT_IS_PUBLIC = false;
 
     private PermissionJpaEntity savedPermission;
 
@@ -69,9 +71,11 @@ class PermissionEndpointRepositoryIntegrationTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/users/{id}",
                             HttpMethod.GET,
                             "사용자 조회 API",
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null);
@@ -103,9 +107,11 @@ class PermissionEndpointRepositoryIntegrationTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/roles",
                             HttpMethod.POST,
                             "역할 생성 API",
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null);
@@ -146,9 +152,11 @@ class PermissionEndpointRepositoryIntegrationTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/users",
                             HttpMethod.GET,
                             "사용자 목록 조회",
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null);
@@ -178,9 +186,11 @@ class PermissionEndpointRepositoryIntegrationTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/users",
                             HttpMethod.GET,
                             null,
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null);
@@ -188,9 +198,11 @@ class PermissionEndpointRepositoryIntegrationTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/users",
                             HttpMethod.POST,
                             null,
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null);
@@ -220,9 +232,11 @@ class PermissionEndpointRepositoryIntegrationTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/delete-me",
                             HttpMethod.DELETE,
                             null,
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null);

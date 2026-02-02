@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.rolepermission.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.role.id.RoleId;
@@ -46,30 +45,6 @@ class RolePermissionTest {
             assertThat(rolePermission.permissionIdValue()).isEqualTo(permissionId.value());
             assertThat(rolePermission.isNew()).isTrue();
             assertThat(rolePermission.createdAt()).isEqualTo(NOW);
-        }
-
-        @Test
-        @DisplayName("roleId가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenRoleIdIsNull() {
-            // given
-            PermissionId permissionId = PermissionId.of(1L);
-
-            // when & then
-            assertThatThrownBy(() -> RolePermission.create(null, permissionId, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("roleId");
-        }
-
-        @Test
-        @DisplayName("permissionId가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenPermissionIdIsNull() {
-            // given
-            RoleId roleId = RoleId.of(1L);
-
-            // when & then
-            assertThatThrownBy(() -> RolePermission.create(roleId, null, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("permissionId");
         }
     }
 

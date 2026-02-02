@@ -1,4 +1,4 @@
-package com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.repository;
+package com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.condition;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;

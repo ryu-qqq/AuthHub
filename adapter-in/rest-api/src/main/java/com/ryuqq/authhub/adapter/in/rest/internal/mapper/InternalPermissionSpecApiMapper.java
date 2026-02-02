@@ -29,7 +29,8 @@ public class InternalPermissionSpecApiMapper {
         List<EndpointPermissionSpecApiResponse> endpoints =
                 result.endpoints().stream().map(this::toApiResponse).toList();
 
-        return new EndpointPermissionSpecListApiResponse(endpoints, result.totalCount());
+        return new EndpointPermissionSpecListApiResponse(
+                result.version(), result.updatedAt(), endpoints);
     }
 
     /**
@@ -40,10 +41,12 @@ public class InternalPermissionSpecApiMapper {
      */
     private EndpointPermissionSpecApiResponse toApiResponse(EndpointPermissionSpecResult result) {
         return new EndpointPermissionSpecApiResponse(
-                result.permissionEndpointId(),
-                result.permissionId(),
-                result.permissionKey(),
-                result.urlPattern(),
-                result.httpMethod());
+                result.serviceName(),
+                result.pathPattern(),
+                result.httpMethod(),
+                result.requiredPermissions(),
+                result.requiredRoles(),
+                result.isPublic(),
+                result.description());
     }
 }

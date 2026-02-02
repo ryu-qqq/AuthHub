@@ -81,6 +81,9 @@ class PermissionEndpointCommandControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("permissionId")
                                                     .type(JsonFieldType.NUMBER)
                                                     .description("연결할 권한 ID (필수, 양수)"),
+                                            fieldWithPath("serviceName")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("서비스 이름 (필수, 100자 이하)"),
                                             fieldWithPath("urlPattern")
                                                     .type(JsonFieldType.STRING)
                                                     .description("URL 패턴 (필수, '/'로 시작, 500자 이하)"),
@@ -92,6 +95,10 @@ class PermissionEndpointCommandControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("description")
                                                     .type(JsonFieldType.STRING)
                                                     .description("설명 (선택, 500자 이하)")
+                                                    .optional(),
+                                            fieldWithPath("isPublic")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("공개 엔드포인트 여부 (선택, 기본값 false)")
                                                     .optional()),
                                     responseFields(
                                             fieldWithPath("success")
@@ -115,9 +122,11 @@ class PermissionEndpointCommandControllerTest extends RestDocsTestSupport {
             CreatePermissionEndpointApiRequest request =
                     new CreatePermissionEndpointApiRequest(
                             null,
+                            PermissionEndpointApiFixture.defaultServiceName(),
                             PermissionEndpointApiFixture.defaultUrlPattern(),
                             PermissionEndpointApiFixture.defaultHttpMethod(),
-                            PermissionEndpointApiFixture.defaultDescription());
+                            PermissionEndpointApiFixture.defaultDescription(),
+                            PermissionEndpointApiFixture.defaultIsPublic());
 
             // when & then
             mockMvc.perform(
@@ -134,9 +143,11 @@ class PermissionEndpointCommandControllerTest extends RestDocsTestSupport {
             CreatePermissionEndpointApiRequest request =
                     new CreatePermissionEndpointApiRequest(
                             PermissionEndpointApiFixture.defaultPermissionId(),
+                            PermissionEndpointApiFixture.defaultServiceName(),
                             "",
                             PermissionEndpointApiFixture.defaultHttpMethod(),
-                            PermissionEndpointApiFixture.defaultDescription());
+                            PermissionEndpointApiFixture.defaultDescription(),
+                            PermissionEndpointApiFixture.defaultIsPublic());
 
             // when & then
             mockMvc.perform(
@@ -153,9 +164,11 @@ class PermissionEndpointCommandControllerTest extends RestDocsTestSupport {
             CreatePermissionEndpointApiRequest request =
                     new CreatePermissionEndpointApiRequest(
                             PermissionEndpointApiFixture.defaultPermissionId(),
+                            PermissionEndpointApiFixture.defaultServiceName(),
                             "api/v1/users",
                             PermissionEndpointApiFixture.defaultHttpMethod(),
-                            PermissionEndpointApiFixture.defaultDescription());
+                            PermissionEndpointApiFixture.defaultDescription(),
+                            PermissionEndpointApiFixture.defaultIsPublic());
 
             // when & then
             mockMvc.perform(
@@ -172,9 +185,11 @@ class PermissionEndpointCommandControllerTest extends RestDocsTestSupport {
             CreatePermissionEndpointApiRequest request =
                     new CreatePermissionEndpointApiRequest(
                             PermissionEndpointApiFixture.defaultPermissionId(),
+                            PermissionEndpointApiFixture.defaultServiceName(),
                             PermissionEndpointApiFixture.defaultUrlPattern(),
                             "INVALID",
-                            PermissionEndpointApiFixture.defaultDescription());
+                            PermissionEndpointApiFixture.defaultDescription(),
+                            PermissionEndpointApiFixture.defaultIsPublic());
 
             // when & then
             mockMvc.perform(
@@ -215,6 +230,10 @@ class PermissionEndpointCommandControllerTest extends RestDocsTestSupport {
                                             parameterWithName("permissionEndpointId")
                                                     .description("수정할 PermissionEndpoint ID")),
                                     requestFields(
+                                            fieldWithPath("serviceName")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("서비스 이름 (선택, 100자 이하)")
+                                                    .optional(),
                                             fieldWithPath("urlPattern")
                                                     .type(JsonFieldType.STRING)
                                                     .description("URL 패턴 (선택, '/'로 시작, 500자 이하)")
@@ -228,6 +247,10 @@ class PermissionEndpointCommandControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("description")
                                                     .type(JsonFieldType.STRING)
                                                     .description("설명 (선택, 500자 이하)")
+                                                    .optional(),
+                                            fieldWithPath("isPublic")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("공개 엔드포인트 여부 (선택)")
                                                     .optional()),
                                     responseFields(
                                             fieldWithPath("success")

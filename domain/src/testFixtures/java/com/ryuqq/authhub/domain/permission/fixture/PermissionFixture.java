@@ -6,6 +6,8 @@ import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import java.time.Instant;
 
+// Note: PermissionId import kept for defaultId() method
+
 /**
  * Permission 테스트 픽스처
  *
@@ -26,7 +28,7 @@ public final class PermissionFixture {
     /** 기본 커스텀 권한 생성 (ID 할당됨) */
     public static Permission create() {
         return Permission.reconstitute(
-                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_ID,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -40,7 +42,7 @@ public final class PermissionFixture {
     /** 시스템 권한 생성 */
     public static Permission createSystemPermission() {
         return Permission.reconstitute(
-                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_ID,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -54,7 +56,7 @@ public final class PermissionFixture {
     /** 커스텀 권한 생성 */
     public static Permission createCustomPermission() {
         return Permission.reconstitute(
-                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_ID,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -69,7 +71,7 @@ public final class PermissionFixture {
     public static Permission createWithResourceAndAction(String resource, String action) {
         String permissionKey = resource + ":" + action;
         return Permission.reconstitute(
-                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_ID,
                 permissionKey,
                 resource,
                 action,
@@ -84,7 +86,7 @@ public final class PermissionFixture {
     public static Permission createSystemWithKey(String resource, String action) {
         String permissionKey = resource + ":" + action;
         return Permission.reconstitute(
-                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_ID,
                 permissionKey,
                 resource,
                 action,
@@ -114,7 +116,7 @@ public final class PermissionFixture {
     /** 삭제된 권한 생성 */
     public static Permission createDeleted() {
         return Permission.reconstitute(
-                PermissionId.of(DEFAULT_PERMISSION_ID),
+                DEFAULT_PERMISSION_ID,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,

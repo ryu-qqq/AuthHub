@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.in.rest.common.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.slf4j.MDC;
 
 /**
@@ -45,8 +46,11 @@ import org.slf4j.MDC;
 public record ApiResponse<T>(
         @Schema(description = "요청 성공 여부") boolean success,
         @Schema(description = "응답 데이터") T data,
-        @Schema(description = "응답 시간") LocalDateTime timestamp,
+        @Schema(description = "응답 시간", example = "2025-10-23T10:30:00") String timestamp,
         @Schema(description = "요청 ID") String requestId) {
+
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     /**
      * 성공 응답 생성
@@ -58,7 +62,8 @@ public record ApiResponse<T>(
      * @since 2025-10-23
      */
     public static <T> ApiResponse<T> ofSuccess(T data) {
-        return new ApiResponse<>(true, data, LocalDateTime.now(), generateRequestId());
+        return new ApiResponse<>(
+                true, data, LocalDateTime.now().format(TIMESTAMP_FORMATTER), generateRequestId());
     }
 
     /**

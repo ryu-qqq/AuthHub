@@ -5,6 +5,7 @@ import com.ryuqq.authhub.application.permissionendpoint.dto.response.EndpointPer
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.EndpointPermissionSpecResult;
 import com.ryuqq.authhub.application.permissionendpoint.manager.PermissionEndpointReadManager;
 import com.ryuqq.authhub.application.permissionendpoint.port.in.query.GetEndpointPermissionSpecUseCase;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,7 @@ public class GetEndpointPermissionSpecService implements GetEndpointPermissionSp
     @Override
     public EndpointPermissionSpecListResult getAll() {
         List<EndpointPermissionSpecResult> specs = readManager.findAllActiveSpecs();
-        return assembler.toSpecListResult(specs);
+        Instant latestUpdatedAt = readManager.findLatestUpdatedAt();
+        return assembler.toSpecListResult(specs, latestUpdatedAt);
     }
 }
