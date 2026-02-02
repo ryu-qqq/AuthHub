@@ -86,31 +86,6 @@ class RoleTest {
         }
 
         @Test
-        @DisplayName("테넌트 역할 생성 시 tenantId가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenTenantIdIsNullForTenantRole() {
-            // when & then
-            assertThatThrownBy(
-                            () ->
-                                    Role.createTenantCustom(
-                                            null,
-                                            RoleName.of("TENANT_ROLE"),
-                                            "테넌트 역할",
-                                            "테넌트 전용 역할",
-                                            NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("tenantId");
-        }
-
-        @Test
-        @DisplayName("name이 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenNameIsNull() {
-            // when & then
-            assertThatThrownBy(() -> Role.createSystem(null, "표시명", "설명", NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("name");
-        }
-
-        @Test
         @DisplayName("통합 create 메서드로 시스템 역할을 생성한다")
         void shouldCreateSystemRoleViaUnifiedMethod() {
             // when

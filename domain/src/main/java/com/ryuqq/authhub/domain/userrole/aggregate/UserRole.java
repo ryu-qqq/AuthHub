@@ -45,20 +45,10 @@ public final class UserRole {
     private final Instant createdAt;
 
     private UserRole(UserRoleId userRoleId, UserId userId, RoleId roleId, Instant createdAt) {
-        validateRequired(userId, roleId);
         this.userRoleId = userRoleId;
         this.userId = userId;
         this.roleId = roleId;
         this.createdAt = createdAt;
-    }
-
-    private void validateRequired(UserId userId, RoleId roleId) {
-        if (userId == null) {
-            throw new IllegalArgumentException("userId는 null일 수 없습니다");
-        }
-        if (roleId == null) {
-            throw new IllegalArgumentException("roleId는 null일 수 없습니다");
-        }
     }
 
     // ========== Factory Methods ==========

@@ -58,9 +58,11 @@ public class PermissionEndpointQueryApiMapper {
         return new PermissionEndpointApiResponse(
                 result.permissionEndpointId(),
                 result.permissionId(),
+                result.serviceName(),
                 result.urlPattern(),
                 result.httpMethod(),
                 result.description(),
+                result.isPublic(),
                 DateTimeFormatUtils.formatIso8601(result.createdAt()),
                 DateTimeFormatUtils.formatIso8601(result.updatedAt()));
     }

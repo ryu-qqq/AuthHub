@@ -12,11 +12,18 @@ package com.ryuqq.authhub.application.permissionendpoint.dto.command;
  * </ul>
  *
  * @param permissionEndpointId 수정할 엔드포인트 ID
- * @param urlPattern 새 URL 패턴 (null이면 변경 안 함)
- * @param httpMethod 새 HTTP 메서드 (null이면 변경 안 함)
- * @param description 새 설명 (null이면 변경 안 함)
+ * @param serviceName 서비스 이름
+ * @param urlPattern URL 패턴
+ * @param httpMethod HTTP 메서드
+ * @param description 설명
+ * @param isPublic 공개 엔드포인트 여부
  * @author development-team
  * @since 1.0.0
  */
 public record UpdatePermissionEndpointCommand(
-        Long permissionEndpointId, String urlPattern, String httpMethod, String description) {}
+        Long permissionEndpointId,
+        String serviceName,
+        String urlPattern,
+        String httpMethod,
+        String description,
+        boolean isPublic) {}

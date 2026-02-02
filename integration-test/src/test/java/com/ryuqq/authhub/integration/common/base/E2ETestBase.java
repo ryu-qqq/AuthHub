@@ -84,6 +84,12 @@ public abstract class E2ETestBase {
     protected static final String HEADER_TRACE_ID = "X-Trace-Id";
 
     // ========================================
+    // Service Token Header Constants
+    // ========================================
+    protected static final String HEADER_SERVICE_NAME = "X-Service-Name";
+    protected static final String HEADER_SERVICE_TOKEN = "X-Service-Token";
+
+    // ========================================
     // Default Test Values
     // ========================================
     protected static final String DEFAULT_USER_ID = "test-user-id";
@@ -91,6 +97,12 @@ public abstract class E2ETestBase {
     protected static final String DEFAULT_ORG_ID = "test-org-id";
     protected static final String DEFAULT_ROLE = "ROLE_USER";
     protected static final String DEFAULT_TRACE_ID = "test-trace-id";
+
+    // ========================================
+    // Default Service Token Values
+    // ========================================
+    protected static final String DEFAULT_SERVICE_NAME = "gateway";
+    protected static final String DEFAULT_SERVICE_TOKEN = "test-service-token";
 
     @LocalServerPort protected int port;
 
@@ -199,6 +211,35 @@ public abstract class E2ETestBase {
                 .header(HEADER_USER_ID, "system-admin-id")
                 .header(HEADER_TENANT_ID, "system")
                 .header(HEADER_ROLES, "ROLE_SYSTEM_ADMIN")
+                .header(HEADER_TRACE_ID, DEFAULT_TRACE_ID);
+    }
+
+    // ========================================
+    // Service Token Authentication
+    // ========================================
+
+    /**
+     * 서비스 토큰 인증 요청 명세 (기본값 사용).
+     *
+     * <p>Internal API 테스트용. X-Service-Name, X-Service-Token 헤더를 사용합니다.
+     *
+     * @return 서비스 토큰 인증 정보가 포함된 RequestSpecification
+     */
+    protected RequestSpecification givenServiceToken() {
+        return givenServiceToken(DEFAULT_SERVICE_NAME, DEFAULT_SERVICE_TOKEN);
+    }
+
+    /**
+     * 서비스 토큰 인증 요청 명세 (커스텀 값).
+     *
+     * @param serviceName 서비스 이름 (예: "gateway")
+     * @param serviceToken 서비스 토큰
+     * @return 서비스 토큰 인증 정보가 포함된 RequestSpecification
+     */
+    protected RequestSpecification givenServiceToken(String serviceName, String serviceToken) {
+        return givenJson()
+                .header(HEADER_SERVICE_NAME, serviceName)
+                .header(HEADER_SERVICE_TOKEN, serviceToken)
                 .header(HEADER_TRACE_ID, DEFAULT_TRACE_ID);
     }
 }

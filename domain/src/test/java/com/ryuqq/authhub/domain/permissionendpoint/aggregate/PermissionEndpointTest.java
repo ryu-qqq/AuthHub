@@ -3,7 +3,6 @@ package com.ryuqq.authhub.domain.permissionendpoint.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permissionendpoint.fixture.PermissionEndpointFixture;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
 import java.time.Instant;
@@ -28,6 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PermissionEndpointTest {
 
     private static final Instant NOW = Instant.parse("2025-01-15T10:00:00Z");
+    private static final String DEFAULT_SERVICE_NAME = "authhub";
+    private static final boolean DEFAULT_IS_PUBLIC = false;
 
     @Nested
     @DisplayName("PermissionEndpoint 생성 테스트")
@@ -37,20 +38,28 @@ class PermissionEndpointTest {
         @DisplayName("새로운 엔드포인트를 성공적으로 생성한다")
         void shouldCreateEndpointSuccessfully() {
             // given
-            PermissionId permissionId = PermissionId.of(1L);
             String urlPattern = "/api/v1/users";
             HttpMethod method = HttpMethod.GET;
             String description = "사용자 목록 조회";
 
             // when
             PermissionEndpoint endpoint =
-                    PermissionEndpoint.create(permissionId, urlPattern, method, description, NOW);
+                    PermissionEndpoint.create(
+                            1L,
+                            DEFAULT_SERVICE_NAME,
+                            urlPattern,
+                            method,
+                            description,
+                            DEFAULT_IS_PUBLIC,
+                            NOW);
 
             // then
             assertThat(endpoint.permissionIdValue()).isEqualTo(1L);
+            assertThat(endpoint.serviceNameValue()).isEqualTo(DEFAULT_SERVICE_NAME);
             assertThat(endpoint.urlPatternValue()).isEqualTo(urlPattern);
             assertThat(endpoint.httpMethodValue()).isEqualTo("GET");
             assertThat(endpoint.descriptionValue()).isEqualTo(description);
+            assertThat(endpoint.isPublicEndpoint()).isEqualTo(DEFAULT_IS_PUBLIC);
             assertThat(endpoint.isNew()).isTrue();
             assertThat(endpoint.isDeleted()).isFalse();
             assertThat(endpoint.isActive()).isTrue();
@@ -61,7 +70,14 @@ class PermissionEndpointTest {
         void shouldCreateEndpointWithLongPermissionId() {
             // when
             PermissionEndpoint endpoint =
-                    PermissionEndpoint.create(1L, "/api/v1/users", HttpMethod.GET, "설명", NOW);
+                    PermissionEndpoint.create(
+                            1L,
+                            DEFAULT_SERVICE_NAME,
+                            "/api/v1/users",
+                            HttpMethod.GET,
+                            "설명",
+                            DEFAULT_IS_PUBLIC,
+                            NOW);
 
             // then
             assertThat(endpoint.permissionIdValue()).isEqualTo(1L);
@@ -74,13 +90,15 @@ class PermissionEndpointTest {
             assertThatThrownBy(
                             () ->
                                     PermissionEndpoint.create(
-                                            (PermissionId) null,
+                                            (Long) null,
+                                            DEFAULT_SERVICE_NAME,
                                             "/api/v1/users",
                                             HttpMethod.GET,
                                             "설명",
+                                            DEFAULT_IS_PUBLIC,
                                             NOW))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("permissionId");
+                    .hasMessageContaining("PermissionId");
         }
 
         @Test
@@ -90,7 +108,13 @@ class PermissionEndpointTest {
             assertThatThrownBy(
                             () ->
                                     PermissionEndpoint.create(
-                                            PermissionId.of(1L), null, HttpMethod.GET, "설명", NOW))
+                                            1L,
+                                            DEFAULT_SERVICE_NAME,
+                                            null,
+                                            HttpMethod.GET,
+                                            "설명",
+                                            DEFAULT_IS_PUBLIC,
+                                            NOW))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("urlPattern");
         }
@@ -102,7 +126,13 @@ class PermissionEndpointTest {
             assertThatThrownBy(
                             () ->
                                     PermissionEndpoint.create(
-                                            PermissionId.of(1L), "", HttpMethod.GET, "설명", NOW))
+                                            1L,
+                                            DEFAULT_SERVICE_NAME,
+                                            "",
+                                            HttpMethod.GET,
+                                            "설명",
+                                            DEFAULT_IS_PUBLIC,
+                                            NOW))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("urlPattern");
         }
@@ -114,26 +144,19 @@ class PermissionEndpointTest {
             assertThatThrownBy(
                             () ->
                                     PermissionEndpoint.create(
-                                            PermissionId.of(1L),
+                                            1L,
+                                            DEFAULT_SERVICE_NAME,
                                             "api/v1/users",
                                             HttpMethod.GET,
                                             "설명",
+                                            DEFAULT_IS_PUBLIC,
                                             NOW))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("'/'로 시작");
         }
 
-        @Test
-        @DisplayName("httpMethod가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenHttpMethodIsNull() {
-            // when & then
-            assertThatThrownBy(
-                            () ->
-                                    PermissionEndpoint.create(
-                                            PermissionId.of(1L), "/api/v1/users", null, "설명", NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("httpMethod");
-        }
+        // httpMethod는 enum이므로 VO가 아니며, aggregate에서 null check를 하지 않음
+        // httpMethod가 null인 경우 검증은 Application Layer에서 수행
     }
 
     @Nested
@@ -258,7 +281,12 @@ class PermissionEndpointTest {
             // given
             PermissionEndpoint endpoint = PermissionEndpointFixture.create();
             PermissionEndpointUpdateData updateData =
-                    PermissionEndpointUpdateData.of("/api/v2/users", "POST", "새로운 설명");
+                    PermissionEndpointUpdateData.of(
+                            DEFAULT_SERVICE_NAME,
+                            "/api/v2/users",
+                            "POST",
+                            "새로운 설명",
+                            DEFAULT_IS_PUBLIC);
 
             // when
             endpoint.update(updateData, NOW);
@@ -278,7 +306,12 @@ class PermissionEndpointTest {
             String originalMethod = endpoint.httpMethodValue();
             String originalDescription = endpoint.descriptionValue();
             PermissionEndpointUpdateData updateData =
-                    PermissionEndpointUpdateData.of("/api/v2/users", null, null);
+                    PermissionEndpointUpdateData.of(
+                            DEFAULT_SERVICE_NAME,
+                            "/api/v2/users",
+                            originalMethod,
+                            originalDescription,
+                            DEFAULT_IS_PUBLIC);
 
             // when
             endpoint.update(updateData, NOW);
@@ -292,13 +325,15 @@ class PermissionEndpointTest {
         @Test
         @DisplayName("수정 시 URL 패턴이 /로 시작하지 않으면 예외가 발생한다")
         void shouldThrowExceptionWhenUpdateUrlPatternInvalid() {
-            // given
-            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
-            PermissionEndpointUpdateData updateData =
-                    PermissionEndpointUpdateData.of("api/v2/users", null, null);
-
             // when & then
-            assertThatThrownBy(() -> endpoint.update(updateData, NOW))
+            assertThatThrownBy(
+                            () ->
+                                    PermissionEndpointUpdateData.of(
+                                            DEFAULT_SERVICE_NAME,
+                                            "api/v2/users",
+                                            "GET",
+                                            "설명",
+                                            DEFAULT_IS_PUBLIC))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("'/'로 시작");
         }

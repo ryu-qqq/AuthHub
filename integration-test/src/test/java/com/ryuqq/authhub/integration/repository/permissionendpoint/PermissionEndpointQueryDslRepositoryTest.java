@@ -44,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
 
     private static final Instant FIXED_TIME = Instant.parse("2025-01-01T00:00:00Z");
+    private static final String DEFAULT_SERVICE_NAME = "authhub";
+    private static final boolean DEFAULT_IS_PUBLIC = false;
 
     @Autowired private PermissionEndpointJpaRepository jpaRepository;
     @Autowired private PermissionEndpointQueryDslRepository queryDslRepository;
@@ -84,9 +86,11 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/users",
                             HttpMethod.GET,
                             "사용자 목록",
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null));
@@ -94,9 +98,11 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/users/{id}",
                             HttpMethod.GET,
                             "사용자 상세",
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null));
@@ -129,9 +135,11 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/organizations",
                             HttpMethod.GET,
                             "조직 목록",
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null));
@@ -170,9 +178,11 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/count1",
                             HttpMethod.GET,
                             null,
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null));
@@ -180,9 +190,11 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/count2",
                             HttpMethod.POST,
                             null,
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null));
@@ -219,9 +231,11 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/tenants/{id}",
                             HttpMethod.GET,
                             null,
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null));
@@ -249,9 +263,11 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/pattern1",
                             HttpMethod.GET,
                             null,
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null));
@@ -259,9 +275,11 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                     PermissionEndpointJpaEntity.of(
                             null,
                             savedPermission.getPermissionId(),
+                            DEFAULT_SERVICE_NAME,
                             "/api/v1/pattern2",
                             HttpMethod.POST,
                             null,
+                            DEFAULT_IS_PUBLIC,
                             FIXED_TIME,
                             FIXED_TIME,
                             null));

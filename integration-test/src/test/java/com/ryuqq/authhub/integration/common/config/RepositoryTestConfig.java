@@ -31,11 +31,13 @@ import org.springframework.context.annotation.ComponentScan;
             "com.ryuqq.authhub.adapter.out.persistence.permission.repository",
             "com.ryuqq.authhub.adapter.out.persistence.permission.condition",
             "com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.repository",
+            "com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.condition",
             "com.ryuqq.authhub.adapter.out.persistence.rolepermission.repository",
             "com.ryuqq.authhub.adapter.out.persistence.rolepermission.condition",
             "com.ryuqq.authhub.adapter.out.persistence.userrole.repository",
             "com.ryuqq.authhub.adapter.out.persistence.userrole.condition",
-            "com.ryuqq.authhub.adapter.out.persistence.token.repository"
+            "com.ryuqq.authhub.adapter.out.persistence.token.repository",
+            "com.ryuqq.authhub.adapter.out.persistence.token.condition"
         })
 public class RepositoryTestConfig {
 

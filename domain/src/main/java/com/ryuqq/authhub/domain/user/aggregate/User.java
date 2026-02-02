@@ -62,7 +62,6 @@ public final class User {
             DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
-        validateRequired(organizationId, identifier, hashedPassword);
         this.userId = userId;
         this.organizationId = organizationId;
         this.identifier = identifier;
@@ -72,19 +71,6 @@ public final class User {
         this.deletionStatus = deletionStatus != null ? deletionStatus : DeletionStatus.active();
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    private void validateRequired(
-            OrganizationId organizationId, Identifier identifier, HashedPassword hashedPassword) {
-        if (organizationId == null) {
-            throw new IllegalArgumentException("organizationId는 null일 수 없습니다");
-        }
-        if (identifier == null) {
-            throw new IllegalArgumentException("identifier는 null일 수 없습니다");
-        }
-        if (hashedPassword == null) {
-            throw new IllegalArgumentException("hashedPassword는 null일 수 없습니다");
-        }
     }
 
     // ========== Factory Methods ==========
@@ -107,9 +93,6 @@ public final class User {
             PhoneNumber phoneNumber,
             HashedPassword hashedPassword,
             Instant now) {
-        if (userId == null) {
-            throw new IllegalArgumentException("새 사용자 생성 시 userId는 필수입니다");
-        }
         return new User(
                 userId,
                 organizationId,
@@ -180,9 +163,6 @@ public final class User {
      * @param changedAt 변경 시간 (외부 주입)
      */
     public void changePassword(HashedPassword newHashedPassword, Instant changedAt) {
-        if (newHashedPassword == null) {
-            throw new IllegalArgumentException("newHashedPassword는 null일 수 없습니다");
-        }
         this.hashedPassword = newHashedPassword;
         this.updatedAt = changedAt;
     }

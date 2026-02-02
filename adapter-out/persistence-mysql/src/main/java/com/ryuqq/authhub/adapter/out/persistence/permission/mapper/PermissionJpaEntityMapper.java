@@ -3,7 +3,6 @@ package com.ryuqq.authhub.adapter.out.persistence.permission.mapper;
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.PermissionJpaEntity;
 import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
-import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -100,10 +99,10 @@ public class PermissionJpaEntityMapper {
      * <p><strong>변환 규칙:</strong>
      *
      * <ul>
-     *   <li>permissionId: Entity.permissionId (Long) → PermissionId VO
-     *   <li>permissionKey: Entity.permissionKey → String
-     *   <li>resource: Entity.resource → String
-     *   <li>action: Entity.action → String
+     *   <li>permissionId: Entity.permissionId (Long) → Long (reconstitute 편의 메서드 사용)
+     *   <li>permissionKey: Entity.permissionKey → String (reconstitute 내부에서 PermissionKey VO로 변환)
+     *   <li>resource: Entity.resource → String (reconstitute 내부에서 Resource VO로 변환)
+     *   <li>action: Entity.action → String (reconstitute 내부에서 Action VO로 변환)
      *   <li>description: Entity.description → String
      *   <li>type: Entity.type → PermissionType Enum
      *   <li>deletedAt: Entity.getDeletedAt() → DeletionStatus
@@ -116,7 +115,7 @@ public class PermissionJpaEntityMapper {
      */
     public Permission toDomain(PermissionJpaEntity entity) {
         return Permission.reconstitute(
-                PermissionId.of(entity.getPermissionId()),
+                entity.getPermissionId(),
                 entity.getPermissionKey(),
                 entity.getResource(),
                 entity.getAction(),

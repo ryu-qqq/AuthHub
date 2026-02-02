@@ -16,6 +16,7 @@ import com.ryuqq.authhub.adapter.in.rest.internal.mapper.InternalPermissionSpecA
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.EndpointPermissionSpecListResult;
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.EndpointPermissionSpecResult;
 import com.ryuqq.authhub.application.permissionendpoint.port.in.query.GetEndpointPermissionSpecUseCase;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -48,15 +49,17 @@ class InternalPermissionSpecControllerTest extends RestDocsTestSupport {
         @DisplayName("유효한 요청으로 엔드포인트-권한 스펙을 조회한다")
         void shouldGetSpecSuccessfully() throws Exception {
             // given
+            Instant latestUpdatedAt = Instant.parse("2025-01-15T10:00:00Z");
             EndpointPermissionSpecResult specResult =
                     new EndpointPermissionSpecResult(
-                            InternalApiFixture.defaultPermissionEndpointId(),
-                            InternalApiFixture.defaultPermissionId(),
-                            InternalApiFixture.defaultPermissionKey(),
+                            InternalApiFixture.defaultServiceName(),
                             InternalApiFixture.defaultPathPattern(),
-                            InternalApiFixture.defaultHttpMethod());
+                            InternalApiFixture.defaultHttpMethod(),
+                            InternalApiFixture.defaultPermissionKey(),
+                            false,
+                            InternalApiFixture.defaultDescription());
             EndpointPermissionSpecListResult listResult =
-                    EndpointPermissionSpecListResult.of(List.of(specResult));
+                    EndpointPermissionSpecListResult.of(List.of(specResult), latestUpdatedAt);
             given(getEndpointPermissionSpecUseCase.getAll()).willReturn(listResult);
 
             // when & then
@@ -67,12 +70,14 @@ class InternalPermissionSpecControllerTest extends RestDocsTestSupport {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.endpoints").isArray())
-                    .andExpect(jsonPath("$.data.totalCount").value(1))
                     .andExpect(
-                            jsonPath("$.data.endpoints[0].permissionEndpointId")
-                                    .value(InternalApiFixture.defaultPermissionEndpointId()))
+                            jsonPath("$.data.endpoints[0].serviceName")
+                                    .value(InternalApiFixture.defaultServiceName()))
                     .andExpect(
-                            jsonPath("$.data.endpoints[0].permissionKey")
+                            jsonPath("$.data.endpoints[0].pathPattern")
+                                    .value(InternalApiFixture.defaultPathPattern()))
+                    .andExpect(
+                            jsonPath("$.data.endpoints[0].requiredPermissions[0]")
                                     .value(InternalApiFixture.defaultPermissionKey()))
                     .andDo(
                             document(
@@ -84,27 +89,37 @@ class InternalPermissionSpecControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data")
                                                     .type(JsonFieldType.OBJECT)
                                                     .description("응답 데이터"),
+                                            fieldWithPath("data.version")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("스펙 버전 (ETag용)"),
+                                            fieldWithPath("data.updatedAt")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("마지막 수정 시간")
+                                                    .optional(),
                                             fieldWithPath("data.endpoints")
                                                     .type(JsonFieldType.ARRAY)
                                                     .description("엔드포인트-권한 매핑 목록"),
-                                            fieldWithPath("data.endpoints[].permissionEndpointId")
-                                                    .type(JsonFieldType.NUMBER)
-                                                    .description("엔드포인트 ID"),
-                                            fieldWithPath("data.endpoints[].permissionId")
-                                                    .type(JsonFieldType.NUMBER)
-                                                    .description("권한 ID"),
-                                            fieldWithPath("data.endpoints[].permissionKey")
+                                            fieldWithPath("data.endpoints[].serviceName")
                                                     .type(JsonFieldType.STRING)
-                                                    .description("권한 키 (예: user:read)"),
-                                            fieldWithPath("data.endpoints[].urlPattern")
+                                                    .description("서비스 이름"),
+                                            fieldWithPath("data.endpoints[].pathPattern")
                                                     .type(JsonFieldType.STRING)
                                                     .description("URL 패턴"),
                                             fieldWithPath("data.endpoints[].httpMethod")
                                                     .type(JsonFieldType.STRING)
                                                     .description("HTTP 메서드"),
-                                            fieldWithPath("data.totalCount")
-                                                    .type(JsonFieldType.NUMBER)
-                                                    .description("전체 개수"),
+                                            fieldWithPath("data.endpoints[].requiredPermissions")
+                                                    .type(JsonFieldType.ARRAY)
+                                                    .description("필요 권한 목록"),
+                                            fieldWithPath("data.endpoints[].requiredRoles")
+                                                    .type(JsonFieldType.ARRAY)
+                                                    .description("필요 역할 목록"),
+                                            fieldWithPath("data.endpoints[].isPublic")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("공개 엔드포인트 여부"),
+                                            fieldWithPath("data.endpoints[].description")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("설명"),
                                             fieldWithPath("timestamp")
                                                     .type(JsonFieldType.STRING)
                                                     .description("응답 시간"),
@@ -128,8 +143,7 @@ class InternalPermissionSpecControllerTest extends RestDocsTestSupport {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.endpoints").isArray())
-                    .andExpect(jsonPath("$.data.endpoints").isEmpty())
-                    .andExpect(jsonPath("$.data.totalCount").value(0));
+                    .andExpect(jsonPath("$.data.endpoints").isEmpty());
         }
     }
 }

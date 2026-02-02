@@ -5,6 +5,7 @@ import com.ryuqq.authhub.application.permissionendpoint.dto.response.EndpointPer
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.PermissionEndpointPageResult;
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.PermissionEndpointResult;
 import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpoint;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -40,9 +41,11 @@ public class PermissionEndpointAssembler {
         return new PermissionEndpointResult(
                 permissionEndpoint.permissionEndpointIdValue(),
                 permissionEndpoint.permissionIdValue(),
+                permissionEndpoint.serviceNameValue(),
                 permissionEndpoint.urlPatternValue(),
                 permissionEndpoint.httpMethodValue(),
                 permissionEndpoint.descriptionValue(),
+                permissionEndpoint.isPublicEndpoint(),
                 permissionEndpoint.createdAt(),
                 permissionEndpoint.updatedAt());
     }
@@ -82,10 +85,11 @@ public class PermissionEndpointAssembler {
      * <p>Gateway용 엔드포인트-권한 스펙 목록을 변환합니다.
      *
      * @param specs EndpointPermissionSpecResult 목록
+     * @param latestUpdatedAt 가장 최근 수정 시간
      * @return EndpointPermissionSpecListResult
      */
     public EndpointPermissionSpecListResult toSpecListResult(
-            List<EndpointPermissionSpecResult> specs) {
-        return EndpointPermissionSpecListResult.of(specs);
+            List<EndpointPermissionSpecResult> specs, Instant latestUpdatedAt) {
+        return EndpointPermissionSpecListResult.of(specs, latestUpdatedAt);
     }
 }

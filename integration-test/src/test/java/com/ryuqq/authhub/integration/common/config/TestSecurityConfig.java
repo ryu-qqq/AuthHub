@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -18,6 +20,18 @@ import org.springframework.security.web.SecurityFilterChain;
 @TestConfiguration
 @EnableMethodSecurity
 public class TestSecurityConfig {
+
+    /**
+     * 테스트용 PasswordEncoder.
+     *
+     * <p>E2E 테스트에서 비밀번호 해싱을 위해 사용됩니다.
+     *
+     * @return BCryptPasswordEncoder
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     /**
      * 테스트용 SecurityFilterChain. 모든 요청을 허용하고 CSRF를 비활성화.
