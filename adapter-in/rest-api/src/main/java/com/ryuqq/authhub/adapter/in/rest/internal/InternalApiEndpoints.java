@@ -44,4 +44,10 @@ public final class InternalApiEndpoints {
 
     /** 온보딩 API 기본 경로 */
     public static final String ONBOARDING = BASE + "/onboarding";
+
+    /** 사용자 권한 API 기본 경로 */
+    public static final String USERS = BASE + "/users";
+
+    /** 사용자 권한 조회 */
+    public static final String USER_PERMISSIONS = "/{userId}/permissions";
 }

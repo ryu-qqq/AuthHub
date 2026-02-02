@@ -8,8 +8,10 @@ import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.EndpointPermissio
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.EndpointSyncResultApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.OnboardingResultApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.TenantConfigApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.UserPermissionsApiResponse;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Internal API 테스트 픽스처
@@ -32,6 +34,9 @@ public final class InternalApiFixture {
     private static final String DEFAULT_TENANT_NAME = "테스트 테넌트";
     private static final String DEFAULT_STATUS = "ACTIVE";
     private static final String DEFAULT_ORG_NAME = "기본 조직";
+    private static final String DEFAULT_USER_ID = "019450eb-4f1e-7000-8000-000000000001";
+    private static final Set<String> DEFAULT_ROLES = Set.of("ADMIN", "USER");
+    private static final Set<String> DEFAULT_PERMISSIONS = Set.of("user:read", "user:write");
 
     private InternalApiFixture() {}
 
@@ -227,5 +232,35 @@ public final class InternalApiFixture {
 
     public static String defaultOrgName() {
         return DEFAULT_ORG_NAME;
+    }
+
+    public static String defaultUserId() {
+        return DEFAULT_USER_ID;
+    }
+
+    public static Set<String> defaultRoles() {
+        return DEFAULT_ROLES;
+    }
+
+    public static Set<String> defaultPermissions() {
+        return DEFAULT_PERMISSIONS;
+    }
+
+    // ========== UserPermissionsApiResponse ==========
+
+    /** 기본 사용자 권한 응답 */
+    public static UserPermissionsApiResponse userPermissionsResponse() {
+        return new UserPermissionsApiResponse(DEFAULT_USER_ID, DEFAULT_ROLES, DEFAULT_PERMISSIONS);
+    }
+
+    /** 빈 권한 사용자 응답 */
+    public static UserPermissionsApiResponse emptyUserPermissionsResponse() {
+        return new UserPermissionsApiResponse(DEFAULT_USER_ID, Set.of(), Set.of());
+    }
+
+    /** 커스텀 사용자 권한 응답 */
+    public static UserPermissionsApiResponse userPermissionsResponse(
+            String userId, Set<String> roles, Set<String> permissions) {
+        return new UserPermissionsApiResponse(userId, roles, permissions);
     }
 }
