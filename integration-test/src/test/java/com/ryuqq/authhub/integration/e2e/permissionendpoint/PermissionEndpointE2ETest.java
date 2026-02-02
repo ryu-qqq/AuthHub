@@ -70,6 +70,7 @@ class PermissionEndpointE2ETest extends E2ETestBase {
             Map<String, Object> request =
                     Map.of(
                             "permissionId", savedPermissionId,
+                            "serviceName", "user-service",
                             "urlPattern", "/api/v1/users/{id}",
                             "httpMethod", "GET",
                             "description", "사용자 상세 조회 API");
@@ -93,6 +94,7 @@ class PermissionEndpointE2ETest extends E2ETestBase {
             // given
             Map<String, Object> request =
                     Map.of(
+                            "serviceName", "user-service",
                             "urlPattern", "/api/v1/users",
                             "httpMethod", "GET");
 
@@ -112,6 +114,7 @@ class PermissionEndpointE2ETest extends E2ETestBase {
             Map<String, Object> request =
                     Map.of(
                             "permissionId", savedPermissionId,
+                            "serviceName", "user-service",
                             "urlPattern", "api/v1/users",
                             "httpMethod", "GET");
 
@@ -141,6 +144,7 @@ class PermissionEndpointE2ETest extends E2ETestBase {
             Map<String, Object> request =
                     Map.of(
                             "permissionId", nonExistentPermissionId,
+                            "serviceName", "user-service",
                             "urlPattern", "/api/v1/test",
                             "httpMethod", "GET");
 
@@ -166,6 +170,7 @@ class PermissionEndpointE2ETest extends E2ETestBase {
             Map<String, Object> createRequest =
                     Map.of(
                             "permissionId", savedPermissionId,
+                            "serviceName", "user-service",
                             "urlPattern", "/api/v1/delete-me",
                             "httpMethod", "DELETE");
             Response createResponse =

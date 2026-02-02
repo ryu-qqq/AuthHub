@@ -58,9 +58,11 @@ class PermissionEndpointQueryControllerTest extends RestDocsTestSupport {
                     new PermissionEndpointResult(
                             PermissionEndpointApiFixture.defaultPermissionEndpointId(),
                             PermissionEndpointApiFixture.defaultPermissionId(),
+                            PermissionEndpointApiFixture.defaultServiceName(),
                             PermissionEndpointApiFixture.defaultUrlPattern(),
                             PermissionEndpointApiFixture.defaultHttpMethod(),
                             PermissionEndpointApiFixture.defaultDescription(),
+                            PermissionEndpointApiFixture.defaultIsPublic(),
                             fixedTime,
                             fixedTime);
             PageMeta pageMeta = new PageMeta(0, 20, 1L, 1);
@@ -130,6 +132,9 @@ class PermissionEndpointQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.content[].permissionId")
                                                     .type(JsonFieldType.NUMBER)
                                                     .description("권한 ID"),
+                                            fieldWithPath("data.content[].serviceName")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("서비스 이름"),
                                             fieldWithPath("data.content[].urlPattern")
                                                     .type(JsonFieldType.STRING)
                                                     .description("URL 패턴"),
@@ -139,6 +144,9 @@ class PermissionEndpointQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.content[].description")
                                                     .type(JsonFieldType.STRING)
                                                     .description("설명"),
+                                            fieldWithPath("data.content[].isPublic")
+                                                    .type(JsonFieldType.BOOLEAN)
+                                                    .description("공개 엔드포인트 여부"),
                                             fieldWithPath("data.content[].createdAt")
                                                     .type(JsonFieldType.STRING)
                                                     .description("생성일시 (ISO 8601)"),

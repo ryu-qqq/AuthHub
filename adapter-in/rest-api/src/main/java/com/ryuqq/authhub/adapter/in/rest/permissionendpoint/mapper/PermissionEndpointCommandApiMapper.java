@@ -27,9 +27,11 @@ public class PermissionEndpointCommandApiMapper {
     public CreatePermissionEndpointCommand toCommand(CreatePermissionEndpointApiRequest request) {
         return new CreatePermissionEndpointCommand(
                 request.permissionId(),
+                request.serviceName(),
                 request.urlPattern(),
                 request.httpMethod(),
-                request.description());
+                request.description(),
+                request.isPublic());
     }
 
     /**
@@ -43,9 +45,11 @@ public class PermissionEndpointCommandApiMapper {
             Long permissionEndpointId, UpdatePermissionEndpointApiRequest request) {
         return new UpdatePermissionEndpointCommand(
                 permissionEndpointId,
+                request.serviceName(),
                 request.urlPattern(),
                 request.httpMethod(),
-                request.description());
+                request.description(),
+                request.isPublic());
     }
 
     /**

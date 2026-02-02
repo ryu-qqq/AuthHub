@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.user.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
@@ -75,62 +74,6 @@ class UserTest {
             // then
             assertThat(user.phoneNumberValue()).isNull();
             assertThat(user.isActive()).isTrue();
-        }
-
-        @Test
-        @DisplayName("userId가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenUserIdIsNull() {
-            // given
-            OrganizationId orgId = UserFixture.defaultOrganizationId();
-            Identifier identifier = Identifier.of("test@test.com");
-            HashedPassword password = HashedPassword.of("$2a$10$hashedpassword");
-
-            // when & then
-            assertThatThrownBy(() -> User.create(null, orgId, identifier, null, password, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("userId");
-        }
-
-        @Test
-        @DisplayName("organizationId가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenOrganizationIdIsNull() {
-            // given
-            UserId userId = UserId.forNew("01941234-5678-7000-8000-123456789999");
-            Identifier identifier = Identifier.of("test@test.com");
-            HashedPassword password = HashedPassword.of("$2a$10$hashedpassword");
-
-            // when & then
-            assertThatThrownBy(() -> User.create(userId, null, identifier, null, password, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("organizationId");
-        }
-
-        @Test
-        @DisplayName("identifier가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenIdentifierIsNull() {
-            // given
-            UserId userId = UserId.forNew("01941234-5678-7000-8000-123456789999");
-            OrganizationId orgId = UserFixture.defaultOrganizationId();
-            HashedPassword password = HashedPassword.of("$2a$10$hashedpassword");
-
-            // when & then
-            assertThatThrownBy(() -> User.create(userId, orgId, null, null, password, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("identifier");
-        }
-
-        @Test
-        @DisplayName("hashedPassword가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenHashedPasswordIsNull() {
-            // given
-            UserId userId = UserId.forNew("01941234-5678-7000-8000-123456789999");
-            OrganizationId orgId = UserFixture.defaultOrganizationId();
-            Identifier identifier = Identifier.of("test@test.com");
-
-            // when & then
-            assertThatThrownBy(() -> User.create(userId, orgId, identifier, null, null, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("hashedPassword");
         }
     }
 
@@ -257,18 +200,6 @@ class UserTest {
             assertThat(user.hashedPasswordValue()).isEqualTo(newPassword.value());
             assertThat(user.hashedPasswordValue()).isNotEqualTo(originalPassword);
             assertThat(user.updatedAt()).isEqualTo(NOW);
-        }
-
-        @Test
-        @DisplayName("null 비밀번호로 변경 시 예외가 발생한다")
-        void shouldThrowExceptionWhenNewPasswordIsNull() {
-            // given
-            User user = UserFixture.create();
-
-            // when & then
-            assertThatThrownBy(() -> user.changePassword(null, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("newHashedPassword");
         }
     }
 

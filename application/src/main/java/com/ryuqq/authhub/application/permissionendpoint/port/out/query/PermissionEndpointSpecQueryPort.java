@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.application.permissionendpoint.port.out.query;
 
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.EndpointPermissionSpecResult;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -28,4 +29,13 @@ public interface PermissionEndpointSpecQueryPort {
      * @return 엔드포인트-권한 스펙 목록
      */
     List<EndpointPermissionSpecResult> findAllActiveSpecs();
+
+    /**
+     * 가장 최근에 수정된 엔드포인트의 수정 시간 조회
+     *
+     * <p>Gateway 캐싱 버전 관리를 위해 사용합니다.
+     *
+     * @return 가장 최근 수정 시간 (없으면 null)
+     */
+    Instant findLatestUpdatedAt();
 }

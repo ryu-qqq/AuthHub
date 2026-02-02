@@ -4,10 +4,12 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.authhub.adapter.out.persistence.permission.entity.QPermissionJpaEntity;
+import com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.condition.PermissionEndpointConditionBuilder;
 import com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.entity.PermissionEndpointJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.entity.QPermissionEndpointJpaEntity;
 import com.ryuqq.authhub.application.permissionendpoint.dto.response.EndpointPermissionSpecResult;
 import com.ryuqq.authhub.domain.permissionendpoint.query.criteria.PermissionEndpointSearchCriteria;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 
@@ -130,15 +132,29 @@ public class PermissionEndpointQueryDslRepository {
                 .select(
                         Projections.constructor(
                                 EndpointPermissionSpecResult.class,
-                                permissionEndpoint.permissionEndpointId,
-                                permissionEndpoint.permissionId,
-                                permission.permissionKey,
+                                permissionEndpoint.serviceName,
                                 permissionEndpoint.urlPattern,
-                                permissionEndpoint.httpMethod.stringValue()))
+                                permissionEndpoint.httpMethod.stringValue(),
+                                permission.permissionKey,
+                                permissionEndpoint.isPublic,
+                                permissionEndpoint.description))
                 .from(permissionEndpoint)
                 .join(permission)
                 .on(permissionEndpoint.permissionId.eq(permission.permissionId))
                 .where(permissionEndpoint.deletedAt.isNull(), permission.deletedAt.isNull())
                 .fetch();
+    }
+
+    /**
+     * 가장 최근에 수정된 활성 엔드포인트의 수정 시간 조회
+     *
+     * @return 가장 최근 수정 시간 (없으면 null)
+     */
+    public Instant findLatestUpdatedAt() {
+        return queryFactory
+                .select(permissionEndpoint.updatedAt.max())
+                .from(permissionEndpoint)
+                .where(permissionEndpoint.deletedAt.isNull())
+                .fetchOne();
     }
 }

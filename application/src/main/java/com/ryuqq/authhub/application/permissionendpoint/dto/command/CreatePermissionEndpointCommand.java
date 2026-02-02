@@ -12,11 +12,18 @@ package com.ryuqq.authhub.application.permissionendpoint.dto.command;
  * </ul>
  *
  * @param permissionId 연결할 권한 ID
+ * @param serviceName 서비스 이름 (예: product-service)
  * @param urlPattern URL 패턴 (예: /api/v1/users/{id})
  * @param httpMethod HTTP 메서드 (GET, POST, PUT, DELETE 등)
  * @param description 설명
+ * @param isPublic 공개 엔드포인트 여부 (인증 불필요)
  * @author development-team
  * @since 1.0.0
  */
 public record CreatePermissionEndpointCommand(
-        Long permissionId, String urlPattern, String httpMethod, String description) {}
+        Long permissionId,
+        String serviceName,
+        String urlPattern,
+        String httpMethod,
+        String description,
+        boolean isPublic) {}

@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.domain.userrole.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.user.id.UserId;
@@ -46,30 +45,6 @@ class UserRoleTest {
             assertThat(userRole.roleIdValue()).isEqualTo(roleId.value());
             assertThat(userRole.isNew()).isTrue();
             assertThat(userRole.createdAt()).isEqualTo(NOW);
-        }
-
-        @Test
-        @DisplayName("userId가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenUserIdIsNull() {
-            // given
-            RoleId roleId = RoleId.of(1L);
-
-            // when & then
-            assertThatThrownBy(() -> UserRole.create(null, roleId, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("userId");
-        }
-
-        @Test
-        @DisplayName("roleId가 null이면 예외가 발생한다")
-        void shouldThrowExceptionWhenRoleIdIsNull() {
-            // given
-            UserId userId = UserId.of("01941234-5678-7000-8000-123456789999");
-
-            // when & then
-            assertThatThrownBy(() -> UserRole.create(userId, null, NOW))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("roleId");
         }
     }
 

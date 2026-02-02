@@ -8,6 +8,7 @@ import com.ryuqq.authhub.domain.permissionendpoint.exception.PermissionEndpointN
 import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
 import com.ryuqq.authhub.domain.permissionendpoint.query.criteria.PermissionEndpointSearchCriteria;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -128,6 +129,18 @@ public class PermissionEndpointReadManager {
     @Transactional(readOnly = true)
     public List<EndpointPermissionSpecResult> findAllActiveSpecs() {
         return specQueryPort.findAllActiveSpecs();
+    }
+
+    /**
+     * 가장 최근에 수정된 엔드포인트의 수정 시간 조회
+     *
+     * <p>Gateway 캐싱 버전 관리를 위해 사용합니다.
+     *
+     * @return 가장 최근 수정 시간 (없으면 null)
+     */
+    @Transactional(readOnly = true)
+    public Instant findLatestUpdatedAt() {
+        return specQueryPort.findLatestUpdatedAt();
     }
 
     /**

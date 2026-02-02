@@ -15,9 +15,11 @@ import java.time.Instant;
  *
  * @param permissionEndpointId 엔드포인트 ID
  * @param permissionId 연결된 권한 ID
+ * @param serviceName 서비스 이름
  * @param urlPattern URL 패턴
  * @param httpMethod HTTP 메서드
  * @param description 설명
+ * @param isPublic 공개 엔드포인트 여부
  * @param createdAt 생성 시각
  * @param updatedAt 수정 시각
  * @author development-team
@@ -26,8 +28,10 @@ import java.time.Instant;
 public record PermissionEndpointResult(
         Long permissionEndpointId,
         Long permissionId,
+        String serviceName,
         String urlPattern,
         String httpMethod,
         String description,
+        boolean isPublic,
         Instant createdAt,
         Instant updatedAt) {}

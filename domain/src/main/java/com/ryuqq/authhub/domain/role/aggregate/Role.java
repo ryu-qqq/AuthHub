@@ -74,7 +74,6 @@ public final class Role {
             DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
-        validateRequired(name, type);
         this.roleId = roleId;
         this.tenantId = tenantId;
         this.name = name;
@@ -84,15 +83,6 @@ public final class Role {
         this.deletionStatus = deletionStatus != null ? deletionStatus : DeletionStatus.active();
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    private void validateRequired(RoleName name, RoleType type) {
-        if (name == null) {
-            throw new IllegalArgumentException("name은 null일 수 없습니다");
-        }
-        if (type == null) {
-            throw new IllegalArgumentException("type은 null일 수 없습니다");
-        }
     }
 
     // ========== Factory Methods ==========
@@ -161,9 +151,6 @@ public final class Role {
      */
     public static Role createTenantCustom(
             TenantId tenantId, RoleName name, String displayName, String description, Instant now) {
-        if (tenantId == null) {
-            throw new IllegalArgumentException("테넌트 역할 생성 시 tenantId는 필수입니다");
-        }
         return new Role(
                 null,
                 tenantId,

@@ -4,7 +4,10 @@ import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotDeletableException;
 import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotModifiableException;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.permission.vo.Action;
+import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
+import com.ryuqq.authhub.domain.permission.vo.Resource;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -44,7 +47,7 @@ import java.util.Objects;
  *   <li>Law of Demeter 준수 - Getter 체이닝 금지
  *   <li>Tell, Don't Ask 패턴 - 상태 질의 대신 행위 위임
  *   <li>Long FK 전략 - JPA 관계 어노테이션 금지
- *   <li>Null 검증은 생성 시점에서 처리
+ *   <li>Null 검증은 VO 생성 시점에서 처리
  * </ul>
  *
  * @author development-team
@@ -54,9 +57,9 @@ import java.util.Objects;
 public final class Permission {
 
     private final PermissionId permissionId;
-    private final String permissionKey;
-    private final String resource;
-    private final String action;
+    private final PermissionKey permissionKey;
+    private final Resource resource;
+    private final Action action;
     private String description;
     private final PermissionType type;
     private DeletionStatus deletionStatus;
@@ -65,15 +68,14 @@ public final class Permission {
 
     private Permission(
             PermissionId permissionId,
-            String permissionKey,
-            String resource,
-            String action,
+            PermissionKey permissionKey,
+            Resource resource,
+            Action action,
             String description,
             PermissionType type,
             DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
-        validateRequired(permissionKey, resource, action, type);
         this.permissionId = permissionId;
         this.permissionKey = permissionKey;
         this.resource = resource;
@@ -83,25 +85,6 @@ public final class Permission {
         this.deletionStatus = deletionStatus != null ? deletionStatus : DeletionStatus.active();
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    private void validateRequired(
-            String permissionKey, String resource, String action, PermissionType type) {
-        if (permissionKey == null || permissionKey.isBlank()) {
-            throw new IllegalArgumentException("permissionKey는 null이거나 빈 값일 수 없습니다");
-        }
-        if (resource == null || resource.isBlank()) {
-            throw new IllegalArgumentException("resource는 null이거나 빈 값일 수 없습니다");
-        }
-        if (action == null || action.isBlank()) {
-            throw new IllegalArgumentException("action은 null이거나 빈 값일 수 없습니다");
-        }
-        if (type == null) {
-            throw new IllegalArgumentException("type은 null일 수 없습니다");
-        }
-        if (!permissionKey.equals(resource + ":" + action)) {
-            throw new IllegalArgumentException("permissionKey는 '{resource}:{action}' 형식이어야 합니다");
-        }
     }
 
     // ========== Factory Methods ==========
@@ -119,12 +102,14 @@ public final class Permission {
      */
     public static Permission createSystem(
             String resource, String action, String description, Instant now) {
-        String permissionKey = resource + ":" + action;
+        Resource resourceVo = Resource.of(resource);
+        Action actionVo = Action.of(action);
+        PermissionKey permissionKey = PermissionKey.of(resourceVo, actionVo);
         return new Permission(
                 null,
                 permissionKey,
-                resource,
-                action,
+                resourceVo,
+                actionVo,
                 description,
                 PermissionType.SYSTEM,
                 DeletionStatus.active(),
@@ -145,12 +130,14 @@ public final class Permission {
      */
     public static Permission createCustom(
             String resource, String action, String description, Instant now) {
-        String permissionKey = resource + ":" + action;
+        Resource resourceVo = Resource.of(resource);
+        Action actionVo = Action.of(action);
+        PermissionKey permissionKey = PermissionKey.of(resourceVo, actionVo);
         return new Permission(
                 null,
                 permissionKey,
-                resource,
-                action,
+                resourceVo,
+                actionVo,
                 description,
                 PermissionType.CUSTOM,
                 DeletionStatus.active(),
@@ -173,12 +160,14 @@ public final class Permission {
     public static Permission create(
             String resource, String action, String description, boolean isSystem, Instant now) {
         PermissionType type = isSystem ? PermissionType.SYSTEM : PermissionType.CUSTOM;
-        String permissionKey = resource + ":" + action;
+        Resource resourceVo = Resource.of(resource);
+        Action actionVo = Action.of(action);
+        PermissionKey permissionKey = PermissionKey.of(resourceVo, actionVo);
         return new Permission(
                 null,
                 permissionKey,
-                resource,
-                action,
+                resourceVo,
+                actionVo,
                 description,
                 type,
                 DeletionStatus.active(),
@@ -187,7 +176,7 @@ public final class Permission {
     }
 
     /**
-     * DB에서 Permission 재구성 (reconstitute)
+     * DB에서 Permission 재구성 (reconstitute) - VO 타입
      *
      * @param permissionId 권한 ID
      * @param permissionKey 권한 키
@@ -202,9 +191,9 @@ public final class Permission {
      */
     public static Permission reconstitute(
             PermissionId permissionId,
-            String permissionKey,
-            String resource,
-            String action,
+            PermissionKey permissionKey,
+            Resource resource,
+            Action action,
             String description,
             PermissionType type,
             DeletionStatus deletionStatus,
@@ -215,6 +204,42 @@ public final class Permission {
                 permissionKey,
                 resource,
                 action,
+                description,
+                type,
+                deletionStatus,
+                createdAt,
+                updatedAt);
+    }
+
+    /**
+     * DB에서 Permission 재구성 (reconstitute) - String 타입 편의 메서드
+     *
+     * @param permissionId 권한 ID (Long)
+     * @param permissionKey 권한 키 (String)
+     * @param resource 리소스 (String)
+     * @param action 행위 (String)
+     * @param description 권한 설명
+     * @param type 권한 유형
+     * @param deletionStatus 삭제 상태
+     * @param createdAt 생성 시간
+     * @param updatedAt 수정 시간
+     * @return 재구성된 Permission 인스턴스
+     */
+    public static Permission reconstitute(
+            Long permissionId,
+            String permissionKey,
+            String resource,
+            String action,
+            String description,
+            PermissionType type,
+            DeletionStatus deletionStatus,
+            Instant createdAt,
+            Instant updatedAt) {
+        return reconstitute(
+                PermissionId.of(permissionId),
+                PermissionKey.of(permissionKey),
+                Resource.of(resource),
+                Action.of(action),
                 description,
                 type,
                 deletionStatus,
@@ -233,24 +258,9 @@ public final class Permission {
      */
     public void update(PermissionUpdateData updateData, Instant changedAt) {
         validateModifiable();
-        if (updateData.hasDescription()) {
+        if (updateData.description() != null) {
             this.description = updateData.description();
         }
-        this.updatedAt = changedAt;
-    }
-
-    /**
-     * 권한 설명 변경
-     *
-     * @param newDescription 새로운 설명
-     * @param changedAt 변경 시간 (외부 주입)
-     * @throws SystemPermissionNotModifiableException 시스템 권한인 경우
-     * @deprecated {@link #update(PermissionUpdateData, Instant)} 사용 권장
-     */
-    @Deprecated
-    public void changeDescription(String newDescription, Instant changedAt) {
-        validateModifiable();
-        this.description = newDescription;
         this.updatedAt = changedAt;
     }
 
@@ -262,7 +272,7 @@ public final class Permission {
      */
     public void delete(Instant now) {
         if (type.isSystem()) {
-            throw new SystemPermissionNotDeletableException(permissionKey);
+            throw new SystemPermissionNotDeletableException(permissionKey.value());
         }
         this.deletionStatus = DeletionStatus.deletedAt(now);
         this.updatedAt = now;
@@ -280,7 +290,7 @@ public final class Permission {
 
     private void validateModifiable() {
         if (type.isSystem()) {
-            throw new SystemPermissionNotModifiableException(permissionKey);
+            throw new SystemPermissionNotModifiableException(permissionKey.value());
         }
     }
 
@@ -301,7 +311,7 @@ public final class Permission {
      * @return 권한 키 (예: "user:read")
      */
     public String permissionKeyValue() {
-        return permissionKey;
+        return permissionKey.value();
     }
 
     /**
@@ -310,7 +320,7 @@ public final class Permission {
      * @return 리소스 (예: "user")
      */
     public String resourceValue() {
-        return resource;
+        return resource.value();
     }
 
     /**
@@ -319,7 +329,7 @@ public final class Permission {
      * @return 행위 (예: "read")
      */
     public String actionValue() {
-        return action;
+        return action.value();
     }
 
     /**
@@ -391,15 +401,15 @@ public final class Permission {
         return permissionId;
     }
 
-    public String getPermissionKey() {
+    public PermissionKey getPermissionKey() {
         return permissionKey;
     }
 
-    public String getResource() {
+    public Resource getResource() {
         return resource;
     }
 
-    public String getAction() {
+    public Action getAction() {
         return action;
     }
 

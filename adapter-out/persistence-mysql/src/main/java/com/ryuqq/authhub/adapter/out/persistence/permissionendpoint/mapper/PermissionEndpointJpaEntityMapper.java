@@ -2,9 +2,7 @@ package com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.mapper;
 
 import com.ryuqq.authhub.adapter.out.persistence.permissionendpoint.entity.PermissionEndpointJpaEntity;
 import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
-import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpoint;
-import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,9 +35,11 @@ public class PermissionEndpointJpaEntityMapper {
         return PermissionEndpointJpaEntity.of(
                 domain.permissionEndpointIdValue(),
                 domain.permissionIdValue(),
-                domain.getUrlPattern(),
+                domain.serviceNameValue(),
+                domain.urlPatternValue(),
                 domain.getHttpMethod(),
                 domain.getDescription(),
+                domain.isPublicEndpoint(),
                 domain.createdAt(),
                 domain.updatedAt(),
                 extractDeletedAt(domain.getDeletionStatus()));
@@ -53,25 +53,19 @@ public class PermissionEndpointJpaEntityMapper {
      */
     public PermissionEndpoint toDomain(PermissionEndpointJpaEntity entity) {
         return PermissionEndpoint.reconstitute(
-                parsePermissionEndpointId(entity.getPermissionEndpointId()),
-                parsePermissionId(entity.getPermissionId()),
+                entity.getPermissionEndpointId(),
+                entity.getPermissionId(),
+                entity.getServiceName(),
                 entity.getUrlPattern(),
                 entity.getHttpMethod(),
                 entity.getDescription(),
+                entity.isPublic(),
                 parseDeletionStatus(entity.getDeletedAt()),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }
 
     // ===== Private Helper Methods =====
-
-    private PermissionEndpointId parsePermissionEndpointId(Long id) {
-        return id != null ? PermissionEndpointId.of(id) : null;
-    }
-
-    private PermissionId parsePermissionId(Long id) {
-        return id != null ? PermissionId.of(id) : null;
-    }
 
     private DeletionStatus parseDeletionStatus(java.time.Instant deletedAt) {
         return deletedAt != null ? DeletionStatus.deletedAt(deletedAt) : DeletionStatus.active();

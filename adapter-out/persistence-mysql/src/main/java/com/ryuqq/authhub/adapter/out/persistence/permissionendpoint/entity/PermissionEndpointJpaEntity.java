@@ -57,13 +57,15 @@ import java.time.Instant;
         name = "permission_endpoints",
         uniqueConstraints = {
             @UniqueConstraint(
-                    name = "uk_permission_endpoints_url_method",
-                    columnNames = {"url_pattern", "http_method"})
+                    name = "uk_permission_endpoints_service_url_method",
+                    columnNames = {"service_name", "url_pattern", "http_method"})
         },
         indexes = {
             @Index(name = "idx_permission_endpoints_permission_id", columnList = "permission_id"),
+            @Index(name = "idx_permission_endpoints_service_name", columnList = "service_name"),
             @Index(name = "idx_permission_endpoints_url_pattern", columnList = "url_pattern"),
-            @Index(name = "idx_permission_endpoints_http_method", columnList = "http_method")
+            @Index(name = "idx_permission_endpoints_http_method", columnList = "http_method"),
+            @Index(name = "idx_permission_endpoints_is_public", columnList = "is_public")
         })
 public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
 
@@ -77,6 +79,10 @@ public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
     @Column(name = "permission_id", nullable = false)
     private Long permissionId;
 
+    /** 서비스 이름 (예: product-service, order-api) */
+    @Column(name = "service_name", nullable = false, length = 100)
+    private String serviceName;
+
     /** URL 패턴 (예: /api/v1/users/{id}) */
     @Column(name = "url_pattern", nullable = false, length = 500)
     private String urlPattern;
@@ -89,6 +95,10 @@ public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
     /** 설명 */
     @Column(name = "description", length = 500)
     private String description;
+
+    /** 공개 엔드포인트 여부 (인증 없이 접근 가능) */
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic;
 
     /**
      * JPA 기본 생성자 (protected)
@@ -104,9 +114,11 @@ public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
      *
      * @param permissionEndpointId 엔드포인트 ID (PK, Long - null이면 신규)
      * @param permissionId 권한 ID (FK)
+     * @param serviceName 서비스 이름
      * @param urlPattern URL 패턴
      * @param httpMethod HTTP 메서드
      * @param description 설명
+     * @param isPublic 공개 엔드포인트 여부
      * @param createdAt 생성 일시 (Instant, UTC)
      * @param updatedAt 수정 일시 (Instant, UTC)
      * @param deletedAt 삭제 일시 (Instant, UTC)
@@ -114,18 +126,22 @@ public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
     private PermissionEndpointJpaEntity(
             Long permissionEndpointId,
             Long permissionId,
+            String serviceName,
             String urlPattern,
             HttpMethod httpMethod,
             String description,
+            boolean isPublic,
             Instant createdAt,
             Instant updatedAt,
             Instant deletedAt) {
         super(createdAt, updatedAt, deletedAt);
         this.permissionEndpointId = permissionEndpointId;
         this.permissionId = permissionId;
+        this.serviceName = serviceName;
         this.urlPattern = urlPattern;
         this.httpMethod = httpMethod;
         this.description = description;
+        this.isPublic = isPublic;
     }
 
     /**
@@ -135,9 +151,11 @@ public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
      *
      * @param permissionEndpointId 엔드포인트 ID (PK, Long - null이면 신규)
      * @param permissionId 권한 ID (FK)
+     * @param serviceName 서비스 이름
      * @param urlPattern URL 패턴
      * @param httpMethod HTTP 메서드
      * @param description 설명
+     * @param isPublic 공개 엔드포인트 여부
      * @param createdAt 생성 일시 (Instant, UTC)
      * @param updatedAt 수정 일시 (Instant, UTC)
      * @param deletedAt 삭제 일시 (Instant, UTC)
@@ -146,18 +164,22 @@ public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
     public static PermissionEndpointJpaEntity of(
             Long permissionEndpointId,
             Long permissionId,
+            String serviceName,
             String urlPattern,
             HttpMethod httpMethod,
             String description,
+            boolean isPublic,
             Instant createdAt,
             Instant updatedAt,
             Instant deletedAt) {
         return new PermissionEndpointJpaEntity(
                 permissionEndpointId,
                 permissionId,
+                serviceName,
                 urlPattern,
                 httpMethod,
                 description,
+                isPublic,
                 createdAt,
                 updatedAt,
                 deletedAt);
@@ -173,6 +195,10 @@ public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
         return permissionId;
     }
 
+    public String getServiceName() {
+        return serviceName;
+    }
+
     public String getUrlPattern() {
         return urlPattern;
     }
@@ -183,5 +209,9 @@ public class PermissionEndpointJpaEntity extends SoftDeletableEntity {
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
     }
 }

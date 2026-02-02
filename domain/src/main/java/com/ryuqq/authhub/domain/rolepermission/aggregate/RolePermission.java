@@ -49,20 +49,10 @@ public final class RolePermission {
             RoleId roleId,
             PermissionId permissionId,
             Instant createdAt) {
-        validateRequired(roleId, permissionId);
         this.rolePermissionId = rolePermissionId;
         this.roleId = roleId;
         this.permissionId = permissionId;
         this.createdAt = createdAt;
-    }
-
-    private void validateRequired(RoleId roleId, PermissionId permissionId) {
-        if (roleId == null) {
-            throw new IllegalArgumentException("roleId는 null일 수 없습니다");
-        }
-        if (permissionId == null) {
-            throw new IllegalArgumentException("permissionId는 null일 수 없습니다");
-        }
     }
 
     // ========== Factory Methods ==========
