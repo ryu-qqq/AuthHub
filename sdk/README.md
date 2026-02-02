@@ -18,6 +18,8 @@ AuthHub REST API와 통합하기 위한 공식 Java SDK입니다. 멀티 테넌�
 - [권한 체크 (Access Control)](#권한-체크-access-control)
 - [서비스 토큰 인증](#서비스-토큰-인증)
 - [엔드포인트 자동 동기화](#엔드포인트-자동-동기화)
+- [GatewayClient (Internal API)](#gatewayclient-internal-api)
+- [변경 이력](#변경-이력)
 
 ---
 
@@ -30,9 +32,17 @@ AuthHub SDK는 두 개의 모듈로 구성됩니다:
 | `authhub-sdk-core` | 순수 Java SDK 코어 | 모든 Java 프로젝트 |
 | `authhub-sdk-spring-boot-starter` | Spring Boot 자동 설정 | Spring Boot 프로젝트 |
 
+### 클라이언트 유형
+
+| 클라이언트 | 설명 | 인증 방식 |
+|------------|------|-----------|
+| `AuthHubClient` | 일반 API 클라이언트 | 서비스 토큰 / 사용자 토큰 |
+| `GatewayClient` | Gateway 전용 클라이언트 (v2.0.1+) | 서비스 토큰 |
+
 ### 주요 기능
 
 - **6개 도메인 API 지원**: Tenant, Organization, User, Role, Permission, Onboarding
+- **Gateway Internal API 지원** (v2.0.1): Permission Spec 조회 API
 - **멀티 테넌트 구조**: 테넌트 > 조직 > 사용자 계층 관리
 - **RBAC 지원**: 역할 기반 접근 제어 (Role-Based Access Control)
 - **타입 안전성**: Java Record 기반의 강타입 DTO
@@ -69,7 +79,7 @@ repositories {
 
 ```groovy
 dependencies {
-    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v2.0.0'
+    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v2.0.1'
 }
 ```
 
@@ -77,7 +87,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v2.0.0'
+    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v2.0.1'
 }
 ```
 
@@ -94,7 +104,7 @@ dependencies {
 <dependency>
     <groupId>com.github.ryu-qqq.AuthHub</groupId>
     <artifactId>authhub-sdk-spring-boot-starter</artifactId>
-    <version>v2.0.0</version>
+    <version>v2.0.1</version>
 </dependency>
 ```
 
@@ -651,17 +661,28 @@ sdk/
 │       └── com/ryuqq/authhub/sdk/
 │           ├── api/                      # API 인터페이스
 │           │   ├── AuthApi.java
-│           │   └── OnboardingApi.java
+│           │   ├── OnboardingApi.java
+│           │   └── InternalApi.java      # (v2.0.1) Internal API
 │           ├── client/                   # 클라이언트 구현
 │           │   ├── AuthHubClient.java
-│           │   └── AuthHubClientBuilder.java
+│           │   ├── AuthHubClientBuilder.java
+│           │   ├── GatewayClient.java        # (v2.0.1) Gateway 전용 클라이언트
+│           │   ├── GatewayClientBuilder.java # (v2.0.1)
+│           │   └── internal/
+│           │       ├── DefaultGatewayClient.java
+│           │       ├── DefaultInternalApi.java
+│           │       └── ServiceTokenHttpClientSupport.java
 │           ├── config/                   # 설정
+│           │   └── GatewayClientConfig.java  # (v2.0.1)
 │           ├── exception/                # 예외
 │           ├── model/                    # DTO 모델
 │           │   ├── common/               # 공통 응답
 │           │   ├── auth/                 # 인증 관련
 │           │   ├── user/                 # 사용자 관련
-│           │   └── onboarding/           # 온보딩 관련
+│           │   ├── onboarding/           # 온보딩 관련
+│           │   └── internal/             # (v2.0.1) Internal API 모델
+│           │       ├── EndpointPermissionSpec.java
+│           │       └── EndpointPermissionSpecList.java
 │           └── auth/                     # 토큰 리졸버
 │               ├── TokenResolver.java
 │               ├── ChainTokenResolver.java
@@ -762,7 +783,7 @@ dependencies {
     api project(':domain')
 
     // ✅ AuthHub SDK - api로 선언하여 bootstrap에 전이
-    api 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v2.0.0'
+    api 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v2.0.1'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -1152,6 +1173,200 @@ new EndpointSyncRunner(handlerMapping, syncClient, serviceName, false);  // enab
 - 동기화는 애플리케이션 시작 시 한 번만 실행됩니다
 - AuthHub 서버가 내부 네트워크에서만 접근 가능해야 보안이 유지됩니다
 - 서비스 토큰은 환경 변수로 관리하세요
+
+---
+
+## GatewayClient (Internal API)
+
+> **v2.0.1에서 추가됨**
+
+Gateway에서 AuthHub의 Permission Spec을 조회하기 위한 전용 클라이언트입니다.
+
+### GatewayClient vs AuthHubClient
+
+| 구분 | AuthHubClient | GatewayClient |
+|------|---------------|---------------|
+| **용도** | 일반 API 호출 | Gateway 전용 Internal API |
+| **인증** | 서비스 토큰 / 사용자 토큰 | 서비스 토큰 전용 |
+| **API** | Tenant, User, Role, Permission 등 | Permission Spec |
+| **헤더** | Authorization | X-Service-Name, X-Service-Token |
+
+### 설치
+
+```groovy
+dependencies {
+    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v2.0.1'
+}
+```
+
+### 기본 사용법
+
+```java
+import com.ryuqq.authhub.sdk.client.GatewayClient;
+import com.ryuqq.authhub.sdk.model.common.ApiResponse;
+import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
+
+// 클라이언트 생성
+GatewayClient client = GatewayClient.builder()
+    .baseUrl("https://authhub.example.com")
+    .serviceName("gateway")
+    .serviceToken("your-service-token")
+    .build();
+
+// Permission Spec 조회
+ApiResponse<EndpointPermissionSpecList> response = client.internal().getPermissionSpec();
+
+if (response.success()) {
+    EndpointPermissionSpecList specList = response.data();
+
+    // 버전 정보 (캐시 키로 사용)
+    String version = specList.version();
+    Instant updatedAt = specList.updatedAt();
+
+    // 엔드포인트별 권한 정보
+    for (EndpointPermissionSpec spec : specList.endpoints()) {
+        System.out.println("Service: " + spec.serviceName());
+        System.out.println("Path: " + spec.pathPattern());
+        System.out.println("Method: " + spec.httpMethod());
+        System.out.println("Permissions: " + spec.requiredPermissions());
+        System.out.println("Public: " + spec.isPublic());
+    }
+}
+```
+
+### 타임아웃 설정
+
+```java
+import java.time.Duration;
+
+GatewayClient client = GatewayClient.builder()
+    .baseUrl("https://authhub.example.com")
+    .serviceName("gateway")
+    .serviceToken("your-service-token")
+    .connectTimeout(Duration.ofSeconds(5))   // 기본: 5초
+    .readTimeout(Duration.ofSeconds(30))     // 기본: 30초
+    .build();
+```
+
+### Spring Boot 통합
+
+```java
+@Configuration
+public class AuthHubClientConfig {
+
+    @Value("${authhub.base-url}")
+    private String baseUrl;
+
+    @Value("${authhub.service-name}")
+    private String serviceName;
+
+    @Value("${authhub.service-token}")
+    private String serviceToken;
+
+    @Bean
+    public GatewayClient gatewayClient() {
+        return GatewayClient.builder()
+            .baseUrl(baseUrl)
+            .serviceName(serviceName)
+            .serviceToken(serviceToken)
+            .build();
+    }
+}
+```
+
+```yaml
+# application.yml
+authhub:
+  base-url: ${AUTHHUB_BASE_URL:http://localhost:8080}
+  service-name: gateway
+  service-token: ${AUTHHUB_SERVICE_TOKEN}
+```
+
+### EndpointPermissionSpec 모델
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `serviceName` | `String` | 서비스 이름 (예: `product-service`) |
+| `pathPattern` | `String` | URL 패턴 (예: `/api/v1/users/{id}`) |
+| `httpMethod` | `String` | HTTP 메서드 (GET, POST, PUT, DELETE 등) |
+| `requiredPermissions` | `List<String>` | 필요 권한 목록 |
+| `requiredRoles` | `List<String>` | 필요 역할 목록 |
+| `isPublic` | `boolean` | 공개 엔드포인트 여부 |
+| `description` | `String` | 엔드포인트 설명 |
+
+### 캐싱 권장 사항
+
+Permission Spec은 자주 변경되지 않으므로 캐싱을 권장합니다:
+
+```java
+@Service
+public class PermissionSpecCacheService {
+
+    private final GatewayClient gatewayClient;
+    private final RedisTemplate<String, EndpointPermissionSpecList> redisTemplate;
+
+    private static final String CACHE_KEY = "permission:spec";
+    private static final Duration TTL = Duration.ofHours(1);
+
+    public EndpointPermissionSpecList getPermissionSpec() {
+        // 1. Redis 캐시 확인
+        EndpointPermissionSpecList cached = redisTemplate.opsForValue().get(CACHE_KEY);
+        if (cached != null) {
+            return cached;
+        }
+
+        // 2. AuthHub API 호출
+        ApiResponse<EndpointPermissionSpecList> response =
+            gatewayClient.internal().getPermissionSpec();
+
+        if (response.success()) {
+            EndpointPermissionSpecList spec = response.data();
+
+            // 3. Redis 캐시 저장 (TTL: 1시간)
+            redisTemplate.opsForValue().set(CACHE_KEY, spec, TTL);
+            return spec;
+        }
+
+        throw new RuntimeException("Permission Spec 조회 실패");
+    }
+
+    public void invalidateCache() {
+        redisTemplate.delete(CACHE_KEY);
+    }
+}
+```
+
+### 예외 처리
+
+```java
+try {
+    ApiResponse<EndpointPermissionSpecList> response =
+        gatewayClient.internal().getPermissionSpec();
+} catch (AuthHubUnauthorizedException e) {
+    // 401: 서비스 토큰 인증 실패
+    log.error("인증 실패: {}", e.getMessage());
+} catch (AuthHubForbiddenException e) {
+    // 403: 권한 없음
+    log.error("권한 없음: {}", e.getMessage());
+} catch (AuthHubServerException e) {
+    // 5xx: 서버 오류
+    log.error("서버 오류: {}", e.getMessage());
+}
+```
+
+### 상세 가이드
+
+자세한 내용은 [GATEWAY_CLIENT_GUIDE.md](./docs/sdk/GATEWAY_CLIENT_GUIDE.md)를 참조하세요.
+
+---
+
+## 변경 이력
+
+| 버전 | 날짜 | 변경 내용 |
+|------|------|----------|
+| **v2.0.1** | 2026-02-03 | GatewayClient 추가 (Internal API 지원), Permission Spec API, 성능 최적화 |
+| v2.0.0 | 2026-01-20 | Spring Boot Starter 추가, 권한 체크 기능, 엔드포인트 자동 동기화 |
+| v1.0.0 | 2025-01-15 | 최초 릴리즈 (AuthHubClient) |
 
 ---
 
