@@ -57,7 +57,11 @@ class InternalUserPermissionControllerTest extends RestDocsTestSupport {
             given(getUserPermissionsUseCase.getByUserId(userId)).willReturn(result);
 
             // when & then
-            mockMvc.perform(get(InternalApiEndpoints.USERS + "/{userId}/permissions", userId))
+            mockMvc.perform(
+                            get(
+                                    InternalApiEndpoints.USERS
+                                            + InternalApiEndpoints.USER_PERMISSIONS,
+                                    userId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.userId").value(userId))
@@ -102,7 +106,11 @@ class InternalUserPermissionControllerTest extends RestDocsTestSupport {
             given(getUserPermissionsUseCase.getByUserId(userId)).willReturn(result);
 
             // when & then
-            mockMvc.perform(get(InternalApiEndpoints.USERS + "/{userId}/permissions", userId))
+            mockMvc.perform(
+                            get(
+                                    InternalApiEndpoints.USERS
+                                            + InternalApiEndpoints.USER_PERMISSIONS,
+                                    userId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.userId").value(userId))
@@ -122,7 +130,11 @@ class InternalUserPermissionControllerTest extends RestDocsTestSupport {
             given(getUserPermissionsUseCase.getByUserId(userId)).willReturn(result);
 
             // when & then
-            mockMvc.perform(get(InternalApiEndpoints.USERS + "/{userId}/permissions", userId))
+            mockMvc.perform(
+                            get(
+                                    InternalApiEndpoints.USERS
+                                            + InternalApiEndpoints.USER_PERMISSIONS,
+                                    userId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.userId").value(userId))
