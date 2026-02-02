@@ -1234,6 +1234,86 @@ if (response.success()) {
 }
 ```
 
+### JWKS 조회 (JWT 서명 검증용)
+
+> **v2.0.1에서 추가됨**
+
+Gateway에서 JWT 토큰 서명 검증을 위한 공개키를 조회합니다.
+
+```java
+import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
+import com.ryuqq.authhub.sdk.model.internal.PublicKey;
+
+// JWKS 조회
+PublicKeys publicKeys = client.internal().getJwks();
+
+// 공개키 목록 순회
+for (PublicKey key : publicKeys.keys()) {
+    System.out.println("Key ID: " + key.kid());
+    System.out.println("Algorithm: " + key.alg());
+    System.out.println("Key Type: " + key.kty());
+    System.out.println("Public Key (n): " + key.n());
+    System.out.println("Exponent (e): " + key.e());
+}
+```
+
+### 테넌트 설정 조회
+
+> **v2.0.1에서 추가됨**
+
+Gateway에서 요청 처리 시 테넌트 유효성을 검증하기 위한 설정을 조회합니다.
+
+```java
+import com.ryuqq.authhub.sdk.model.internal.TenantConfig;
+
+// 테넌트 설정 조회
+String tenantId = "tenant-123";
+ApiResponse<TenantConfig> response = client.internal().getTenantConfig(tenantId);
+
+if (response.success()) {
+    TenantConfig config = response.data();
+    System.out.println("Tenant ID: " + config.tenantId());
+    System.out.println("Name: " + config.name());
+    System.out.println("Status: " + config.status());
+    System.out.println("Active: " + config.active());
+
+    // 비활성 테넌트 요청 차단
+    if (!config.active()) {
+        throw new TenantInactiveException("Tenant is not active: " + tenantId);
+    }
+}
+```
+
+### 사용자 권한 조회 (인가 검증용)
+
+> **v2.0.1에서 추가됨**
+
+Gateway에서 사용자 인가 검증을 위해 역할/권한 정보를 조회합니다.
+
+```java
+import com.ryuqq.authhub.sdk.model.internal.UserPermissions;
+
+// 사용자 권한 조회
+String userId = "user-456";
+ApiResponse<UserPermissions> response = client.internal().getUserPermissions(userId);
+
+if (response.success()) {
+    UserPermissions permissions = response.data();
+    System.out.println("User ID: " + permissions.userId());
+    System.out.println("Roles: " + permissions.roles());
+    System.out.println("Permissions: " + permissions.permissions());
+
+    // 권한 검증 예시
+    if (permissions.permissions().contains("product:write")) {
+        // 쓰기 권한 있음
+    }
+
+    if (permissions.roles().contains("ADMIN")) {
+        // 관리자 역할 있음
+    }
+}
+```
+
 ### 타임아웃 설정
 
 ```java
@@ -1293,6 +1373,40 @@ authhub:
 | `requiredRoles` | `List<String>` | 필요 역할 목록 |
 | `isPublic` | `boolean` | 공개 엔드포인트 여부 |
 | `description` | `String` | 엔드포인트 설명 |
+
+### PublicKey 모델 (JWKS)
+
+> **v2.0.1에서 추가됨**
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `kid` | `String` | Key ID (키 식별자) |
+| `kty` | `String` | Key Type (예: `RSA`) |
+| `alg` | `String` | Algorithm (예: `RS256`) |
+| `use` | `String` | 용도 (예: `sig` - 서명용) |
+| `n` | `String` | RSA 공개키 모듈러스 (Base64URL 인코딩) |
+| `e` | `String` | RSA 공개키 지수 (Base64URL 인코딩) |
+
+### TenantConfig 모델
+
+> **v2.0.1에서 추가됨**
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `tenantId` | `String` | 테넌트 ID |
+| `name` | `String` | 테넌트 이름 |
+| `status` | `String` | 테넌트 상태 (`ACTIVE`, `INACTIVE`) |
+| `active` | `boolean` | 활성 여부 (빠른 검증용) |
+
+### UserPermissions 모델
+
+> **v2.0.1에서 추가됨**
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `userId` | `String` | 사용자 ID |
+| `roles` | `Set<String>` | 역할 이름 Set (예: `ADMIN`, `USER`) |
+| `permissions` | `Set<String>` | 권한 키 Set (예: `product:read`, `order:write`) |
 
 ### 캐싱 권장 사항
 
