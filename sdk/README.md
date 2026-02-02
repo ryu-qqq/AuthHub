@@ -79,7 +79,7 @@ repositories {
 
 ```groovy
 dependencies {
-    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v2.0.1'
+    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter:v2.0.2'
 }
 ```
 
@@ -87,7 +87,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v2.0.1'
+    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v2.0.2'
 }
 ```
 
@@ -104,7 +104,7 @@ dependencies {
 <dependency>
     <groupId>com.github.ryu-qqq.AuthHub</groupId>
     <artifactId>authhub-sdk-spring-boot-starter</artifactId>
-    <version>v2.0.1</version>
+    <version>v2.0.2</version>
 </dependency>
 ```
 
@@ -1195,7 +1195,7 @@ Gateway에서 AuthHub의 Permission Spec을 조회하기 위한 전용 클라이
 
 ```groovy
 dependencies {
-    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v2.0.1'
+    implementation 'com.github.ryu-qqq.AuthHub:authhub-sdk-core:v2.0.2'
 }
 ```
 
@@ -1478,7 +1478,8 @@ try {
 
 | 버전 | 날짜 | 변경 내용 |
 |------|------|----------|
-| **v2.0.1** | 2026-02-03 | GatewayClient 추가 (Internal API 지원), Permission Spec API, 성능 최적화 |
+| **v2.0.2** | 2026-02-03 | JWKS/Tenant Config/User Permissions API 추가, SDK 테스트 개선, 문서화 보강 |
+| v2.0.1 | 2026-02-03 | GatewayClient 추가 (Internal API 지원), Permission Spec API, 성능 최적화 |
 | v2.0.0 | 2026-01-20 | Spring Boot Starter 추가, 권한 체크 기능, 엔드포인트 자동 동기화 |
 | v1.0.0 | 2025-01-15 | 최초 릴리즈 (AuthHubClient) |
 
