@@ -5,6 +5,13 @@ import com.ryuqq.authhub.application.userrole.dto.response.UserPermissionsResult
 import com.ryuqq.authhub.application.userrole.facade.UserRoleReadFacade;
 import com.ryuqq.authhub.application.userrole.port.in.query.GetUserPermissionsUseCase;
 import com.ryuqq.authhub.domain.user.id.UserId;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.HexFormat;
+import java.util.Set;
+import java.util.TreeSet;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,6 +44,25 @@ public class GetUserPermissionsService implements GetUserPermissionsUseCase {
         RolesAndPermissionsComposite composite =
                 userRoleReadFacade.findRolesAndPermissionsByUserId(UserId.of(userId));
 
-        return new UserPermissionsResult(userId, composite.roleNames(), composite.permissionKeys());
+        Set<String> roles = composite.roleNames();
+        Set<String> permissions = composite.permissionKeys();
+        String hash = computeHash(roles, permissions);
+        Instant generatedAt = Instant.now();
+
+        return new UserPermissionsResult(userId, roles, permissions, hash, generatedAt);
+    }
+
+    private String computeHash(Set<String> roles, Set<String> permissions) {
+        TreeSet<String> sortedRoles = new TreeSet<>(roles);
+        TreeSet<String> sortedPermissions = new TreeSet<>(permissions);
+        String content = String.join(",", sortedRoles) + "|" + String.join(",", sortedPermissions);
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(content.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hashBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
     }
 }

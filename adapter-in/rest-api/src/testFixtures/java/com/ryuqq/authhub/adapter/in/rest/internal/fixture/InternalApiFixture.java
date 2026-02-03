@@ -248,19 +248,38 @@ public final class InternalApiFixture {
 
     // ========== UserPermissionsApiResponse ==========
 
+    private static final String DEFAULT_PERMISSIONS_HASH = "abc123def456";
+
     /** 기본 사용자 권한 응답 */
     public static UserPermissionsApiResponse userPermissionsResponse() {
-        return new UserPermissionsApiResponse(DEFAULT_USER_ID, DEFAULT_ROLES, DEFAULT_PERMISSIONS);
+        return new UserPermissionsApiResponse(
+                DEFAULT_USER_ID,
+                DEFAULT_ROLES,
+                DEFAULT_PERMISSIONS,
+                DEFAULT_PERMISSIONS_HASH,
+                FIXED_INSTANT);
     }
 
     /** 빈 권한 사용자 응답 */
     public static UserPermissionsApiResponse emptyUserPermissionsResponse() {
-        return new UserPermissionsApiResponse(DEFAULT_USER_ID, Set.of(), Set.of());
+        return new UserPermissionsApiResponse(
+                DEFAULT_USER_ID, Set.of(), Set.of(), "", FIXED_INSTANT);
     }
 
     /** 커스텀 사용자 권한 응답 */
     public static UserPermissionsApiResponse userPermissionsResponse(
             String userId, Set<String> roles, Set<String> permissions) {
-        return new UserPermissionsApiResponse(userId, roles, permissions);
+        return new UserPermissionsApiResponse(
+                userId, roles, permissions, DEFAULT_PERMISSIONS_HASH, FIXED_INSTANT);
+    }
+
+    /** 커스텀 사용자 권한 응답 (전체 파라미터) */
+    public static UserPermissionsApiResponse userPermissionsResponse(
+            String userId,
+            Set<String> roles,
+            Set<String> permissions,
+            String hash,
+            Instant generatedAt) {
+        return new UserPermissionsApiResponse(userId, roles, permissions, hash, generatedAt);
     }
 }

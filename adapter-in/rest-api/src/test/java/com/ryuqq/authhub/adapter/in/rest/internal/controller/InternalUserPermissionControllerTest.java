@@ -17,6 +17,7 @@ import com.ryuqq.authhub.adapter.in.rest.internal.fixture.InternalApiFixture;
 import com.ryuqq.authhub.adapter.in.rest.internal.mapper.InternalUserPermissionApiMapper;
 import com.ryuqq.authhub.application.userrole.dto.response.UserPermissionsResult;
 import com.ryuqq.authhub.application.userrole.port.in.query.GetUserPermissionsUseCase;
+import java.time.Instant;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,8 +53,11 @@ class InternalUserPermissionControllerTest extends RestDocsTestSupport {
             String userId = InternalApiFixture.defaultUserId();
             Set<String> roles = InternalApiFixture.defaultRoles();
             Set<String> permissions = InternalApiFixture.defaultPermissions();
+            String hash = "abc123def456";
+            Instant generatedAt = Instant.now();
 
-            UserPermissionsResult result = new UserPermissionsResult(userId, roles, permissions);
+            UserPermissionsResult result =
+                    new UserPermissionsResult(userId, roles, permissions, hash, generatedAt);
             given(getUserPermissionsUseCase.getByUserId(userId)).willReturn(result);
 
             // when & then
@@ -67,6 +71,8 @@ class InternalUserPermissionControllerTest extends RestDocsTestSupport {
                     .andExpect(jsonPath("$.data.userId").value(userId))
                     .andExpect(jsonPath("$.data.roles").isArray())
                     .andExpect(jsonPath("$.data.permissions").isArray())
+                    .andExpect(jsonPath("$.data.hash").value(hash))
+                    .andExpect(jsonPath("$.data.generatedAt").exists())
                     .andDo(
                             document(
                                     "internal/user-permissions/get",
@@ -89,6 +95,12 @@ class InternalUserPermissionControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.permissions")
                                                     .type(JsonFieldType.ARRAY)
                                                     .description("권한 키 목록"),
+                                            fieldWithPath("data.hash")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("권한 해시 (변경 감지용)"),
+                                            fieldWithPath("data.generatedAt")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("권한 생성 시점"),
                                             fieldWithPath("timestamp")
                                                     .type(JsonFieldType.STRING)
                                                     .description("응답 시간"),
@@ -102,7 +114,8 @@ class InternalUserPermissionControllerTest extends RestDocsTestSupport {
         void shouldGetEmptyPermissionsSuccessfully() throws Exception {
             // given
             String userId = InternalApiFixture.defaultUserId();
-            UserPermissionsResult result = new UserPermissionsResult(userId, Set.of(), Set.of());
+            UserPermissionsResult result =
+                    new UserPermissionsResult(userId, Set.of(), Set.of(), "", Instant.now());
             given(getUserPermissionsUseCase.getByUserId(userId)).willReturn(result);
 
             // when & then
@@ -126,7 +139,8 @@ class InternalUserPermissionControllerTest extends RestDocsTestSupport {
             Set<String> roles = Set.of("VIEWER");
             Set<String> permissions = Set.of("product:read");
 
-            UserPermissionsResult result = new UserPermissionsResult(userId, roles, permissions);
+            UserPermissionsResult result =
+                    new UserPermissionsResult(userId, roles, permissions, "hash123", Instant.now());
             given(getUserPermissionsUseCase.getByUserId(userId)).willReturn(result);
 
             // when & then

@@ -64,6 +64,8 @@ class GetUserPermissionsServiceTest {
             assertThat(result.userId()).isEqualTo(userId);
             assertThat(result.roles()).containsExactlyInAnyOrderElementsOf(roleNames);
             assertThat(result.permissions()).containsExactlyInAnyOrderElementsOf(permissionKeys);
+            assertThat(result.hash()).isNotBlank();
+            assertThat(result.generatedAt()).isNotNull();
             then(userRoleReadFacade).should().findRolesAndPermissionsByUserId(any(UserId.class));
         }
 
@@ -84,6 +86,8 @@ class GetUserPermissionsServiceTest {
             assertThat(result.userId()).isEqualTo(userId);
             assertThat(result.roles()).isEmpty();
             assertThat(result.permissions()).isEmpty();
+            assertThat(result.hash()).isNotNull();
+            assertThat(result.generatedAt()).isNotNull();
             then(userRoleReadFacade).should().findRolesAndPermissionsByUserId(any(UserId.class));
         }
 
@@ -108,6 +112,31 @@ class GetUserPermissionsServiceTest {
             assertThat(result.userId()).isEqualTo(userId);
             assertThat(result.roles()).containsExactly("VIEWER");
             assertThat(result.permissions()).isEmpty();
+            assertThat(result.hash()).isNotBlank();
+            assertThat(result.generatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("성공: 동일한 역할/권한은 동일한 해시를 생성한다")
+        void shouldGenerateSameHash_WhenSameRolesAndPermissions() {
+            // given
+            String userId1 = "019450eb-4f1e-7000-8000-000000000001";
+            String userId2 = "019450eb-4f1e-7000-8000-000000000002";
+            Set<String> roleNames = Set.of("ADMIN", "USER");
+            Set<String> permissionKeys = Set.of("user:read", "user:write");
+
+            RolesAndPermissionsComposite composite =
+                    new RolesAndPermissionsComposite(roleNames, permissionKeys);
+
+            given(userRoleReadFacade.findRolesAndPermissionsByUserId(any(UserId.class)))
+                    .willReturn(composite);
+
+            // when
+            UserPermissionsResult result1 = sut.getByUserId(userId1);
+            UserPermissionsResult result2 = sut.getByUserId(userId2);
+
+            // then
+            assertThat(result1.hash()).isEqualTo(result2.hash());
         }
     }
 }
