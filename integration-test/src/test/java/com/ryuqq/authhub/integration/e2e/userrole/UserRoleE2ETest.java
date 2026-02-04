@@ -17,6 +17,7 @@ import com.ryuqq.authhub.adapter.out.persistence.user.fixture.UserJpaEntityFixtu
 import com.ryuqq.authhub.adapter.out.persistence.user.repository.UserJpaRepository;
 import com.ryuqq.authhub.adapter.out.persistence.userrole.entity.UserRoleJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.userrole.repository.UserRoleJpaRepository;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.user.vo.UserStatus;
 import com.ryuqq.authhub.integration.common.base.E2ETestBase;
@@ -87,10 +88,12 @@ class UserRoleE2ETest extends E2ETestBase {
                 RoleJpaEntity.of(
                         null,
                         null,
+                        null,
                         "ASSIGN_ROLE",
                         "할당 역할",
                         null,
                         RoleType.CUSTOM,
+                        RoleScope.GLOBAL,
                         UserJpaEntityFixture.fixedTime(),
                         UserJpaEntityFixture.fixedTime(),
                         null);
@@ -100,10 +103,12 @@ class UserRoleE2ETest extends E2ETestBase {
                 RoleJpaEntity.of(
                         null,
                         null,
+                        null,
                         "REVOKE_ROLE",
                         "철회 역할",
                         null,
                         RoleType.CUSTOM,
+                        RoleScope.GLOBAL,
                         UserJpaEntityFixture.fixedTime(),
                         UserJpaEntityFixture.fixedTime(),
                         null);

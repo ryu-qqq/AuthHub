@@ -38,10 +38,12 @@ public class RoleAssembler {
         return new RoleResult(
                 role.roleIdValue(),
                 role.tenantIdValue(),
+                role.serviceIdValue(),
                 role.nameValue(),
                 role.displayNameValue(),
                 role.descriptionValue(),
                 role.typeValue(),
+                role.scopeValue(),
                 role.createdAt(),
                 role.updatedAt());
     }

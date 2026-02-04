@@ -13,6 +13,7 @@ import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -145,19 +146,20 @@ class PermissionQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("existsByPermissionKey 메서드")
-    class ExistsByPermissionKey {
+    @DisplayName("existsByServiceIdAndPermissionKey 메서드")
+    class ExistsByServiceIdAndPermissionKey {
 
         @Test
-        @DisplayName("존재하면 true 반환 (Global 전역)")
+        @DisplayName("존재하면 true 반환")
         void shouldReturnTrue_WhenExists() {
             // given
+            ServiceId serviceId = ServiceId.of(1L);
             String permissionKey = PermissionFixture.defaultPermissionKey();
 
-            given(repository.existsByPermissionKey(permissionKey)).willReturn(true);
+            given(repository.existsByServiceIdAndPermissionKey(1L, permissionKey)).willReturn(true);
 
             // when
-            boolean result = sut.existsByPermissionKey(permissionKey);
+            boolean result = sut.existsByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
             assertThat(result).isTrue();
@@ -167,50 +169,56 @@ class PermissionQueryAdapterTest {
         @DisplayName("존재하지 않으면 false 반환")
         void shouldReturnFalse_WhenNotExists() {
             // given
+            ServiceId serviceId = ServiceId.of(1L);
             String permissionKey = PermissionFixture.defaultPermissionKey();
 
-            given(repository.existsByPermissionKey(permissionKey)).willReturn(false);
+            given(repository.existsByServiceIdAndPermissionKey(1L, permissionKey))
+                    .willReturn(false);
 
             // when
-            boolean result = sut.existsByPermissionKey(permissionKey);
+            boolean result = sut.existsByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
             assertThat(result).isFalse();
         }
 
         @Test
-        @DisplayName("Repository에 permissionKey 전달")
-        void shouldPassPermissionKey_ToRepository() {
+        @DisplayName("Repository에 serviceId와 permissionKey 전달")
+        void shouldPassServiceIdAndPermissionKey_ToRepository() {
             // given
+            ServiceId serviceId = ServiceId.of(1L);
             String permissionKey = "organization:manage";
 
-            given(repository.existsByPermissionKey(permissionKey)).willReturn(true);
+            given(repository.existsByServiceIdAndPermissionKey(1L, permissionKey)).willReturn(true);
 
             // when
-            sut.existsByPermissionKey(permissionKey);
+            sut.existsByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
-            then(repository).should().existsByPermissionKey(permissionKey);
+            then(repository).should().existsByServiceIdAndPermissionKey(1L, permissionKey);
         }
     }
 
     @Nested
-    @DisplayName("findByPermissionKey 메서드")
-    class FindByPermissionKey {
+    @DisplayName("findByServiceIdAndPermissionKey 메서드")
+    class FindByServiceIdAndPermissionKey {
 
         @Test
         @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
         void shouldFindAndConvert_WhenEntityExists() {
             // given
+            ServiceId serviceId = ServiceId.of(1L);
             String permissionKey = PermissionFixture.defaultPermissionKey();
             PermissionJpaEntity entity = PermissionJpaEntityFixture.create();
             Permission expectedDomain = PermissionFixture.create();
 
-            given(repository.findByPermissionKey(permissionKey)).willReturn(Optional.of(entity));
+            given(repository.findByServiceIdAndPermissionKey(1L, permissionKey))
+                    .willReturn(Optional.of(entity));
             given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
             // when
-            Optional<Permission> result = sut.findByPermissionKey(permissionKey);
+            Optional<Permission> result =
+                    sut.findByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
             assertThat(result).isPresent();
@@ -221,12 +229,15 @@ class PermissionQueryAdapterTest {
         @DisplayName("Entity가 없으면 빈 Optional 반환")
         void shouldReturnEmpty_WhenEntityNotFound() {
             // given
+            ServiceId serviceId = ServiceId.of(1L);
             String permissionKey = "nonexistent:key";
 
-            given(repository.findByPermissionKey(permissionKey)).willReturn(Optional.empty());
+            given(repository.findByServiceIdAndPermissionKey(1L, permissionKey))
+                    .willReturn(Optional.empty());
 
             // when
-            Optional<Permission> result = sut.findByPermissionKey(permissionKey);
+            Optional<Permission> result =
+                    sut.findByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
             assertThat(result).isEmpty();
@@ -358,6 +369,7 @@ class PermissionQueryAdapterTest {
     // ==================== Helper Methods ====================
 
     private PermissionSearchCriteria createTestCriteria() {
-        return PermissionSearchCriteria.ofDefault(null, null, DateRange.of(null, null), 0, 10);
+        return PermissionSearchCriteria.ofDefault(
+                null, null, null, DateRange.of(null, null), 0, 10);
     }
 }

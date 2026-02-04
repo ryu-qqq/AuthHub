@@ -13,6 +13,7 @@ import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
@@ -122,20 +123,22 @@ class RoleReadManagerTest {
     }
 
     @Nested
-    @DisplayName("existsByTenantIdAndName 메서드")
-    class ExistsByTenantIdAndName {
+    @DisplayName("existsByTenantIdAndServiceIdAndName 메서드")
+    class ExistsByTenantIdAndServiceIdAndName {
 
         @Test
         @DisplayName("존재하면 true 반환")
         void shouldReturnTrue_WhenExists() {
             // given
             TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
             RoleName name = RoleName.of("TEST_ROLE");
 
-            given(queryPort.existsByTenantIdAndName(tenantId, name)).willReturn(true);
+            given(queryPort.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .willReturn(true);
 
             // when
-            boolean result = sut.existsByTenantIdAndName(tenantId, name);
+            boolean result = sut.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
 
             // then
             assertThat(result).isTrue();
@@ -146,12 +149,14 @@ class RoleReadManagerTest {
         void shouldReturnFalse_WhenNotExists() {
             // given
             TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
             RoleName name = RoleName.of("NONEXISTENT_ROLE");
 
-            given(queryPort.existsByTenantIdAndName(tenantId, name)).willReturn(false);
+            given(queryPort.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .willReturn(false);
 
             // when
-            boolean result = sut.existsByTenantIdAndName(tenantId, name);
+            boolean result = sut.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
 
             // then
             assertThat(result).isFalse();

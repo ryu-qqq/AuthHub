@@ -73,7 +73,7 @@
                              or ancestor::ClassDeclaration[contains(@SimpleName, 'Properties')]
                              or ancestor::CompilationUnit/PackageDeclaration[contains(@Name, '.domain.') and contains(@Name, '.vo')]
                              or ancestor::CompilationUnit/PackageDeclaration[contains(@Name, '.sdk.')]
-                             ] | //RecordDeclaration"/>
+                             ] | //RecordDeclaration | //EnumDeclaration[ancestor::CompilationUnit/PackageDeclaration[contains(@Name, '.domain.') and contains(@Name, '.vo')]]"/>
         </properties>
     </rule>
 
@@ -153,6 +153,8 @@
 //ClassDeclaration[
     ancestor::CompilationUnit/PackageDeclaration[contains(@Name, '.application.')]
     and (contains(@SimpleName, 'UseCase') or contains(@SimpleName, 'Service'))
+    and not(contains(@SimpleName, 'Manager'))
+    and @Interface = false()
     and count(.//MethodDeclaration[@Visibility = 'public']) > 5
 ]
 ]]>

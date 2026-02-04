@@ -11,6 +11,7 @@ import com.ryuqq.authhub.adapter.out.persistence.role.repository.RoleJpaReposito
 import com.ryuqq.authhub.adapter.out.persistence.rolepermission.entity.RolePermissionJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.rolepermission.repository.RolePermissionJpaRepository;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.integration.common.base.E2ETestBase;
 import com.ryuqq.authhub.integration.common.tag.TestTags;
@@ -57,10 +58,12 @@ class RolePermissionE2ETest extends E2ETestBase {
                 RoleJpaEntity.of(
                         null,
                         null,
+                        null,
                         "TEST_ROLE",
                         "테스트 역할",
                         "테스트",
                         RoleType.CUSTOM,
+                        RoleScope.GLOBAL,
                         FIXED_TIME,
                         FIXED_TIME,
                         null);
@@ -68,6 +71,7 @@ class RolePermissionE2ETest extends E2ETestBase {
 
         PermissionJpaEntity perm1 =
                 PermissionJpaEntity.of(
+                        null,
                         null,
                         "user:read",
                         "user",
@@ -81,6 +85,7 @@ class RolePermissionE2ETest extends E2ETestBase {
 
         PermissionJpaEntity perm2 =
                 PermissionJpaEntity.of(
+                        null,
                         null,
                         "user:write",
                         "user",

@@ -21,6 +21,7 @@ import java.time.Instant;
  * <p>RDTO-008: Response DTO는 Domain 타입 의존 금지.
  *
  * @param permissionId 권한 ID
+ * @param serviceId 서비스 ID
  * @param permissionKey 권한 키 (예: "user:read")
  * @param resource 리소스명
  * @param action 행위명
@@ -33,6 +34,7 @@ import java.time.Instant;
  */
 public record PermissionResult(
         Long permissionId,
+        Long serviceId,
         String permissionKey,
         String resource,
         String action,

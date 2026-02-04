@@ -5,6 +5,7 @@ import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.exception.DuplicatePermissionKeyException;
 import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,15 +54,16 @@ public class PermissionValidator {
     }
 
     /**
-     * 권한 키 중복 검증 (Global 전역)
+     * 서비스 내 권한 키 중복 검증
      *
-     * <p>tenantId와 관계없이 전역적으로 permissionKey 중복을 검증합니다.
+     * <p>동일 서비스 내에서 permissionKey 중복을 검증합니다.
      *
+     * @param serviceId 서비스 ID
      * @param permissionKey 검증할 권한 키 (예: "user:read")
      * @throws DuplicatePermissionKeyException 중복 시
      */
-    public void validateKeyNotDuplicated(String permissionKey) {
-        if (readManager.existsByPermissionKey(permissionKey)) {
+    public void validateKeyNotDuplicated(ServiceId serviceId, String permissionKey) {
+        if (readManager.existsByServiceIdAndPermissionKey(serviceId, permissionKey)) {
             throw new DuplicatePermissionKeyException(permissionKey);
         }
     }

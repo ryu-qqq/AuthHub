@@ -6,6 +6,7 @@ import com.ryuqq.authhub.domain.role.exception.RoleNotFoundException;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -64,33 +65,33 @@ public class RoleReadManager {
     }
 
     /**
-     * 테넌트 내 역할 이름으로 존재 여부 확인
-     *
-     * <p>tenantId가 null이면 Global 역할 내에서 중복 확인.
+     * 테넌트 + 서비스 범위 내 역할 이름으로 존재 여부 확인
      *
      * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
      * @param name 역할 이름
      * @return 존재 여부
      */
     @Transactional(readOnly = true)
-    public boolean existsByTenantIdAndName(TenantId tenantId, RoleName name) {
-        return queryPort.existsByTenantIdAndName(tenantId, name);
+    public boolean existsByTenantIdAndServiceIdAndName(
+            TenantId tenantId, ServiceId serviceId, RoleName name) {
+        return queryPort.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
     }
 
     /**
-     * 테넌트 내 역할 이름으로 Role 조회 (필수)
-     *
-     * <p>tenantId가 null이면 Global 역할 내에서 조회.
+     * 테넌트 + 서비스 범위 내 역할 이름으로 Role 조회 (필수)
      *
      * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
      * @param name 역할 이름
      * @return Role Domain
      * @throws RoleNotFoundException 존재하지 않는 경우
      */
     @Transactional(readOnly = true)
-    public Role findByTenantIdAndName(TenantId tenantId, RoleName name) {
+    public Role findByTenantIdAndServiceIdAndName(
+            TenantId tenantId, ServiceId serviceId, RoleName name) {
         return queryPort
-                .findByTenantIdAndName(tenantId, name)
+                .findByTenantIdAndServiceIdAndName(tenantId, serviceId, name)
                 .orElseThrow(() -> new RoleNotFoundException(name));
     }
 

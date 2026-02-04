@@ -46,11 +46,12 @@ public class CreatePermissionService implements CreatePermissionUseCase {
 
     @Override
     public Long execute(CreatePermissionCommand command) {
-        // 1. Factory: Command → Domain (Permission이 내부에서 type, tenantId 판단)
+        // 1. Factory: Command → Domain (Permission이 내부에서 type 판단)
         Permission permission = commandFactory.create(command);
 
-        // 2. Validator: Global 권한 키 중복 검증 (Permission에서 permissionKey 추출)
-        validator.validateKeyNotDuplicated(permission.permissionKeyValue());
+        // 2. Validator: 서비스 내 권한 키 중복 검증
+        validator.validateKeyNotDuplicated(
+                permission.getServiceId(), permission.permissionKeyValue());
 
         // 3. Manager: 영속화 → ID 반환
         return commandManager.persist(permission);

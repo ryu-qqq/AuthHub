@@ -57,6 +57,7 @@ class PermissionQueryControllerTest extends RestDocsTestSupport {
             PermissionResult result =
                     new PermissionResult(
                             PermissionApiFixture.defaultPermissionId(),
+                            null,
                             PermissionApiFixture.defaultPermissionKey(),
                             PermissionApiFixture.defaultResource(),
                             PermissionApiFixture.defaultAction(),
@@ -130,6 +131,10 @@ class PermissionQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.content[].permissionId")
                                                     .type(JsonFieldType.NUMBER)
                                                     .description("Permission ID"),
+                                            fieldWithPath("data.content[].serviceId")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("서비스 ID")
+                                                    .optional(),
                                             fieldWithPath("data.content[].permissionKey")
                                                     .type(JsonFieldType.STRING)
                                                     .description("권한 키 (예: user:read)"),

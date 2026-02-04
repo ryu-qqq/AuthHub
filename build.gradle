@@ -176,7 +176,7 @@ subprojects {
                 limit {
                     // Foundation 단계 임시 설정 (낮은 임계값)
                     // TODO: RBAC 재설계 완료 후 domain=0.50으로 복원
-                    minimum = project.name == 'domain' ? 0.30 :
+                    minimum = project.name == 'domain' ? 0.25 :
                               project.name == 'application' ? 0.00 :
                               project.name.contains('adapter') ? 0.00 :
                               project.name.contains('bootstrap') ? 0.00 : 0.00

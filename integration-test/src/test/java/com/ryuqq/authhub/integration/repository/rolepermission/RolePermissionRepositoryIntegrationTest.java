@@ -9,6 +9,7 @@ import com.ryuqq.authhub.adapter.out.persistence.role.repository.RoleJpaReposito
 import com.ryuqq.authhub.adapter.out.persistence.rolepermission.entity.RolePermissionJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.rolepermission.repository.RolePermissionJpaRepository;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.integration.common.base.RepositoryTestBase;
 import com.ryuqq.authhub.integration.common.tag.TestTags;
@@ -52,10 +53,12 @@ class RolePermissionRepositoryIntegrationTest extends RepositoryTestBase {
                 RoleJpaEntity.of(
                         null,
                         null,
+                        null,
                         "ADMIN",
                         "관리자",
                         "관리자 역할",
                         RoleType.CUSTOM,
+                        RoleScope.GLOBAL,
                         FIXED_TIME,
                         FIXED_TIME,
                         null);
@@ -63,6 +66,7 @@ class RolePermissionRepositoryIntegrationTest extends RepositoryTestBase {
 
         PermissionJpaEntity permission =
                 PermissionJpaEntity.of(
+                        null,
                         null,
                         "user:read",
                         "user",
@@ -197,6 +201,7 @@ class RolePermissionRepositoryIntegrationTest extends RepositoryTestBase {
             // given
             PermissionJpaEntity permission2 =
                     PermissionJpaEntity.of(
+                            null,
                             null,
                             "user:write",
                             "user",

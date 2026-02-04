@@ -96,19 +96,21 @@ public class PermissionQueryDslRepository {
     }
 
     /**
-     * 권한 키 존재 여부 확인 (Global 전역)
+     * 서비스 내 권한 키 존재 여부 확인
      *
-     * <p>tenantId와 관계없이 전역적으로 permissionKey 존재 여부를 확인합니다.
+     * <p>동일 서비스 내에서 permissionKey 중복을 확인합니다.
      *
+     * @param serviceId 서비스 ID (Long)
      * @param permissionKey 권한 키
      * @return 존재 여부
      */
-    public boolean existsByPermissionKey(String permissionKey) {
+    public boolean existsByServiceIdAndPermissionKey(Long serviceId, String permissionKey) {
         Integer result =
                 queryFactory
                         .selectOne()
                         .from(permissionJpaEntity)
                         .where(
+                                conditionBuilder.serviceIdEquals(serviceId),
                                 conditionBuilder.permissionKeyEquals(permissionKey),
                                 conditionBuilder.notDeleted())
                         .fetchFirst();
@@ -116,16 +118,19 @@ public class PermissionQueryDslRepository {
     }
 
     /**
-     * 권한 키로 단건 조회
+     * 서비스 내 권한 키로 단건 조회
      *
+     * @param serviceId 서비스 ID (Long)
      * @param permissionKey 권한 키
      * @return Optional<PermissionJpaEntity>
      */
-    public Optional<PermissionJpaEntity> findByPermissionKey(String permissionKey) {
+    public Optional<PermissionJpaEntity> findByServiceIdAndPermissionKey(
+            Long serviceId, String permissionKey) {
         PermissionJpaEntity result =
                 queryFactory
                         .selectFrom(permissionJpaEntity)
                         .where(
+                                conditionBuilder.serviceIdEquals(serviceId),
                                 conditionBuilder.permissionKeyEquals(permissionKey),
                                 conditionBuilder.notDeleted())
                         .fetchOne();

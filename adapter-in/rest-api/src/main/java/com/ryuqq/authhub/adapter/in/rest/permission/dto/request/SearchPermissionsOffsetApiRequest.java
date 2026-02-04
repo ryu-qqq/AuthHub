@@ -22,6 +22,7 @@ import java.util.List;
  *
  * <p>ADTO-002: *ApiRequest 네이밍.
  *
+ * @param serviceId 서비스 ID 필터 (null이면 전체)
  * @param searchWord 검색어
  * @param searchField 검색 필드 (PERMISSION_KEY, RESOURCE, ACTION, DESCRIPTION)
  * @param types 권한 유형 필터 (SYSTEM, CUSTOM)
@@ -35,6 +36,7 @@ import java.util.List;
  */
 @Schema(description = "Permission 목록 조회 요청 DTO (Offset 기반)")
 public record SearchPermissionsOffsetApiRequest(
+        @Schema(description = "서비스 ID 필터", example = "1") Long serviceId,
         @Schema(description = "검색어", example = "user") String searchWord,
         @Schema(description = "검색 필드", example = "RESOURCE") String searchField,
         @Schema(description = "권한 유형 필터", example = "[\"SYSTEM\", \"CUSTOM\"]") List<String> types,

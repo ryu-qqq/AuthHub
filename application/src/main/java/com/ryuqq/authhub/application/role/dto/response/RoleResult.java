@@ -27,9 +27,11 @@ import java.time.Instant;
 public record RoleResult(
         Long roleId,
         String tenantId,
+        Long serviceId,
         String name,
         String displayName,
         String description,
         String type,
+        String scope,
         Instant createdAt,
         Instant updatedAt) {}

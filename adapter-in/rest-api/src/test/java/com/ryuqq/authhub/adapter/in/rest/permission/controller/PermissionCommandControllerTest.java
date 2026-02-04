@@ -78,6 +78,10 @@ class PermissionCommandControllerTest extends RestDocsTestSupport {
                             document(
                                     "permission/create",
                                     requestFields(
+                                            fieldWithPath("serviceId")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("서비스 ID (null이면 서비스 무관)")
+                                                    .optional(),
                                             fieldWithPath("resource")
                                                     .type(JsonFieldType.STRING)
                                                     .description("리소스명 (필수, 2~50자, 소문자와 하이픈으로 구성)"),

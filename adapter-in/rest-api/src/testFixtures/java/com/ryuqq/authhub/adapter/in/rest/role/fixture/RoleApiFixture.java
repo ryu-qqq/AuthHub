@@ -18,10 +18,12 @@ public final class RoleApiFixture {
 
     private static final Long DEFAULT_ROLE_ID = 1L;
     private static final String DEFAULT_TENANT_ID = "550e8400-e29b-41d4-a716-446655440000";
+    private static final Long DEFAULT_SERVICE_ID = 1L;
     private static final String DEFAULT_NAME = "USER_MANAGER";
     private static final String DEFAULT_DISPLAY_NAME = "사용자 관리자";
     private static final String DEFAULT_DESCRIPTION = "사용자 관리 권한을 가진 역할";
     private static final String DEFAULT_TYPE = "CUSTOM";
+    private static final String DEFAULT_SCOPE = "TENANT_SERVICE";
     private static final String FIXED_TIME = "2025-01-01T00:00:00Z";
 
     private RoleApiFixture() {}
@@ -31,19 +33,27 @@ public final class RoleApiFixture {
     /** 기본 생성 요청 */
     public static CreateRoleApiRequest createRoleRequest() {
         return new CreateRoleApiRequest(
-                DEFAULT_TENANT_ID, DEFAULT_NAME, DEFAULT_DISPLAY_NAME, DEFAULT_DESCRIPTION);
+                DEFAULT_TENANT_ID,
+                DEFAULT_SERVICE_ID,
+                DEFAULT_NAME,
+                DEFAULT_DISPLAY_NAME,
+                DEFAULT_DESCRIPTION);
     }
 
     /** 커스텀 이름으로 생성 요청 */
     public static CreateRoleApiRequest createRoleRequest(String name) {
         return new CreateRoleApiRequest(
-                DEFAULT_TENANT_ID, name, DEFAULT_DISPLAY_NAME, DEFAULT_DESCRIPTION);
+                DEFAULT_TENANT_ID,
+                DEFAULT_SERVICE_ID,
+                name,
+                DEFAULT_DISPLAY_NAME,
+                DEFAULT_DESCRIPTION);
     }
 
-    /** 글로벌 역할 생성 요청 (tenantId = null) */
+    /** 글로벌 역할 생성 요청 (tenantId = null, serviceId = null) */
     public static CreateRoleApiRequest createGlobalRoleRequest() {
         return new CreateRoleApiRequest(
-                null, DEFAULT_NAME, DEFAULT_DISPLAY_NAME, DEFAULT_DESCRIPTION);
+                null, null, DEFAULT_NAME, DEFAULT_DISPLAY_NAME, DEFAULT_DESCRIPTION);
     }
 
     // ========== UpdateRoleApiRequest ==========
@@ -82,10 +92,12 @@ public final class RoleApiFixture {
         return new RoleApiResponse(
                 DEFAULT_ROLE_ID,
                 DEFAULT_TENANT_ID,
+                DEFAULT_SERVICE_ID,
                 DEFAULT_NAME,
                 DEFAULT_DISPLAY_NAME,
                 DEFAULT_DESCRIPTION,
                 DEFAULT_TYPE,
+                DEFAULT_SCOPE,
                 FIXED_TIME,
                 FIXED_TIME);
     }
@@ -95,10 +107,12 @@ public final class RoleApiFixture {
         return new RoleApiResponse(
                 roleId,
                 DEFAULT_TENANT_ID,
+                DEFAULT_SERVICE_ID,
                 name,
                 DEFAULT_DISPLAY_NAME,
                 DEFAULT_DESCRIPTION,
                 DEFAULT_TYPE,
+                DEFAULT_SCOPE,
                 FIXED_TIME,
                 FIXED_TIME);
     }
@@ -111,6 +125,10 @@ public final class RoleApiFixture {
 
     public static String defaultTenantId() {
         return DEFAULT_TENANT_ID;
+    }
+
+    public static Long defaultServiceId() {
+        return DEFAULT_SERVICE_ID;
     }
 
     public static String defaultName() {
@@ -127,6 +145,10 @@ public final class RoleApiFixture {
 
     public static String defaultType() {
         return DEFAULT_TYPE;
+    }
+
+    public static String defaultScope() {
+        return DEFAULT_SCOPE;
     }
 
     public static Instant fixedTime() {

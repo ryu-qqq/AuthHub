@@ -70,6 +70,7 @@ public class RoleQueryFactory {
 
         return new RoleSearchCriteria(
                 TenantId.fromNullable(params.tenantId()),
+                params.serviceId(),
                 params.searchWord(),
                 RoleSearchField.fromString(params.searchField()),
                 RoleType.parseList(params.types()),

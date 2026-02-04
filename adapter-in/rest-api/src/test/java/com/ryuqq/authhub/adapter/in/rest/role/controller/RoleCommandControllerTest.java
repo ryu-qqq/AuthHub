@@ -82,6 +82,10 @@ class RoleCommandControllerTest extends RestDocsTestSupport {
                                                     .type(JsonFieldType.STRING)
                                                     .description("테넌트 ID (null이면 Global 역할)")
                                                     .optional(),
+                                            fieldWithPath("serviceId")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("서비스 ID (null이면 서비스 무관)")
+                                                    .optional(),
                                             fieldWithPath("name")
                                                     .type(JsonFieldType.STRING)
                                                     .description(
@@ -119,6 +123,7 @@ class RoleCommandControllerTest extends RestDocsTestSupport {
             CreateRoleApiRequest request =
                     new CreateRoleApiRequest(
                             RoleApiFixture.defaultTenantId(),
+                            RoleApiFixture.defaultServiceId(),
                             "",
                             RoleApiFixture.defaultDisplayName(),
                             RoleApiFixture.defaultDescription());

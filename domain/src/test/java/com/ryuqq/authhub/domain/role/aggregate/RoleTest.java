@@ -92,6 +92,7 @@ class RoleTest {
             Role role =
                     Role.create(
                             null,
+                            null,
                             RoleName.of("UNIFIED_SYSTEM"),
                             "통합 시스템 역할",
                             "통합 메서드로 생성된 시스템 역할",
@@ -113,6 +114,7 @@ class RoleTest {
             Role role =
                     Role.create(
                             tenantId,
+                            null,
                             RoleName.of("UNIFIED_TENANT"),
                             "통합 테넌트 역할",
                             "통합 메서드로 생성된 테넌트 역할",

@@ -58,10 +58,12 @@ class RoleQueryControllerTest extends RestDocsTestSupport {
                     new RoleResult(
                             RoleApiFixture.defaultRoleId(),
                             RoleApiFixture.defaultTenantId(),
+                            RoleApiFixture.defaultServiceId(),
                             RoleApiFixture.defaultName(),
                             RoleApiFixture.defaultDisplayName(),
                             RoleApiFixture.defaultDescription(),
                             RoleApiFixture.defaultType(),
+                            RoleApiFixture.defaultScope(),
                             fixedTime,
                             fixedTime);
             RolePageResult pageResult = RolePageResult.of(List.of(result), 0, 20, 1L);
@@ -125,6 +127,10 @@ class RoleQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.content[].tenantId")
                                                     .type(JsonFieldType.STRING)
                                                     .description("테넌트 ID (null이면 Global)"),
+                                            fieldWithPath("data.content[].serviceId")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("서비스 ID")
+                                                    .optional(),
                                             fieldWithPath("data.content[].name")
                                                     .type(JsonFieldType.STRING)
                                                     .description("역할 이름"),
@@ -137,6 +143,11 @@ class RoleQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.content[].type")
                                                     .type(JsonFieldType.STRING)
                                                     .description("역할 유형 (SYSTEM, CUSTOM)"),
+                                            fieldWithPath("data.content[].scope")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description(
+                                                            "역할 범위 (GLOBAL, SERVICE, TENANT,"
+                                                                    + " TENANT_SERVICE)"),
                                             fieldWithPath("data.content[].createdAt")
                                                     .type(JsonFieldType.STRING)
                                                     .description("생성일시 (ISO 8601)"),

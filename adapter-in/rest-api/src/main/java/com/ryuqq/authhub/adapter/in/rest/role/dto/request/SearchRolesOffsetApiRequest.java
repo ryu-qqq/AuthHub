@@ -16,6 +16,7 @@ import java.util.List;
  * <p>ADTO-002: *ApiRequest 네이밍.
  *
  * @param tenantId 테넌트 ID 필터 (null이면 Global만)
+ * @param serviceId 서비스 ID 필터 (null이면 서비스 무관)
  * @param searchWord 검색어
  * @param searchField 검색 필드 (NAME, DISPLAY_NAME, DESCRIPTION)
  * @param types 역할 유형 필터 (SYSTEM, CUSTOM)
@@ -30,6 +31,7 @@ import java.util.List;
 public record SearchRolesOffsetApiRequest(
         @Schema(description = "테넌트 ID 필터", example = "550e8400-e29b-41d4-a716-446655440000")
                 String tenantId,
+        @Schema(description = "서비스 ID 필터", example = "1") Long serviceId,
         @Schema(description = "검색어", example = "USER") String searchWord,
         @Schema(description = "검색 필드", example = "NAME") String searchField,
         @Schema(description = "역할 유형 필터", example = "[\"SYSTEM\", \"CUSTOM\"]") List<String> types,

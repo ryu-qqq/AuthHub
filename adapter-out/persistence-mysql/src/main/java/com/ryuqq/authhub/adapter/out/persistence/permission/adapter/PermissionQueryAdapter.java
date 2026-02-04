@@ -6,6 +6,7 @@ import com.ryuqq.authhub.application.permission.port.out.query.PermissionQueryPo
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -89,27 +90,34 @@ public class PermissionQueryAdapter implements PermissionQueryPort {
     }
 
     /**
-     * 권한 키 존재 여부 확인 (Global 전역)
+     * 서비스 내 권한 키 존재 여부 확인
      *
-     * <p>tenantId와 관계없이 전역적으로 permissionKey 존재 여부를 확인합니다.
+     * <p>동일 서비스 내에서 permissionKey 중복을 확인합니다.
      *
+     * @param serviceId 서비스 ID
      * @param permissionKey 권한 키
      * @return 존재 여부
      */
     @Override
-    public boolean existsByPermissionKey(String permissionKey) {
-        return repository.existsByPermissionKey(permissionKey);
+    public boolean existsByServiceIdAndPermissionKey(ServiceId serviceId, String permissionKey) {
+        Long serviceIdValue = serviceId != null ? serviceId.value() : null;
+        return repository.existsByServiceIdAndPermissionKey(serviceIdValue, permissionKey);
     }
 
     /**
-     * 권한 키로 단건 조회
+     * 서비스 내 권한 키로 단건 조회
      *
+     * @param serviceId 서비스 ID
      * @param permissionKey 권한 키
      * @return Optional<Permission>
      */
     @Override
-    public Optional<Permission> findByPermissionKey(String permissionKey) {
-        return repository.findByPermissionKey(permissionKey).map(mapper::toDomain);
+    public Optional<Permission> findByServiceIdAndPermissionKey(
+            ServiceId serviceId, String permissionKey) {
+        Long serviceIdValue = serviceId != null ? serviceId.value() : null;
+        return repository
+                .findByServiceIdAndPermissionKey(serviceIdValue, permissionKey)
+                .map(mapper::toDomain);
     }
 
     /**

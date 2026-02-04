@@ -79,7 +79,10 @@ class CreatePermissionServiceTest {
             assertThat(result).isEqualTo(expectedId);
 
             then(commandFactory).should().create(command);
-            then(validator).should().validateKeyNotDuplicated(permission.permissionKeyValue());
+            then(validator)
+                    .should()
+                    .validateKeyNotDuplicated(
+                            permission.getServiceId(), permission.permissionKeyValue());
             then(commandManager).should().persist(permission);
         }
 
@@ -93,7 +96,7 @@ class CreatePermissionServiceTest {
             given(commandFactory.create(command)).willReturn(permission);
             willThrow(new DuplicatePermissionKeyException("user:read"))
                     .given(validator)
-                    .validateKeyNotDuplicated(any(String.class));
+                    .validateKeyNotDuplicated(any(), any(String.class));
 
             // when & then
             assertThatThrownBy(() -> sut.execute(command))

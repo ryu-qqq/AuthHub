@@ -77,7 +77,7 @@ public class EndpointSyncCommandFactory {
         String[] parts = parsePermissionKey(permissionKey);
         String resource = parts[0];
         String action = parts[1];
-        return Permission.createCustom(resource, action, description, now);
+        return Permission.createCustom(null, resource, action, description, now);
     }
 
     /**

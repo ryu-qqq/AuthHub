@@ -9,6 +9,7 @@ import com.ryuqq.authhub.application.permission.dto.command.UpdatePermissionComm
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.aggregate.PermissionUpdateData;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +52,7 @@ public class PermissionCommandFactory {
      */
     public Permission create(CreatePermissionCommand command) {
         return Permission.create(
+                ServiceId.fromNullable(command.serviceId()),
                 command.resource(),
                 command.action(),
                 command.description(),

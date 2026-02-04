@@ -100,13 +100,15 @@ public class RoleQueryDslRepository {
      * @param name 역할 이름
      * @return 존재 여부
      */
-    public boolean existsByTenantIdAndName(String tenantId, String name) {
+    public boolean existsByTenantIdAndServiceIdAndName(
+            String tenantId, Long serviceId, String name) {
         Integer result =
                 queryFactory
                         .selectOne()
                         .from(roleJpaEntity)
                         .where(
                                 conditionBuilder.tenantIdEquals(tenantId),
+                                conditionBuilder.serviceIdEquals(serviceId),
                                 conditionBuilder.nameEquals(name),
                                 conditionBuilder.notDeleted())
                         .fetchFirst();
@@ -114,20 +116,21 @@ public class RoleQueryDslRepository {
     }
 
     /**
-     * 테넌트 내 역할 이름으로 단건 조회
-     *
-     * <p>tenantId가 null이면 Global 역할 내에서 조회합니다.
+     * 테넌트 + 서비스 범위 내 역할 이름으로 단건 조회
      *
      * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
      * @param name 역할 이름
      * @return Optional<RoleJpaEntity>
      */
-    public Optional<RoleJpaEntity> findByTenantIdAndName(String tenantId, String name) {
+    public Optional<RoleJpaEntity> findByTenantIdAndServiceIdAndName(
+            String tenantId, Long serviceId, String name) {
         RoleJpaEntity result =
                 queryFactory
                         .selectFrom(roleJpaEntity)
                         .where(
                                 conditionBuilder.tenantIdEquals(tenantId),
+                                conditionBuilder.serviceIdEquals(serviceId),
                                 conditionBuilder.nameEquals(name),
                                 conditionBuilder.notDeleted())
                         .fetchOne();

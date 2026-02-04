@@ -12,6 +12,7 @@ import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,19 +122,21 @@ class PermissionReadManagerTest {
     }
 
     @Nested
-    @DisplayName("existsByPermissionKey 메서드")
-    class ExistsByPermissionKey {
+    @DisplayName("existsByServiceIdAndPermissionKey 메서드")
+    class ExistsByServiceIdAndPermissionKey {
 
         @Test
         @DisplayName("존재하면 true 반환")
         void shouldReturnTrue_WhenExists() {
             // given
+            ServiceId serviceId = null;
             String permissionKey = "user:read";
 
-            given(queryPort.existsByPermissionKey(permissionKey)).willReturn(true);
+            given(queryPort.existsByServiceIdAndPermissionKey(serviceId, permissionKey))
+                    .willReturn(true);
 
             // when
-            boolean result = sut.existsByPermissionKey(permissionKey);
+            boolean result = sut.existsByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
             assertThat(result).isTrue();
@@ -143,12 +146,14 @@ class PermissionReadManagerTest {
         @DisplayName("존재하지 않으면 false 반환")
         void shouldReturnFalse_WhenNotExists() {
             // given
+            ServiceId serviceId = null;
             String permissionKey = "nonexistent:action";
 
-            given(queryPort.existsByPermissionKey(permissionKey)).willReturn(false);
+            given(queryPort.existsByServiceIdAndPermissionKey(serviceId, permissionKey))
+                    .willReturn(false);
 
             // when
-            boolean result = sut.existsByPermissionKey(permissionKey);
+            boolean result = sut.existsByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
             assertThat(result).isFalse();
@@ -164,7 +169,8 @@ class PermissionReadManagerTest {
         void shouldReturnPermissions_MatchingCriteria() {
             // given
             PermissionSearchCriteria criteria =
-                    PermissionSearchCriteria.ofDefault(null, null, DateRange.of(null, null), 0, 10);
+                    PermissionSearchCriteria.ofDefault(
+                            null, null, null, DateRange.of(null, null), 0, 10);
             List<Permission> expected = List.of(PermissionFixture.create());
 
             given(queryPort.findAllBySearchCriteria(criteria)).willReturn(expected);
@@ -182,7 +188,8 @@ class PermissionReadManagerTest {
         void shouldReturnEmptyList_WhenNoMatch() {
             // given
             PermissionSearchCriteria criteria =
-                    PermissionSearchCriteria.ofDefault(null, null, DateRange.of(null, null), 0, 10);
+                    PermissionSearchCriteria.ofDefault(
+                            null, null, null, DateRange.of(null, null), 0, 10);
 
             given(queryPort.findAllBySearchCriteria(criteria)).willReturn(List.of());
 

@@ -35,7 +35,7 @@ class PermissionTest {
         @DisplayName("시스템 권한을 성공적으로 생성한다")
         void shouldCreateSystemPermissionSuccessfully() {
             // when
-            Permission permission = Permission.createSystem("user", "read", "사용자 조회 권한", NOW);
+            Permission permission = Permission.createSystem(null, "user", "read", "사용자 조회 권한", NOW);
 
             // then
             assertThat(permission.permissionKeyValue()).isEqualTo("user:read");
@@ -52,7 +52,8 @@ class PermissionTest {
         @DisplayName("커스텀 권한을 성공적으로 생성한다")
         void shouldCreateCustomPermissionSuccessfully() {
             // when
-            Permission permission = Permission.createCustom("order", "manage", "주문 관리 권한", NOW);
+            Permission permission =
+                    Permission.createCustom(null, "order", "manage", "주문 관리 권한", NOW);
 
             // then
             assertThat(permission.permissionKeyValue()).isEqualTo("order:manage");
@@ -67,9 +68,9 @@ class PermissionTest {
         void shouldCreatePermissionViaUnifiedMethod() {
             // when
             Permission systemPermission =
-                    Permission.create("user", "delete", "사용자 삭제 권한", true, NOW);
+                    Permission.create(null, "user", "delete", "사용자 삭제 권한", true, NOW);
             Permission customPermission =
-                    Permission.create("report", "view", "리포트 조회 권한", false, NOW);
+                    Permission.create(null, "report", "view", "리포트 조회 권한", false, NOW);
 
             // then
             assertThat(systemPermission.isSystem()).isTrue();
@@ -81,7 +82,7 @@ class PermissionTest {
         void shouldThrowExceptionWhenPermissionKeyIsNull() {
             // permissionKey는 resource + ":" + action으로 자동 생성되므로
             // resource나 action이 null이면 예외가 발생한다
-            assertThatThrownBy(() -> Permission.createSystem(null, "read", "설명", NOW))
+            assertThatThrownBy(() -> Permission.createSystem(null, null, "read", "설명", NOW))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -89,7 +90,7 @@ class PermissionTest {
         @DisplayName("resource가 빈 값이면 예외가 발생한다")
         void shouldThrowExceptionWhenResourceIsBlank() {
             // when & then
-            assertThatThrownBy(() -> Permission.createSystem("", "read", "설명", NOW))
+            assertThatThrownBy(() -> Permission.createSystem(null, "", "read", "설명", NOW))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("resource");
         }
@@ -98,7 +99,7 @@ class PermissionTest {
         @DisplayName("action이 빈 값이면 예외가 발생한다")
         void shouldThrowExceptionWhenActionIsBlank() {
             // when & then
-            assertThatThrownBy(() -> Permission.createSystem("user", "", "설명", NOW))
+            assertThatThrownBy(() -> Permission.createSystem(null, "user", "", "설명", NOW))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("action");
         }
@@ -108,7 +109,7 @@ class PermissionTest {
         void permissionKeyShouldMatchResourceActionFormat() {
             // given
             Permission permission =
-                    Permission.createCustom("organization", "create", "조직 생성 권한", NOW);
+                    Permission.createCustom(null, "organization", "create", "조직 생성 권한", NOW);
 
             // then
             assertThat(permission.permissionKeyValue()).isEqualTo("organization:create");
@@ -279,8 +280,8 @@ class PermissionTest {
         @DisplayName("ID가 없는 경우 permissionKey로 동등성을 판단한다")
         void shouldUsePermissionKeyWhenIdIsNull() {
             // given
-            Permission newPermission1 = Permission.createCustom("user", "read", "설명1", NOW);
-            Permission newPermission2 = Permission.createCustom("user", "read", "설명2", NOW);
+            Permission newPermission1 = Permission.createCustom(null, "user", "read", "설명1", NOW);
+            Permission newPermission2 = Permission.createCustom(null, "user", "read", "설명2", NOW);
 
             // then - 같은 permissionKey이므로 동등함
             assertThat(newPermission1).isEqualTo(newPermission2);
@@ -290,8 +291,8 @@ class PermissionTest {
         @DisplayName("permissionKey가 다르면 동등하지 않다 (ID가 없는 경우)")
         void shouldNotBeEqualWhenDifferentPermissionKey() {
             // given
-            Permission permission1 = Permission.createCustom("user", "read", "설명", NOW);
-            Permission permission2 = Permission.createCustom("user", "write", "설명", NOW);
+            Permission permission1 = Permission.createCustom(null, "user", "read", "설명", NOW);
+            Permission permission2 = Permission.createCustom(null, "user", "write", "설명", NOW);
 
             // then
             assertThat(permission1).isNotEqualTo(permission2);
