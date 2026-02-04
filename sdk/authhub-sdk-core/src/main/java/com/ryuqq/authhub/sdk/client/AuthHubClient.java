@@ -43,7 +43,7 @@ public interface AuthHubClient {
     /**
      * Onboarding 관련 API를 반환합니다.
      *
-     * <p>테넌트, 조직, 기본 역할, 관리자 사용자를 일괄 생성합니다.
+     * <p>테넌트와 조직을 일괄 생성합니다.
      *
      * @return OnboardingApi
      */
