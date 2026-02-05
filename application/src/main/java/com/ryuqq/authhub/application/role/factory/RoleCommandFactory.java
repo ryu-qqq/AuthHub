@@ -10,6 +10,7 @@ import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.aggregate.RoleUpdateData;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +48,7 @@ public class RoleCommandFactory {
     public Role create(CreateRoleCommand command) {
         return Role.create(
                 TenantId.fromNullable(command.tenantId()),
+                ServiceId.fromNullable(command.serviceId()),
                 RoleName.of(command.name()),
                 command.displayName(),
                 command.description(),

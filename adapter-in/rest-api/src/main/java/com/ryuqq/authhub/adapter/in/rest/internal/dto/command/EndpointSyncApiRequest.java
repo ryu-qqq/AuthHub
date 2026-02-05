@@ -21,6 +21,10 @@ public record EndpointSyncApiRequest(
         @Schema(description = "서비스 이름", example = "marketplace")
                 @NotBlank(message = "서비스 이름은 필수입니다")
                 String serviceName,
+        @Schema(
+                        description = "서비스 코드 (Role-Permission 자동 매핑용, optional)",
+                        example = "SVC_MARKETPLACE")
+                String serviceCode,
         @Schema(description = "엔드포인트 목록") @NotEmpty(message = "엔드포인트 목록은 비어있을 수 없습니다") @Valid
                 List<EndpointInfoApiRequest> endpoints) {
 

@@ -148,5 +148,16 @@ class RoleAssemblerTest {
             assertThat(result.content()).isEmpty();
             assertThat(result.pageMeta().totalElements()).isZero();
         }
+
+        @Test
+        @DisplayName("roles가 null이면 빈 content로 PageResult 반환")
+        void shouldReturnEmptyContent_WhenNullInput() {
+            // when
+            RolePageResult result = sut.toPageResult(null, 0, 20, 0L);
+
+            // then
+            assertThat(result.content()).isEmpty();
+            assertThat(result.pageMeta()).isNotNull();
+        }
     }
 }

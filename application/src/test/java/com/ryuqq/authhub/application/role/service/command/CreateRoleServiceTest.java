@@ -80,7 +80,9 @@ class CreateRoleServiceTest {
             // then
             assertThat(result).isEqualTo(expectedId);
 
-            then(validator).should().validateNameNotDuplicated(isNull(), any(RoleName.class));
+            then(validator)
+                    .should()
+                    .validateNameNotDuplicated(isNull(), isNull(), any(RoleName.class));
             then(commandFactory).should().create(command);
             then(commandManager).should().persist(role);
         }
@@ -94,7 +96,7 @@ class CreateRoleServiceTest {
 
             willThrow(new DuplicateRoleNameException(name))
                     .given(validator)
-                    .validateNameNotDuplicated(isNull(), any(RoleName.class));
+                    .validateNameNotDuplicated(isNull(), isNull(), any(RoleName.class));
 
             // when & then
             assertThatThrownBy(() -> sut.execute(command))

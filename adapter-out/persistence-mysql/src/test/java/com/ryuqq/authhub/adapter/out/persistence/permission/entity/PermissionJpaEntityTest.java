@@ -48,6 +48,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             PERMISSION_KEY,
                             RESOURCE,
                             ACTION,
@@ -76,6 +77,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             PERMISSION_KEY,
                             RESOURCE,
                             ACTION,
@@ -100,6 +102,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             PERMISSION_KEY,
                             RESOURCE,
                             ACTION,
@@ -122,6 +125,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             PERMISSION_KEY,
                             RESOURCE,
                             ACTION,
@@ -147,6 +151,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             PERMISSION_KEY,
                             RESOURCE,
                             ACTION,
@@ -167,6 +172,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             PERMISSION_KEY,
                             RESOURCE,
                             ACTION,
@@ -197,6 +203,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             permissionKey,
                             resource,
                             action,
@@ -224,6 +231,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             PERMISSION_KEY,
                             RESOURCE,
                             ACTION,
@@ -244,6 +252,7 @@ class PermissionJpaEntityTest {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             PERMISSION_ID,
+                            null,
                             PERMISSION_KEY,
                             RESOURCE,
                             ACTION,

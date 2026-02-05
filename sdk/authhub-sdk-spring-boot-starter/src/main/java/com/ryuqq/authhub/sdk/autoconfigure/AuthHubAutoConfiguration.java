@@ -2,6 +2,7 @@ package com.ryuqq.authhub.sdk.autoconfigure;
 
 import com.ryuqq.authhub.sdk.api.AuthApi;
 import com.ryuqq.authhub.sdk.api.OnboardingApi;
+import com.ryuqq.authhub.sdk.api.UserApi;
 import com.ryuqq.authhub.sdk.auth.ChainTokenResolver;
 import com.ryuqq.authhub.sdk.auth.ThreadLocalTokenResolver;
 import com.ryuqq.authhub.sdk.auth.TokenResolver;
@@ -102,6 +103,13 @@ public class AuthHubAutoConfiguration {
     @ConditionalOnMissingBean
     public OnboardingApi onboardingApi(AuthHubClient client) {
         return client.onboarding();
+    }
+
+    /** UserApi Bean - 사용자 생성 + 역할 할당. */
+    @Bean
+    @ConditionalOnMissingBean
+    public UserApi userApi(AuthHubClient client) {
+        return client.user();
     }
 
     /**

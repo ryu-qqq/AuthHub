@@ -5,6 +5,7 @@ import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import org.springframework.stereotype.Component;
 
@@ -73,10 +74,12 @@ public class RoleJpaEntityMapper {
         return RoleJpaEntity.of(
                 domain.roleIdValue(),
                 domain.tenantIdValue(),
+                domain.serviceIdValue(),
                 domain.nameValue(),
                 domain.displayNameValue(),
                 domain.descriptionValue(),
                 domain.getType(),
+                domain.getScope(),
                 domain.createdAt(),
                 domain.updatedAt(),
                 deletionStatus.deletedAt());
@@ -113,10 +116,12 @@ public class RoleJpaEntityMapper {
         return Role.reconstitute(
                 RoleId.of(entity.getRoleId()),
                 parseTenantId(entity.getTenantId()),
+                ServiceId.fromNullable(entity.getServiceId()),
                 RoleName.of(entity.getName()),
                 entity.getDisplayName(),
                 entity.getDescription(),
                 entity.getType(),
+                entity.getScope(),
                 DeletionStatus.reconstitute(entity.isDeleted(), entity.getDeletedAt()),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());

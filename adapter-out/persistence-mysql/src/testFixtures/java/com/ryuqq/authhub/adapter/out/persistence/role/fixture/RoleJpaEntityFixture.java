@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.persistence.role.fixture;
 
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RoleJpaEntity;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import java.time.Instant;
 
@@ -25,10 +26,12 @@ public final class RoleJpaEntityFixture {
         return RoleJpaEntity.of(
                 DEFAULT_ROLE_ID,
                 null,
+                null,
                 DEFAULT_NAME,
                 DEFAULT_DISPLAY_NAME,
                 DEFAULT_DESCRIPTION,
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 FIXED_TIME,
                 FIXED_TIME,
                 null);
@@ -39,10 +42,12 @@ public final class RoleJpaEntityFixture {
         return RoleJpaEntity.of(
                 DEFAULT_ROLE_ID,
                 tenantId,
+                null,
                 DEFAULT_NAME,
                 DEFAULT_DISPLAY_NAME,
                 DEFAULT_DESCRIPTION,
                 RoleType.CUSTOM,
+                RoleScope.TENANT,
                 FIXED_TIME,
                 FIXED_TIME,
                 null);
@@ -58,10 +63,12 @@ public final class RoleJpaEntityFixture {
         return RoleJpaEntity.of(
                 DEFAULT_ROLE_ID,
                 null,
+                null,
                 DEFAULT_NAME,
                 DEFAULT_DISPLAY_NAME,
                 DEFAULT_DESCRIPTION,
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 FIXED_TIME,
                 FIXED_TIME,
                 FIXED_TIME);
@@ -72,10 +79,12 @@ public final class RoleJpaEntityFixture {
         return RoleJpaEntity.of(
                 DEFAULT_ROLE_ID,
                 null,
+                null,
                 "SYSTEM_ADMIN",
                 "시스템 관리자",
                 "시스템 관리자 역할",
                 RoleType.SYSTEM,
+                RoleScope.GLOBAL,
                 FIXED_TIME,
                 FIXED_TIME,
                 null);
@@ -86,10 +95,12 @@ public final class RoleJpaEntityFixture {
         return RoleJpaEntity.of(
                 DEFAULT_ROLE_ID,
                 null,
+                null,
                 name,
                 name + " 표시명",
                 name + " 설명",
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 FIXED_TIME,
                 FIXED_TIME,
                 null);
@@ -100,10 +111,12 @@ public final class RoleJpaEntityFixture {
         return RoleJpaEntity.of(
                 roleId,
                 null,
+                null,
                 DEFAULT_NAME + roleId,
                 DEFAULT_DISPLAY_NAME,
                 DEFAULT_DESCRIPTION,
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 FIXED_TIME,
                 FIXED_TIME,
                 null);

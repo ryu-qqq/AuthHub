@@ -155,4 +155,99 @@ class TenantReadManagerTest {
             then(queryPort).should().findAllByCriteria(criteria);
         }
     }
+
+    @Nested
+    @DisplayName("countByCriteria 메서드")
+    class CountByCriteria {
+
+        @Test
+        @DisplayName("성공: Criteria에 맞는 개수 반환")
+        void shouldReturnCount_MatchingCriteria() {
+            // given
+            TenantSearchCriteria criteria =
+                    TenantSearchCriteria.ofSimple(null, null, DateRange.of(null, null), 0, 10);
+            given(queryPort.countByCriteria(criteria)).willReturn(42L);
+
+            // when
+            long result = sut.countByCriteria(criteria);
+
+            // then
+            assertThat(result).isEqualTo(42L);
+            then(queryPort).should().countByCriteria(criteria);
+        }
+    }
+
+    @Nested
+    @DisplayName("findByIdOptional 메서드")
+    class FindByIdOptional {
+
+        @Test
+        @DisplayName("존재하면 Optional.of(tenant) 반환")
+        void shouldReturnOptionalOfTenant_WhenExists() {
+            // given
+            TenantId id = TenantFixture.defaultId();
+            Tenant expected = TenantFixture.create();
+            given(queryPort.findById(id)).willReturn(Optional.of(expected));
+
+            // when
+            Optional<Tenant> result = sut.findByIdOptional(id);
+
+            // then
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(expected);
+            then(queryPort).should().findById(id);
+        }
+
+        @Test
+        @DisplayName("존재하지 않으면 빈 Optional 반환")
+        void shouldReturnEmptyOptional_WhenNotExists() {
+            // given
+            TenantId id = TenantFixture.defaultId();
+            given(queryPort.findById(id)).willReturn(Optional.empty());
+
+            // when
+            Optional<Tenant> result = sut.findByIdOptional(id);
+
+            // then
+            assertThat(result).isEmpty();
+            then(queryPort).should().findById(id);
+        }
+    }
+
+    @Nested
+    @DisplayName("existsByNameAndIdNot 메서드")
+    class ExistsByNameAndIdNot {
+
+        @Test
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
+            // given
+            TenantName name = TenantName.of("Other Tenant");
+            TenantId excludeId = TenantFixture.defaultId();
+            given(queryPort.existsByNameAndIdNot(name, excludeId)).willReturn(true);
+
+            // when
+            boolean result = sut.existsByNameAndIdNot(name, excludeId);
+
+            // then
+            assertThat(result).isTrue();
+            then(queryPort).should().existsByNameAndIdNot(name, excludeId);
+        }
+
+        @Test
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
+            // given
+            TenantName name = TenantName.of("Unique Name");
+            TenantId excludeId = TenantFixture.defaultId();
+            given(queryPort.existsByNameAndIdNot(name, excludeId)).willReturn(false);
+
+            // when
+            boolean result = sut.existsByNameAndIdNot(name, excludeId);
+
+            // then
+            assertThat(result).isFalse();
+            then(queryPort).should().existsByNameAndIdNot(name, excludeId);
+        }
+    }
 }

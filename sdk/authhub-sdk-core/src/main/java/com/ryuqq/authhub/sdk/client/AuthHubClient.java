@@ -2,6 +2,7 @@ package com.ryuqq.authhub.sdk.client;
 
 import com.ryuqq.authhub.sdk.api.AuthApi;
 import com.ryuqq.authhub.sdk.api.OnboardingApi;
+import com.ryuqq.authhub.sdk.api.UserApi;
 
 /**
  * AuthHub REST API 클라이언트. 모든 AuthHub API에 대한 단일 진입점을 제공합니다.
@@ -43,11 +44,20 @@ public interface AuthHubClient {
     /**
      * Onboarding 관련 API를 반환합니다.
      *
-     * <p>테넌트, 조직, 기본 역할, 관리자 사용자를 일괄 생성합니다.
+     * <p>테넌트와 조직을 일괄 생성합니다.
      *
      * @return OnboardingApi
      */
     OnboardingApi onboarding();
+
+    /**
+     * User 관련 Internal API를 반환합니다.
+     *
+     * <p>사용자 생성 + 역할 할당 기능을 제공합니다.
+     *
+     * @return UserApi
+     */
+    UserApi user();
 
     /**
      * AuthHubClient Builder를 반환합니다.

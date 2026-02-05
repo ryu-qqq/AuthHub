@@ -14,6 +14,7 @@ import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
@@ -146,21 +147,24 @@ class RoleQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("existsByTenantIdAndName 메서드")
-    class ExistsByTenantIdAndName {
+    @DisplayName("existsByTenantIdAndServiceIdAndName 메서드")
+    class ExistsByTenantIdAndServiceIdAndName {
 
         @Test
         @DisplayName("존재하면 true 반환")
         void shouldReturnTrue_WhenExists() {
             // given
             TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
             RoleName name = RoleFixture.defaultRoleName();
 
-            given(repository.existsByTenantIdAndName(tenantId.value(), name.value()))
+            given(
+                            repository.existsByTenantIdAndServiceIdAndName(
+                                    tenantId.value(), null, name.value()))
                     .willReturn(true);
 
             // when
-            boolean result = sut.existsByTenantIdAndName(tenantId, name);
+            boolean result = sut.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
 
             // then
             assertThat(result).isTrue();
@@ -171,13 +175,16 @@ class RoleQueryAdapterTest {
         void shouldReturnFalse_WhenNotExists() {
             // given
             TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
             RoleName name = RoleFixture.defaultRoleName();
 
-            given(repository.existsByTenantIdAndName(tenantId.value(), name.value()))
+            given(
+                            repository.existsByTenantIdAndServiceIdAndName(
+                                    tenantId.value(), null, name.value()))
                     .willReturn(false);
 
             // when
-            boolean result = sut.existsByTenantIdAndName(tenantId, name);
+            boolean result = sut.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
 
             // then
             assertThat(result).isFalse();
@@ -189,36 +196,41 @@ class RoleQueryAdapterTest {
             // given
             RoleName name = RoleFixture.defaultRoleName();
 
-            given(repository.existsByTenantIdAndName(null, name.value())).willReturn(true);
+            given(repository.existsByTenantIdAndServiceIdAndName(null, null, name.value()))
+                    .willReturn(true);
 
             // when
-            boolean result = sut.existsByTenantIdAndName(null, name);
+            boolean result = sut.existsByTenantIdAndServiceIdAndName(null, null, name);
 
             // then
             assertThat(result).isTrue();
-            then(repository).should().existsByTenantIdAndName(null, name.value());
+            then(repository).should().existsByTenantIdAndServiceIdAndName(null, null, name.value());
         }
     }
 
     @Nested
-    @DisplayName("findByTenantIdAndName 메서드")
-    class FindByTenantIdAndName {
+    @DisplayName("findByTenantIdAndServiceIdAndName 메서드")
+    class FindByTenantIdAndServiceIdAndName {
 
         @Test
         @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
         void shouldFindAndConvert_WhenEntityExists() {
             // given
             TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
             RoleName name = RoleFixture.defaultRoleName();
             RoleJpaEntity entity = RoleJpaEntityFixture.createWithTenant();
             Role expectedDomain = RoleFixture.createTenantRole();
 
-            given(repository.findByTenantIdAndName(tenantId.value(), name.value()))
+            given(
+                            repository.findByTenantIdAndServiceIdAndName(
+                                    tenantId.value(), null, name.value()))
                     .willReturn(Optional.of(entity));
             given(mapper.toDomain(entity)).willReturn(expectedDomain);
 
             // when
-            Optional<Role> result = sut.findByTenantIdAndName(tenantId, name);
+            Optional<Role> result =
+                    sut.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
 
             // then
             assertThat(result).isPresent();
@@ -229,13 +241,17 @@ class RoleQueryAdapterTest {
         void shouldReturnEmpty_WhenEntityNotFound() {
             // given
             TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
             RoleName name = RoleFixture.defaultRoleName();
 
-            given(repository.findByTenantIdAndName(tenantId.value(), name.value()))
+            given(
+                            repository.findByTenantIdAndServiceIdAndName(
+                                    tenantId.value(), null, name.value()))
                     .willReturn(Optional.empty());
 
             // when
-            Optional<Role> result = sut.findByTenantIdAndName(tenantId, name);
+            Optional<Role> result =
+                    sut.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
 
             // then
             assertThat(result).isEmpty();

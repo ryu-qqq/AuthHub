@@ -12,6 +12,7 @@ import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,19 +122,21 @@ class PermissionReadManagerTest {
     }
 
     @Nested
-    @DisplayName("existsByPermissionKey 메서드")
-    class ExistsByPermissionKey {
+    @DisplayName("existsByServiceIdAndPermissionKey 메서드")
+    class ExistsByServiceIdAndPermissionKey {
 
         @Test
         @DisplayName("존재하면 true 반환")
         void shouldReturnTrue_WhenExists() {
             // given
+            ServiceId serviceId = null;
             String permissionKey = "user:read";
 
-            given(queryPort.existsByPermissionKey(permissionKey)).willReturn(true);
+            given(queryPort.existsByServiceIdAndPermissionKey(serviceId, permissionKey))
+                    .willReturn(true);
 
             // when
-            boolean result = sut.existsByPermissionKey(permissionKey);
+            boolean result = sut.existsByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
             assertThat(result).isTrue();
@@ -143,12 +146,14 @@ class PermissionReadManagerTest {
         @DisplayName("존재하지 않으면 false 반환")
         void shouldReturnFalse_WhenNotExists() {
             // given
+            ServiceId serviceId = null;
             String permissionKey = "nonexistent:action";
 
-            given(queryPort.existsByPermissionKey(permissionKey)).willReturn(false);
+            given(queryPort.existsByServiceIdAndPermissionKey(serviceId, permissionKey))
+                    .willReturn(false);
 
             // when
-            boolean result = sut.existsByPermissionKey(permissionKey);
+            boolean result = sut.existsByServiceIdAndPermissionKey(serviceId, permissionKey);
 
             // then
             assertThat(result).isFalse();
@@ -164,7 +169,8 @@ class PermissionReadManagerTest {
         void shouldReturnPermissions_MatchingCriteria() {
             // given
             PermissionSearchCriteria criteria =
-                    PermissionSearchCriteria.ofDefault(null, null, DateRange.of(null, null), 0, 10);
+                    PermissionSearchCriteria.ofDefault(
+                            null, null, null, DateRange.of(null, null), 0, 10);
             List<Permission> expected = List.of(PermissionFixture.create());
 
             given(queryPort.findAllBySearchCriteria(criteria)).willReturn(expected);
@@ -182,7 +188,8 @@ class PermissionReadManagerTest {
         void shouldReturnEmptyList_WhenNoMatch() {
             // given
             PermissionSearchCriteria criteria =
-                    PermissionSearchCriteria.ofDefault(null, null, DateRange.of(null, null), 0, 10);
+                    PermissionSearchCriteria.ofDefault(
+                            null, null, null, DateRange.of(null, null), 0, 10);
 
             given(queryPort.findAllBySearchCriteria(criteria)).willReturn(List.of());
 
@@ -213,6 +220,117 @@ class PermissionReadManagerTest {
             // then
             assertThat(result).hasSize(1);
             then(queryPort).should().findAllByIds(ids);
+        }
+    }
+
+    @Nested
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Criteria에 맞는 권한 개수 반환")
+        void shouldReturnCount_MatchingCriteria() {
+            // given
+            PermissionSearchCriteria criteria =
+                    PermissionSearchCriteria.ofDefault(
+                            null, null, null, DateRange.of(null, null), 0, 10);
+
+            given(queryPort.countBySearchCriteria(criteria)).willReturn(42L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEqualTo(42L);
+            then(queryPort).should().countBySearchCriteria(criteria);
+        }
+    }
+
+    @Nested
+    @DisplayName("findByServiceIdAndPermissionKeyOptional 메서드")
+    class FindByServiceIdAndPermissionKeyOptional {
+
+        @Test
+        @DisplayName("존재하면 Optional.of(Permission) 반환")
+        void shouldReturnOptionalOf_WhenExists() {
+            // given
+            ServiceId serviceId = null;
+            String permissionKey = "user:read";
+            Permission expected = PermissionFixture.create();
+
+            given(queryPort.findByServiceIdAndPermissionKey(serviceId, permissionKey))
+                    .willReturn(Optional.of(expected));
+
+            // when
+            Optional<Permission> result =
+                    sut.findByServiceIdAndPermissionKeyOptional(serviceId, permissionKey);
+
+            // then
+            assertThat(result).isPresent().contains(expected);
+            then(queryPort).should().findByServiceIdAndPermissionKey(serviceId, permissionKey);
+        }
+
+        @Test
+        @DisplayName("존재하지 않으면 Optional.empty 반환")
+        void shouldReturnEmpty_WhenNotExists() {
+            // given
+            ServiceId serviceId = null;
+            String permissionKey = "nonexistent:action";
+
+            given(queryPort.findByServiceIdAndPermissionKey(serviceId, permissionKey))
+                    .willReturn(Optional.empty());
+
+            // when
+            Optional<Permission> result =
+                    sut.findByServiceIdAndPermissionKeyOptional(serviceId, permissionKey);
+
+            // then
+            assertThat(result).isEmpty();
+            then(queryPort).should().findByServiceIdAndPermissionKey(serviceId, permissionKey);
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllByPermissionKeys 메서드")
+    class FindAllByPermissionKeys {
+
+        @Test
+        @DisplayName("성공: permissionKey 목록에 해당하는 권한 목록 반환")
+        void shouldReturnPermissions_ForPermissionKeys() {
+            // given
+            List<String> permissionKeys = List.of("user:read", "role:create");
+            List<Permission> expected = List.of(PermissionFixture.create());
+
+            given(queryPort.findAllByPermissionKeys(permissionKeys)).willReturn(expected);
+
+            // when
+            List<Permission> result = sut.findAllByPermissionKeys(permissionKeys);
+
+            // then
+            assertThat(result).hasSize(1);
+            then(queryPort).should().findAllByPermissionKeys(permissionKeys);
+        }
+
+        @Test
+        @DisplayName("null 입력 시 빈 목록 반환, Port 미호출")
+        void shouldReturnEmptyList_WhenInputIsNull() {
+            // when
+            List<Permission> result = sut.findAllByPermissionKeys(null);
+
+            // then
+            assertThat(result).isEmpty();
+            then(queryPort).shouldHaveNoInteractions();
+        }
+
+        @Test
+        @DisplayName("빈 목록 입력 시 빈 목록 반환, Port 미호출")
+        void shouldReturnEmptyList_WhenInputIsEmpty() {
+            // when
+            List<Permission> result = sut.findAllByPermissionKeys(List.of());
+
+            // then
+            assertThat(result).isEmpty();
+            then(queryPort).shouldHaveNoInteractions();
         }
     }
 }

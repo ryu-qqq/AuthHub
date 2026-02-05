@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.rolepermission.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.common.fixture.ErrorMapperApiFixture;
 import com.ryuqq.authhub.adapter.in.rest.rolepermission.RolePermissionApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.rolepermission.dto.request.GrantRolePermissionApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.rolepermission.dto.request.RevokeRolePermissionApiRequest;
@@ -23,6 +25,7 @@ import com.ryuqq.authhub.adapter.in.rest.rolepermission.mapper.RolePermissionCom
 import com.ryuqq.authhub.application.rolepermission.port.in.command.GrantRolePermissionUseCase;
 import com.ryuqq.authhub.application.rolepermission.port.in.command.RevokeRolePermissionUseCase;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -107,6 +110,106 @@ class RolePermissionCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("역할 또는 권한을 찾을 수 없으면 404 Not Found")
+        void shouldReturn404WhenRolePermissionNotFound() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            GrantRolePermissionApiRequest request =
+                    RolePermissionApiFixture.grantRolePermissionRequest();
+            willThrow(ErrorMapperApiFixture.rolePermissionNotFoundException())
+                    .given(grantRolePermissionUseCase)
+                    .grant(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(RolePermissionApiEndpoints.BASE + "/{roleId}/permissions", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("이미 부여된 권한이면 409 Conflict")
+        void shouldReturn409WhenDuplicateRolePermission() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            GrantRolePermissionApiRequest request =
+                    RolePermissionApiFixture.grantRolePermissionRequest();
+            willThrow(ErrorMapperApiFixture.duplicateRolePermissionException())
+                    .given(grantRolePermissionUseCase)
+                    .grant(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(RolePermissionApiEndpoints.BASE + "/{roleId}/permissions", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
+        }
+
+        @Test
+        @DisplayName("권한 ID 목록이 1개이면 성공한다")
+        void shouldSuccessWhenPermissionIdsHasOne() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            GrantRolePermissionApiRequest request =
+                    RolePermissionApiFixture.grantSinglePermissionRequest(1L);
+            doNothing().when(grantRolePermissionUseCase).grant(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(RolePermissionApiEndpoints.BASE + "/{roleId}/permissions", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @DisplayName("권한 ID 목록이 100개이면 성공한다")
+        void shouldSuccessWhenPermissionIdsHasMaxSize() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            List<Long> maxSizePermissionIds =
+                    IntStream.rangeClosed(1, 100).mapToLong(i -> (long) i).boxed().toList();
+            GrantRolePermissionApiRequest request =
+                    RolePermissionApiFixture.grantRolePermissionRequest(maxSizePermissionIds);
+            doNothing().when(grantRolePermissionUseCase).grant(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(RolePermissionApiEndpoints.BASE + "/{roleId}/permissions", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @DisplayName("권한 ID 목록이 101개이면 400 Bad Request")
+        void shouldFailWhenPermissionIdsExceedsMaxSize() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            List<Long> exceededPermissionIds =
+                    IntStream.rangeClosed(1, 101).mapToLong(i -> (long) i).boxed().toList();
+            GrantRolePermissionApiRequest request =
+                    RolePermissionApiFixture.grantRolePermissionRequest(exceededPermissionIds);
+
+            // when & then
+            mockMvc.perform(
+                            post(RolePermissionApiEndpoints.BASE + "/{roleId}/permissions", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     @Nested
@@ -148,6 +251,94 @@ class RolePermissionCommandControllerTest extends RestDocsTestSupport {
             // given
             Long roleId = RolePermissionApiFixture.defaultRoleId();
             RevokeRolePermissionApiRequest request = new RevokeRolePermissionApiRequest(List.of());
+
+            // when & then
+            mockMvc.perform(
+                            delete(
+                                            RolePermissionApiEndpoints.BASE
+                                                    + "/{roleId}/permissions",
+                                            roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("역할 또는 역할-권한 관계를 찾을 수 없으면 404 Not Found")
+        void shouldReturn404WhenRolePermissionNotFound() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            RevokeRolePermissionApiRequest request =
+                    RolePermissionApiFixture.revokeRolePermissionRequest();
+            willThrow(ErrorMapperApiFixture.rolePermissionNotFoundException())
+                    .given(revokeRolePermissionUseCase)
+                    .revoke(any());
+
+            // when & then
+            mockMvc.perform(
+                            delete(
+                                            RolePermissionApiEndpoints.BASE
+                                                    + "/{roleId}/permissions",
+                                            roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("권한 ID 목록이 1개이면 성공한다")
+        void shouldSuccessWhenPermissionIdsHasOne() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            RevokeRolePermissionApiRequest request =
+                    RolePermissionApiFixture.revokeSinglePermissionRequest(1L);
+            doNothing().when(revokeRolePermissionUseCase).revoke(any());
+
+            // when & then
+            mockMvc.perform(
+                            delete(
+                                            RolePermissionApiEndpoints.BASE
+                                                    + "/{roleId}/permissions",
+                                            roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNoContent());
+        }
+
+        @Test
+        @DisplayName("권한 ID 목록이 100개이면 성공한다")
+        void shouldSuccessWhenPermissionIdsHasMaxSize() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            List<Long> maxSizePermissionIds =
+                    IntStream.rangeClosed(1, 100).mapToLong(i -> (long) i).boxed().toList();
+            RevokeRolePermissionApiRequest request =
+                    RolePermissionApiFixture.revokeRolePermissionRequest(maxSizePermissionIds);
+            doNothing().when(revokeRolePermissionUseCase).revoke(any());
+
+            // when & then
+            mockMvc.perform(
+                            delete(
+                                            RolePermissionApiEndpoints.BASE
+                                                    + "/{roleId}/permissions",
+                                            roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNoContent());
+        }
+
+        @Test
+        @DisplayName("권한 ID 목록이 101개이면 400 Bad Request")
+        void shouldFailWhenPermissionIdsExceedsMaxSize() throws Exception {
+            // given
+            Long roleId = RolePermissionApiFixture.defaultRoleId();
+            List<Long> exceededPermissionIds =
+                    IntStream.rangeClosed(1, 101).mapToLong(i -> (long) i).boxed().toList();
+            RevokeRolePermissionApiRequest request =
+                    RolePermissionApiFixture.revokeRolePermissionRequest(exceededPermissionIds);
 
             // when & then
             mockMvc.perform(

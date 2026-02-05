@@ -57,6 +57,7 @@ class PermissionQueryControllerTest extends RestDocsTestSupport {
             PermissionResult result =
                     new PermissionResult(
                             PermissionApiFixture.defaultPermissionId(),
+                            null,
                             PermissionApiFixture.defaultPermissionKey(),
                             PermissionApiFixture.defaultResource(),
                             PermissionApiFixture.defaultAction(),
@@ -130,6 +131,10 @@ class PermissionQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.content[].permissionId")
                                                     .type(JsonFieldType.NUMBER)
                                                     .description("Permission ID"),
+                                            fieldWithPath("data.content[].serviceId")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("서비스 ID")
+                                                    .optional(),
                                             fieldWithPath("data.content[].permissionKey")
                                                     .type(JsonFieldType.STRING)
                                                     .description("권한 키 (예: user:read)"),
@@ -220,6 +225,124 @@ class PermissionQueryControllerTest extends RestDocsTestSupport {
                                     .param("page", "-1")
                                     .param("size", "20"))
                     .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("페이지 크기가 최소값(1) 미만이면 400 Bad Request")
+        void shouldFailWhenSizeIsLessThanMin() throws Exception {
+            // when & then
+            mockMvc.perform(
+                            get(PermissionApiEndpoints.PERMISSIONS)
+                                    .param("page", "0")
+                                    .param("size", "0"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("페이지 크기가 최대값(100)이면 성공한다")
+        void shouldSucceedWhenSizeIsMax() throws Exception {
+            // given
+            PermissionPageResult pageResult = PermissionPageResult.empty(100);
+            given(searchPermissionsUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionApiEndpoints.PERMISSIONS)
+                                    .param("page", "0")
+                                    .param("size", "100"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @DisplayName("빈 결과를 조회한다")
+        void shouldSearchWithEmptyResults() throws Exception {
+            // given
+            PermissionPageResult pageResult = PermissionPageResult.empty(20);
+            given(searchPermissionsUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionApiEndpoints.PERMISSIONS)
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0))
+                    .andExpect(jsonPath("$.data.totalPages").value(0))
+                    .andExpect(jsonPath("$.data.first").value(true))
+                    .andExpect(jsonPath("$.data.last").value(true));
+        }
+
+        @Test
+        @DisplayName("마지막 페이지를 조회한다")
+        void shouldSearchLastPage() throws Exception {
+            // given
+            Instant fixedTime = PermissionApiFixture.fixedTime();
+            PermissionResult result =
+                    new PermissionResult(
+                            PermissionApiFixture.defaultPermissionId(),
+                            null,
+                            PermissionApiFixture.defaultPermissionKey(),
+                            PermissionApiFixture.defaultResource(),
+                            PermissionApiFixture.defaultAction(),
+                            PermissionApiFixture.defaultDescription(),
+                            PermissionApiFixture.defaultType(),
+                            fixedTime,
+                            fixedTime);
+            // 마지막 페이지: page=2, size=1, totalElements=3
+            PermissionPageResult pageResult = PermissionPageResult.of(List.of(result), 2, 1, 3L);
+            given(searchPermissionsUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionApiEndpoints.PERMISSIONS)
+                                    .param("page", "2")
+                                    .param("size", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isNotEmpty())
+                    .andExpect(jsonPath("$.data.page").value(2))
+                    .andExpect(jsonPath("$.data.size").value(1))
+                    .andExpect(jsonPath("$.data.totalElements").value(3))
+                    .andExpect(jsonPath("$.data.totalPages").value(3))
+                    .andExpect(jsonPath("$.data.first").value(false))
+                    .andExpect(jsonPath("$.data.last").value(true));
+        }
+
+        @Test
+        @DisplayName("페이지 크기가 1인 조회를 수행한다")
+        void shouldSearchWithSizeOne() throws Exception {
+            // given
+            Instant fixedTime = PermissionApiFixture.fixedTime();
+            PermissionResult result =
+                    new PermissionResult(
+                            PermissionApiFixture.defaultPermissionId(),
+                            null,
+                            PermissionApiFixture.defaultPermissionKey(),
+                            PermissionApiFixture.defaultResource(),
+                            PermissionApiFixture.defaultAction(),
+                            PermissionApiFixture.defaultDescription(),
+                            PermissionApiFixture.defaultType(),
+                            fixedTime,
+                            fixedTime);
+            PermissionPageResult pageResult = PermissionPageResult.of(List.of(result), 0, 1, 1L);
+            given(searchPermissionsUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionApiEndpoints.PERMISSIONS)
+                                    .param("page", "0")
+                                    .param("size", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(1))
+                    .andExpect(jsonPath("$.data.size").value(1))
+                    .andExpect(jsonPath("$.data.totalElements").value(1));
         }
     }
 }

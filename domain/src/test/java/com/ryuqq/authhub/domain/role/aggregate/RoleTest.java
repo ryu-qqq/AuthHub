@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.ryuqq.authhub.domain.role.exception.SystemRoleNotDeletableException;
 import com.ryuqq.authhub.domain.role.exception.SystemRoleNotModifiableException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
+import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.time.Instant;
@@ -92,6 +93,7 @@ class RoleTest {
             Role role =
                     Role.create(
                             null,
+                            null,
                             RoleName.of("UNIFIED_SYSTEM"),
                             "통합 시스템 역할",
                             "통합 메서드로 생성된 시스템 역할",
@@ -113,6 +115,7 @@ class RoleTest {
             Role role =
                     Role.create(
                             tenantId,
+                            null,
                             RoleName.of("UNIFIED_TENANT"),
                             "통합 테넌트 역할",
                             "통합 메서드로 생성된 테넌트 역할",
@@ -188,6 +191,32 @@ class RoleTest {
             // when & then
             assertThatThrownBy(() -> systemRole.update(updateData, NOW))
                     .isInstanceOf(SystemRoleNotModifiableException.class);
+        }
+
+        @Test
+        @DisplayName("update()에서 updateData가 null이면 예외가 발생한다")
+        void shouldThrowExceptionWhenUpdateDataIsNull() {
+            // given
+            Role role = RoleFixture.createCustomRole();
+
+            // when & then
+            assertThatThrownBy(() -> role.update(null, NOW))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @DisplayName("빈 RoleUpdateData (hasAnyUpdate = false)로 수정해도 updatedAt은 변경된다")
+        void shouldUpdateUpdatedAtEvenWhenUpdateDataIsEmpty() {
+            // given
+            Role role = RoleFixture.createCustomRole();
+            RoleUpdateData emptyUpdateData = RoleUpdateData.of(null, null);
+            Instant newTime = Instant.parse("2025-01-20T10:00:00Z");
+
+            // when
+            role.update(emptyUpdateData, newTime);
+
+            // then
+            assertThat(role.updatedAt()).isEqualTo(newTime);
         }
     }
 
@@ -315,6 +344,294 @@ class RoleTest {
 
             // then
             assertThat(role1).isNotEqualTo(role2);
+        }
+
+        @Test
+        @DisplayName("null과 비교하면 false를 반환한다")
+        void shouldNotBeEqualWhenComparedWithNull() {
+            // given
+            Role role = RoleFixture.create();
+
+            // then
+            assertThat(role).isNotEqualTo(null);
+        }
+
+        @Test
+        @DisplayName("다른 타입과 비교하면 false를 반환한다")
+        void shouldNotBeEqualWhenComparedWithDifferentType() {
+            // given
+            Role role = RoleFixture.create();
+            String other = "not a role";
+
+            // then
+            assertThat(role).isNotEqualTo(other);
+        }
+
+        @Test
+        @DisplayName("ID가 없는 경우 serviceId도 비교에 포함된다")
+        void shouldUseServiceIdWhenIdIsNull() {
+            // given
+            com.ryuqq.authhub.domain.service.id.ServiceId serviceId =
+                    com.ryuqq.authhub.domain.service.id.ServiceId.of(1L);
+            Role role1 =
+                    Role.create(
+                            null, serviceId, RoleName.of("SAME_NAME"), "표시명1", "설명1", false, NOW);
+            Role role2 =
+                    Role.create(
+                            null, serviceId, RoleName.of("SAME_NAME"), "표시명2", "설명2", false, NOW);
+
+            // then - 같은 name, 같은 serviceId, null tenantId이므로 동등함
+            assertThat(role1).isEqualTo(role2);
+        }
+    }
+
+    @Nested
+    @DisplayName("Role reconstitute 테스트")
+    class ReconstituteTests {
+
+        @Test
+        @DisplayName("reconstitute()로 Role을 재구성한다")
+        void shouldReconstituteRole() {
+            // given
+            RoleId roleId = RoleId.of(1L);
+            TenantId tenantId = TenantId.of("01941234-5678-7000-8000-123456789abc");
+            RoleName name = RoleName.of("RECONSTITUTED_ROLE");
+            com.ryuqq.authhub.domain.common.vo.DeletionStatus deletionStatus =
+                    com.ryuqq.authhub.domain.common.vo.DeletionStatus.active();
+
+            // when
+            Role role =
+                    Role.reconstitute(
+                            roleId,
+                            tenantId,
+                            null,
+                            name,
+                            "재구성된 역할",
+                            "재구성 테스트",
+                            com.ryuqq.authhub.domain.role.vo.RoleType.CUSTOM,
+                            com.ryuqq.authhub.domain.role.vo.RoleScope.TENANT,
+                            deletionStatus,
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(role.getRoleId()).isEqualTo(roleId);
+            assertThat(role.getTenantId()).isEqualTo(tenantId);
+            assertThat(role.getName()).isEqualTo(name);
+            assertThat(role.isNew()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("Role Getter 메서드 테스트")
+    class GetterTests {
+
+        @Test
+        @DisplayName("getRoleId()는 roleId를 반환한다")
+        void shouldReturnRoleId() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when & then
+            assertThat(role.getRoleId()).isNotNull();
+            assertThat(role.getRoleId().value()).isEqualTo(RoleFixture.defaultIdValue());
+        }
+
+        @Test
+        @DisplayName("getTenantId()는 tenantId를 반환한다")
+        void shouldReturnTenantId() {
+            // given
+            Role globalRole = RoleFixture.create();
+            Role tenantRole = RoleFixture.createTenantRole();
+
+            // when & then
+            assertThat(globalRole.getTenantId()).isNull();
+            assertThat(tenantRole.getTenantId()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getServiceId()는 serviceId를 반환한다")
+        void shouldReturnServiceId() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when & then
+            assertThat(role.getServiceId()).isNull();
+        }
+
+        @Test
+        @DisplayName("getName()는 name을 반환한다")
+        void shouldReturnName() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when & then
+            assertThat(role.getName()).isNotNull();
+            assertThat(role.getName().value()).isEqualTo(RoleFixture.defaultRoleName().value());
+        }
+
+        @Test
+        @DisplayName("getDisplayName()는 displayName을 반환한다")
+        void shouldReturnDisplayName() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when & then
+            assertThat(role.getDisplayName()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getDescription()는 description을 반환한다")
+        void shouldReturnDescription() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when & then
+            assertThat(role.getDescription()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getType()는 type을 반환한다")
+        void shouldReturnType() {
+            // given
+            Role systemRole = RoleFixture.createSystemRole();
+            Role customRole = RoleFixture.createCustomRole();
+
+            // when & then
+            assertThat(systemRole.getType())
+                    .isEqualTo(com.ryuqq.authhub.domain.role.vo.RoleType.SYSTEM);
+            assertThat(customRole.getType())
+                    .isEqualTo(com.ryuqq.authhub.domain.role.vo.RoleType.CUSTOM);
+        }
+
+        @Test
+        @DisplayName("getScope()는 scope를 반환한다")
+        void shouldReturnScope() {
+            // given
+            Role globalRole = RoleFixture.create();
+            Role tenantRole = RoleFixture.createTenantRole();
+
+            // when & then
+            assertThat(globalRole.getScope())
+                    .isEqualTo(com.ryuqq.authhub.domain.role.vo.RoleScope.GLOBAL);
+            assertThat(tenantRole.getScope())
+                    .isEqualTo(com.ryuqq.authhub.domain.role.vo.RoleScope.TENANT);
+        }
+
+        @Test
+        @DisplayName("getDeletionStatus()는 deletionStatus를 반환한다")
+        void shouldReturnDeletionStatus() {
+            // given
+            Role activeRole = RoleFixture.create();
+            Role deletedRole = RoleFixture.createDeleted();
+
+            // when & then
+            assertThat(activeRole.getDeletionStatus().isDeleted()).isFalse();
+            assertThat(deletedRole.getDeletionStatus().isDeleted()).isTrue();
+        }
+
+        @Test
+        @DisplayName("createdAt()는 createdAt을 반환한다")
+        void shouldReturnCreatedAt() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when & then
+            assertThat(role.createdAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("updatedAt()는 updatedAt을 반환한다")
+        void shouldReturnUpdatedAt() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when & then
+            assertThat(role.updatedAt()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("Role Query 메서드 테스트 (추가)")
+    class AdditionalQueryMethodTests {
+
+        @Test
+        @DisplayName("roleIdValue()는 roleId 값을 반환한다")
+        void shouldReturnRoleIdValue() {
+            // given
+            Role role = RoleFixture.create();
+            Role newRole = RoleFixture.createNewCustomRole();
+
+            // when & then
+            assertThat(role.roleIdValue()).isEqualTo(RoleFixture.defaultIdValue());
+            assertThat(newRole.roleIdValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("serviceIdValue()는 serviceId 값을 반환한다")
+        void shouldReturnServiceIdValue() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when & then
+            assertThat(role.serviceIdValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("scopeValue()는 scope 값을 반환한다")
+        void shouldReturnScopeValue() {
+            // given
+            Role globalRole = RoleFixture.create();
+            Role tenantRole = RoleFixture.createTenantRole();
+
+            // when & then
+            assertThat(globalRole.scopeValue()).isEqualTo("GLOBAL");
+            assertThat(tenantRole.scopeValue()).isEqualTo("TENANT");
+        }
+
+        @Test
+        @DisplayName("typeValue()는 type 값을 반환한다")
+        void shouldReturnTypeValue() {
+            // given
+            Role systemRole = RoleFixture.createSystemRole();
+            Role customRole = RoleFixture.createCustomRole();
+
+            // when & then
+            assertThat(systemRole.typeValue()).isEqualTo("SYSTEM");
+            assertThat(customRole.typeValue()).isEqualTo("CUSTOM");
+        }
+
+        @Test
+        @DisplayName("isServiceSpecific()는 서비스 범위 역할이면 true를 반환한다")
+        void shouldReturnTrueWhenServiceSpecific() {
+            // given
+            Role globalRole = RoleFixture.create();
+
+            // when & then
+            assertThat(globalRole.isServiceSpecific()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("Role toString 테스트")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("toString()은 역할 정보를 포함한 문자열을 반환한다")
+        void shouldReturnStringContainingRoleInfo() {
+            // given
+            Role role = RoleFixture.create();
+
+            // when
+            String result = role.toString();
+
+            // then
+            assertThat(result).contains("Role{");
+            assertThat(result).contains("roleId=");
+            assertThat(result).contains("name=");
+            assertThat(result).contains("type=");
+            assertThat(result).contains("scope=");
+            assertThat(result).contains("deleted=");
         }
     }
 }

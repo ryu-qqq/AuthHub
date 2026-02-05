@@ -165,4 +165,101 @@ class RolePermissionReadManagerTest {
             then(queryPort).should().findAllBySearchCriteria(criteria);
         }
     }
+
+    @Nested
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Criteria에 맞는 개수 반환")
+        void shouldReturnCount_MatchingCriteria() {
+            // given
+            RolePermissionSearchCriteria criteria =
+                    RolePermissionSearchCriteria.ofRoleId(
+                            RolePermissionFixture.defaultRoleId(), 0, 10);
+            given(queryPort.countBySearchCriteria(criteria)).willReturn(5L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEqualTo(5L);
+            then(queryPort).should().countBySearchCriteria(criteria);
+        }
+    }
+
+    @Nested
+    @DisplayName("findGrantedPermissionIds 메서드")
+    class FindGrantedPermissionIds {
+
+        @Test
+        @DisplayName("성공: 역할에 이미 부여된 권한 ID 목록 반환")
+        void shouldReturnGrantedPermissionIds_ForRoleAndPermissionIds() {
+            // given
+            RoleId roleId = RolePermissionFixture.defaultRoleId();
+            List<PermissionId> permissionIds = List.of(RolePermissionFixture.defaultPermissionId());
+            List<PermissionId> expected = List.of(RolePermissionFixture.defaultPermissionId());
+
+            given(queryPort.findGrantedPermissionIds(roleId, permissionIds)).willReturn(expected);
+
+            // when
+            List<PermissionId> result = sut.findGrantedPermissionIds(roleId, permissionIds);
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result).containsExactly(RolePermissionFixture.defaultPermissionId());
+            then(queryPort).should().findGrantedPermissionIds(roleId, permissionIds);
+        }
+
+        @Test
+        @DisplayName("부여된 권한이 없으면 빈 목록 반환")
+        void shouldReturnEmpty_WhenNoneGranted() {
+            // given
+            RoleId roleId = RolePermissionFixture.defaultRoleId();
+            List<PermissionId> permissionIds = List.of(RolePermissionFixture.defaultPermissionId());
+            given(queryPort.findGrantedPermissionIds(roleId, permissionIds)).willReturn(List.of());
+
+            // when
+            List<PermissionId> result = sut.findGrantedPermissionIds(roleId, permissionIds);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllByRoleIds 메서드")
+    class FindAllByRoleIds {
+
+        @Test
+        @DisplayName("성공: 역할 ID 목록에 해당하는 RolePermission 목록 반환")
+        void shouldReturnRolePermissions_ForRoleIds() {
+            // given
+            List<RoleId> roleIds = List.of(RolePermissionFixture.defaultRoleId());
+            List<RolePermission> expected = List.of(RolePermissionFixture.create());
+
+            given(queryPort.findAllByRoleIds(roleIds)).willReturn(expected);
+
+            // when
+            List<RolePermission> result = sut.findAllByRoleIds(roleIds);
+
+            // then
+            assertThat(result).hasSize(1);
+            then(queryPort).should().findAllByRoleIds(roleIds);
+        }
+
+        @Test
+        @DisplayName("결과가 없으면 빈 목록 반환")
+        void shouldReturnEmpty_WhenNoRolePermissions() {
+            // given
+            List<RoleId> roleIds = List.of(RolePermissionFixture.defaultRoleId());
+            given(queryPort.findAllByRoleIds(roleIds)).willReturn(List.of());
+
+            // when
+            List<RolePermission> result = sut.findAllByRoleIds(roleIds);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
 }

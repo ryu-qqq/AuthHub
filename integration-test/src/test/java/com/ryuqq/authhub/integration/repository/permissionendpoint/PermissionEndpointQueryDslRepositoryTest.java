@@ -62,6 +62,7 @@ class PermissionEndpointQueryDslRepositoryTest extends RepositoryTestBase {
                 permissionJpaRepository.save(
                         PermissionJpaEntity.of(
                                 null,
+                                null,
                                 "user:read",
                                 "user",
                                 "read",

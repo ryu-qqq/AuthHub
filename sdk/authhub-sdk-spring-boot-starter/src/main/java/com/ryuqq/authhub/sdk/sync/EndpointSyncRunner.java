@@ -53,6 +53,7 @@ public class EndpointSyncRunner implements ApplicationRunner {
     private final RequestMappingHandlerMapping handlerMapping;
     private final EndpointSyncClient syncClient;
     private final String serviceName;
+    private final String serviceCode;
     private final boolean enabled;
 
     /**
@@ -66,7 +67,23 @@ public class EndpointSyncRunner implements ApplicationRunner {
             RequestMappingHandlerMapping handlerMapping,
             EndpointSyncClient syncClient,
             String serviceName) {
-        this(handlerMapping, syncClient, serviceName, true);
+        this(handlerMapping, syncClient, serviceName, null, true);
+    }
+
+    /**
+     * EndpointSyncRunner 생성자 (serviceCode 포함)
+     *
+     * @param handlerMapping Spring MVC 핸들러 매핑
+     * @param syncClient 동기화 클라이언트
+     * @param serviceName 서비스 이름
+     * @param serviceCode 서비스 코드 (nullable, Role-Permission 자동 매핑용)
+     */
+    public EndpointSyncRunner(
+            RequestMappingHandlerMapping handlerMapping,
+            EndpointSyncClient syncClient,
+            String serviceName,
+            String serviceCode) {
+        this(handlerMapping, syncClient, serviceName, serviceCode, true);
     }
 
     /**
@@ -75,16 +92,19 @@ public class EndpointSyncRunner implements ApplicationRunner {
      * @param handlerMapping Spring MVC 핸들러 매핑
      * @param syncClient 동기화 클라이언트
      * @param serviceName 서비스 이름
+     * @param serviceCode 서비스 코드 (nullable)
      * @param enabled 동기화 활성화 여부
      */
     public EndpointSyncRunner(
             RequestMappingHandlerMapping handlerMapping,
             EndpointSyncClient syncClient,
             String serviceName,
+            String serviceCode,
             boolean enabled) {
         this.handlerMapping = handlerMapping;
         this.syncClient = syncClient;
         this.serviceName = serviceName;
+        this.serviceCode = serviceCode;
         this.enabled = enabled;
     }
 
@@ -108,7 +128,8 @@ public class EndpointSyncRunner implements ApplicationRunner {
             }
 
             // 2. 동기화 요청 생성
-            EndpointSyncRequest request = EndpointSyncRequest.of(serviceName, endpoints);
+            EndpointSyncRequest request =
+                    EndpointSyncRequest.of(serviceName, serviceCode, endpoints);
 
             // 3. AuthHub에 동기화 요청
             syncClient.sync(request);

@@ -37,7 +37,11 @@ import org.springframework.context.annotation.ComponentScan;
             "com.ryuqq.authhub.adapter.out.persistence.userrole.repository",
             "com.ryuqq.authhub.adapter.out.persistence.userrole.condition",
             "com.ryuqq.authhub.adapter.out.persistence.token.repository",
-            "com.ryuqq.authhub.adapter.out.persistence.token.condition"
+            "com.ryuqq.authhub.adapter.out.persistence.token.condition",
+            "com.ryuqq.authhub.adapter.out.persistence.service.repository",
+            "com.ryuqq.authhub.adapter.out.persistence.service.condition",
+            "com.ryuqq.authhub.adapter.out.persistence.tenantservice.repository",
+            "com.ryuqq.authhub.adapter.out.persistence.tenantservice.condition"
         })
 public class RepositoryTestConfig {
 

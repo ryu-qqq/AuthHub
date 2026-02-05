@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <p>CFG-002: DateTimeFormatUtils를 사용하여 String으로 변환.
  *
  * @param permissionId 권한 ID
+ * @param serviceId 서비스 ID
  * @param permissionKey 권한 키 (예: "user:read")
  * @param resource 리소스명
  * @param action 행위명
@@ -36,6 +37,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Permission 조회 응답")
 public record PermissionApiResponse(
         @Schema(description = "Permission ID", example = "1") Long permissionId,
+        @Schema(description = "서비스 ID", example = "1") Long serviceId,
         @Schema(description = "권한 키", example = "user:read") String permissionKey,
         @Schema(description = "리소스명", example = "user") String resource,
         @Schema(description = "행위명", example = "read") String action,

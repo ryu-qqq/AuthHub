@@ -4,6 +4,7 @@ import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
@@ -46,26 +47,26 @@ public interface RoleQueryPort {
     boolean existsById(RoleId id);
 
     /**
-     * 테넌트 내 역할 이름으로 존재 여부 확인
-     *
-     * <p>tenantId가 null이면 Global 역할 내에서 중복 확인.
+     * 테넌트 + 서비스 범위 내 역할 이름으로 존재 여부 확인
      *
      * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
      * @param name 역할 이름
      * @return 존재 여부
      */
-    boolean existsByTenantIdAndName(TenantId tenantId, RoleName name);
+    boolean existsByTenantIdAndServiceIdAndName(
+            TenantId tenantId, ServiceId serviceId, RoleName name);
 
     /**
-     * 테넌트 내 역할 이름으로 Role 조회
-     *
-     * <p>tenantId가 null이면 Global 역할 내에서 조회.
+     * 테넌트 + 서비스 범위 내 역할 이름으로 Role 조회
      *
      * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
      * @param name 역할 이름
      * @return Role Domain (Optional)
      */
-    Optional<Role> findByTenantIdAndName(TenantId tenantId, RoleName name);
+    Optional<Role> findByTenantIdAndServiceIdAndName(
+            TenantId tenantId, ServiceId serviceId, RoleName name);
 
     /**
      * 조건에 맞는 역할 목록 조회 (SearchCriteria 기반)

@@ -17,6 +17,7 @@ import com.ryuqq.authhub.domain.permissionendpoint.exception.PermissionEndpointN
 import com.ryuqq.authhub.domain.permissionendpoint.fixture.PermissionEndpointFixture;
 import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -142,6 +143,77 @@ class PermissionEndpointValidatorTest {
             // when & then
             assertThatThrownBy(() -> sut.validateNoDuplicate(urlPattern, httpMethod))
                     .isInstanceOf(DuplicatePermissionEndpointException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("validateNoDuplicateExcludeSelf 메서드")
+    class ValidateNoDuplicateExcludeSelf {
+
+        @Test
+        @DisplayName("성공: 자기 자신만 같은 URL+메서드면 예외 없음")
+        void shouldNotThrow_WhenOnlySelfMatches() {
+            PermissionEndpointId selfId = PermissionEndpointFixture.defaultId();
+            String urlPattern = "/api/v1/users";
+            HttpMethod httpMethod = HttpMethod.GET;
+            PermissionEndpoint self = PermissionEndpointFixture.create();
+            given(
+                            permissionEndpointReadManager.findByUrlPatternAndHttpMethod(
+                                    urlPattern, httpMethod))
+                    .willReturn(Optional.of(self));
+
+            assertThatCode(() -> sut.validateNoDuplicateExcludeSelf(selfId, urlPattern, httpMethod))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("실패: 다른 엔드포인트가 같은 URL+메서드면 DuplicatePermissionEndpointException 발생")
+        void shouldThrow_WhenOtherEndpointDuplicated() {
+            PermissionEndpointId selfId = PermissionEndpointFixture.defaultId();
+            String urlPattern = "/api/v1/users";
+            HttpMethod httpMethod = HttpMethod.GET;
+            PermissionEndpoint other =
+                    PermissionEndpoint.reconstitute(
+                            2L,
+                            1L,
+                            "authhub",
+                            "/api/v1/users",
+                            HttpMethod.GET,
+                            "Other",
+                            false,
+                            com.ryuqq.authhub.domain.common.vo.DeletionStatus.active(),
+                            java.time.Instant.parse("2025-01-01T00:00:00Z"),
+                            java.time.Instant.parse("2025-01-01T00:00:00Z"));
+            given(
+                            permissionEndpointReadManager.findByUrlPatternAndHttpMethod(
+                                    urlPattern, httpMethod))
+                    .willReturn(Optional.of(other));
+
+            assertThatThrownBy(
+                            () ->
+                                    sut.validateNoDuplicateExcludeSelf(
+                                            selfId, urlPattern, httpMethod))
+                    .isInstanceOf(DuplicatePermissionEndpointException.class);
+        }
+
+        @Test
+        @DisplayName("성공: urlPattern null이면 early return으로 예외 없음")
+        void shouldNotThrow_WhenUrlPatternNull() {
+            PermissionEndpointId id = PermissionEndpointFixture.defaultId();
+
+            assertThatCode(() -> sut.validateNoDuplicateExcludeSelf(id, null, HttpMethod.GET))
+                    .doesNotThrowAnyException();
+            then(permissionEndpointReadManager).shouldHaveNoInteractions();
+        }
+
+        @Test
+        @DisplayName("성공: httpMethod null이면 early return으로 예외 없음")
+        void shouldNotThrow_WhenHttpMethodNull() {
+            PermissionEndpointId id = PermissionEndpointFixture.defaultId();
+
+            assertThatCode(() -> sut.validateNoDuplicateExcludeSelf(id, "/api/v1/users", null))
+                    .doesNotThrowAnyException();
+            then(permissionEndpointReadManager).shouldHaveNoInteractions();
         }
     }
 }

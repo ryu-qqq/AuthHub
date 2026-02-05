@@ -4,6 +4,7 @@ import com.ryuqq.authhub.adapter.in.rest.userrole.dto.request.AssignUserRoleApiR
 import com.ryuqq.authhub.adapter.in.rest.userrole.dto.request.RevokeUserRoleApiRequest;
 import com.ryuqq.authhub.application.userrole.dto.command.AssignUserRoleCommand;
 import com.ryuqq.authhub.application.userrole.dto.command.RevokeUserRoleCommand;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,6 +34,7 @@ public class UserRoleCommandApiMapper {
      * @return Application Command DTO
      */
     public AssignUserRoleCommand toAssignCommand(String userId, AssignUserRoleApiRequest request) {
+        Objects.requireNonNull(userId, "userId must not be null");
         return new AssignUserRoleCommand(userId, request.roleIds());
     }
 
@@ -46,6 +48,7 @@ public class UserRoleCommandApiMapper {
      * @return Application Command DTO
      */
     public RevokeUserRoleCommand toRevokeCommand(String userId, RevokeUserRoleApiRequest request) {
+        Objects.requireNonNull(userId, "userId must not be null");
         return new RevokeUserRoleCommand(userId, request.roleIds());
     }
 }

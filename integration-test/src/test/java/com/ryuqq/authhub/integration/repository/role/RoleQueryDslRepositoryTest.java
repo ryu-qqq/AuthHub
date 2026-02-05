@@ -13,6 +13,7 @@ import com.ryuqq.authhub.domain.common.vo.DateRange;
 import com.ryuqq.authhub.domain.common.vo.PageRequest;
 import com.ryuqq.authhub.domain.common.vo.SortDirection;
 import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleSearchField;
 import com.ryuqq.authhub.domain.role.vo.RoleSortKey;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
@@ -78,10 +79,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     savedTenant.getTenantId(),
+                                    null,
                                     "ROLE_ADMIN",
                                     "관리자",
                                     "테스트 역할",
                                     RoleType.CUSTOM,
+                                    RoleScope.TENANT,
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime(),
                                     null));
@@ -104,10 +107,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     savedTenant.getTenantId(),
+                                    null,
                                     "ROLE_DELETED",
                                     "삭제된역할",
                                     null,
                                     RoleType.CUSTOM,
+                                    RoleScope.TENANT,
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime()));
@@ -144,10 +149,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     savedTenant.getTenantId(),
+                                    null,
                                     "ROLE_EXISTS",
                                     "존재역할",
                                     null,
                                     RoleType.CUSTOM,
+                                    RoleScope.TENANT,
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime(),
                                     null));
@@ -169,10 +176,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     savedTenant.getTenantId(),
+                                    null,
                                     "ROLE_DELETED_EXISTS",
                                     "삭제됨",
                                     null,
                                     RoleType.CUSTOM,
+                                    RoleScope.TENANT,
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime()));
@@ -198,10 +207,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             savedTenant.getTenantId(),
+                            null,
                             "ROLE_FIND",
                             "조회역할",
                             null,
                             RoleType.CUSTOM,
+                            RoleScope.TENANT,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             null));
@@ -209,8 +220,8 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
 
             // when
             Optional<RoleJpaEntity> found =
-                    queryDslRepository.findByTenantIdAndName(
-                            savedTenant.getTenantId(), "ROLE_FIND");
+                    queryDslRepository.findByTenantIdAndServiceIdAndName(
+                            savedTenant.getTenantId(), null, "ROLE_FIND");
 
             // then
             assertThat(found).isPresent();
@@ -225,10 +236,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             savedTenant.getTenantId(),
+                            null,
                             "ROLE_DELETED_FIND",
                             "삭제됨",
                             null,
                             RoleType.CUSTOM,
+                            RoleScope.TENANT,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime()));
@@ -236,8 +249,8 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
 
             // when
             Optional<RoleJpaEntity> found =
-                    queryDslRepository.findByTenantIdAndName(
-                            savedTenant.getTenantId(), "ROLE_DELETED_FIND");
+                    queryDslRepository.findByTenantIdAndServiceIdAndName(
+                            savedTenant.getTenantId(), null, "ROLE_DELETED_FIND");
 
             // then
             assertThat(found).isEmpty();
@@ -256,10 +269,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             savedTenant.getTenantId(),
+                            null,
                             "ROLE_UNIQUE",
                             "유일역할",
                             null,
                             RoleType.CUSTOM,
+                            RoleScope.TENANT,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             null));
@@ -267,8 +282,8 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
 
             // when
             boolean exists =
-                    queryDslRepository.existsByTenantIdAndName(
-                            savedTenant.getTenantId(), "ROLE_UNIQUE");
+                    queryDslRepository.existsByTenantIdAndServiceIdAndName(
+                            savedTenant.getTenantId(), null, "ROLE_UNIQUE");
 
             // then
             assertThat(exists).isTrue();
@@ -287,10 +302,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             savedTenant.getTenantId(),
+                            null,
                             "ROLE_ACTIVE_1",
                             "활성역할1",
                             null,
                             RoleType.CUSTOM,
+                            RoleScope.TENANT,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             null));
@@ -298,10 +315,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             savedTenant.getTenantId(),
+                            null,
                             "ROLE_DELETED_CRITERIA",
                             "삭제역할",
                             null,
                             RoleType.CUSTOM,
+                            RoleScope.TENANT,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime()));
@@ -310,6 +329,7 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
             RoleSearchCriteria criteria =
                     RoleSearchCriteria.of(
                             TenantId.of(savedTenant.getTenantId()),
+                            null,
                             null,
                             RoleSearchField.NAME,
                             null,
@@ -340,10 +360,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     savedTenant.getTenantId(),
+                                    null,
                                     "ROLE_IDS_1",
                                     "ID목록1",
                                     null,
                                     RoleType.CUSTOM,
+                                    RoleScope.TENANT,
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime(),
                                     null));
@@ -352,10 +374,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     savedTenant.getTenantId(),
+                                    null,
                                     "ROLE_IDS_2",
                                     "ID목록2",
                                     null,
                                     RoleType.CUSTOM,
+                                    RoleScope.TENANT,
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime(),
                                     null));
@@ -381,10 +405,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     savedTenant.getTenantId(),
+                                    null,
                                     "ROLE_ACTIVE_IDS",
                                     "활성",
                                     null,
                                     RoleType.CUSTOM,
+                                    RoleScope.TENANT,
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime(),
                                     null));
@@ -393,10 +419,12 @@ class RoleQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     savedTenant.getTenantId(),
+                                    null,
                                     "ROLE_DELETED_IDS",
                                     "삭제",
                                     null,
                                     RoleType.CUSTOM,
+                                    RoleScope.TENANT,
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime(),
                                     RoleJpaEntityFixture.fixedTime()));

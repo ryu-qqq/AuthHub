@@ -41,6 +41,7 @@ public class PermissionCommandApiMapper {
      */
     public CreatePermissionCommand toCommand(CreatePermissionApiRequest request) {
         return new CreatePermissionCommand(
+                request.serviceId(),
                 request.resource(),
                 request.action(),
                 request.description(),

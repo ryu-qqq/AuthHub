@@ -74,6 +74,7 @@ public class PermissionQueryFactory {
                 params.searchParams().toQueryContext(PermissionSortKey.class);
 
         return new PermissionSearchCriteria(
+                params.serviceId(),
                 params.searchWord(),
                 PermissionSearchField.fromString(params.searchField()),
                 PermissionType.parseList(params.types()),

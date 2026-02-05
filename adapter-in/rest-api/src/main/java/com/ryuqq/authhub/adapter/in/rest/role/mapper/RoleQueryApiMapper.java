@@ -54,6 +54,7 @@ public class RoleQueryApiMapper {
         return RoleSearchParams.of(
                 searchParams,
                 request.tenantId(),
+                request.serviceId(),
                 request.searchWord(),
                 request.searchField(),
                 request.types());
@@ -71,10 +72,12 @@ public class RoleQueryApiMapper {
         return new RoleApiResponse(
                 result.roleId(),
                 result.tenantId(),
+                result.serviceId(),
                 result.name(),
                 result.displayName(),
                 result.description(),
                 result.type(),
+                result.scope(),
                 DateTimeFormatUtils.formatIso8601(result.createdAt()),
                 DateTimeFormatUtils.formatIso8601(result.updatedAt()));
     }

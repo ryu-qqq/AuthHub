@@ -59,6 +59,7 @@ public class PermissionQueryApiMapper {
                         request.size());
 
         return PermissionSearchParams.of(
+                request.serviceId(),
                 searchParams,
                 request.searchWord(),
                 request.searchField(),
@@ -77,6 +78,7 @@ public class PermissionQueryApiMapper {
     public PermissionApiResponse toResponse(PermissionResult result) {
         return new PermissionApiResponse(
                 result.permissionId(),
+                result.serviceId(),
                 result.permissionKey(),
                 result.resource(),
                 result.action(),

@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.in.rest.tenant.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
@@ -27,6 +28,8 @@ import com.ryuqq.authhub.adapter.in.rest.tenant.mapper.TenantCommandApiMapper;
 import com.ryuqq.authhub.application.tenant.port.in.command.CreateTenantUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.command.UpdateTenantNameUseCase;
 import com.ryuqq.authhub.application.tenant.port.in.command.UpdateTenantStatusUseCase;
+import com.ryuqq.authhub.domain.tenant.exception.DuplicateTenantNameException;
+import com.ryuqq.authhub.domain.tenant.exception.TenantNotFoundException;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -128,6 +131,45 @@ class TenantCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("중복된 테넌트 이름이면 409 Conflict")
+        void shouldFailWhenTenantNameIsDuplicate() throws Exception {
+            // given
+            CreateTenantApiRequest request = TenantApiFixture.createTenantRequest();
+            willThrow(new DuplicateTenantNameException(TenantApiFixture.defaultTenantName()))
+                    .given(createTenantUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(TenantApiEndpoints.TENANTS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
+        }
+
+        @Test
+        @DisplayName("name이 최대 길이(100자)이면 성공한다")
+        void shouldSucceedWhenNameIsMaxLength() throws Exception {
+            // given
+            String maxLengthName = "A".repeat(100);
+            CreateTenantApiRequest request = TenantApiFixture.createTenantRequest(maxLengthName);
+            String tenantId = TenantApiFixture.defaultTenantIdString();
+            given(createTenantUseCase.execute(any())).willReturn(tenantId);
+
+            // when & then
+            mockMvc.perform(
+                            post(TenantApiEndpoints.TENANTS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.tenantId").value(tenantId));
+        }
     }
 
     @Nested
@@ -191,6 +233,27 @@ class TenantCommandControllerTest extends RestDocsTestSupport {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("테넌트를 찾을 수 없으면 404 Not Found")
+        void shouldFailWhenTenantNotFound() throws Exception {
+            // given
+            UUID tenantId = TenantApiFixture.defaultTenantId();
+            UpdateTenantNameApiRequest request = TenantApiFixture.updateTenantNameRequest();
+            willThrow(new TenantNotFoundException(tenantId.toString()))
+                    .given(updateTenantNameUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(TenantApiEndpoints.TENANTS + "/{tenantId}/name", tenantId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
         }
     }
 
@@ -271,6 +334,27 @@ class TenantCommandControllerTest extends RestDocsTestSupport {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("테넌트를 찾을 수 없으면 404 Not Found")
+        void shouldFailWhenTenantNotFound() throws Exception {
+            // given
+            UUID tenantId = TenantApiFixture.defaultTenantId();
+            UpdateTenantStatusApiRequest request = TenantApiFixture.updateTenantStatusRequest();
+            willThrow(new TenantNotFoundException(tenantId.toString()))
+                    .given(updateTenantStatusUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            patch(TenantApiEndpoints.TENANTS + "/{tenantId}/status", tenantId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
         }
     }
 }

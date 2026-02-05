@@ -217,6 +217,7 @@ class InternalPermissionSpecE2ETest extends E2ETestBase {
         PermissionJpaEntity entity =
                 PermissionJpaEntity.of(
                         null,
+                        null,
                         key,
                         resource,
                         action,

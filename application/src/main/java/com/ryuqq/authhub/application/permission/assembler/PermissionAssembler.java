@@ -44,6 +44,7 @@ public class PermissionAssembler {
     public PermissionResult toResult(Permission permission) {
         return new PermissionResult(
                 permission.permissionIdValue(),
+                permission.serviceIdValue(),
                 permission.permissionKeyValue(),
                 permission.resourceValue(),
                 permission.actionValue(),

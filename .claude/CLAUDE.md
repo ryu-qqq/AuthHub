@@ -1,4 +1,4 @@
-# AuthHub - Claude Code Configuration
+# setof-commerce - Claude Code Configuration
 
 이 프로젝트는 **SPRING_BOOT 3.5.x + JAVA 21** 기반의 **hexagonal-multimodule** 프로젝트입니다.
 
@@ -6,21 +6,15 @@
 
 ## 🏗️ 아키텍처 개요
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Layer              │  Description                         │
-├─────────────────────────────────────────────────────────────┤
-│  DOMAIN             │  Domain Layer                        │
-│  APPLICATION        │  Application Layer                   │
-│  ADAPTER_OUT        │  Adapter-Out Layer                   │
-│  ADAPTER_IN         │  Adapter-In Layer                    │
-│  BOOTSTRAP          │  Bootstrap Layer                     │
-└─────────────────────────────────────────────────────────────┘
+```text
+│  DOMAIN          │  Domain Layer                    │
+│  APPLICATION     │  Application Layer               │
+│  ADAPTER_OUT     │  Adapter-Out Layer               │
+│  ADAPTER_IN      │  Adapter-In Layer                │
+│  BOOTSTRAP       │  Bootstrap Layer                 │
 ```
 
-**패턴**: HEXAGONAL (포트와 어댑터 패턴 기반 멀티모듈 아키텍처. Domain 중심 설계로 외부 의존성을 격리하고, CQRS 패턴을 적용하여 Command/Query를 분리합니다.)
-
-**원칙**: DIP, SRP, OCP, ISP, CQRS, DDD
+**아키텍처 원칙**: DIP, SRP, OCP, ISP, CQRS, DDD
 
 ---
 
@@ -31,7 +25,7 @@
 
 ### 3-Phase 워크플로우
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  1️⃣ PLANNING PHASE                                          │
 │     planning_context(layers=[...])                          │
@@ -89,19 +83,20 @@ MCP를 통해 최신 규칙을 동적으로 조회하세요.
 | 분류 | Tool | 용도 |
 |------|------|------|
 | **워크플로우** | planning_context | 개발 계획 수립 |
-| | module_context | 코드 생성 (템플릿 + 규칙) |
-| | validation_context | 코드 검증 (Zero-Tolerance) |
+|  | module_context | 코드 생성 (템플릿 + 규칙) |
+|  | validation_context | 코드 검증 (Zero-Tolerance) |
 | **컨텍스트** | get_context | 빠른 컨텍스트 조회 |
-| | get_rule | 규칙 상세 + 예시 |
+|  | get_rule | 규칙 상세 + 예시 |
 | **계층** | list_tech_stacks | 기술 스택 + 레이어 목록 |
-| | get_architecture | 아키텍처 상세 |
-| | get_layer_detail | 레이어 상세 |
+|  | get_architecture | 아키텍처 상세 |
+|  | get_layer_detail | 레이어 상세 |
 
 ---
 
 ## 🔧 설계 원칙
 
 MCP 서버는 **순수 정보 브릿지**로 설계되었습니다:
+
 - MCP = 규칙/템플릿 전달 (Spring API → LLM)
 - **LLM은 규칙을 반드시 준수**하며 코드 생성
 - 규칙을 "판단"하지 않고 **100% 준수**

@@ -11,6 +11,7 @@ import com.ryuqq.authhub.adapter.out.persistence.rolepermission.repository.RoleP
 import com.ryuqq.authhub.adapter.out.persistence.rolepermission.repository.RolePermissionQueryDslRepository;
 import com.ryuqq.authhub.domain.permission.vo.PermissionType;
 import com.ryuqq.authhub.domain.role.id.RoleId;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.rolepermission.query.criteria.RolePermissionSearchCriteria;
 import com.ryuqq.authhub.integration.common.base.RepositoryTestBase;
@@ -68,10 +69,12 @@ class RolePermissionQueryDslRepositoryTest extends RepositoryTestBase {
                         RoleJpaEntity.of(
                                 null,
                                 null,
+                                null,
                                 "RP_ADMIN",
                                 "관리자",
                                 "역할",
                                 RoleType.CUSTOM,
+                                RoleScope.GLOBAL,
                                 FIXED_TIME,
                                 FIXED_TIME,
                                 null));
@@ -79,6 +82,7 @@ class RolePermissionQueryDslRepositoryTest extends RepositoryTestBase {
         savedPermission =
                 permissionJpaRepository.save(
                         PermissionJpaEntity.of(
+                                null,
                                 null,
                                 "rp:read",
                                 "rp",
@@ -173,6 +177,7 @@ class RolePermissionQueryDslRepositoryTest extends RepositoryTestBase {
                     permissionJpaRepository.save(
                             PermissionJpaEntity.of(
                                     null,
+                                    null,
                                     "rp:write",
                                     "rp",
                                     "write",
@@ -213,10 +218,12 @@ class RolePermissionQueryDslRepositoryTest extends RepositoryTestBase {
                             RoleJpaEntity.of(
                                     null,
                                     null,
+                                    null,
                                     "RP_USER",
                                     "사용자",
                                     null,
                                     RoleType.CUSTOM,
+                                    RoleScope.GLOBAL,
                                     FIXED_TIME,
                                     FIXED_TIME,
                                     null));
@@ -282,6 +289,7 @@ class RolePermissionQueryDslRepositoryTest extends RepositoryTestBase {
             PermissionJpaEntity perm2 =
                     permissionJpaRepository.save(
                             PermissionJpaEntity.of(
+                                    null,
                                     null,
                                     "rp:granted",
                                     "rp",

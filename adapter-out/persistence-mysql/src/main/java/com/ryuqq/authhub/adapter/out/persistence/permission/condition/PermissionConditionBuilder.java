@@ -69,6 +69,11 @@ public class PermissionConditionBuilder {
             builder.and(notDeleted());
         }
 
+        // 서비스 ID 필터
+        if (criteria.hasServiceIdFilter()) {
+            builder.and(serviceIdEquals(criteria.serviceId()));
+        }
+
         // 검색어 + 검색 필드 조건
         builder.and(searchByField(criteria.searchField(), criteria.searchWord()));
 
@@ -216,6 +221,28 @@ public class PermissionConditionBuilder {
     public BooleanExpression permissionKeyIn(List<String> permissionKeys) {
         return permissionKeys != null && !permissionKeys.isEmpty()
                 ? permissionJpaEntity.permissionKey.in(permissionKeys)
+                : null;
+    }
+
+    /**
+     * 서비스 ID 일치 조건
+     *
+     * @param serviceId 서비스 ID (Long)
+     * @return BooleanExpression (null 허용)
+     */
+    public BooleanExpression serviceIdEquals(Long serviceId) {
+        return serviceId != null ? permissionJpaEntity.serviceId.eq(serviceId) : null;
+    }
+
+    /**
+     * 서비스 ID 목록 포함 조건
+     *
+     * @param serviceIds 서비스 ID 목록
+     * @return BooleanExpression (null 허용)
+     */
+    public BooleanExpression serviceIdIn(List<Long> serviceIds) {
+        return serviceIds != null && !serviceIds.isEmpty()
+                ? permissionJpaEntity.serviceId.in(serviceIds)
                 : null;
     }
 }

@@ -29,6 +29,7 @@ public final class PermissionFixture {
     public static Permission create() {
         return Permission.reconstitute(
                 DEFAULT_PERMISSION_ID,
+                null,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -43,6 +44,7 @@ public final class PermissionFixture {
     public static Permission createSystemPermission() {
         return Permission.reconstitute(
                 DEFAULT_PERMISSION_ID,
+                null,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -57,6 +59,7 @@ public final class PermissionFixture {
     public static Permission createCustomPermission() {
         return Permission.reconstitute(
                 DEFAULT_PERMISSION_ID,
+                null,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -72,6 +75,7 @@ public final class PermissionFixture {
         String permissionKey = resource + ":" + action;
         return Permission.reconstitute(
                 DEFAULT_PERMISSION_ID,
+                null,
                 permissionKey,
                 resource,
                 action,
@@ -87,6 +91,7 @@ public final class PermissionFixture {
         String permissionKey = resource + ":" + action;
         return Permission.reconstitute(
                 DEFAULT_PERMISSION_ID,
+                null,
                 permissionKey,
                 resource,
                 action,
@@ -99,24 +104,25 @@ public final class PermissionFixture {
 
     /** 새로운 시스템 권한 생성 (ID 없음) */
     public static Permission createNewSystemPermission() {
-        return Permission.createSystem("resource", "action", "새 시스템 권한", FIXED_TIME);
+        return Permission.createSystem(null, "resource", "action", "새 시스템 권한", FIXED_TIME);
     }
 
     /** 새로운 커스텀 권한 생성 (ID 없음) */
     public static Permission createNewCustomPermission() {
-        return Permission.createCustom("resource", "action", "새 커스텀 권한", FIXED_TIME);
+        return Permission.createCustom(null, "resource", "action", "새 커스텀 권한", FIXED_TIME);
     }
 
     /** 새로운 커스텀 권한 생성 (지정된 리소스/액션, ID 없음) */
     public static Permission createNewCustomWithResourceAndAction(String resource, String action) {
         return Permission.createCustom(
-                resource, action, resource + " " + action + " 권한", FIXED_TIME);
+                null, resource, action, resource + " " + action + " 권한", FIXED_TIME);
     }
 
     /** 삭제된 권한 생성 */
     public static Permission createDeleted() {
         return Permission.reconstitute(
                 DEFAULT_PERMISSION_ID,
+                null,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,

@@ -67,6 +67,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
                     jpaRepository.save(
                             PermissionJpaEntity.of(
                                     null,
+                                    null,
                                     "perm:read",
                                     "perm",
                                     "read",
@@ -93,6 +94,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             PermissionJpaEntity entity =
                     jpaRepository.save(
                             PermissionJpaEntity.of(
+                                    null,
                                     null,
                                     "perm:deleted",
                                     "perm",
@@ -134,6 +136,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             jpaRepository.save(
                     PermissionJpaEntity.of(
                             null,
+                            null,
                             "user:write",
                             "user",
                             "write",
@@ -146,7 +149,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
 
             // when
             Optional<PermissionJpaEntity> found =
-                    queryDslRepository.findByPermissionKey("user:write");
+                    queryDslRepository.findByServiceIdAndPermissionKey(null, "user:write");
 
             // then
             assertThat(found).isPresent();
@@ -160,6 +163,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             jpaRepository.save(
                     PermissionJpaEntity.of(
                             null,
+                            null,
                             "perm:deleted_key",
                             "perm",
                             "deleted",
@@ -172,7 +176,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
 
             // when
             Optional<PermissionJpaEntity> found =
-                    queryDslRepository.findByPermissionKey("perm:deleted_key");
+                    queryDslRepository.findByServiceIdAndPermissionKey(null, "perm:deleted_key");
 
             // then
             assertThat(found).isEmpty();
@@ -190,6 +194,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             jpaRepository.save(
                     PermissionJpaEntity.of(
                             null,
+                            null,
                             "exists:key",
                             "exists",
                             "key",
@@ -201,7 +206,8 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             flushAndClear();
 
             // when
-            boolean exists = queryDslRepository.existsByPermissionKey("exists:key");
+            boolean exists =
+                    queryDslRepository.existsByServiceIdAndPermissionKey(null, "exists:key");
 
             // then
             assertThat(exists).isTrue();
@@ -211,7 +217,8 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
         @DisplayName("존재하지 않는 권한 키 - false")
         void shouldReturnFalseForNonExistentKey() {
             // when
-            boolean exists = queryDslRepository.existsByPermissionKey("nonexistent:key");
+            boolean exists =
+                    queryDslRepository.existsByServiceIdAndPermissionKey(null, "nonexistent:key");
 
             // then
             assertThat(exists).isFalse();
@@ -229,6 +236,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             jpaRepository.save(
                     PermissionJpaEntity.of(
                             null,
+                            null,
                             "criteria:active",
                             "criteria",
                             "active",
@@ -239,6 +247,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
                             null));
             jpaRepository.save(
                     PermissionJpaEntity.of(
+                            null,
                             null,
                             "criteria:deleted",
                             "criteria",
@@ -252,6 +261,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
 
             PermissionSearchCriteria criteria =
                     PermissionSearchCriteria.of(
+                            null,
                             "criteria",
                             PermissionSearchField.PERMISSION_KEY,
                             null,
@@ -282,6 +292,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
                     jpaRepository.save(
                             PermissionJpaEntity.of(
                                     null,
+                                    null,
                                     "ids:1",
                                     "ids",
                                     "1",
@@ -293,6 +304,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             PermissionJpaEntity perm2 =
                     jpaRepository.save(
                             PermissionJpaEntity.of(
+                                    null,
                                     null,
                                     "ids:2",
                                     "ids",
@@ -324,6 +336,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
                     jpaRepository.save(
                             PermissionJpaEntity.of(
                                     null,
+                                    null,
                                     "active:ids",
                                     "active",
                                     "ids",
@@ -335,6 +348,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             PermissionJpaEntity deletedPerm =
                     jpaRepository.save(
                             PermissionJpaEntity.of(
+                                    null,
                                     null,
                                     "deleted:ids",
                                     "deleted",
@@ -368,6 +382,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
             jpaRepository.save(
                     PermissionJpaEntity.of(
                             null,
+                            null,
                             "bulk:key1",
                             "bulk",
                             "key1",
@@ -378,6 +393,7 @@ class PermissionQueryDslRepositoryTest extends RepositoryTestBase {
                             null));
             jpaRepository.save(
                     PermissionJpaEntity.of(
+                            null,
                             null,
                             "bulk:key2",
                             "bulk",

@@ -225,5 +225,142 @@ class PermissionEndpointQueryControllerTest extends RestDocsTestSupport {
                                     .param("size", "20"))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("빈 결과 조회 시나리오 - totalElements가 0인 경우")
+        void shouldReturnEmptyResults() throws Exception {
+            // given
+            PageMeta pageMeta = new PageMeta(0, 20, 0L, 0);
+            PermissionEndpointPageResult pageResult =
+                    new PermissionEndpointPageResult(List.of(), pageMeta);
+            given(searchPermissionEndpointsUseCase.search(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionEndpointApiEndpoints.PERMISSION_ENDPOINTS)
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0))
+                    .andExpect(jsonPath("$.data.totalPages").value(0))
+                    .andExpect(jsonPath("$.data.first").value(true))
+                    .andExpect(jsonPath("$.data.last").value(true));
+        }
+
+        @Test
+        @DisplayName("페이징 경계값 테스트 - 마지막 페이지, size=1")
+        void shouldHandleLastPageWithSizeOne() throws Exception {
+            // given
+            Instant fixedTime = PermissionEndpointApiFixture.fixedTime();
+            PermissionEndpointResult result =
+                    new PermissionEndpointResult(
+                            PermissionEndpointApiFixture.defaultPermissionEndpointId(),
+                            PermissionEndpointApiFixture.defaultPermissionId(),
+                            PermissionEndpointApiFixture.defaultServiceName(),
+                            PermissionEndpointApiFixture.defaultUrlPattern(),
+                            PermissionEndpointApiFixture.defaultHttpMethod(),
+                            PermissionEndpointApiFixture.defaultDescription(),
+                            PermissionEndpointApiFixture.defaultIsPublic(),
+                            fixedTime,
+                            fixedTime);
+            PageMeta pageMeta = new PageMeta(2, 1, 3L, 3);
+            PermissionEndpointPageResult pageResult =
+                    new PermissionEndpointPageResult(List.of(result), pageMeta);
+            given(searchPermissionEndpointsUseCase.search(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionEndpointApiEndpoints.PERMISSION_ENDPOINTS)
+                                    .param("page", "2")
+                                    .param("size", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(1))
+                    .andExpect(jsonPath("$.data.page").value(2))
+                    .andExpect(jsonPath("$.data.size").value(1))
+                    .andExpect(jsonPath("$.data.totalElements").value(3))
+                    .andExpect(jsonPath("$.data.totalPages").value(3))
+                    .andExpect(jsonPath("$.data.first").value(false))
+                    .andExpect(jsonPath("$.data.last").value(true));
+        }
+
+        @Test
+        @DisplayName("permissionIds 빈 리스트 처리")
+        void shouldHandleEmptyPermissionIds() throws Exception {
+            // given
+            PageMeta pageMeta = new PageMeta(0, 20, 0L, 0);
+            PermissionEndpointPageResult pageResult =
+                    new PermissionEndpointPageResult(List.of(), pageMeta);
+            given(searchPermissionEndpointsUseCase.search(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionEndpointApiEndpoints.PERMISSION_ENDPOINTS)
+                                    .param("permissionIds", "")
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray());
+        }
+
+        @Test
+        @DisplayName("size가 0이면 400 Bad Request")
+        void shouldFailWhenSizeIsZero() throws Exception {
+            // when & then
+            mockMvc.perform(
+                            get(PermissionEndpointApiEndpoints.PERMISSION_ENDPOINTS)
+                                    .param("page", "0")
+                                    .param("size", "0"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("size가 100이면 유효하다")
+        void shouldAcceptMaxSize() throws Exception {
+            // given
+            PageMeta pageMeta = new PageMeta(0, 100, 0L, 0);
+            PermissionEndpointPageResult pageResult =
+                    new PermissionEndpointPageResult(List.of(), pageMeta);
+            given(searchPermissionEndpointsUseCase.search(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionEndpointApiEndpoints.PERMISSION_ENDPOINTS)
+                                    .param("page", "0")
+                                    .param("size", "100"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray());
+        }
+
+        @Test
+        @DisplayName("startDate가 endDate보다 늦으면 400 Bad Request")
+        void shouldFailWhenStartDateIsAfterEndDate() throws Exception {
+            // given
+            // DateRange validation happens in Application layer (Factory)
+            // When DateRange.of() is called with startDate > endDate, it throws
+            // IllegalArgumentException
+            given(searchPermissionEndpointsUseCase.search(any()))
+                    .willThrow(
+                            new IllegalArgumentException(
+                                    "시작일(2024-12-31)은 종료일(2024-01-01)보다 이전이어야 합니다"));
+
+            // when & then
+            mockMvc.perform(
+                            get(PermissionEndpointApiEndpoints.PERMISSION_ENDPOINTS)
+                                    .param("startDate", "2024-12-31")
+                                    .param("endDate", "2024-01-01")
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(400));
+        }
     }
 }

@@ -48,6 +48,7 @@ class PermissionEndpointE2ETest extends E2ETestBase {
         PermissionJpaEntity permission =
                 PermissionJpaEntity.of(
                         null,
+                        null,
                         "user:read",
                         "user",
                         "read",

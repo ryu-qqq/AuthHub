@@ -31,19 +31,19 @@ public final class PermissionApiFixture {
     /** 기본 생성 요청 */
     public static CreatePermissionApiRequest createPermissionRequest() {
         return new CreatePermissionApiRequest(
-                DEFAULT_RESOURCE, DEFAULT_ACTION, DEFAULT_DESCRIPTION);
+                null, DEFAULT_RESOURCE, DEFAULT_ACTION, DEFAULT_DESCRIPTION);
     }
 
     /** 커스텀 리소스와 액션으로 생성 요청 */
     public static CreatePermissionApiRequest createPermissionRequest(
             String resource, String action) {
-        return new CreatePermissionApiRequest(resource, action, DEFAULT_DESCRIPTION);
+        return new CreatePermissionApiRequest(null, resource, action, DEFAULT_DESCRIPTION);
     }
 
     /** 커스텀 리소스, 액션, 설명으로 생성 요청 */
     public static CreatePermissionApiRequest createPermissionRequest(
             String resource, String action, String description) {
-        return new CreatePermissionApiRequest(resource, action, description);
+        return new CreatePermissionApiRequest(null, resource, action, description);
     }
 
     // ========== UpdatePermissionApiRequest ==========
@@ -76,6 +76,7 @@ public final class PermissionApiFixture {
     public static PermissionApiResponse permissionResponse() {
         return new PermissionApiResponse(
                 DEFAULT_PERMISSION_ID,
+                null,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -90,6 +91,7 @@ public final class PermissionApiFixture {
             Long permissionId, String resource, String action) {
         return new PermissionApiResponse(
                 permissionId,
+                null,
                 resource + ":" + action,
                 resource,
                 action,

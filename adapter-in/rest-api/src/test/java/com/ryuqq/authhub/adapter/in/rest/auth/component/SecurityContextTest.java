@@ -109,6 +109,102 @@ class SecurityContextTest {
         }
 
         @Test
+        @DisplayName("hasAllPermissions()이 모두 보유 시 true를 반환한다")
+        void shouldReturnTrueWhenHasAllPermissions() {
+            // Given
+            SecurityContext context =
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .permissions(Set.of("user:read", "user:write"))
+                            .build();
+
+            // Then
+            assertThat(context.hasAllPermissions("user:read", "user:write")).isTrue();
+        }
+
+        @Test
+        @DisplayName("hasAllPermissions()이 일부 미보유 시 false를 반환한다")
+        void shouldReturnFalseWhenMissingAnyPermission() {
+            // Given
+            SecurityContext context =
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .permissions(Set.of("user:read"))
+                            .build();
+
+            // Then
+            assertThat(context.hasAllPermissions("user:read", "user:write")).isFalse();
+        }
+
+        @Test
+        @DisplayName("isTenantAdmin()이 TENANT_ADMIN 역할 시 true를 반환한다")
+        void shouldReturnTrueWhenTenantAdmin() {
+            // Given
+            SecurityContext context =
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .roles(Set.of(SecurityContext.ROLE_TENANT_ADMIN))
+                            .build();
+
+            // Then
+            assertThat(context.isTenantAdmin()).isTrue();
+        }
+
+        @Test
+        @DisplayName("isOrgAdmin()이 ORG_ADMIN 역할 시 true를 반환한다")
+        void shouldReturnTrueWhenOrgAdmin() {
+            // Given
+            SecurityContext context =
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .roles(Set.of(SecurityContext.ROLE_ORG_ADMIN))
+                            .build();
+
+            // Then
+            assertThat(context.isOrgAdmin()).isTrue();
+        }
+
+        @Test
+        @DisplayName("getTraceId()가 설정된 traceId를 반환한다")
+        void shouldReturnTraceId() {
+            // Given
+            SecurityContext context =
+                    SecurityContext.builder().userId("user-1").traceId("trace-123").build();
+
+            // Then
+            assertThat(context.getTraceId()).isEqualTo("trace-123");
+        }
+
+        @Test
+        @DisplayName("toString()이 컨텍스트 정보를 포함한다")
+        void shouldReturnToStringWithContextInfo() {
+            // Given
+            SecurityContext context =
+                    SecurityContext.builder().userId("user-1").tenantId("tenant-1").build();
+
+            // When & Then
+            String str = context.toString();
+            assertThat(str).contains("userId='user-1'");
+            assertThat(str).contains("tenantId=tenant-1");
+        }
+
+        @Test
+        @DisplayName("Builder 패턴 - 모든 필드 null 처리 시 빈 컨텍스트를 생성한다")
+        void shouldBuildContextWithAllNullFields() {
+            // When - Builder에 명시적 설정 없이 build
+            SecurityContext context = SecurityContext.builder().build();
+
+            // Then
+            assertThat(context.getUserId()).isNull();
+            assertThat(context.getTenantId()).isNull();
+            assertThat(context.getOrganizationId()).isNull();
+            assertThat(context.getRoles()).isEmpty();
+            assertThat(context.getPermissions()).isEmpty();
+            assertThat(context.getTraceId()).isNull();
+            assertThat(context.isAuthenticated()).isFalse();
+        }
+
+        @Test
         @DisplayName("*:* 와일드카드가 모든 권한을 허용한다")
         void shouldAllowAllWithWildcard() {
             // Given
@@ -146,6 +242,51 @@ class SecurityContextTest {
             // Then
             assertThat(a).isEqualTo(b);
             assertThat(a.hashCode()).isEqualTo(b.hashCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("권한 엣지 케이스")
+    class PermissionEdgeCases {
+
+        @Test
+        @DisplayName("잘못된 권한 형식(user만, resource:action 아님)은 보유해도 false를 반환한다")
+        void shouldReturnFalseForInvalidPermissionFormat() {
+            // Given - "user"는 resource:action 형식이 아님, user:read만 보유
+            SecurityContext context =
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .permissions(Set.of("user:read"))
+                            .build();
+
+            // When - "user" 형식(콜론 없음)으로 검사
+            // Then - resource:action이 아니므로 와일드카드 매칭 불가
+            assertThat(context.hasPermission("user")).isFalse();
+        }
+
+        @Test
+        @DisplayName("권한이 3파트(user:read:extra)인 경우 false를 반환한다")
+        void shouldReturnFalseForThreePartPermission() {
+            // Given - resource:action 형식이 아님
+            SecurityContext context =
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .permissions(Set.of("user:read"))
+                            .build();
+
+            // Then - user:read:extra 형식은 와일드카드 매칭되지 않음
+            assertThat(context.hasPermission("user:read:extra")).isFalse();
+        }
+
+        @Test
+        @DisplayName("빈 권한 Set에서 hasPermission은 false를 반환한다")
+        void shouldReturnFalseWhenPermissionsEmpty() {
+            // Given
+            SecurityContext context =
+                    SecurityContext.builder().userId("user-1").permissions(Set.of()).build();
+
+            // Then
+            assertThat(context.hasPermission("user:read")).isFalse();
         }
     }
 }

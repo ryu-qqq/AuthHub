@@ -29,7 +29,7 @@ public class InternalEndpointSyncApiMapper {
     public SyncEndpointsCommand toCommand(EndpointSyncApiRequest request) {
         List<EndpointSyncItem> items =
                 request.endpoints().stream().map(this::toEndpointSyncItem).toList();
-        return new SyncEndpointsCommand(request.serviceName(), items);
+        return new SyncEndpointsCommand(request.serviceName(), request.serviceCode(), items);
     }
 
     private EndpointSyncItem toEndpointSyncItem(EndpointInfoApiRequest apiRequest) {
@@ -52,6 +52,7 @@ public class InternalEndpointSyncApiMapper {
                 result.totalEndpoints(),
                 result.createdPermissions(),
                 result.createdEndpoints(),
-                result.skippedEndpoints());
+                result.skippedEndpoints(),
+                result.mappedRolePermissions());
     }
 }
