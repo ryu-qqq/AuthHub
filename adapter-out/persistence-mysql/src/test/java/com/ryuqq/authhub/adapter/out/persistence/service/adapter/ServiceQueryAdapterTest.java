@@ -149,6 +149,60 @@ class ServiceQueryAdapterTest {
     }
 
     @Nested
+    @DisplayName("findByCode 메서드")
+    class FindByCode {
+
+        @Test
+        @DisplayName("성공: Entity 조회 후 Domain으로 변환하여 반환")
+        void shouldFindAndConvert_WhenEntityExists() {
+            // given
+            ServiceCode code = ServiceFixture.defaultCode();
+            ServiceJpaEntity entity = ServiceJpaEntityFixture.createWithId(1L);
+            Service expectedDomain = ServiceFixture.create();
+
+            given(repository.findByServiceCode(code.value())).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(expectedDomain);
+
+            // when
+            Optional<Service> result = sut.findByCode(code);
+
+            // then
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(expectedDomain);
+        }
+
+        @Test
+        @DisplayName("Entity가 없으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenEntityNotFound() {
+            // given
+            ServiceCode code = ServiceFixture.defaultCode();
+
+            given(repository.findByServiceCode(code.value())).willReturn(Optional.empty());
+
+            // when
+            Optional<Service> result = sut.findByCode(code);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("ServiceCode에서 value 추출하여 Repository 호출")
+        void shouldExtractCodeValue_AndCallRepository() {
+            // given
+            ServiceCode code = ServiceFixture.defaultCode();
+
+            given(repository.findByServiceCode(code.value())).willReturn(Optional.empty());
+
+            // when
+            sut.findByCode(code);
+
+            // then
+            then(repository).should().findByServiceCode(code.value());
+        }
+    }
+
+    @Nested
     @DisplayName("existsByCode 메서드")
     class ExistsByCode {
 

@@ -211,5 +211,90 @@ class ServiceQueryControllerTest extends RestDocsTestSupport {
                                     .param("size", "20"))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("빈 결과를 조회한다")
+        void shouldSearchWithEmptyResult() throws Exception {
+            // given
+            ServicePageResult pageResult = ServicePageResult.empty(20);
+            given(searchServicesUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(ServiceApiEndpoints.SERVICES)
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0))
+                    .andExpect(jsonPath("$.data.totalPages").value(0))
+                    .andExpect(jsonPath("$.data.first").value(true))
+                    .andExpect(jsonPath("$.data.last").value(true));
+        }
+
+        @Test
+        @DisplayName("페이징 경계값을 테스트한다 - 마지막 페이지")
+        void shouldSearchLastPage() throws Exception {
+            // given
+            Instant fixedTime = ServiceApiFixture.fixedTime();
+            ServiceResult result =
+                    new ServiceResult(
+                            ServiceApiFixture.defaultServiceId(),
+                            ServiceApiFixture.defaultServiceCode(),
+                            ServiceApiFixture.defaultName(),
+                            ServiceApiFixture.defaultDescription(),
+                            ServiceApiFixture.defaultStatus(),
+                            fixedTime,
+                            fixedTime);
+            // totalElements=3, size=2, page=1 (마지막 페이지)
+            ServicePageResult pageResult = ServicePageResult.of(List.of(result), 1, 2, 3L);
+            given(searchServicesUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(get(ServiceApiEndpoints.SERVICES).param("page", "1").param("size", "2"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isNotEmpty())
+                    .andExpect(jsonPath("$.data.page").value(1))
+                    .andExpect(jsonPath("$.data.size").value(2))
+                    .andExpect(jsonPath("$.data.totalElements").value(3))
+                    .andExpect(jsonPath("$.data.totalPages").value(2))
+                    .andExpect(jsonPath("$.data.first").value(false))
+                    .andExpect(jsonPath("$.data.last").value(true));
+        }
+
+        @Test
+        @DisplayName("페이징 경계값을 테스트한다 - size=1")
+        void shouldSearchWithSizeOne() throws Exception {
+            // given
+            Instant fixedTime = ServiceApiFixture.fixedTime();
+            ServiceResult result =
+                    new ServiceResult(
+                            ServiceApiFixture.defaultServiceId(),
+                            ServiceApiFixture.defaultServiceCode(),
+                            ServiceApiFixture.defaultName(),
+                            ServiceApiFixture.defaultDescription(),
+                            ServiceApiFixture.defaultStatus(),
+                            fixedTime,
+                            fixedTime);
+            ServicePageResult pageResult = ServicePageResult.of(List.of(result), 0, 1, 1L);
+            given(searchServicesUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(get(ServiceApiEndpoints.SERVICES).param("page", "0").param("size", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(1))
+                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.size").value(1))
+                    .andExpect(jsonPath("$.data.totalElements").value(1))
+                    .andExpect(jsonPath("$.data.totalPages").value(1))
+                    .andExpect(jsonPath("$.data.first").value(true))
+                    .andExpect(jsonPath("$.data.last").value(true));
+        }
     }
 }

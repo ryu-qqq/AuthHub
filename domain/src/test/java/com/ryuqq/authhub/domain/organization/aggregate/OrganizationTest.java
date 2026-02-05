@@ -2,6 +2,7 @@ package com.ryuqq.authhub.domain.organization.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.organization.fixture.OrganizationFixture;
 import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.organization.vo.OrganizationName;
@@ -151,6 +152,36 @@ class OrganizationTest {
             assertThat(org.statusValue()).isEqualTo("ACTIVE");
             assertThat(org.updatedAt()).isEqualTo(NOW);
         }
+
+        @Test
+        @DisplayName("이미 ACTIVE 상태인 Organization을 ACTIVE로 변경해도 updatedAt이 갱신된다")
+        void shouldUpdateTimestampWhenChangingToSameActiveStatus() {
+            // given
+            Organization org = OrganizationFixture.create();
+            Instant laterTime = NOW.plusSeconds(100);
+
+            // when
+            org.changeStatus(OrganizationStatus.ACTIVE, laterTime);
+
+            // then
+            assertThat(org.isActive()).isTrue();
+            assertThat(org.updatedAt()).isEqualTo(laterTime);
+        }
+
+        @Test
+        @DisplayName("이미 INACTIVE 상태인 Organization을 INACTIVE로 변경해도 updatedAt이 갱신된다")
+        void shouldUpdateTimestampWhenChangingToSameInactiveStatus() {
+            // given
+            Organization org = OrganizationFixture.createInactive();
+            Instant laterTime = NOW.plusSeconds(100);
+
+            // when
+            org.changeStatus(OrganizationStatus.INACTIVE, laterTime);
+
+            // then
+            assertThat(org.isActive()).isFalse();
+            assertThat(org.updatedAt()).isEqualTo(laterTime);
+        }
     }
 
     @Nested
@@ -241,6 +272,123 @@ class OrganizationTest {
 
             // then - createNew()는 다른 ID를 생성하므로 동등하지 않음
             assertThat(org1).isNotEqualTo(org2);
+        }
+
+        @Test
+        @DisplayName("null과 비교하면 동등하지 않다")
+        void shouldNotBeEqualWhenComparedWithNull() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // then
+            assertThat(org).isNotEqualTo(null);
+        }
+
+        @Test
+        @DisplayName("다른 타입과 비교하면 동등하지 않다")
+        void shouldNotBeEqualWhenComparedWithDifferentType() {
+            // given
+            Organization org = OrganizationFixture.create();
+            String differentType = "not an organization";
+
+            // then
+            assertThat(org).isNotEqualTo(differentType);
+        }
+    }
+
+    @Nested
+    @DisplayName("Organization Getter 메서드 테스트")
+    class GetterMethodTests {
+
+        @Test
+        @DisplayName("getOrganizationId()는 organizationId를 반환한다")
+        void getOrganizationIdShouldReturnOrganizationId() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // then
+            assertThat(org.getOrganizationId()).isEqualTo(OrganizationFixture.defaultId());
+        }
+
+        @Test
+        @DisplayName("getTenantId()는 tenantId를 반환한다")
+        void getTenantIdShouldReturnTenantId() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // then
+            assertThat(org.getTenantId()).isEqualTo(OrganizationFixture.defaultTenantId());
+        }
+
+        @Test
+        @DisplayName("getName()은 name을 반환한다")
+        void getNameShouldReturnName() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // then
+            assertThat(org.getName().value()).isEqualTo("Test Organization");
+        }
+
+        @Test
+        @DisplayName("getStatus()는 status를 반환한다")
+        void getStatusShouldReturnStatus() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // then
+            assertThat(org.getStatus()).isEqualTo(OrganizationStatus.ACTIVE);
+        }
+
+        @Test
+        @DisplayName("getDeletionStatus()는 deletionStatus를 반환한다")
+        void getDeletionStatusShouldReturnDeletionStatus() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // then
+            assertThat(org.getDeletionStatus()).isEqualTo(DeletionStatus.active());
+        }
+
+        @Test
+        @DisplayName("createdAt()은 생성 시간을 반환한다")
+        void createdAtShouldReturnCreatedAt() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // then
+            assertThat(org.createdAt()).isEqualTo(OrganizationFixture.fixedTime());
+        }
+
+        @Test
+        @DisplayName("updatedAt()은 수정 시간을 반환한다")
+        void updatedAtShouldReturnUpdatedAt() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // then
+            assertThat(org.updatedAt()).isEqualTo(OrganizationFixture.fixedTime());
+        }
+    }
+
+    @Nested
+    @DisplayName("Organization toString 테스트")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("toString()은 Organization 정보를 문자열로 반환한다")
+        void toStringShouldReturnOrganizationInfo() {
+            // given
+            Organization org = OrganizationFixture.create();
+
+            // when
+            String result = org.toString();
+
+            // then
+            assertThat(result)
+                    .contains("Organization")
+                    .contains(OrganizationFixture.defaultIdString())
+                    .contains(OrganizationFixture.defaultTenantIdString());
         }
     }
 }

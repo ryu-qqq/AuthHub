@@ -1,20 +1,21 @@
 package com.ryuqq.authhub.domain.user.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.organization.id.OrganizationId;
 import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.id.UserId;
 import com.ryuqq.authhub.domain.user.vo.HashedPassword;
 import com.ryuqq.authhub.domain.user.vo.Identifier;
 import com.ryuqq.authhub.domain.user.vo.PhoneNumber;
+import com.ryuqq.authhub.domain.user.vo.UserStatus;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * User Aggregate 단위 테스트
@@ -22,7 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author development-team
  * @since 1.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @Tag("unit")
 @DisplayName("User Aggregate 테스트")
 class UserTest {
@@ -74,6 +74,226 @@ class UserTest {
             // then
             assertThat(user.phoneNumberValue()).isNull();
             assertThat(user.isActive()).isTrue();
+        }
+
+        @Test
+        @DisplayName("userId가 null이면 isNew()가 true를 반환한다")
+        void shouldHaveIsNewTrueWhenUserIdIsNull() {
+            // given
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            Identifier identifier = Identifier.of("new@test.com");
+            HashedPassword password = HashedPassword.of("$2a$10$hashedpassword");
+
+            // when
+            User user = User.create(null, orgId, identifier, null, password, NOW);
+
+            // then
+            assertThat(user.isNew()).isTrue();
+            assertThat(user.userIdValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("organizationId가 null이면 organizationIdValue 호출 시 NPE가 발생한다")
+        void shouldThrowNpeWhenOrganizationIdIsNull() {
+            // given
+            UserId userId = UserId.forNew("01941234-5678-7000-8000-123456789999");
+            Identifier identifier = Identifier.of("test@test.com");
+            HashedPassword password = HashedPassword.of("$2a$10$hash");
+
+            // when
+            User user = User.create(userId, null, identifier, null, password, NOW);
+
+            // then
+            assertThatThrownBy(user::organizationIdValue).isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @DisplayName("identifier가 null이면 identifierValue 호출 시 NPE가 발생한다")
+        void shouldThrowNpeWhenIdentifierIsNull() {
+            // given
+            UserId userId = UserId.forNew("01941234-5678-7000-8000-123456789999");
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            HashedPassword password = HashedPassword.of("$2a$10$hash");
+
+            // when
+            User user = User.create(userId, orgId, null, null, password, NOW);
+
+            // then
+            assertThatThrownBy(user::identifierValue).isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @DisplayName("hashedPassword가 null이면 hashedPasswordValue 호출 시 NPE가 발생한다")
+        void shouldThrowNpeWhenHashedPasswordIsNull() {
+            // given
+            UserId userId = UserId.forNew("01941234-5678-7000-8000-123456789999");
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            Identifier identifier = Identifier.of("test@test.com");
+
+            // when
+            User user = User.create(userId, orgId, identifier, null, null, NOW);
+
+            // then
+            assertThatThrownBy(user::hashedPasswordValue).isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @DisplayName("now가 null이면 createdAt이 null이다")
+        void shouldHaveNullCreatedAtWhenNowIsNull() {
+            // given
+            UserId userId = UserId.forNew("01941234-5678-7000-8000-123456789999");
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            Identifier identifier = Identifier.of("test@test.com");
+            HashedPassword password = HashedPassword.of("$2a$10$hash");
+
+            // when
+            User user = User.create(userId, orgId, identifier, null, password, null);
+
+            // then
+            assertThat(user.createdAt()).isNull();
+            assertThat(user.updatedAt()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("User reconstitute 테스트")
+    class ReconstituteTests {
+
+        @Test
+        @DisplayName("reconstitute로 User를 재구성한다")
+        void shouldReconstituteUser() {
+            // given
+            UserId userId = UserFixture.defaultId();
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            Identifier identifier = UserFixture.defaultIdentifier();
+            PhoneNumber phoneNumber = PhoneNumber.of("010-1234-5678");
+            HashedPassword password = UserFixture.defaultHashedPassword();
+            UserStatus status = UserStatus.ACTIVE;
+            DeletionStatus deletionStatus = DeletionStatus.active();
+
+            // when
+            User user =
+                    User.reconstitute(
+                            userId,
+                            orgId,
+                            identifier,
+                            phoneNumber,
+                            password,
+                            status,
+                            deletionStatus,
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(user.userIdValue()).isEqualTo(userId.value());
+            assertThat(user.organizationIdValue()).isEqualTo(orgId.value());
+            assertThat(user.identifierValue()).isEqualTo(identifier.value());
+            assertThat(user.phoneNumberValue()).isEqualTo(phoneNumber.value());
+            assertThat(user.statusValue()).isEqualTo("ACTIVE");
+            assertThat(user.isDeleted()).isFalse();
+            assertThat(user.createdAt()).isEqualTo(NOW);
+            assertThat(user.updatedAt()).isEqualTo(NOW);
+        }
+
+        @Test
+        @DisplayName("null phoneNumber로 reconstitute할 수 있다")
+        void shouldReconstituteWithNullPhoneNumber() {
+            // given
+            UserId userId = UserFixture.defaultId();
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            Identifier identifier = UserFixture.defaultIdentifier();
+            HashedPassword password = UserFixture.defaultHashedPassword();
+
+            // when
+            User user =
+                    User.reconstitute(
+                            userId,
+                            orgId,
+                            identifier,
+                            null,
+                            password,
+                            UserStatus.ACTIVE,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(user.phoneNumberValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("null status로 reconstitute하면 ACTIVE가 기본값이다")
+        void shouldReconstituteWithNullStatusDefaultsToActive() {
+            // given
+            UserId userId = UserFixture.defaultId();
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            Identifier identifier = UserFixture.defaultIdentifier();
+            HashedPassword password = UserFixture.defaultHashedPassword();
+
+            // when
+            User user =
+                    User.reconstitute(
+                            userId,
+                            orgId,
+                            identifier,
+                            null,
+                            password,
+                            null,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(user.statusValue()).isEqualTo("ACTIVE");
+            assertThat(user.isActive()).isTrue();
+        }
+
+        @Test
+        @DisplayName("null deletionStatus로 reconstitute하면 active가 기본값이다")
+        void shouldReconstituteWithNullDeletionStatusDefaultsToActive() {
+            // given
+            UserId userId = UserFixture.defaultId();
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            Identifier identifier = UserFixture.defaultIdentifier();
+            HashedPassword password = UserFixture.defaultHashedPassword();
+
+            // when
+            User user =
+                    User.reconstitute(
+                            userId,
+                            orgId,
+                            identifier,
+                            null,
+                            password,
+                            UserStatus.ACTIVE,
+                            null,
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(user.isDeleted()).isFalse();
+        }
+
+        @Test
+        @DisplayName("INACTIVE 상태로 reconstitute한다")
+        void shouldReconstituteWithInactiveStatus() {
+            // when
+            User user = UserFixture.createInactive();
+
+            // then
+            assertThat(user.statusValue()).isEqualTo("INACTIVE");
+            assertThat(user.isActive()).isFalse();
+        }
+
+        @Test
+        @DisplayName("SUSPENDED 상태로 reconstitute한다")
+        void shouldReconstituteWithSuspendedStatus() {
+            // when
+            User user = UserFixture.createSuspended();
+
+            // then
+            assertThat(user.statusValue()).isEqualTo("SUSPENDED");
+            assertThat(user.isSuspended()).isTrue();
         }
     }
 
@@ -258,15 +478,49 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("isNew는 ID가 없을 때 true를 반환한다")
-        void isNewShouldReturnTrueWhenIdIsNull() {
-            // given
-            User newUser = UserFixture.createNew();
-            User existingUser = UserFixture.create();
+        @DisplayName("isNew는 userId가 null일 때 true, 있으면 false를 반환한다")
+        void isNewShouldReturnTrueWhenUserIdIsNull() {
+            // given - createNew와 create는 userId가 있음
+            User userWithId = UserFixture.create();
+            User userFromCreateNew = UserFixture.createNew();
 
-            // then - createNew는 이미 ID가 있으므로 isNew가 false
-            assertThat(newUser.isNew()).isFalse();
-            assertThat(existingUser.isNew()).isFalse();
+            // then
+            assertThat(userWithId.isNew()).isFalse();
+            assertThat(userFromCreateNew.isNew()).isFalse();
+        }
+
+        @Test
+        @DisplayName("getter 메서드들이 올바른 값을 반환한다")
+        void gettersShouldReturnCorrectValues() {
+            // given
+            User user = UserFixture.create();
+
+            // then
+            assertThat(user.getUserId()).isNotNull();
+            assertThat(user.getUserId().value()).isEqualTo(user.userIdValue());
+            assertThat(user.getOrganizationId()).isNotNull();
+            assertThat(user.getIdentifier()).isNotNull();
+            assertThat(user.getPhoneNumber()).isNotNull();
+            assertThat(user.getHashedPassword()).isNotNull();
+            assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+            assertThat(user.getDeletionStatus()).isNotNull();
+            assertThat(user.createdAt()).isNotNull();
+            assertThat(user.updatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("toString은 사용자 정보를 포함한다")
+        void toStringShouldContainUserInfo() {
+            // given
+            User user = UserFixture.create();
+
+            // when
+            String result = user.toString();
+
+            // then
+            assertThat(result).contains("User");
+            assertThat(result).contains(user.identifierValue());
+            assertThat(result).contains(user.statusValue());
         }
     }
 
@@ -291,10 +545,50 @@ class UserTest {
         void shouldNotBeEqualWhenDifferentUserId() {
             // given
             User user1 = UserFixture.create();
-            User user2 = UserFixture.createWithIdentifier("other@test.com");
+            User user2 =
+                    User.reconstitute(
+                            UserId.of("01941234-5678-7000-8000-123456789002"),
+                            UserFixture.defaultOrganizationId(),
+                            UserFixture.defaultIdentifier(),
+                            PhoneNumber.of("010-1234-5678"),
+                            UserFixture.defaultHashedPassword(),
+                            UserStatus.ACTIVE,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
 
-            // 같은 DEFAULT_USER_ID를 사용하므로 동등함
+            // then
+            assertThat(user1).isNotEqualTo(user2);
+        }
+
+        @Test
+        @DisplayName("userId가 null일 때 identifier와 organizationId가 같으면 동등하다")
+        void shouldBeEqualWhenUserIdNullButSameIdentifierAndOrganization() {
+            // given
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            Identifier identifier = Identifier.of("same@test.com");
+            HashedPassword password = HashedPassword.of("$2a$10$hash");
+            User user1 = User.create(null, orgId, identifier, null, password, NOW);
+            User user2 = User.create(null, orgId, identifier, null, password, NOW);
+
+            // then
             assertThat(user1).isEqualTo(user2);
+            assertThat(user1.hashCode()).isEqualTo(user2.hashCode());
+        }
+
+        @Test
+        @DisplayName("userId가 null일 때 identifier가 다르면 동등하지 않다")
+        void shouldNotBeEqualWhenUserIdNullButDifferentIdentifier() {
+            // given
+            OrganizationId orgId = UserFixture.defaultOrganizationId();
+            HashedPassword password = HashedPassword.of("$2a$10$hash");
+            User user1 =
+                    User.create(null, orgId, Identifier.of("user1@test.com"), null, password, NOW);
+            User user2 =
+                    User.create(null, orgId, Identifier.of("user2@test.com"), null, password, NOW);
+
+            // then
+            assertThat(user1).isNotEqualTo(user2);
         }
     }
 }

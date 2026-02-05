@@ -4,6 +4,7 @@ import com.ryuqq.authhub.adapter.in.rest.service.dto.request.CreateServiceApiReq
 import com.ryuqq.authhub.adapter.in.rest.service.dto.request.UpdateServiceApiRequest;
 import com.ryuqq.authhub.application.service.dto.command.CreateServiceCommand;
 import com.ryuqq.authhub.application.service.dto.command.UpdateServiceCommand;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,6 +45,7 @@ public class ServiceCommandApiMapper {
      * @return Application Command DTO
      */
     public UpdateServiceCommand toCommand(Long serviceId, UpdateServiceApiRequest request) {
+        Objects.requireNonNull(serviceId, "serviceId must not be null");
         return new UpdateServiceCommand(
                 serviceId, request.name(), request.description(), request.status());
     }

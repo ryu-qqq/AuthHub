@@ -146,5 +146,27 @@ class TenantServiceQueryFactoryTest {
             // then
             assertThat(result.statuses()).isEmpty();
         }
+
+        @Test
+        @DisplayName("statuses가 null인 경우 빈 목록으로 Criteria 생성")
+        void shouldCreateCriteriaWithEmptyStatuses_WhenStatusesIsNull() {
+            // given
+            TenantServiceSearchParams params =
+                    TenantServiceSearchParams.of(
+                            TenantServiceQueryFixtures.defaultCommonSearchParams(),
+                            null,
+                            null,
+                            null);
+            DateRange dateRange = DateRange.of(null, null);
+
+            given(commonVoFactory.createDateRange(params.startDate(), params.endDate()))
+                    .willReturn(dateRange);
+
+            // when
+            TenantServiceSearchCriteria result = sut.toCriteria(params);
+
+            // then
+            assertThat(result.statuses()).isEmpty();
+        }
     }
 }

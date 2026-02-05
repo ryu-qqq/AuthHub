@@ -34,7 +34,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * <ul>
  *   <li>ReadManager는 QueryPort 위임 + 예외 변환 담당
  *   <li>Port 호출이 올바르게 위임되는지 검증
- *   <li>조회 실패 시 적절한 DomainException 발생 검증 ul>
+ *   <li>조회 실패 시 적절한 DomainException 발생 검증
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -160,6 +161,115 @@ class RoleReadManagerTest {
 
             // then
             assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("findByTenantIdAndServiceIdAndName 메서드")
+    class FindByTenantIdAndServiceIdAndName {
+
+        @Test
+        @DisplayName("성공: 테넌트·서비스·이름에 해당하는 역할이 존재하면 해당 역할 반환")
+        void shouldReturnRole_WhenExists() {
+            // given
+            TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
+            RoleName name = RoleName.of("TEST_ROLE");
+            Role expected = RoleFixture.create();
+
+            given(queryPort.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .willReturn(Optional.of(expected));
+
+            // when
+            Role result = sut.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
+
+            // then
+            assertThat(result).isEqualTo(expected);
+            then(queryPort).should().findByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
+        }
+
+        @Test
+        @DisplayName("실패: 해당하는 역할이 없으면 RoleNotFoundException 발생")
+        void shouldThrowException_WhenNotExists() {
+            // given
+            TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
+            RoleName name = RoleName.of("NONEXISTENT_ROLE");
+
+            given(queryPort.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(
+                            () -> sut.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .isInstanceOf(RoleNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("findOptionalByTenantIdAndServiceIdAndName 메서드")
+    class FindOptionalByTenantIdAndServiceIdAndName {
+
+        @Test
+        @DisplayName("존재하면 Optional에 감싸서 반환")
+        void shouldReturnOptionalWithRole_WhenExists() {
+            // given
+            TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
+            RoleName name = RoleName.of("TEST_ROLE");
+            Role expected = RoleFixture.create();
+
+            given(queryPort.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .willReturn(Optional.of(expected));
+
+            // when
+            Optional<Role> result =
+                    sut.findOptionalByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
+
+            // then
+            assertThat(result).isPresent().contains(expected);
+            then(queryPort).should().findByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
+        }
+
+        @Test
+        @DisplayName("존재하지 않으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenNotExists() {
+            // given
+            TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
+            RoleName name = RoleName.of("NONEXISTENT_ROLE");
+
+            given(queryPort.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .willReturn(Optional.empty());
+
+            // when
+            Optional<Role> result =
+                    sut.findOptionalByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: 조건에 맞는 역할 수 반환")
+        void shouldReturnCount() {
+            // given
+            RoleSearchCriteria criteria =
+                    RoleSearchCriteria.ofGlobal(null, null, DateRange.of(null, null), 0, 10);
+
+            given(queryPort.countBySearchCriteria(criteria)).willReturn(5L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEqualTo(5L);
+            then(queryPort).should().countBySearchCriteria(criteria);
         }
     }
 

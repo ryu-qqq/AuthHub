@@ -9,6 +9,7 @@ import com.ryuqq.authhub.domain.role.vo.RoleName;
 import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,6 +94,22 @@ public class RoleReadManager {
         return queryPort
                 .findByTenantIdAndServiceIdAndName(tenantId, serviceId, name)
                 .orElseThrow(() -> new RoleNotFoundException(name));
+    }
+
+    /**
+     * 테넌트 + 서비스 범위 내 역할 이름으로 Role 조회 (Optional)
+     *
+     * <p>Role이 존재하지 않아도 예외를 던지지 않으므로 트랜잭션 rollback-only 마킹이 발생하지 않습니다.
+     *
+     * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
+     * @param name 역할 이름
+     * @return Role Domain (Optional)
+     */
+    @Transactional(readOnly = true)
+    public Optional<Role> findOptionalByTenantIdAndServiceIdAndName(
+            TenantId tenantId, ServiceId serviceId, RoleName name) {
+        return queryPort.findByTenantIdAndServiceIdAndName(tenantId, serviceId, name);
     }
 
     /**

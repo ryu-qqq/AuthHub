@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.in.rest.permission.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.common.fixture.ErrorMapperApiFixture;
 import com.ryuqq.authhub.adapter.in.rest.permission.PermissionApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.permission.controller.command.PermissionCommandController;
 import com.ryuqq.authhub.adapter.in.rest.permission.dto.request.CreatePermissionApiRequest;
@@ -169,6 +171,197 @@ class PermissionCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("resource가 최소 길이(2자)이면 성공한다")
+        void shouldSucceedWhenResourceIsMinLength() throws Exception {
+            // given
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest("ab", "read");
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            given(createPermissionUseCase.execute(any())).willReturn(permissionId);
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("resource가 최대 길이(50자)이면 성공한다")
+        void shouldSucceedWhenResourceIsMaxLength() throws Exception {
+            // given
+            String maxLengthResource = "a".repeat(50);
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest(maxLengthResource, "read");
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            given(createPermissionUseCase.execute(any())).willReturn(permissionId);
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("resource가 최대 길이(50자)를 초과하면 400 Bad Request")
+        void shouldFailWhenResourceExceedsMaxLength() throws Exception {
+            // given
+            String tooLongResource = "a".repeat(51);
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest(tooLongResource, "read");
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("action이 최소 길이(2자)이면 성공한다")
+        void shouldSucceedWhenActionIsMinLength() throws Exception {
+            // given
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest("user", "ab");
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            given(createPermissionUseCase.execute(any())).willReturn(permissionId);
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("action이 최대 길이(50자)이면 성공한다")
+        void shouldSucceedWhenActionIsMaxLength() throws Exception {
+            // given
+            String maxLengthAction = "a".repeat(50);
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest("user", maxLengthAction);
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            given(createPermissionUseCase.execute(any())).willReturn(permissionId);
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("action이 최대 길이(50자)를 초과하면 400 Bad Request")
+        void shouldFailWhenActionExceedsMaxLength() throws Exception {
+            // given
+            String tooLongAction = "a".repeat(51);
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest("user", tooLongAction);
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("resource가 숫자로 시작하면 400 Bad Request")
+        void shouldFailWhenResourceStartsWithNumber() throws Exception {
+            // given
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest("1user", "read");
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("action이 숫자로 시작하면 400 Bad Request")
+        void shouldFailWhenActionStartsWithNumber() throws Exception {
+            // given
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest("user", "1read");
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("description이 최대 길이(500자)이면 성공한다")
+        void shouldSucceedWhenDescriptionIsMaxLength() throws Exception {
+            // given
+            String maxLengthDescription = "a".repeat(500);
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest(
+                            "user", "read", maxLengthDescription);
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            given(createPermissionUseCase.execute(any())).willReturn(permissionId);
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("description이 최대 길이(500자)를 초과하면 400 Bad Request")
+        void shouldFailWhenDescriptionExceedsMaxLength() throws Exception {
+            // given
+            String tooLongDescription = "a".repeat(501);
+            CreatePermissionApiRequest request =
+                    PermissionApiFixture.createPermissionRequest(
+                            "user", "read", tooLongDescription);
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("serviceId가 null인 요청으로 권한을 생성한다")
+        void shouldCreatePermissionWhenServiceIdIsNull() throws Exception {
+            // given
+            CreatePermissionApiRequest request =
+                    new CreatePermissionApiRequest(
+                            null,
+                            PermissionApiFixture.defaultResource(),
+                            PermissionApiFixture.defaultAction(),
+                            PermissionApiFixture.defaultDescription());
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            given(createPermissionUseCase.execute(any())).willReturn(permissionId);
+
+            // when & then
+            mockMvc.perform(
+                            post(PermissionApiEndpoints.PERMISSIONS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.permissionId").value(permissionId));
+        }
     }
 
     @Nested
@@ -240,6 +433,26 @@ class PermissionCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("description이 null인 요청으로 권한을 수정한다")
+        void shouldUpdatePermissionWhenDescriptionIsNull() throws Exception {
+            // given
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            UpdatePermissionApiRequest request = new UpdatePermissionApiRequest(null);
+            doNothing().when(updatePermissionUseCase).execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(
+                                            PermissionApiEndpoints.PERMISSIONS + "/{permissionId}",
+                                            permissionId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.permissionId").value(permissionId));
+        }
     }
 
     @Nested
@@ -265,6 +478,66 @@ class PermissionCommandControllerTest extends RestDocsTestSupport {
                                     pathParameters(
                                             parameterWithName("permissionId")
                                                     .description("삭제할 Permission ID"))));
+        }
+
+        @Test
+        @DisplayName("권한이 존재하지 않으면 404 Not Found")
+        void shouldFailWhenPermissionNotFound() throws Exception {
+            // given
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            willThrow(ErrorMapperApiFixture.permissionNotFoundException())
+                    .given(deletePermissionUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            delete(
+                                    PermissionApiEndpoints.PERMISSIONS + "/{permissionId}",
+                                    permissionId))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("시스템 권한은 삭제할 수 없어 403 Forbidden")
+        void shouldFailWhenSystemPermissionNotDeletable() throws Exception {
+            // given
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            willThrow(ErrorMapperApiFixture.systemPermissionNotDeletableException())
+                    .given(deletePermissionUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            delete(
+                                    PermissionApiEndpoints.PERMISSIONS + "/{permissionId}",
+                                    permissionId))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(403));
+        }
+
+        @Test
+        @DisplayName("권한이 사용 중이면 409 Conflict")
+        void shouldFailWhenPermissionInUse() throws Exception {
+            // given
+            Long permissionId = PermissionApiFixture.defaultPermissionId();
+            willThrow(ErrorMapperApiFixture.permissionInUseException())
+                    .given(deletePermissionUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            delete(
+                                    PermissionApiEndpoints.PERMISSIONS + "/{permissionId}",
+                                    permissionId))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
         }
     }
 }

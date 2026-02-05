@@ -222,6 +222,23 @@ class TenantServiceReadManagerTest {
             // then
             assertThat(result).isPresent().contains(expected);
         }
+
+        @Test
+        @DisplayName("존재하지 않으면 빈 Optional 반환")
+        void shouldReturnEmptyOptional_WhenNotExists() {
+            // given
+            TenantId tenantId = TenantServiceFixture.defaultTenantId();
+            ServiceId serviceId = TenantServiceFixture.defaultServiceId();
+
+            given(queryPort.findByTenantIdAndServiceId(tenantId, serviceId))
+                    .willReturn(Optional.empty());
+
+            // when
+            Optional<TenantService> result = sut.findByTenantIdAndServiceId(tenantId, serviceId);
+
+            // then
+            assertThat(result).isEmpty();
+        }
     }
 
     @Nested

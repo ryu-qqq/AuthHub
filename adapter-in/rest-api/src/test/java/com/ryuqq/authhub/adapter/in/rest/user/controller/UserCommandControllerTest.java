@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.in.rest.user.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
@@ -25,6 +26,11 @@ import com.ryuqq.authhub.adapter.in.rest.user.mapper.UserCommandApiMapper;
 import com.ryuqq.authhub.application.user.port.in.command.ChangePasswordUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.CreateUserUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.UpdateUserUseCase;
+import com.ryuqq.authhub.domain.organization.exception.OrganizationNotFoundException;
+import com.ryuqq.authhub.domain.user.exception.DuplicateUserIdentifierException;
+import com.ryuqq.authhub.domain.user.exception.DuplicateUserPhoneNumberException;
+import com.ryuqq.authhub.domain.user.exception.InvalidPasswordException;
+import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -143,6 +149,142 @@ class UserCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("조직을 찾을 수 없으면 404 Not Found")
+        void shouldReturn404WhenOrganizationNotFound() throws Exception {
+            // given
+            CreateUserApiRequest request = UserApiFixture.createUserRequest();
+            willThrow(new OrganizationNotFoundException(UserApiFixture.defaultOrganizationId()))
+                    .given(createUserUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(UserApiEndpoints.USERS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("중복된 사용자 식별자이면 409 Conflict")
+        void shouldReturn409WhenDuplicateIdentifier() throws Exception {
+            // given
+            CreateUserApiRequest request = UserApiFixture.createUserRequest();
+            willThrow(new DuplicateUserIdentifierException(UserApiFixture.defaultIdentifier()))
+                    .given(createUserUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(UserApiEndpoints.USERS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
+        }
+
+        @Test
+        @DisplayName("중복된 전화번호이면 409 Conflict")
+        void shouldReturn409WhenDuplicatePhoneNumber() throws Exception {
+            // given
+            CreateUserApiRequest request = UserApiFixture.createUserRequest();
+            willThrow(new DuplicateUserPhoneNumberException("010-1234-5678"))
+                    .given(createUserUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(UserApiEndpoints.USERS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
+        }
+
+        @Test
+        @DisplayName("식별자가 최대 길이(100자)이면 성공한다")
+        void shouldSucceedWhenIdentifierIsMaxLength() throws Exception {
+            // given
+            String maxLengthIdentifier = "A".repeat(100);
+            CreateUserApiRequest request =
+                    UserApiFixture.createUserRequestWithIdentifier(maxLengthIdentifier);
+            String expectedUserId = UserApiFixture.defaultUserId();
+            given(createUserUseCase.execute(any())).willReturn(expectedUserId);
+
+            // when & then
+            mockMvc.perform(
+                            post(UserApiEndpoints.USERS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.userId").value(expectedUserId));
+        }
+
+        @Test
+        @DisplayName("비밀번호가 최대 길이(100자)이면 성공한다")
+        void shouldSucceedWhenPasswordIsMaxLength() throws Exception {
+            // given
+            String maxLengthPassword = "A".repeat(100);
+            CreateUserApiRequest request =
+                    new CreateUserApiRequest(
+                            UserApiFixture.defaultOrganizationId(),
+                            UserApiFixture.defaultIdentifier(),
+                            "010-1234-5678",
+                            maxLengthPassword);
+            String expectedUserId = UserApiFixture.defaultUserId();
+            given(createUserUseCase.execute(any())).willReturn(expectedUserId);
+
+            // when & then
+            mockMvc.perform(
+                            post(UserApiEndpoints.USERS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.userId").value(expectedUserId));
+        }
+
+        @Test
+        @DisplayName("organizationId가 null이면 400 Bad Request")
+        void shouldReturn400WhenOrganizationIdIsNull() throws Exception {
+            // given
+            CreateUserApiRequest request =
+                    new CreateUserApiRequest(
+                            null, UserApiFixture.defaultIdentifier(), null, "password123!");
+
+            // when & then
+            mockMvc.perform(
+                            post(UserApiEndpoints.USERS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("organizationId가 빈 문자열이면 400 Bad Request")
+        void shouldReturn400WhenOrganizationIdIsBlank() throws Exception {
+            // given
+            CreateUserApiRequest request =
+                    new CreateUserApiRequest(
+                            "", UserApiFixture.defaultIdentifier(), null, "password123!");
+
+            // when & then
+            mockMvc.perform(
+                            post(UserApiEndpoints.USERS)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     @Nested
@@ -188,6 +330,46 @@ class UserCommandControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("requestId")
                                                     .type(JsonFieldType.STRING)
                                                     .description("요청 ID"))));
+        }
+
+        @Test
+        @DisplayName("사용자를 찾을 수 없으면 404 Not Found")
+        void shouldReturn404WhenUserNotFound() throws Exception {
+            // given
+            String userId = UserApiFixture.defaultUserId();
+            UpdateUserApiRequest request = UserApiFixture.updateUserRequest();
+            willThrow(new UserNotFoundException(userId)).given(updateUserUseCase).execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(UserApiEndpoints.USERS + "/{userId}", userId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("중복된 전화번호이면 409 Conflict")
+        void shouldReturn409WhenDuplicatePhoneNumber() throws Exception {
+            // given
+            String userId = UserApiFixture.defaultUserId();
+            UpdateUserApiRequest request = UserApiFixture.updateUserRequest();
+            willThrow(new DuplicateUserPhoneNumberException("010-9999-8888"))
+                    .given(updateUserUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(UserApiEndpoints.USERS + "/{userId}", userId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
         }
     }
 
@@ -267,6 +449,46 @@ class UserCommandControllerTest extends RestDocsTestSupport {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("사용자를 찾을 수 없으면 404 Not Found")
+        void shouldReturn404WhenUserNotFound() throws Exception {
+            // given
+            String userId = UserApiFixture.defaultUserId();
+            ChangePasswordApiRequest request = UserApiFixture.changePasswordRequest();
+            willThrow(new UserNotFoundException(userId))
+                    .given(changePasswordUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(UserApiEndpoints.USERS + "/{userId}/password", userId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("잘못된 비밀번호이면 401 Unauthorized")
+        void shouldReturn401WhenInvalidPassword() throws Exception {
+            // given
+            String userId = UserApiFixture.defaultUserId();
+            ChangePasswordApiRequest request = UserApiFixture.changePasswordRequest();
+            willThrow(new InvalidPasswordException()).given(changePasswordUseCase).execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(UserApiEndpoints.USERS + "/{userId}/password", userId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(401));
         }
     }
 }

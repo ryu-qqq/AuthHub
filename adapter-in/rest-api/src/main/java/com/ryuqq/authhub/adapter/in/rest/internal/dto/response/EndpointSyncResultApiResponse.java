@@ -19,4 +19,6 @@ public record EndpointSyncResultApiResponse(
         @Schema(description = "전체 엔드포인트 수", example = "10") int totalEndpoints,
         @Schema(description = "생성된 권한 수", example = "3") int createdPermissions,
         @Schema(description = "생성된 엔드포인트 수", example = "5") int createdEndpoints,
-        @Schema(description = "스킵된 엔드포인트 수", example = "3") int skippedEndpoints) {}
+        @Schema(description = "스킵된 엔드포인트 수", example = "3") int skippedEndpoints,
+        @Schema(description = "자동 매핑된 Role-Permission 수", example = "6")
+                int mappedRolePermissions) {}

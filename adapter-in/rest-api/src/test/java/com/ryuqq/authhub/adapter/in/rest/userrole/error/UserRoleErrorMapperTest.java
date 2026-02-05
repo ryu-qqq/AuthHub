@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.adapter.in.rest.common.fixture.ErrorMapperApiFixture;
 import com.ryuqq.authhub.adapter.in.rest.common.mapper.ErrorMapper;
+import com.ryuqq.authhub.domain.common.exception.DomainException;
 import java.util.Locale;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,9 +51,33 @@ class UserRoleErrorMapperTest {
         }
 
         @Test
+        @DisplayName("USER_ROLE-003 코드를 지원한다")
+        void shouldSupportRoleInUse() {
+            assertThat(mapper.supports(ErrorMapperApiFixture.userRoleInUseException())).isTrue();
+        }
+
+        @Test
         @DisplayName("다른 도메인 예외는 지원하지 않는다")
         void shouldNotSupportOtherDomainExceptions() {
             assertThat(mapper.supports(ErrorMapperApiFixture.tenantNotFoundException())).isFalse();
+        }
+
+        @Test
+        @DisplayName("null code를 가진 예외는 지원하지 않는다")
+        void shouldNotSupportNullCode() {
+            // Given - DomainException with null code (shouldn't happen in practice, but defensive)
+            DomainException ex =
+                    new DomainException(
+                            com.ryuqq.authhub.domain.userrole.exception.UserRoleErrorCode
+                                    .USER_ROLE_NOT_FOUND) {
+                        @Override
+                        public String code() {
+                            return null; // Override to return null for testing
+                        }
+                    };
+
+            // When & Then
+            assertThat(mapper.supports(ex)).isFalse();
         }
     }
 
@@ -74,6 +99,15 @@ class UserRoleErrorMapperTest {
             var ex = ErrorMapperApiFixture.duplicateUserRoleException();
             ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
             assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
+        }
+
+        @Test
+        @DisplayName("USER_ROLE-003을 409 Conflict로 매핑한다")
+        void shouldMapRoleInUseTo409() {
+            var ex = ErrorMapperApiFixture.userRoleInUseException();
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+            assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
+            assertThat(result.title()).isEqualTo("Role In Use");
         }
     }
 }

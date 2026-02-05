@@ -68,6 +68,14 @@ public interface ServiceQueryPort {
     long countByCriteria(ServiceSearchCriteria criteria);
 
     /**
+     * ServiceCode로 Service 단건 조회
+     *
+     * @param serviceCode Service Code (Value Object)
+     * @return Service Domain (Optional)
+     */
+    Optional<Service> findByCode(ServiceCode serviceCode);
+
+    /**
      * 모든 활성 Service 목록 조회
      *
      * @return 활성 상태의 Service Domain 목록

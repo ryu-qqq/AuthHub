@@ -1,9 +1,11 @@
 package com.ryuqq.authhub.adapter.out.persistence.tenantservice.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doThrow;
 
 import com.ryuqq.authhub.adapter.out.persistence.tenantservice.entity.TenantServiceJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.tenantservice.fixture.TenantServiceJpaEntityFixture;
@@ -139,6 +141,29 @@ class TenantServiceCommandAdapterTest {
 
             // then
             assertThat(result).isEqualTo(999L);
+        }
+
+        @Test
+        @DisplayName("domain이 null이면 mapper 호출 시 예외 전파")
+        void shouldPropagateException_WhenDomainIsNull() {
+            given(mapper.toEntity(null)).willThrow(new NullPointerException("tenantService"));
+
+            assertThatThrownBy(() -> sut.persist(null)).isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @DisplayName("Repository.save() 예외가 그대로 전파됨")
+        void shouldPropagateException_WhenRepositorySaveFails() {
+            TenantService domain = TenantServiceFixture.create();
+            TenantServiceJpaEntity entity = TenantServiceJpaEntityFixture.createWithId(1L);
+            RuntimeException repositoryException = new RuntimeException("DB constraint violation");
+
+            given(mapper.toEntity(domain)).willReturn(entity);
+            doThrow(repositoryException).when(repository).save(entity);
+
+            assertThatThrownBy(() -> sut.persist(domain))
+                    .isSameAs(repositoryException)
+                    .hasMessageContaining("DB constraint violation");
         }
     }
 }

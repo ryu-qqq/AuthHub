@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.token.controller;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -19,6 +20,7 @@ import com.ryuqq.authhub.application.token.dto.response.MyContextResponse;
 import com.ryuqq.authhub.application.token.dto.response.PublicKeysResponse;
 import com.ryuqq.authhub.application.token.port.in.query.GetMyContextUseCase;
 import com.ryuqq.authhub.application.token.port.in.query.GetPublicKeyUseCase;
+import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
@@ -118,6 +120,47 @@ class TokenQueryControllerTest extends RestDocsTestSupport {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.keys").isArray())
                     .andExpect(jsonPath("$.keys").isEmpty());
+        }
+
+        @Test
+        @DisplayName("다중 공개키를 조회한다")
+        void shouldGetMultiplePublicKeysSuccessfully() throws Exception {
+            // given
+            String modulus1 =
+                    "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhD"
+                        + "R1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6C"
+                        + "f0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1"
+                        + "n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1"
+                        + "jF44-csFCur-kEgU8awapJzKnqDKgw";
+            String modulus2 =
+                    "1wx8bhpfcHdTRvvQjKYaYquO0onndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhD"
+                        + "R1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6C"
+                        + "f0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1"
+                        + "n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1"
+                        + "jF44-csFCur-kEgU8awapJzKnqDKgw";
+            JwkResponse jwk1 = new JwkResponse("key-id-1", "RSA", "sig", "RS256", modulus1, "AQAB");
+            JwkResponse jwk2 = new JwkResponse("key-id-2", "RSA", "sig", "RS256", modulus2, "AQAB");
+            PublicKeysResponse response = new PublicKeysResponse(List.of(jwk1, jwk2));
+            given(getPublicKeyUseCase.execute()).willReturn(response);
+
+            // when & then
+            mockMvc.perform(get(TokenApiEndpoints.BASE + TokenApiEndpoints.JWKS))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.keys").isArray())
+                    .andExpect(jsonPath("$.keys").isNotEmpty())
+                    .andExpect(jsonPath("$.keys[0].kid").value("key-id-1"))
+                    .andExpect(jsonPath("$.keys[1].kid").value("key-id-2"));
+        }
+
+        @Test
+        @DisplayName("UseCase에서 예외가 발생하면 500 Internal Server Error")
+        void shouldReturn500WhenUseCaseThrowsException() throws Exception {
+            // given
+            willThrow(new RuntimeException("Internal error")).given(getPublicKeyUseCase).execute();
+
+            // when & then
+            mockMvc.perform(get(TokenApiEndpoints.BASE + TokenApiEndpoints.JWKS))
+                    .andExpect(status().isInternalServerError());
         }
     }
 
@@ -265,6 +308,128 @@ class TokenQueryControllerTest extends RestDocsTestSupport {
                     .andExpect(jsonPath("$.data.roles").isEmpty())
                     .andExpect(jsonPath("$.data.permissions").isArray())
                     .andExpect(jsonPath("$.data.permissions").isEmpty());
+        }
+
+        @Test
+        @DisplayName("성공: 다중 역할과 권한을 가진 사용자의 컨텍스트를 조회한다")
+        void shouldGetMyContextWithMultipleRolesAndPermissions() throws Exception {
+            // given
+            String userId = "019450eb-4f1e-7000-8000-000000000003";
+            SecurityContext securityContext =
+                    SecurityContext.builder()
+                            .userId(userId)
+                            .tenantId("tenant-123")
+                            .organizationId("org-456")
+                            .roles(Set.of("ADMIN", "USER", "GUEST"))
+                            .permissions(
+                                    Set.of(
+                                            "user:read",
+                                            "user:write",
+                                            "user:delete",
+                                            "admin:read",
+                                            "admin:write"))
+                            .build();
+            SecurityContextHolder.setContext(securityContext);
+
+            List<MyContextResponse.RoleInfo> roles =
+                    List.of(
+                            new MyContextResponse.RoleInfo("role-1", "ADMIN"),
+                            new MyContextResponse.RoleInfo("role-2", "USER"),
+                            new MyContextResponse.RoleInfo("role-3", "GUEST"));
+            List<String> permissions =
+                    List.of("user:read", "user:write", "user:delete", "admin:read", "admin:write");
+
+            MyContextResponse useCaseResponse =
+                    new MyContextResponse(
+                            userId,
+                            "multiuser@example.com",
+                            "Multi User",
+                            "tenant-123",
+                            "Test Tenant",
+                            "org-456",
+                            "Test Organization",
+                            roles,
+                            permissions);
+
+            given(getMyContextUseCase.execute(userId)).willReturn(useCaseResponse);
+
+            // when & then
+            mockMvc.perform(get(TokenApiEndpoints.BASE + TokenApiEndpoints.ME))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.userId").value(userId))
+                    .andExpect(jsonPath("$.data.roles").isArray())
+                    .andExpect(jsonPath("$.data.roles.length()").value(3))
+                    .andExpect(jsonPath("$.data.permissions").isArray())
+                    .andExpect(jsonPath("$.data.permissions.length()").value(5));
+        }
+
+        @Test
+        @DisplayName("SecurityContextHolder에 사용자 ID가 없으면 400 Bad Request")
+        void shouldFailWhenSecurityContextHasNoUserId() throws Exception {
+            // given
+            SecurityContextHolder.clearContext(); // Anonymous context (userId = null)
+            // UserId.of(null)이 IllegalArgumentException을 던지므로, UseCase에서 예외 발생
+            // GlobalExceptionHandler가 IllegalArgumentException을 400 Bad Request로 처리
+            willThrow(new IllegalArgumentException("UserId는 null이거나 빈 값일 수 없습니다"))
+                    .given(getMyContextUseCase)
+                    .execute(null);
+
+            // when & then
+            mockMvc.perform(get(TokenApiEndpoints.BASE + TokenApiEndpoints.ME))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(400));
+        }
+
+        @Test
+        @DisplayName("사용자가 존재하지 않으면 404 Not Found")
+        void shouldFailWhenUserNotFound() throws Exception {
+            // given
+            String userId = "019450eb-4f1e-7000-8000-000000000999";
+            SecurityContext securityContext =
+                    SecurityContext.builder()
+                            .userId(userId)
+                            .tenantId("tenant-123")
+                            .organizationId("org-456")
+                            .roles(Set.of())
+                            .permissions(Set.of())
+                            .build();
+            SecurityContextHolder.setContext(securityContext);
+
+            willThrow(new UserNotFoundException(userId)).given(getMyContextUseCase).execute(userId);
+
+            // when & then
+            mockMvc.perform(get(TokenApiEndpoints.BASE + TokenApiEndpoints.ME))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("UseCase에서 예외가 발생하면 500 Internal Server Error")
+        void shouldReturn500WhenUseCaseThrowsException() throws Exception {
+            // given
+            String userId = "019450eb-4f1e-7000-8000-000000000001";
+            SecurityContext securityContext =
+                    SecurityContext.builder()
+                            .userId(userId)
+                            .tenantId("tenant-123")
+                            .organizationId("org-456")
+                            .roles(Set.of())
+                            .permissions(Set.of())
+                            .build();
+            SecurityContextHolder.setContext(securityContext);
+
+            willThrow(new RuntimeException("Internal error"))
+                    .given(getMyContextUseCase)
+                    .execute(userId);
+
+            // when & then
+            mockMvc.perform(get(TokenApiEndpoints.BASE + TokenApiEndpoints.ME))
+                    .andExpect(status().isInternalServerError());
         }
     }
 }

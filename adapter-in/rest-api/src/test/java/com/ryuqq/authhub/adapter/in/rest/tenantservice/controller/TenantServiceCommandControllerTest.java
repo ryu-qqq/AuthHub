@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.in.rest.tenantservice.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.common.fixture.ErrorMapperApiFixture;
 import com.ryuqq.authhub.adapter.in.rest.tenantservice.TenantServiceApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.tenantservice.controller.command.TenantServiceCommandController;
 import com.ryuqq.authhub.adapter.in.rest.tenantservice.dto.request.SubscribeTenantServiceApiRequest;
@@ -128,6 +130,26 @@ class TenantServiceCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("이미 구독된 테넌트-서비스이면 409 Conflict")
+        void shouldFailWhenDuplicateTenantService() throws Exception {
+            // given
+            SubscribeTenantServiceApiRequest request = TenantServiceApiFixture.subscribeRequest();
+            willThrow(ErrorMapperApiFixture.duplicateTenantServiceException())
+                    .given(subscribeTenantServiceUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(TenantServiceApiEndpoints.TENANT_SERVICES)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
+        }
     }
 
     @Nested
@@ -220,6 +242,31 @@ class TenantServiceCommandControllerTest extends RestDocsTestSupport {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("TenantService가 존재하지 않으면 404 Not Found")
+        void shouldFailWhenTenantServiceNotFound() throws Exception {
+            // given
+            Long tenantServiceId = TenantServiceApiFixture.defaultTenantServiceId();
+            UpdateTenantServiceStatusApiRequest request =
+                    TenantServiceApiFixture.updateStatusRequest();
+            willThrow(ErrorMapperApiFixture.tenantServiceNotFoundException())
+                    .given(updateTenantServiceStatusUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(
+                                            TenantServiceApiEndpoints.TENANT_SERVICES
+                                                    + "/{tenantServiceId}/status",
+                                            tenantServiceId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
         }
     }
 }

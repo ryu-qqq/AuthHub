@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.in.rest.role.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.common.fixture.ErrorMapperApiFixture;
 import com.ryuqq.authhub.adapter.in.rest.role.RoleApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.role.controller.command.RoleCommandController;
 import com.ryuqq.authhub.adapter.in.rest.role.dto.request.CreateRoleApiRequest;
@@ -149,6 +151,95 @@ class RoleCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("Global 역할을 생성한다 (tenantId=null, serviceId=null)")
+        void shouldCreateGlobalRole() throws Exception {
+            // given
+            CreateRoleApiRequest request = RoleApiFixture.createGlobalRoleRequest();
+            Long roleId = RoleApiFixture.defaultRoleId();
+            given(createRoleUseCase.execute(any())).willReturn(roleId);
+
+            // when & then
+            mockMvc.perform(
+                            post(RoleApiEndpoints.ROLES)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.roleId").value(roleId));
+        }
+
+        @Test
+        @DisplayName("name이 2자 미만이면 400 Bad Request")
+        void shouldFailWhenNameIsTooShort() throws Exception {
+            // given
+            CreateRoleApiRequest request = RoleApiFixture.createRoleRequest("A");
+
+            // when & then
+            mockMvc.perform(
+                            post(RoleApiEndpoints.ROLES)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("name이 50자를 초과하면 400 Bad Request")
+        void shouldFailWhenNameIsTooLong() throws Exception {
+            // given
+            String longName = "A".repeat(51);
+            CreateRoleApiRequest request = RoleApiFixture.createRoleRequest(longName);
+
+            // when & then
+            mockMvc.perform(
+                            post(RoleApiEndpoints.ROLES)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("displayName이 100자를 초과하면 400 Bad Request")
+        void shouldFailWhenDisplayNameIsTooLong() throws Exception {
+            // given
+            String longDisplayName = "가".repeat(101);
+            CreateRoleApiRequest request =
+                    new CreateRoleApiRequest(
+                            RoleApiFixture.defaultTenantId(),
+                            RoleApiFixture.defaultServiceId(),
+                            RoleApiFixture.defaultName(),
+                            longDisplayName,
+                            RoleApiFixture.defaultDescription());
+
+            // when & then
+            mockMvc.perform(
+                            post(RoleApiEndpoints.ROLES)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("description이 500자를 초과하면 400 Bad Request")
+        void shouldFailWhenDescriptionIsTooLong() throws Exception {
+            // given
+            String longDescription = "가".repeat(501);
+            CreateRoleApiRequest request =
+                    new CreateRoleApiRequest(
+                            RoleApiFixture.defaultTenantId(),
+                            RoleApiFixture.defaultServiceId(),
+                            RoleApiFixture.defaultName(),
+                            RoleApiFixture.defaultDisplayName(),
+                            longDescription);
+
+            // when & then
+            mockMvc.perform(
+                            post(RoleApiEndpoints.ROLES)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     @Nested
@@ -202,6 +293,81 @@ class RoleCommandControllerTest extends RestDocsTestSupport {
                                                     .type(JsonFieldType.STRING)
                                                     .description("요청 ID"))));
         }
+
+        @Test
+        @DisplayName("displayName만 수정한다")
+        void shouldUpdateDisplayNameOnly() throws Exception {
+            // given
+            Long roleId = RoleApiFixture.defaultRoleId();
+            UpdateRoleApiRequest request = RoleApiFixture.updateDisplayNameRequest("새로운 표시 이름");
+            doNothing().when(updateRoleUseCase).execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(RoleApiEndpoints.ROLES + "/{roleId}", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.roleId").value(roleId));
+        }
+
+        @Test
+        @DisplayName("description만 수정한다")
+        void shouldUpdateDescriptionOnly() throws Exception {
+            // given
+            Long roleId = RoleApiFixture.defaultRoleId();
+            UpdateRoleApiRequest request = RoleApiFixture.updateDescriptionRequest("새로운 설명");
+            doNothing().when(updateRoleUseCase).execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(RoleApiEndpoints.ROLES + "/{roleId}", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.roleId").value(roleId));
+        }
+
+        @Test
+        @DisplayName("모든 필드가 null인 요청도 정상 처리한다")
+        void shouldUpdateWithAllNullFields() throws Exception {
+            // given
+            Long roleId = RoleApiFixture.defaultRoleId();
+            UpdateRoleApiRequest request = new UpdateRoleApiRequest(null, null);
+            doNothing().when(updateRoleUseCase).execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(RoleApiEndpoints.ROLES + "/{roleId}", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.roleId").value(roleId));
+        }
+
+        @Test
+        @DisplayName("시스템 역할은 수정할 수 없어 403 Forbidden")
+        void shouldFailWhenSystemRoleNotModifiable() throws Exception {
+            // given
+            Long roleId = RoleApiFixture.defaultRoleId();
+            UpdateRoleApiRequest request = RoleApiFixture.updateRoleRequest();
+            willThrow(ErrorMapperApiFixture.systemRoleNotModifiableException())
+                    .given(updateRoleUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(RoleApiEndpoints.ROLES + "/{roleId}", roleId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(403));
+        }
     }
 
     @Nested
@@ -224,6 +390,57 @@ class RoleCommandControllerTest extends RestDocsTestSupport {
                                     pathParameters(
                                             parameterWithName("roleId")
                                                     .description("삭제할 Role ID"))));
+        }
+
+        @Test
+        @DisplayName("역할을 찾을 수 없으면 404 Not Found")
+        void shouldFailWhenRoleNotFound() throws Exception {
+            // given
+            Long roleId = RoleApiFixture.defaultRoleId();
+            willThrow(ErrorMapperApiFixture.roleNotFoundException())
+                    .given(deleteRoleUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(delete(RoleApiEndpoints.ROLES + "/{roleId}", roleId))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("시스템 역할은 삭제할 수 없어 403 Forbidden")
+        void shouldFailWhenSystemRoleNotDeletable() throws Exception {
+            // given
+            Long roleId = RoleApiFixture.defaultRoleId();
+            willThrow(ErrorMapperApiFixture.systemRoleNotDeletableException())
+                    .given(deleteRoleUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(delete(RoleApiEndpoints.ROLES + "/{roleId}", roleId))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(403));
+        }
+
+        @Test
+        @DisplayName("역할이 사용 중이면 409 Conflict")
+        void shouldFailWhenRoleInUse() throws Exception {
+            // given
+            Long roleId = RoleApiFixture.defaultRoleId();
+            willThrow(ErrorMapperApiFixture.roleInUseException())
+                    .given(deleteRoleUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(delete(RoleApiEndpoints.ROLES + "/{roleId}", roleId))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
         }
     }
 }

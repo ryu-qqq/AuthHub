@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.in.rest.service.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.common.fixture.ErrorMapperApiFixture;
 import com.ryuqq.authhub.adapter.in.rest.service.ServiceApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.service.controller.command.ServiceCommandController;
 import com.ryuqq.authhub.adapter.in.rest.service.dto.request.CreateServiceApiRequest;
@@ -178,6 +180,26 @@ class ServiceCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("중복된 서비스 코드이면 409 Conflict")
+        void shouldFailWhenServiceCodeIsDuplicate() throws Exception {
+            // given
+            CreateServiceApiRequest request = ServiceApiFixture.createServiceRequest();
+            willThrow(ErrorMapperApiFixture.duplicateServiceIdException())
+                    .given(createServiceUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(ServiceApiEndpoints.SERVICES)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
+        }
     }
 
     @Nested
@@ -298,6 +320,27 @@ class ServiceCommandControllerTest extends RestDocsTestSupport {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("서비스가 존재하지 않으면 404 Not Found")
+        void shouldFailWhenServiceNotFound() throws Exception {
+            // given
+            Long serviceId = ServiceApiFixture.defaultServiceId();
+            UpdateServiceApiRequest request = ServiceApiFixture.updateServiceRequest();
+            willThrow(ErrorMapperApiFixture.serviceNotFoundException())
+                    .given(updateServiceUseCase)
+                    .execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            put(ServiceApiEndpoints.SERVICES + "/{serviceId}", serviceId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
         }
     }
 }

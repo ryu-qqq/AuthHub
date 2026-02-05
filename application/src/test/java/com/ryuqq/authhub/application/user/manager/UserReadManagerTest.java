@@ -14,6 +14,7 @@ import com.ryuqq.authhub.domain.user.fixture.UserFixture;
 import com.ryuqq.authhub.domain.user.id.UserId;
 import com.ryuqq.authhub.domain.user.query.criteria.UserSearchCriteria;
 import com.ryuqq.authhub.domain.user.vo.Identifier;
+import com.ryuqq.authhub.domain.user.vo.PhoneNumber;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -127,6 +128,143 @@ class UserReadManagerTest {
             // then
             assertThat(result).hasSize(1);
             then(queryPort).should().findAllBySearchCriteria(criteria);
+        }
+    }
+
+    @Nested
+    @DisplayName("existsById 메서드")
+    class ExistsById {
+
+        @Test
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
+            // given
+            UserId id = UserFixture.defaultId();
+            given(queryPort.existsById(id)).willReturn(true);
+
+            // when
+            boolean result = sut.existsById(id);
+
+            // then
+            assertThat(result).isTrue();
+            then(queryPort).should().existsById(id);
+        }
+
+        @Test
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
+            // given
+            UserId id = UserFixture.defaultId();
+            given(queryPort.existsById(id)).willReturn(false);
+
+            // when
+            boolean result = sut.existsById(id);
+
+            // then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("findByIdentifier 메서드")
+    class FindByIdentifier {
+
+        @Test
+        @DisplayName("존재하면 Optional에 User 반환")
+        void shouldReturnOptionalWithUser_WhenExists() {
+            // given
+            Identifier identifier = UserFixture.defaultIdentifier();
+            User expected = UserFixture.create();
+            given(queryPort.findByIdentifier(identifier)).willReturn(Optional.of(expected));
+
+            // when
+            Optional<User> result = sut.findByIdentifier(identifier);
+
+            // then
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(expected);
+            then(queryPort).should().findByIdentifier(identifier);
+        }
+
+        @Test
+        @DisplayName("존재하지 않으면 Optional.empty 반환")
+        void shouldReturnEmpty_WhenNotExists() {
+            // given
+            Identifier identifier = UserFixture.defaultIdentifier();
+            given(queryPort.findByIdentifier(identifier)).willReturn(Optional.empty());
+
+            // when
+            Optional<User> result = sut.findByIdentifier(identifier);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("existsByOrganizationIdAndPhoneNumber 메서드")
+    class ExistsByOrganizationIdAndPhoneNumber {
+
+        @Test
+        @DisplayName("존재하면 true 반환")
+        void shouldReturnTrue_WhenExists() {
+            // given
+            OrganizationId organizationId = UserFixture.defaultOrganizationId();
+            PhoneNumber phoneNumber = PhoneNumber.of("010-1234-5678");
+            given(queryPort.existsByOrganizationIdAndPhoneNumber(organizationId, phoneNumber))
+                    .willReturn(true);
+
+            // when
+            boolean result = sut.existsByOrganizationIdAndPhoneNumber(organizationId, phoneNumber);
+
+            // then
+            assertThat(result).isTrue();
+            then(queryPort)
+                    .should()
+                    .existsByOrganizationIdAndPhoneNumber(organizationId, phoneNumber);
+        }
+
+        @Test
+        @DisplayName("존재하지 않으면 false 반환")
+        void shouldReturnFalse_WhenNotExists() {
+            // given
+            OrganizationId organizationId = UserFixture.defaultOrganizationId();
+            PhoneNumber phoneNumber = PhoneNumber.of("010-9999-8888");
+            given(queryPort.existsByOrganizationIdAndPhoneNumber(organizationId, phoneNumber))
+                    .willReturn(false);
+
+            // when
+            boolean result = sut.existsByOrganizationIdAndPhoneNumber(organizationId, phoneNumber);
+
+            // then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Criteria에 맞는 사용자 수 반환")
+        void shouldReturnCount_MatchingCriteria() {
+            // given
+            UserSearchCriteria criteria =
+                    UserSearchCriteria.ofDefault(
+                            List.of(UserFixture.defaultOrganizationId()),
+                            null,
+                            null,
+                            DateRange.of(null, null),
+                            0,
+                            10);
+            given(queryPort.countBySearchCriteria(criteria)).willReturn(5L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEqualTo(5L);
+            then(queryPort).should().countBySearchCriteria(criteria);
         }
     }
 }

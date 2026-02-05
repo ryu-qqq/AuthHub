@@ -91,6 +91,21 @@ public class ServiceQueryDslRepository {
     }
 
     /**
+     * 서비스 코드(String)로 단건 조회
+     *
+     * @param serviceCode 서비스 코드 (String)
+     * @return Optional<ServiceJpaEntity>
+     */
+    public Optional<ServiceJpaEntity> findByServiceCode(String serviceCode) {
+        ServiceJpaEntity result =
+                queryFactory
+                        .selectFrom(serviceJpaEntity)
+                        .where(conditionBuilder.serviceCodeEquals(serviceCode))
+                        .fetchOne();
+        return Optional.ofNullable(result);
+    }
+
+    /**
      * 서비스 코드(String) 존재 여부 확인
      *
      * @param serviceCode 서비스 코드 (String)

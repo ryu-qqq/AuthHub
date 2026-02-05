@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -73,16 +75,17 @@ public class InternalOnboardingController {
     @Operation(summary = "온보딩", description = "테넌트와 조직을 한 번에 생성합니다. X-Idempotency-Key 헤더는 필수입니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                responseCode = "200",
+                responseCode = "201",
                 description = "온보딩 성공")
     })
-    public ApiResponse<OnboardingResultApiResponse> onboarding(
+    public ResponseEntity<ApiResponse<OnboardingResultApiResponse>> onboarding(
             @Parameter(description = "멱등키 (필수, UUID 권장, 24시간 유효)")
                     @RequestHeader(value = IDEMPOTENCY_KEY_HEADER)
                     String idempotencyKey,
             @Valid @RequestBody OnboardingApiRequest request) {
         OnboardingCommand command = mapper.toCommand(request, idempotencyKey);
         OnboardingResult result = onboardingUseCase.execute(command);
-        return ApiResponse.ofSuccess(mapper.toApiResponse(result));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ofSuccess(mapper.toApiResponse(result)));
     }
 }

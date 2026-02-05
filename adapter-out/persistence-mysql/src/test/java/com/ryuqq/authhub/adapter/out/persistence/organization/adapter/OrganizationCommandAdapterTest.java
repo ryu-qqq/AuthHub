@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.persistence.organization.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -123,6 +124,28 @@ class OrganizationCommandAdapterTest {
             assertThat(result).isNotNull();
             then(mapper).should().toEntity(newDomain);
             then(repository).should().save(entity);
+        }
+
+        @Test
+        @DisplayName("null domain 전달 시 예외 발생")
+        void shouldThrow_WhenDomainIsNull() {
+            // when & then
+            assertThatThrownBy(() -> sut.persist(null)).isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @DisplayName("Repository.save() 예외 발생 시 호출자에게 전파")
+        void shouldPropagateException_WhenRepositorySaveThrows() {
+            // given
+            Organization domain = OrganizationFixture.create();
+            OrganizationJpaEntity entity = OrganizationJpaEntityFixture.create();
+            RuntimeException expected = new RuntimeException("DB error");
+
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willThrow(expected);
+
+            // when & then
+            assertThatThrownBy(() -> sut.persist(domain)).isSameAs(expected);
         }
     }
 }

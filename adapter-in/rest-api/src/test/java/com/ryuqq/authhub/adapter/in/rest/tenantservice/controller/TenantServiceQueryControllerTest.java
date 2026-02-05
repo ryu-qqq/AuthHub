@@ -216,5 +216,27 @@ class TenantServiceQueryControllerTest extends RestDocsTestSupport {
                                     .param("size", "20"))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("빈 결과를 반환한다")
+        void shouldReturnEmptyResult() throws Exception {
+            // given
+            TenantServicePageResult pageResult = TenantServicePageResult.empty(20);
+            given(searchTenantServicesUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(TenantServiceApiEndpoints.TENANT_SERVICES)
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0))
+                    .andExpect(jsonPath("$.data.totalPages").value(0))
+                    .andExpect(jsonPath("$.data.first").value(true))
+                    .andExpect(jsonPath("$.data.last").value(true));
+        }
     }
 }

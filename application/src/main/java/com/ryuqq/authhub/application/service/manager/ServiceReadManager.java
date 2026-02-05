@@ -82,6 +82,33 @@ public class ServiceReadManager {
     }
 
     /**
+     * ServiceCode로 Service 조회 (필수)
+     *
+     * @param serviceCode Service Code (VO)
+     * @return Service Domain
+     * @throws ServiceNotFoundException 존재하지 않는 경우
+     */
+    @Transactional(readOnly = true)
+    public Service findByCode(ServiceCode serviceCode) {
+        return queryPort
+                .findByCode(serviceCode)
+                .orElseThrow(() -> new ServiceNotFoundException(serviceCode.value()));
+    }
+
+    /**
+     * ServiceCode로 Service 조회 (Optional)
+     *
+     * <p>존재하지 않는 경우 빈 Optional 반환합니다.
+     *
+     * @param serviceCode Service Code (VO)
+     * @return Service Domain (Optional)
+     */
+    @Transactional(readOnly = true)
+    public Optional<Service> findByCodeOptional(ServiceCode serviceCode) {
+        return queryPort.findByCode(serviceCode);
+    }
+
+    /**
      * 조건에 맞는 Service 목록 조회 (페이징)
      *
      * @param criteria 검색 조건 (ServiceSearchCriteria)

@@ -3,8 +3,13 @@ package com.ryuqq.authhub.domain.permissionendpoint.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permissionendpoint.fixture.PermissionEndpointFixture;
+import com.ryuqq.authhub.domain.permissionendpoint.id.PermissionEndpointId;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
+import com.ryuqq.authhub.domain.permissionendpoint.vo.ServiceName;
+import com.ryuqq.authhub.domain.permissionendpoint.vo.UrlPattern;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -155,8 +160,218 @@ class PermissionEndpointTest {
                     .hasMessageContaining("'/'로 시작");
         }
 
+        @Test
+        @DisplayName("serviceName이 null이면 예외가 발생한다")
+        void shouldThrowExceptionWhenServiceNameIsNull() {
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    PermissionEndpoint.create(
+                                            1L,
+                                            null,
+                                            "/api/v1/users",
+                                            HttpMethod.GET,
+                                            "설명",
+                                            DEFAULT_IS_PUBLIC,
+                                            NOW))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("serviceName");
+        }
+
+        @Test
+        @DisplayName("serviceName이 빈 값이면 예외가 발생한다")
+        void shouldThrowExceptionWhenServiceNameIsBlank() {
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    PermissionEndpoint.create(
+                                            1L,
+                                            "",
+                                            "/api/v1/users",
+                                            HttpMethod.GET,
+                                            "설명",
+                                            DEFAULT_IS_PUBLIC,
+                                            NOW))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("serviceName");
+        }
+
+        @Test
+        @DisplayName("description은 null을 허용한다")
+        void shouldAllowNullDescription() {
+            // when
+            PermissionEndpoint endpoint =
+                    PermissionEndpoint.create(
+                            1L,
+                            DEFAULT_SERVICE_NAME,
+                            "/api/v1/users",
+                            HttpMethod.GET,
+                            null,
+                            DEFAULT_IS_PUBLIC,
+                            NOW);
+
+            // then
+            assertThat(endpoint.descriptionValue()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("PermissionEndpoint 엣지 케이스 테스트")
+    class EdgeCaseTests {
+
+        @Test
+        @DisplayName("update()에서 updateData가 null이면 NullPointerException이 발생한다")
+        void shouldThrowExceptionWhenUpdateDataIsNull() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when & then
+            assertThatThrownBy(() -> endpoint.update(null, NOW))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @DisplayName("matches()에서 requestUrl이 null이면 NullPointerException이 발생한다")
+        void shouldThrowExceptionWhenRequestUrlIsNull() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when & then
+            assertThatThrownBy(() -> endpoint.matches(null, HttpMethod.GET))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @DisplayName("matches()에서 requestMethod가 null이면 false를 반환한다")
+        void shouldReturnFalseWhenRequestMethodIsNull() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when & then - httpMethod.equals(null)은 false를 반환
+            assertThat(endpoint.matches("/api/v1/users", null)).isFalse();
+        }
+
+        @Test
+        @DisplayName("matches()에서 빈 URL은 매칭되지 않는다")
+        void shouldNotMatchEmptyUrl() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when & then
+            assertThat(endpoint.matches("", HttpMethod.GET)).isFalse();
+        }
+
         // httpMethod는 enum이므로 VO가 아니며, aggregate에서 null check를 하지 않음
         // httpMethod가 null인 경우 검증은 Application Layer에서 수행
+
+        @Test
+        @DisplayName("VO 타입 파라미터로 엔드포인트를 생성한다")
+        void shouldCreateWithVOTypes() {
+            // given
+            PermissionId permissionId = PermissionId.of(1L);
+            ServiceName serviceName = ServiceName.of(DEFAULT_SERVICE_NAME);
+            UrlPattern urlPattern = UrlPattern.of("/api/v1/users");
+            HttpMethod httpMethod = HttpMethod.GET;
+            String description = "사용자 목록 조회";
+
+            // when
+            PermissionEndpoint endpoint =
+                    PermissionEndpoint.create(
+                            permissionId,
+                            serviceName,
+                            urlPattern,
+                            httpMethod,
+                            description,
+                            DEFAULT_IS_PUBLIC,
+                            NOW);
+
+            // then
+            assertThat(endpoint.permissionIdValue()).isEqualTo(1L);
+            assertThat(endpoint.serviceNameValue()).isEqualTo(DEFAULT_SERVICE_NAME);
+            assertThat(endpoint.urlPatternValue()).isEqualTo("/api/v1/users");
+            assertThat(endpoint.httpMethodValue()).isEqualTo("GET");
+            assertThat(endpoint.descriptionValue()).isEqualTo(description);
+            assertThat(endpoint.isNew()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("PermissionEndpoint 재구성 테스트")
+    class ReconstituteTests {
+
+        @Test
+        @DisplayName("VO 타입 파라미터로 엔드포인트를 재구성한다")
+        void shouldReconstituteWithVOTypes() {
+            // given
+            PermissionEndpointId endpointId = PermissionEndpointId.of(1L);
+            PermissionId permissionId = PermissionId.of(1L);
+            ServiceName serviceName = ServiceName.of(DEFAULT_SERVICE_NAME);
+            UrlPattern urlPattern = UrlPattern.of("/api/v1/users");
+            HttpMethod httpMethod = HttpMethod.GET;
+            String description = "사용자 목록 조회";
+            DeletionStatus deletionStatus = DeletionStatus.active();
+            Instant createdAt = NOW;
+            Instant updatedAt = NOW;
+
+            // when
+            PermissionEndpoint endpoint =
+                    PermissionEndpoint.reconstitute(
+                            endpointId,
+                            permissionId,
+                            serviceName,
+                            urlPattern,
+                            httpMethod,
+                            description,
+                            DEFAULT_IS_PUBLIC,
+                            deletionStatus,
+                            createdAt,
+                            updatedAt);
+
+            // then
+            assertThat(endpoint.permissionEndpointIdValue()).isEqualTo(1L);
+            assertThat(endpoint.permissionIdValue()).isEqualTo(1L);
+            assertThat(endpoint.serviceNameValue()).isEqualTo(DEFAULT_SERVICE_NAME);
+            assertThat(endpoint.urlPatternValue()).isEqualTo("/api/v1/users");
+            assertThat(endpoint.httpMethodValue()).isEqualTo("GET");
+            assertThat(endpoint.descriptionValue()).isEqualTo(description);
+            assertThat(endpoint.isNew()).isFalse();
+        }
+
+        @Test
+        @DisplayName("Long 타입 파라미터로 엔드포인트를 재구성한다")
+        void shouldReconstituteWithLongTypes() {
+            // given
+            Long endpointId = 1L;
+            Long permissionId = 1L;
+            String serviceName = DEFAULT_SERVICE_NAME;
+            String urlPattern = "/api/v1/users";
+            HttpMethod httpMethod = HttpMethod.GET;
+            String description = "사용자 목록 조회";
+            DeletionStatus deletionStatus = DeletionStatus.active();
+            Instant createdAt = NOW;
+            Instant updatedAt = NOW;
+
+            // when
+            PermissionEndpoint endpoint =
+                    PermissionEndpoint.reconstitute(
+                            endpointId,
+                            permissionId,
+                            serviceName,
+                            urlPattern,
+                            httpMethod,
+                            description,
+                            DEFAULT_IS_PUBLIC,
+                            deletionStatus,
+                            createdAt,
+                            updatedAt);
+
+            // then
+            assertThat(endpoint.permissionEndpointIdValue()).isEqualTo(1L);
+            assertThat(endpoint.permissionIdValue()).isEqualTo(1L);
+            assertThat(endpoint.serviceNameValue()).isEqualTo(DEFAULT_SERVICE_NAME);
+            assertThat(endpoint.urlPatternValue()).isEqualTo("/api/v1/users");
+            assertThat(endpoint.isNew()).isFalse();
+        }
     }
 
     @Nested
@@ -373,6 +588,45 @@ class PermissionEndpointTest {
             assertThat(endpoint.isActive()).isTrue();
             assertThat(endpoint.updatedAt()).isEqualTo(NOW);
         }
+
+        @Test
+        @DisplayName("활성 상태에서 삭제 후 복원한다")
+        void shouldRestoreAfterDelete() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+            assertThat(endpoint.isActive()).isTrue();
+
+            // when
+            endpoint.delete(NOW);
+            assertThat(endpoint.isDeleted()).isTrue();
+
+            Instant restoreTime = NOW.plusSeconds(100);
+            endpoint.restore(restoreTime);
+
+            // then
+            assertThat(endpoint.isDeleted()).isFalse();
+            assertThat(endpoint.isActive()).isTrue();
+            assertThat(endpoint.updatedAt()).isEqualTo(restoreTime);
+        }
+
+        @Test
+        @DisplayName("이미 삭제된 엔드포인트를 다시 삭제한다")
+        void shouldDeleteAlreadyDeletedEndpoint() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.createDeleted();
+            assertThat(endpoint.isDeleted()).isTrue();
+            Instant firstDeleteTime = endpoint.getDeletionStatus().deletedAt();
+
+            // when
+            Instant secondDeleteTime = NOW.plusSeconds(100);
+            endpoint.delete(secondDeleteTime);
+
+            // then
+            assertThat(endpoint.isDeleted()).isTrue();
+            assertThat(endpoint.getDeletionStatus().deletedAt()).isNotNull();
+            assertThat(endpoint.getDeletionStatus().deletedAt()).isEqualTo(secondDeleteTime);
+            assertThat(endpoint.updatedAt()).isEqualTo(secondDeleteTime);
+        }
     }
 
     @Nested
@@ -389,6 +643,66 @@ class PermissionEndpointTest {
             // then
             assertThat(newEndpoint.isNew()).isTrue();
             assertThat(existingEndpoint.isNew()).isFalse();
+        }
+
+        @Test
+        @DisplayName("permissionEndpointIdValue는 신규 생성 시 null을 반환한다")
+        void permissionEndpointIdValueShouldReturnNullForNewEndpoint() {
+            // given
+            PermissionEndpoint newEndpoint = PermissionEndpointFixture.createNew();
+
+            // when & then
+            assertThat(newEndpoint.permissionEndpointIdValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("permissionEndpointIdValue는 기존 엔드포인트에서 ID를 반환한다")
+        void permissionEndpointIdValueShouldReturnIdForExistingEndpoint() {
+            // given
+            PermissionEndpoint existingEndpoint = PermissionEndpointFixture.create();
+
+            // when & then
+            assertThat(existingEndpoint.permissionEndpointIdValue()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("serviceNameValue는 서비스 이름을 반환한다")
+        void serviceNameValueShouldReturnServiceName() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when & then
+            assertThat(endpoint.serviceNameValue()).isEqualTo(DEFAULT_SERVICE_NAME);
+        }
+
+        @Test
+        @DisplayName("urlPatternValue는 URL 패턴을 반환한다")
+        void urlPatternValueShouldReturnUrlPattern() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when & then
+            assertThat(endpoint.urlPatternValue()).isEqualTo("/api/v1/users");
+        }
+
+        @Test
+        @DisplayName("httpMethodValue는 HTTP 메서드 이름을 반환한다")
+        void httpMethodValueShouldReturnHttpMethodName() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when & then
+            assertThat(endpoint.httpMethodValue()).isEqualTo("GET");
+        }
+
+        @Test
+        @DisplayName("descriptionValue는 설명을 반환한다")
+        void descriptionValueShouldReturnDescription() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when & then
+            assertThat(endpoint.descriptionValue()).isEqualTo("사용자 목록 조회 엔드포인트");
         }
     }
 
@@ -433,6 +747,46 @@ class PermissionEndpointTest {
 
             // then
             assertThat(endpoint1).isNotEqualTo(endpoint2);
+        }
+    }
+
+    @Nested
+    @DisplayName("PermissionEndpoint toString() 테스트")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("toString은 엔드포인트 정보를 포함한다")
+        void toStringShouldContainEndpointInformation() {
+            // given
+            PermissionEndpoint endpoint = PermissionEndpointFixture.create();
+
+            // when
+            String toString = endpoint.toString();
+
+            // then - record VO의 toString은 "TypeName[value=X]" 형식으로 출력됨
+            assertThat(toString).contains("PermissionEndpoint");
+            assertThat(toString).contains("permissionEndpointId=PermissionEndpointId[value=1]");
+            assertThat(toString).contains("permissionId=PermissionId[value=1]");
+            assertThat(toString).contains("serviceName=ServiceName[value=authhub]");
+            assertThat(toString).contains("urlPattern=UrlPattern[value=/api/v1/users]");
+            assertThat(toString).contains("httpMethod=GET");
+            assertThat(toString).contains("isPublic=false");
+            assertThat(toString).contains("deleted=false");
+        }
+
+        @Test
+        @DisplayName("toString은 신규 엔드포인트에서도 정상 동작한다")
+        void toStringShouldWorkForNewEndpoint() {
+            // given
+            PermissionEndpoint newEndpoint = PermissionEndpointFixture.createNew();
+
+            // when
+            String toString = newEndpoint.toString();
+
+            // then - 신규 객체는 permissionEndpointId=null
+            assertThat(toString).contains("PermissionEndpoint");
+            assertThat(toString).contains("permissionEndpointId=null");
+            assertThat(toString).contains("permissionId=PermissionId[value=1]");
         }
     }
 }

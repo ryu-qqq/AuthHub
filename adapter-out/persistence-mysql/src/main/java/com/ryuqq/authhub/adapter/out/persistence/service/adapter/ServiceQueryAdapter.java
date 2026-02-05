@@ -91,6 +91,17 @@ public class ServiceQueryAdapter implements ServiceQueryPort {
     }
 
     /**
+     * 서비스 코드로 단건 조회
+     *
+     * @param serviceCode 서비스 코드
+     * @return Optional<Service>
+     */
+    @Override
+    public Optional<Service> findByCode(ServiceCode serviceCode) {
+        return repository.findByServiceCode(serviceCode.value()).map(mapper::toDomain);
+    }
+
+    /**
      * 조건에 맞는 서비스 목록 조회 (페이징)
      *
      * @param criteria 검색 조건 (ServiceSearchCriteria)

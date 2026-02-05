@@ -5,6 +5,7 @@ import com.ryuqq.authhub.application.permissionendpoint.dto.command.SyncEndpoint
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permissionendpoint.aggregate.PermissionEndpoint;
 import com.ryuqq.authhub.domain.permissionendpoint.vo.HttpMethod;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +49,13 @@ public class EndpointSyncCommandFactory {
      *
      * @param missingPermissionKeys 생성이 필요한 permissionKey 목록
      * @param itemsByPermissionKey permissionKey → EndpointSyncItem 매핑 (description 참조용)
+     * @param serviceId 서비스 ID (nullable)
      * @return 생성된 Permission 목록
      */
     public List<Permission> createMissingPermissions(
             List<String> missingPermissionKeys,
-            Map<String, EndpointSyncItem> itemsByPermissionKey) {
+            Map<String, EndpointSyncItem> itemsByPermissionKey,
+            ServiceId serviceId) {
         Instant now = timeProvider.now();
         return missingPermissionKeys.stream()
                 .map(
@@ -60,7 +63,7 @@ public class EndpointSyncCommandFactory {
                             EndpointSyncItem item = itemsByPermissionKey.get(permissionKey);
                             String description =
                                     item != null ? item.description() : "Auto-created permission";
-                            return createPermission(permissionKey, description, now);
+                            return createPermission(permissionKey, description, serviceId, now);
                         })
                 .toList();
     }
@@ -70,14 +73,16 @@ public class EndpointSyncCommandFactory {
      *
      * @param permissionKey 권한 키 (예: "product:create")
      * @param description 설명
+     * @param serviceId 서비스 ID (nullable)
      * @param now 현재 시간
      * @return 생성된 Permission
      */
-    public Permission createPermission(String permissionKey, String description, Instant now) {
+    public Permission createPermission(
+            String permissionKey, String description, ServiceId serviceId, Instant now) {
         String[] parts = parsePermissionKey(permissionKey);
         String resource = parts[0];
         String action = parts[1];
-        return Permission.createCustom(null, resource, action, description, now);
+        return Permission.createCustom(serviceId, resource, action, description, now);
     }
 
     /**

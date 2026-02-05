@@ -161,4 +161,181 @@ class SecurityContextHolderTest {
             assertThat(SecurityContextHolder.hasPermission("user:write")).isFalse();
         }
     }
+
+    @Nested
+    @DisplayName("getCurrentOrganizationId() 메서드는")
+    class GetCurrentOrganizationIdMethod {
+
+        @Test
+        @DisplayName("설정된 컨텍스트의 organizationId를 반환한다")
+        void shouldReturnCurrentOrganizationId() {
+            // Given
+            SecurityContextHolder.setContext(
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .tenantId("tenant-1")
+                            .organizationId("org-789")
+                            .build());
+
+            // When
+            String organizationId = SecurityContextHolder.getCurrentOrganizationId();
+
+            // Then
+            assertThat(organizationId).isEqualTo("org-789");
+        }
+    }
+
+    @Nested
+    @DisplayName("hasAnyRole() 메서드는")
+    class HasAnyRoleMethod {
+
+        @Test
+        @DisplayName("컨텍스트의 hasAnyRole을 위임한다")
+        void shouldDelegateToContext() {
+            // Given
+            SecurityContextHolder.setContext(
+                    SecurityContext.builder().userId("user-1").roles(Set.of("ROLE_USER")).build());
+
+            // Then
+            assertThat(SecurityContextHolder.hasAnyRole("ROLE_ADMIN", "ROLE_USER")).isTrue();
+            assertThat(SecurityContextHolder.hasAnyRole("ROLE_ADMIN", "ROLE_OTHER")).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("hasAnyPermission() 메서드는")
+    class HasAnyPermissionMethod {
+
+        @Test
+        @DisplayName("컨텍스트의 hasAnyPermission을 위임한다")
+        void shouldDelegateToContext() {
+            // Given
+            SecurityContextHolder.setContext(
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .permissions(Set.of("user:read"))
+                            .build());
+
+            // Then
+            assertThat(SecurityContextHolder.hasAnyPermission("user:write", "user:read")).isTrue();
+            assertThat(SecurityContextHolder.hasAnyPermission("order:read", "order:write"))
+                    .isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("hasAllPermissions() 메서드는")
+    class HasAllPermissionsMethod {
+
+        @Test
+        @DisplayName("컨텍스트의 hasAllPermissions을 위임한다")
+        void shouldDelegateToContext() {
+            // Given
+            SecurityContextHolder.setContext(
+                    SecurityContext.builder()
+                            .userId("user-1")
+                            .permissions(Set.of("user:read", "user:write"))
+                            .build());
+
+            // Then
+            assertThat(SecurityContextHolder.hasAllPermissions("user:read", "user:write")).isTrue();
+            assertThat(SecurityContextHolder.hasAllPermissions("user:read", "user:delete"))
+                    .isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("isSuperAdmin() 메서드는")
+    class IsSuperAdminMethod {
+
+        @Test
+        @DisplayName("SUPER_ADMIN 역할 시 true를 반환한다")
+        void shouldReturnTrueWhenSuperAdmin() {
+            // Given
+            SecurityContextHolder.setContext(
+                    SecurityContext.builder()
+                            .userId("admin")
+                            .roles(Set.of(SecurityContext.ROLE_SUPER_ADMIN))
+                            .build());
+
+            // Then
+            assertThat(SecurityContextHolder.isSuperAdmin()).isTrue();
+        }
+
+        @Test
+        @DisplayName("SUPER_ADMIN 아닌 경우 false를 반환한다")
+        void shouldReturnFalseWhenNotSuperAdmin() {
+            // Given
+            SecurityContextHolder.setContext(
+                    SecurityContext.builder().userId("user-1").roles(Set.of("ROLE_USER")).build());
+
+            // Then
+            assertThat(SecurityContextHolder.isSuperAdmin()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("isAuthenticated() 메서드는")
+    class IsAuthenticatedMethod {
+
+        @Test
+        @DisplayName("인증된 사용자 시 true를 반환한다")
+        void shouldReturnTrueWhenAuthenticated() {
+            // Given
+            SecurityContextHolder.setContext(SecurityContext.builder().userId("user-1").build());
+
+            // Then
+            assertThat(SecurityContextHolder.isAuthenticated()).isTrue();
+        }
+
+        @Test
+        @DisplayName("익명 사용자 시 false를 반환한다")
+        void shouldReturnFalseWhenAnonymous() {
+            // Given - clearContext 후 getContext는 anonymous 반환
+            SecurityContextHolder.clearContext();
+
+            // Then
+            assertThat(SecurityContextHolder.isAuthenticated()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("getTraceId() 메서드는")
+    class GetTraceIdMethod {
+
+        @Test
+        @DisplayName("설정된 컨텍스트의 traceId를 반환한다")
+        void shouldReturnTraceId() {
+            // Given
+            SecurityContextHolder.setContext(
+                    SecurityContext.builder().userId("user-1").traceId("trace-abc-123").build());
+
+            // When
+            String traceId = SecurityContextHolder.getTraceId();
+
+            // Then
+            assertThat(traceId).isEqualTo("trace-abc-123");
+        }
+    }
+
+    @Nested
+    @DisplayName("Thread Safety")
+    class ThreadSafety {
+
+        @Test
+        @DisplayName("clearContext() 후 getContext()는 anonymous를 반환한다")
+        void shouldReturnAnonymousAfterClearContext() {
+            // Given
+            SecurityContextHolder.setContext(SecurityContext.builder().userId("user-1").build());
+
+            // When
+            SecurityContextHolder.clearContext();
+            SecurityContext context = SecurityContextHolder.getContext();
+
+            // Then
+            assertThat(context).isNotNull();
+            assertThat(context.isAuthenticated()).isFalse();
+            assertThat(context.getUserId()).isNull();
+        }
+    }
 }

@@ -167,5 +167,16 @@ class ServiceAssemblerTest {
             // then
             assertThat(result.content()).isEmpty();
         }
+
+        @Test
+        @DisplayName("services가 null이면 빈 content로 PageResult 반환")
+        void shouldReturnEmptyContent_WhenNullInput() {
+            // when
+            ServicePageResult result = sut.toPageResult(null, 0, 20, 0L);
+
+            // then
+            assertThat(result.content()).isEmpty();
+            assertThat(result.pageMeta()).isNotNull();
+        }
     }
 }

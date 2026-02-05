@@ -239,6 +239,26 @@ class ServiceTest {
             assertThat(service.statusValue()).isEqualTo("INACTIVE");
             assertThat(service.updatedAt()).isEqualTo(NOW);
         }
+
+        @Test
+        @DisplayName("UpdateData가 모든 필드가 null이면 변경하지 않는다")
+        void shouldNotUpdateWhenAllFieldsAreNull() {
+            // given
+            Service service = ServiceFixture.create();
+            String originalName = service.nameValue();
+            String originalDescription = service.descriptionValue();
+            String originalStatus = service.statusValue();
+            ServiceUpdateData updateData = new ServiceUpdateData(null, null, null);
+
+            // when
+            service.update(updateData, NOW);
+
+            // then
+            assertThat(service.nameValue()).isEqualTo(originalName);
+            assertThat(service.descriptionValue()).isEqualTo(originalDescription);
+            assertThat(service.statusValue()).isEqualTo(originalStatus);
+            assertThat(service.updatedAt()).isEqualTo(NOW); // updatedAt은 항상 변경됨
+        }
     }
 
     @Nested
@@ -327,6 +347,28 @@ class ServiceTest {
 
             // then
             assertThat(service1).isNotEqualTo(service2);
+        }
+    }
+
+    @Nested
+    @DisplayName("Service toString 테스트")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("toString은 서비스 정보를 포함한다")
+        void shouldIncludeServiceInformation() {
+            // given
+            Service service = ServiceFixture.create();
+
+            // when
+            String result = service.toString();
+
+            // then
+            assertThat(result).contains("Service{");
+            assertThat(result).contains("serviceId=");
+            assertThat(result).contains("serviceCode=");
+            assertThat(result).contains("name=");
+            assertThat(result).contains("status=");
         }
     }
 }

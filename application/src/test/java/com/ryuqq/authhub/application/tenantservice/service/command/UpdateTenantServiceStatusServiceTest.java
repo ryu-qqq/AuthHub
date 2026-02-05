@@ -157,5 +157,26 @@ class UpdateTenantServiceStatusServiceTest {
             // then
             then(commandManager).should().persist(tenantService);
         }
+
+        @Test
+        @DisplayName("실패: 잘못된 status 문자열이면 IllegalArgumentException 발생")
+        void shouldThrowException_WhenStatusIsInvalid() {
+            // given
+            UpdateTenantServiceStatusCommand command =
+                    TenantServiceCommandFixtures.updateStatusCommand(
+                            TenantServiceCommandFixtures.defaultTenantServiceId(), "INVALID");
+            TenantServiceId id = TenantServiceId.of(command.tenantServiceId());
+            StatusChangeContext<TenantServiceId> context =
+                    new StatusChangeContext<>(id, FIXED_TIME);
+
+            given(commandFactory.createStatusChangeContext(command)).willReturn(context);
+
+            // when & then
+            assertThatThrownBy(() -> sut.execute(command))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            then(validator).should(never()).findExistingOrThrow(any());
+            then(commandManager).should(never()).persist(any());
+        }
     }
 }

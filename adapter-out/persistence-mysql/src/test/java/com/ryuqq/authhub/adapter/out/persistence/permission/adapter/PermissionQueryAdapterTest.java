@@ -324,6 +324,66 @@ class PermissionQueryAdapterTest {
     }
 
     @Nested
+    @DisplayName("findAllByPermissionKeys 메서드")
+    class FindAllByPermissionKeys {
+
+        @Test
+        @DisplayName("성공: 권한 키 목록으로 Entity 조회 후 Domain 변환")
+        void shouldFindAndConvertAll_ByPermissionKeys() {
+            // given
+            List<String> permissionKeys = List.of("user:read", "user:write");
+            PermissionJpaEntity entity1 =
+                    PermissionJpaEntityFixture.createWithResourceAndAction("user", "read");
+            PermissionJpaEntity entity2 =
+                    PermissionJpaEntityFixture.createWithResourceAndAction("user", "write");
+            Permission domain1 = PermissionFixture.createWithResourceAndAction("user", "read");
+            Permission domain2 = PermissionFixture.createWithResourceAndAction("user", "write");
+
+            given(repository.findAllByPermissionKeys(permissionKeys))
+                    .willReturn(List.of(entity1, entity2));
+            given(mapper.toDomain(entity1)).willReturn(domain1);
+            given(mapper.toDomain(entity2)).willReturn(domain2);
+
+            // when
+            List<Permission> result = sut.findAllByPermissionKeys(permissionKeys);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).containsExactly(domain1, domain2);
+        }
+
+        @Test
+        @DisplayName("빈 키 목록이면 빈 목록 반환")
+        void shouldReturnEmptyList_WhenKeysEmpty() {
+            // given
+            List<String> permissionKeys = List.of();
+
+            given(repository.findAllByPermissionKeys(permissionKeys)).willReturn(List.of());
+
+            // when
+            List<Permission> result = sut.findAllByPermissionKeys(permissionKeys);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Repository에 permissionKeys 전달")
+        void shouldPassPermissionKeys_ToRepository() {
+            // given
+            List<String> permissionKeys = List.of("user:read", "user:write");
+
+            given(repository.findAllByPermissionKeys(permissionKeys)).willReturn(List.of());
+
+            // when
+            sut.findAllByPermissionKeys(permissionKeys);
+
+            // then
+            then(repository).should().findAllByPermissionKeys(permissionKeys);
+        }
+    }
+
+    @Nested
     @DisplayName("findAllByIds 메서드")
     class FindAllByIds {
 

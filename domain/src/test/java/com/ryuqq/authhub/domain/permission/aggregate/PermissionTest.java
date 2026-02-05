@@ -3,16 +3,21 @@ package com.ryuqq.authhub.domain.permission.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotDeletableException;
 import com.ryuqq.authhub.domain.permission.exception.SystemPermissionNotModifiableException;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
+import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.permission.vo.Action;
+import com.ryuqq.authhub.domain.permission.vo.PermissionKey;
+import com.ryuqq.authhub.domain.permission.vo.PermissionType;
+import com.ryuqq.authhub.domain.permission.vo.Resource;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Permission Aggregate 단위 테스트
@@ -20,7 +25,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author development-team
  * @since 1.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @Tag("unit")
 @DisplayName("Permission Aggregate 테스트")
 class PermissionTest {
@@ -258,6 +262,76 @@ class PermissionTest {
             assertThat(systemPermission.typeValue()).isEqualTo("SYSTEM");
             assertThat(customPermission.typeValue()).isEqualTo("CUSTOM");
         }
+
+        @Test
+        @DisplayName("serviceIdValue()는 serviceId가 있으면 값을 반환한다")
+        void serviceIdValueShouldReturnValueWhenServiceIdExists() {
+            // given
+            ServiceId serviceId = ServiceId.of(1L);
+            Permission permission =
+                    Permission.reconstitute(
+                            PermissionId.of(1L),
+                            serviceId,
+                            PermissionKey.of("user:read"),
+                            Resource.of("user"),
+                            Action.of("read"),
+                            "설명",
+                            PermissionType.CUSTOM,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+
+            // when
+            Long serviceIdValue = permission.serviceIdValue();
+
+            // then
+            assertThat(serviceIdValue).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("serviceIdValue()는 serviceId가 null이면 null을 반환한다")
+        void serviceIdValueShouldReturnNullWhenServiceIdIsNull() {
+            // given
+            Permission permission = PermissionFixture.create();
+
+            // when
+            Long serviceIdValue = permission.serviceIdValue();
+
+            // then
+            assertThat(serviceIdValue).isNull();
+        }
+
+        @Test
+        @DisplayName("getter 메서드들이 올바른 값을 반환한다")
+        void gettersShouldReturnCorrectValues() {
+            // given
+            Permission permission = PermissionFixture.create();
+
+            // then
+            assertThat(permission.getPermissionId()).isNotNull();
+            assertThat(permission.getServiceId()).isNull();
+            assertThat(permission.getPermissionKey()).isNotNull();
+            assertThat(permission.getResource()).isNotNull();
+            assertThat(permission.getAction()).isNotNull();
+            assertThat(permission.getDescription()).isNotNull();
+            assertThat(permission.getType()).isEqualTo(PermissionType.CUSTOM);
+            assertThat(permission.getDeletionStatus()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("toString()은 권한 정보를 포함한다")
+        void toStringShouldContainPermissionInfo() {
+            // given
+            Permission permission = PermissionFixture.create();
+
+            // when
+            String toString = permission.toString();
+
+            // then
+            assertThat(toString).contains("Permission");
+            assertThat(toString).contains("permissionId");
+            assertThat(toString).contains("permissionKey");
+        }
     }
 
     @Nested
@@ -296,6 +370,195 @@ class PermissionTest {
 
             // then
             assertThat(permission1).isNotEqualTo(permission2);
+        }
+
+        @Test
+        @DisplayName("ID가 없고 serviceId가 null인 경우 permissionKey로 동등성을 판단한다")
+        void shouldUsePermissionKeyWhenIdIsNullAndServiceIdIsNull() {
+            // given
+            Permission permission1 = Permission.createCustom(null, "user", "read", "설명1", NOW);
+            Permission permission2 = Permission.createCustom(null, "user", "read", "설명2", NOW);
+
+            // then
+            assertThat(permission1).isEqualTo(permission2);
+        }
+
+        @Test
+        @DisplayName("ID가 없고 serviceId가 다른 경우 동등하지 않다")
+        void shouldNotBeEqualWhenIdIsNullAndServiceIdIsDifferent() {
+            // given
+            ServiceId serviceId1 = ServiceId.of(1L);
+            ServiceId serviceId2 = ServiceId.of(2L);
+            Permission permission1 =
+                    Permission.reconstitute(
+                            null,
+                            serviceId1,
+                            PermissionKey.of("user:read"),
+                            Resource.of("user"),
+                            Action.of("read"),
+                            "설명",
+                            PermissionType.CUSTOM,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+            Permission permission2 =
+                    Permission.reconstitute(
+                            null,
+                            serviceId2,
+                            PermissionKey.of("user:read"),
+                            Resource.of("user"),
+                            Action.of("read"),
+                            "설명",
+                            PermissionType.CUSTOM,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(permission1).isNotEqualTo(permission2);
+        }
+
+        @Test
+        @DisplayName("ID가 없고 serviceId는 같고 permissionKey가 다른 경우 동등하지 않다")
+        void shouldNotBeEqualWhenIdIsNullAndServiceIdIsSameButPermissionKeyIsDifferent() {
+            // given
+            ServiceId serviceId = ServiceId.of(1L);
+            Permission permission1 =
+                    Permission.reconstitute(
+                            null,
+                            serviceId,
+                            PermissionKey.of("user:read"),
+                            Resource.of("user"),
+                            Action.of("read"),
+                            "설명",
+                            PermissionType.CUSTOM,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+            Permission permission2 =
+                    Permission.reconstitute(
+                            null,
+                            serviceId,
+                            PermissionKey.of("user:write"),
+                            Resource.of("user"),
+                            Action.of("write"),
+                            "설명",
+                            PermissionType.CUSTOM,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(permission1).isNotEqualTo(permission2);
+        }
+    }
+
+    @Nested
+    @DisplayName("Permission 재구성 테스트")
+    class ReconstituteTests {
+
+        @Test
+        @DisplayName("VO 타입 reconstitute()로 재구성한다")
+        void shouldReconstituteViaVOTypes() {
+            // given
+            PermissionId permissionId = PermissionId.of(1L);
+            ServiceId serviceId = ServiceId.of(1L);
+            PermissionKey permissionKey = PermissionKey.of("user:read");
+            Resource resource = Resource.of("user");
+            Action action = Action.of("read");
+            String description = "설명";
+            PermissionType type = PermissionType.CUSTOM;
+            DeletionStatus deletionStatus = DeletionStatus.active();
+
+            // when
+            Permission permission =
+                    Permission.reconstitute(
+                            permissionId,
+                            serviceId,
+                            permissionKey,
+                            resource,
+                            action,
+                            description,
+                            type,
+                            deletionStatus,
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(permission.permissionIdValue()).isEqualTo(1L);
+            assertThat(permission.serviceIdValue()).isEqualTo(1L);
+            assertThat(permission.permissionKeyValue()).isEqualTo("user:read");
+            assertThat(permission.resourceValue()).isEqualTo("user");
+            assertThat(permission.actionValue()).isEqualTo("read");
+            assertThat(permission.descriptionValue()).isEqualTo("설명");
+        }
+
+        @Test
+        @DisplayName("String 타입 reconstitute()로 재구성한다")
+        void shouldReconstituteViaStringTypes() {
+            // when
+            Permission permission =
+                    Permission.reconstitute(
+                            1L,
+                            1L,
+                            "user:read",
+                            "user",
+                            "read",
+                            "설명",
+                            PermissionType.CUSTOM,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(permission.permissionIdValue()).isEqualTo(1L);
+            assertThat(permission.serviceIdValue()).isEqualTo(1L);
+            assertThat(permission.permissionKeyValue()).isEqualTo("user:read");
+            assertThat(permission.resourceValue()).isEqualTo("user");
+            assertThat(permission.actionValue()).isEqualTo("read");
+        }
+
+        @Test
+        @DisplayName("null serviceId로 재구성할 수 있다")
+        void shouldReconstituteWithNullServiceId() {
+            // when
+            Permission permission =
+                    Permission.reconstitute(
+                            1L,
+                            null,
+                            "user:read",
+                            "user",
+                            "read",
+                            "설명",
+                            PermissionType.CUSTOM,
+                            DeletionStatus.active(),
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(permission.serviceIdValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("삭제된 상태로 재구성할 수 있다")
+        void shouldReconstituteWithDeletedStatus() {
+            // when
+            Permission permission =
+                    Permission.reconstitute(
+                            1L,
+                            1L,
+                            "user:read",
+                            "user",
+                            "read",
+                            "설명",
+                            PermissionType.CUSTOM,
+                            DeletionStatus.deletedAt(NOW),
+                            NOW,
+                            NOW);
+
+            // then
+            assertThat(permission.isDeleted()).isTrue();
+            assertThat(permission.isActive()).isFalse();
         }
     }
 }

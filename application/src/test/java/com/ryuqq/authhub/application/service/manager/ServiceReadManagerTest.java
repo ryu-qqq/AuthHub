@@ -194,6 +194,78 @@ class ServiceReadManagerTest {
     }
 
     @Nested
+    @DisplayName("findByCode 메서드")
+    class FindByCode {
+
+        @Test
+        @DisplayName("성공: 코드에 해당하는 서비스가 존재하면 해당 서비스 반환")
+        void shouldReturnService_WhenCodeExists() {
+            // given
+            ServiceCode code = ServiceFixture.defaultCode();
+            Service expected = ServiceFixture.create();
+
+            given(queryPort.findByCode(code)).willReturn(Optional.of(expected));
+
+            // when
+            Service result = sut.findByCode(code);
+
+            // then
+            assertThat(result).isEqualTo(expected);
+            then(queryPort).should().findByCode(code);
+        }
+
+        @Test
+        @DisplayName("실패: 코드에 해당하는 서비스가 없으면 ServiceNotFoundException 발생")
+        void shouldThrowException_WhenCodeNotExists() {
+            // given
+            ServiceCode code = ServiceFixture.defaultCode();
+
+            given(queryPort.findByCode(code)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> sut.findByCode(code))
+                    .isInstanceOf(ServiceNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("findByCodeOptional 메서드")
+    class FindByCodeOptional {
+
+        @Test
+        @DisplayName("존재하면 Optional에 감싸서 반환")
+        void shouldReturnOptionalWithService_WhenCodeExists() {
+            // given
+            ServiceCode code = ServiceFixture.defaultCode();
+            Service expected = ServiceFixture.create();
+
+            given(queryPort.findByCode(code)).willReturn(Optional.of(expected));
+
+            // when
+            Optional<Service> result = sut.findByCodeOptional(code);
+
+            // then
+            assertThat(result).isPresent().contains(expected);
+            then(queryPort).should().findByCode(code);
+        }
+
+        @Test
+        @DisplayName("존재하지 않으면 빈 Optional 반환")
+        void shouldReturnEmpty_WhenCodeNotExists() {
+            // given
+            ServiceCode code = ServiceCode.of("NON_EXISTENT");
+
+            given(queryPort.findByCode(code)).willReturn(Optional.empty());
+
+            // when
+            Optional<Service> result = sut.findByCodeOptional(code);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
     @DisplayName("findAllByCriteria 메서드")
     class FindAllByCriteria {
 
