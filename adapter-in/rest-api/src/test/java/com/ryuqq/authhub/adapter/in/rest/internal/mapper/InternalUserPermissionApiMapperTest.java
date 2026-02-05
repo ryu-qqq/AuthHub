@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.authhub.adapter.in.rest.internal.fixture.InternalApiFixture;
 import com.ryuqq.authhub.application.userrole.dto.response.UserPermissionsResult;
+import java.time.Instant;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +44,9 @@ class InternalUserPermissionApiMapperTest {
             String userId = InternalApiFixture.defaultUserId();
             Set<String> roles = InternalApiFixture.defaultRoles();
             Set<String> permissions = InternalApiFixture.defaultPermissions();
-            UserPermissionsResult result = new UserPermissionsResult(userId, roles, permissions);
+            UserPermissionsResult result =
+                    new UserPermissionsResult(
+                            userId, roles, permissions, "test-hash", Instant.now());
 
             // When
             var response = mapper.toApiResponse(result);
