@@ -157,7 +157,12 @@ class DefaultInternalApiTest {
             String userId = "test-user-id";
             String expectedPath = String.format("/api/v1/internal/users/%s/permissions", userId);
             UserPermissions userPermissions =
-                    new UserPermissions(userId, Set.of("ADMIN", "USER"), Set.of("read", "write"));
+                    new UserPermissions(
+                            userId,
+                            Set.of("ADMIN", "USER"),
+                            Set.of("read", "write"),
+                            "hash123",
+                            Instant.now());
             ApiResponse<UserPermissions> mockResponse =
                     new ApiResponse<>(true, userPermissions, null, null);
             given(httpClient.get(eq(expectedPath), any(TypeReference.class)))
@@ -181,7 +186,8 @@ class DefaultInternalApiTest {
             String userId = "another-user-456";
             String expectedPath = String.format("/api/v1/internal/users/%s/permissions", userId);
             UserPermissions userPermissions =
-                    new UserPermissions(userId, Set.of("VIEWER"), Set.of("read"));
+                    new UserPermissions(
+                            userId, Set.of("VIEWER"), Set.of("read"), "hash456", Instant.now());
             ApiResponse<UserPermissions> mockResponse =
                     new ApiResponse<>(true, userPermissions, null, null);
             given(httpClient.get(eq(expectedPath), any(TypeReference.class)))

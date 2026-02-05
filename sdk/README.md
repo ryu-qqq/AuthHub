@@ -74,6 +74,24 @@ dependencies {
 }
 ```
 
+### Maven
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>com.github.ryu-qqq.AuthHub</groupId>
+    <artifactId>authhub-sdk-spring-boot-starter</artifactId>
+    <version>{version}</version>
+</dependency>
+```
+
+
 ---
 
 ## 빠른 시작
@@ -704,6 +722,16 @@ sdk/
             ├── PermissionMatcher.java
             └── ScopeValidator.java
 ```
+
+## 버전 이력
+
+| 버전 | 날짜 | 변경 내용 |
+|------|------|----------|
+| **v2.0.3** | 2026-02-03 | UserPermissions에 hash/generatedAt 필드 추가 (권한 변경 감지 지원) |
+| v2.0.2 | 2026-02-03 | JWKS/Tenant Config/User Permissions API 추가, SDK 테스트 개선, 문서화 보강 |
+| v2.0.1 | 2026-02-03 | GatewayClient 추가 (Internal API 지원), Permission Spec API, 성능 최적화 |
+| v2.0.0 | 2026-01-20 | Spring Boot Starter 추가, 권한 체크 기능, 엔드포인트 자동 동기화 |
+| v1.0.0 | 2025-01-15 | 최초 릴리즈 (AuthHubClient) |
 
 ---
 

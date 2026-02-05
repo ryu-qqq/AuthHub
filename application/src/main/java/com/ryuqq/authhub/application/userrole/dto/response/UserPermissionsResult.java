@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.application.userrole.dto.response;
 
+import java.time.Instant;
 import java.util.Set;
 
 /**
@@ -14,12 +15,19 @@ import java.util.Set;
  * @param userId 사용자 ID
  * @param roles 역할 이름 Set
  * @param permissions 권한 키 Set
+ * @param hash 권한 해시 (변경 감지용)
+ * @param generatedAt 권한 생성 시점
  * @author development-team
  * @since 1.0.0
  */
-public record UserPermissionsResult(String userId, Set<String> roles, Set<String> permissions) {
+public record UserPermissionsResult(
+        String userId,
+        Set<String> roles,
+        Set<String> permissions,
+        String hash,
+        Instant generatedAt) {
 
     public static UserPermissionsResult empty(String userId) {
-        return new UserPermissionsResult(userId, Set.of(), Set.of());
+        return new UserPermissionsResult(userId, Set.of(), Set.of(), "", Instant.now());
     }
 }

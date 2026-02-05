@@ -23,6 +23,10 @@ public class InternalUserPermissionApiMapper {
      */
     public UserPermissionsApiResponse toApiResponse(UserPermissionsResult result) {
         return new UserPermissionsApiResponse(
-                result.userId(), result.roles(), result.permissions());
+                result.userId(),
+                result.roles(),
+                result.permissions(),
+                result.hash(),
+                result.generatedAt());
     }
 }
