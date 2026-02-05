@@ -71,6 +71,11 @@ dependencies {
     testImplementation project(':bootstrap:bootstrap-web-api')
 
     // ========================================
+    // SDK (SDK E2E 통합 테스트용)
+    // ========================================
+    testImplementation project(':sdk:authhub-sdk-core')
+
+    // ========================================
     // Test Fixtures (Domain/Application Fixture 재사용)
     // ========================================
     testImplementation testFixtures(project(':domain'))

@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.in.rest.user.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -23,6 +24,7 @@ import com.ryuqq.authhub.application.user.dto.response.UserResult;
 import com.ryuqq.authhub.application.user.port.in.query.GetUserUseCase;
 import com.ryuqq.authhub.application.user.port.in.query.SearchUsersUseCase;
 import com.ryuqq.authhub.domain.common.vo.PageMeta;
+import com.ryuqq.authhub.domain.user.exception.UserNotFoundException;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -114,6 +116,21 @@ class UserQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("requestId")
                                                     .type(JsonFieldType.STRING)
                                                     .description("요청 ID"))));
+        }
+
+        @Test
+        @DisplayName("사용자를 찾을 수 없으면 404 Not Found")
+        void shouldReturn404WhenUserNotFound() throws Exception {
+            // given
+            String userId = UserApiFixture.defaultUserId();
+            willThrow(new UserNotFoundException(userId)).given(getUserUseCase).execute(anyString());
+
+            // when & then
+            mockMvc.perform(get(UserApiEndpoints.USERS + "/{userId}", userId))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
         }
     }
 
@@ -241,6 +258,103 @@ class UserQueryControllerTest extends RestDocsTestSupport {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray());
+        }
+
+        @Test
+        @DisplayName("빈 결과 조회를 처리한다")
+        void shouldHandleEmptyResult() throws Exception {
+            // given
+            PageMeta pageMeta = PageMeta.of(0, 20, 0L);
+            UserPageResult pageResult = new UserPageResult(List.of(), pageMeta);
+            given(searchUsersUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(UserApiEndpoints.USERS)
+                                    .param("organizationId", UserApiFixture.defaultOrganizationId())
+                                    .param("status", "ACTIVE"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0));
+        }
+
+        @Test
+        @DisplayName("다양한 파라미터 조합으로 검색한다")
+        void shouldSearchWithVariousParameterCombinations() throws Exception {
+            // given
+            String userId = UserApiFixture.defaultUserId();
+            UserResult user =
+                    new UserResult(
+                            userId,
+                            UserApiFixture.defaultOrganizationId(),
+                            UserApiFixture.defaultIdentifier(),
+                            "010-1234-5678",
+                            "ACTIVE",
+                            UserApiFixture.fixedTime(),
+                            UserApiFixture.fixedTime());
+            PageMeta pageMeta = PageMeta.of(0, 20, 1L);
+            UserPageResult pageResult = new UserPageResult(List.of(user), pageMeta);
+            given(searchUsersUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then - organizationId + status 조합
+            mockMvc.perform(
+                            get(UserApiEndpoints.USERS)
+                                    .param("organizationId", UserApiFixture.defaultOrganizationId())
+                                    .param("status", "ACTIVE")
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content[0].userId").value(userId));
+
+            // when & then - searchWord 조합
+            mockMvc.perform(
+                            get(UserApiEndpoints.USERS)
+                                    .param("searchWord", UserApiFixture.defaultIdentifier())
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray());
+        }
+
+        @Test
+        @DisplayName("page/size 경계값을 처리한다")
+        void shouldHandlePageSizeBoundaryValues() throws Exception {
+            // given
+            PageMeta pageMetaFirst = PageMeta.of(0, 1, 1L);
+            UserResult user =
+                    new UserResult(
+                            UserApiFixture.defaultUserId(),
+                            UserApiFixture.defaultOrganizationId(),
+                            UserApiFixture.defaultIdentifier(),
+                            "010-1234-5678",
+                            "ACTIVE",
+                            UserApiFixture.fixedTime(),
+                            UserApiFixture.fixedTime());
+            UserPageResult pageResultFirst = new UserPageResult(List.of(user), pageMetaFirst);
+            given(searchUsersUseCase.execute(any())).willReturn(pageResultFirst);
+
+            // when & then - page=0, size=1 (최소값)
+            mockMvc.perform(get(UserApiEndpoints.USERS).param("page", "0").param("size", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.size").value(1));
+
+            // given - size=100 (최대값)
+            PageMeta pageMetaMax = PageMeta.of(0, 100, 1L);
+            UserPageResult pageResultMax = new UserPageResult(List.of(user), pageMetaMax);
+            given(searchUsersUseCase.execute(any())).willReturn(pageResultMax);
+
+            // when & then - size=100
+            mockMvc.perform(get(UserApiEndpoints.USERS).param("page", "0").param("size", "100"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.size").value(100));
         }
     }
 }

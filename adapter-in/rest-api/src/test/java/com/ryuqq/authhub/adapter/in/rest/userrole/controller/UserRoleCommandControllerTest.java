@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.in.rest.userrole.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.authhub.adapter.in.rest.common.fixture.ErrorMapperApiFixture;
 import com.ryuqq.authhub.adapter.in.rest.userrole.UserRoleApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.userrole.dto.request.AssignUserRoleApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.userrole.dto.request.RevokeUserRoleApiRequest;
@@ -106,6 +108,52 @@ class UserRoleCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("사용자-역할 관계를 찾을 수 없으면 404 Not Found")
+        void shouldFailWhenUserRoleNotFound() throws Exception {
+            // given
+            String userId = UserRoleApiFixture.defaultUserId();
+            AssignUserRoleApiRequest request = UserRoleApiFixture.assignUserRoleRequest();
+            willThrow(ErrorMapperApiFixture.userRoleNotFoundException())
+                    .given(assignUserRoleUseCase)
+                    .assign(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(UserRoleApiEndpoints.BASE + "/{userId}/roles", userId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+
+        @Test
+        @DisplayName("이미 할당된 역할이면 409 Conflict")
+        void shouldFailWhenDuplicateUserRole() throws Exception {
+            // given
+            String userId = UserRoleApiFixture.defaultUserId();
+            AssignUserRoleApiRequest request = UserRoleApiFixture.assignUserRoleRequest();
+            willThrow(ErrorMapperApiFixture.duplicateUserRoleException())
+                    .given(assignUserRoleUseCase)
+                    .assign(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(UserRoleApiEndpoints.BASE + "/{userId}/roles", userId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(409));
+        }
+
+        // Note: @PreAuthorize("@access.hasPermission('user', 'update')") 테스트는
+        // ControllerTestSecurityConfig의 TestAccessChecker가 항상 true를 반환하므로
+        // 단위 테스트에서는 테스트 불가. 통합 테스트에서 검증 필요.
     }
 
     @Nested
@@ -150,6 +198,68 @@ class UserRoleCommandControllerTest extends RestDocsTestSupport {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("사용자-역할 관계를 찾을 수 없으면 404 Not Found")
+        void shouldFailWhenUserRoleNotFound() throws Exception {
+            // given
+            String userId = UserRoleApiFixture.defaultUserId();
+            RevokeUserRoleApiRequest request = UserRoleApiFixture.revokeUserRoleRequest();
+            willThrow(ErrorMapperApiFixture.userRoleNotFoundException())
+                    .given(revokeUserRoleUseCase)
+                    .revoke(any());
+
+            // when & then
+            mockMvc.perform(
+                            delete(UserRoleApiEndpoints.BASE + "/{userId}/roles", userId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+    }
+
+    @Nested
+    @DisplayName("경계값 테스트")
+    class BoundaryValueTests {
+
+        @Test
+        @DisplayName("매우 긴 userId로도 정상 처리된다")
+        void shouldHandleVeryLongUserId() throws Exception {
+            // given
+            String veryLongUserId = "a".repeat(100); // 매우 긴 userId
+            AssignUserRoleApiRequest request = UserRoleApiFixture.assignUserRoleRequest();
+            doNothing().when(assignUserRoleUseCase).assign(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(UserRoleApiEndpoints.BASE + "/{userId}/roles", veryLongUserId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @DisplayName("큰 roleIds 리스트로도 정상 처리된다")
+        void shouldHandleLargeRoleIdsList() throws Exception {
+            // given
+            String userId = UserRoleApiFixture.defaultUserId();
+            List<Long> largeRoleIdsList = List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
+            AssignUserRoleApiRequest request =
+                    UserRoleApiFixture.assignUserRoleRequest(largeRoleIdsList);
+            doNothing().when(assignUserRoleUseCase).assign(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(UserRoleApiEndpoints.BASE + "/{userId}/roles", userId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true));
         }
     }
 }

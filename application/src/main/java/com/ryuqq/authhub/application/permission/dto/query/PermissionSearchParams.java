@@ -31,6 +31,7 @@ import java.util.List;
  *   <li>필터 값은 String으로 전달, 도메인 타입 변환은 Factory에서 수행
  * </ul>
  *
+ * @param serviceId 서비스 ID 필터 (null이면 전체)
  * @param searchParams 공통 검색 파라미터 (페이징, 정렬, 날짜 범위)
  * @param searchWord 검색어 (null 허용)
  * @param searchField 검색 필드 - PERMISSION_KEY, RESOURCE, ACTION, DESCRIPTION (null 허용)
@@ -40,6 +41,7 @@ import java.util.List;
  * @since 1.0.0
  */
 public record PermissionSearchParams(
+        Long serviceId,
         CommonSearchParams searchParams,
         String searchWord,
         String searchField,
@@ -57,12 +59,14 @@ public record PermissionSearchParams(
      * @return PermissionSearchParams 인스턴스
      */
     public static PermissionSearchParams of(
+            Long serviceId,
             CommonSearchParams searchParams,
             String searchWord,
             String searchField,
             List<String> types,
             List<String> resources) {
-        return new PermissionSearchParams(searchParams, searchWord, searchField, types, resources);
+        return new PermissionSearchParams(
+                serviceId, searchParams, searchWord, searchField, types, resources);
     }
 
     /**
@@ -77,6 +81,7 @@ public record PermissionSearchParams(
      * @return PermissionSearchParams 인스턴스
      */
     public static PermissionSearchParams ofDefault(
+            Long serviceId,
             String searchWord,
             List<String> types,
             LocalDate startDate,
@@ -85,7 +90,7 @@ public record PermissionSearchParams(
             Integer size) {
         CommonSearchParams searchParams =
                 CommonSearchParams.of(false, startDate, endDate, "createdAt", "DESC", page, size);
-        return new PermissionSearchParams(searchParams, searchWord, null, types, null);
+        return new PermissionSearchParams(serviceId, searchParams, searchWord, null, types, null);
     }
 
     // ==================== Delegate Methods ====================

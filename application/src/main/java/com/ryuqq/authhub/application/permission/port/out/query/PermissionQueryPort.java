@@ -3,6 +3,7 @@ package com.ryuqq.authhub.application.permission.port.out.query;
 import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,22 +45,24 @@ public interface PermissionQueryPort {
     boolean existsById(PermissionId id);
 
     /**
-     * permissionKey로 Permission 존재 여부 확인 (Global 전역)
+     * 서비스 내 permissionKey 존재 여부 확인
      *
-     * <p>tenantId와 관계없이 전역적으로 permissionKey 존재 여부를 확인합니다.
+     * <p>동일 서비스 내에서 permissionKey 중복을 확인합니다.
      *
+     * @param serviceId 서비스 ID
      * @param permissionKey 권한 키 (예: "user:read")
      * @return 존재 여부
      */
-    boolean existsByPermissionKey(String permissionKey);
+    boolean existsByServiceIdAndPermissionKey(ServiceId serviceId, String permissionKey);
 
     /**
-     * permissionKey로 Permission 단건 조회
+     * 서비스 내 permissionKey로 Permission 단건 조회
      *
+     * @param serviceId 서비스 ID
      * @param permissionKey 권한 키 (예: "user:read")
      * @return Permission Domain (Optional)
      */
-    Optional<Permission> findByPermissionKey(String permissionKey);
+    Optional<Permission> findByServiceIdAndPermissionKey(ServiceId serviceId, String permissionKey);
 
     /**
      * 조건에 맞는 권한 목록 조회 (SearchCriteria 기반)

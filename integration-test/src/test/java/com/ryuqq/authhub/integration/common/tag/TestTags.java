@@ -43,4 +43,13 @@ public final class TestTags {
 
     /** Auth/Token 관련 테스트. */
     public static final String AUTH = "auth";
+
+    /** Service 도메인 관련 테스트. */
+    public static final String SERVICE = "service";
+
+    /** TenantService 도메인 관련 테스트. */
+    public static final String TENANT_SERVICE = "tenant_service";
+
+    /** Internal API 관련 테스트. */
+    public static final String INTERNAL = "internal";
 }

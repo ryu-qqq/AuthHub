@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.user.id.UserId;
 import com.ryuqq.authhub.domain.userrole.fixture.UserRoleFixture;
+import com.ryuqq.authhub.domain.userrole.id.UserRoleId;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -82,6 +83,96 @@ class UserRoleTest {
 
             // then
             assertThat(userRole.roleIdValue()).isEqualTo(UserRoleFixture.defaultRoleIdValue());
+        }
+
+        @Test
+        @DisplayName("userRoleIdValue는 ID가 있으면 Long 값을 반환한다")
+        void userRoleIdValueShouldReturnLongWhenIdExists() {
+            // given
+            UserRole userRole = UserRoleFixture.create();
+
+            // then
+            assertThat(userRole.userRoleIdValue()).isEqualTo(UserRoleFixture.defaultIdValue());
+        }
+
+        @Test
+        @DisplayName("userRoleIdValue는 ID가 없으면 null을 반환한다")
+        void userRoleIdValueShouldReturnNullWhenIdIsNull() {
+            // given
+            UserRole newUserRole = UserRoleFixture.createNew();
+
+            // then
+            assertThat(newUserRole.userRoleIdValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("createdAt은 생성 시간을 반환한다")
+        void createdAtShouldReturnCreationTime() {
+            // given
+            UserRole userRole = UserRoleFixture.create();
+
+            // then
+            assertThat(userRole.createdAt()).isEqualTo(UserRoleFixture.fixedTime());
+        }
+    }
+
+    @Nested
+    @DisplayName("UserRole reconstitute 테스트")
+    class ReconstituteTests {
+
+        @Test
+        @DisplayName("reconstitute()로 기존 UserRole을 재구성한다")
+        void shouldReconstituteExistingUserRole() {
+            // given
+            UserRoleId userRoleId = UserRoleFixture.defaultId();
+            UserId userId = UserRoleFixture.defaultUserId();
+            RoleId roleId = UserRoleFixture.defaultRoleId();
+            Instant createdAt = UserRoleFixture.fixedTime();
+
+            // when
+            UserRole userRole = UserRole.reconstitute(userRoleId, userId, roleId, createdAt);
+
+            // then
+            assertThat(userRole.getUserRoleId()).isEqualTo(userRoleId);
+            assertThat(userRole.getUserId()).isEqualTo(userId);
+            assertThat(userRole.getRoleId()).isEqualTo(roleId);
+            assertThat(userRole.createdAt()).isEqualTo(createdAt);
+            assertThat(userRole.isNew()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("UserRole toString 테스트")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("toString()은 UserRole 정보를 문자열로 반환한다")
+        void toStringShouldReturnUserRoleInfo() {
+            // given
+            UserRole userRole = UserRoleFixture.create();
+
+            // when
+            String result = userRole.toString();
+
+            // then
+            assertThat(result).contains("UserRole{");
+            assertThat(result).contains("userRoleId=");
+            assertThat(result).contains("userId=");
+            assertThat(result).contains("roleId=");
+        }
+
+        @Test
+        @DisplayName("toString()은 ID가 없는 경우에도 정상 동작한다")
+        void toStringShouldWorkWhenIdIsNull() {
+            // given
+            UserRole newUserRole = UserRoleFixture.createNew();
+
+            // when
+            String result = newUserRole.toString();
+
+            // then
+            assertThat(result).contains("UserRole{");
+            assertThat(result).contains("userRoleId=null");
         }
     }
 

@@ -31,6 +31,7 @@ import jakarta.validation.constraints.Size;
  */
 @Schema(description = "Permission 생성 요청 DTO")
 public record CreatePermissionApiRequest(
+        @Schema(description = "서비스 ID (null이면 서비스 무관)", example = "1") Long serviceId,
         @Schema(description = "리소스명", example = "user")
                 @NotBlank(message = "resource는 필수입니다")
                 @Size(min = 2, max = 50, message = "resource는 2자 이상 50자 이하여야 합니다")

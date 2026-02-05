@@ -20,6 +20,7 @@ package com.ryuqq.authhub.application.permission.dto.command;
  *   <li>비즈니스 로직 금지 (Domain 책임)
  * </ul>
  *
+ * @param serviceId 서비스 ID (필수)
  * @param resource 리소스명 (필수, 예: user, role)
  * @param action 행위명 (필수, 예: read, create, update, delete)
  * @param description 권한 설명 (선택)
@@ -28,4 +29,4 @@ package com.ryuqq.authhub.application.permission.dto.command;
  * @since 1.0.0
  */
 public record CreatePermissionCommand(
-        String resource, String action, String description, boolean isSystem) {}
+        Long serviceId, String resource, String action, String description, boolean isSystem) {}

@@ -87,7 +87,7 @@ class EndpointSyncRunnerTest {
             EndpointSyncClient syncClient = mock(EndpointSyncClient.class);
 
             EndpointSyncRunner runner =
-                    new EndpointSyncRunner(handlerMapping, syncClient, "authhub", false);
+                    new EndpointSyncRunner(handlerMapping, syncClient, "authhub", null, false);
 
             runner.run(mock(ApplicationArguments.class));
 

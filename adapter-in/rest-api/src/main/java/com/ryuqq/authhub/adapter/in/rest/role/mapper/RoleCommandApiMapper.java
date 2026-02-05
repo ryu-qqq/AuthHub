@@ -35,6 +35,7 @@ public class RoleCommandApiMapper {
     public CreateRoleCommand toCommand(CreateRoleApiRequest request) {
         return new CreateRoleCommand(
                 request.tenantId(),
+                request.serviceId(),
                 request.name(),
                 request.displayName(),
                 request.description(),

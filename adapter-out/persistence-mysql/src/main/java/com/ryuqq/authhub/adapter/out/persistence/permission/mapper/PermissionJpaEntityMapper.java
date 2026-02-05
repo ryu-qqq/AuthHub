@@ -76,6 +76,7 @@ public class PermissionJpaEntityMapper {
         DeletionStatus deletionStatus = domain.getDeletionStatus();
         return PermissionJpaEntity.of(
                 domain.permissionIdValue(),
+                domain.serviceIdValue(),
                 domain.permissionKeyValue(),
                 domain.resourceValue(),
                 domain.actionValue(),
@@ -116,6 +117,7 @@ public class PermissionJpaEntityMapper {
     public Permission toDomain(PermissionJpaEntity entity) {
         return Permission.reconstitute(
                 entity.getPermissionId(),
+                entity.getServiceId(),
                 entity.getPermissionKey(),
                 entity.getResource(),
                 entity.getAction(),

@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.persistence.user.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -123,6 +124,34 @@ class UserCommandAdapterTest {
             assertThat(result).isNotNull();
             then(mapper).should().toEntity(newDomain);
             then(repository).should().save(entity);
+        }
+
+        @Test
+        @DisplayName("user가 null이면 예외 발생")
+        void shouldThrow_WhenUserIsNull() {
+            // given
+            given(mapper.toEntity(null))
+                    .willThrow(new NullPointerException("user must not be null"));
+
+            // when & then
+            assertThatThrownBy(() -> sut.persist(null))
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessageContaining("user");
+        }
+
+        @Test
+        @DisplayName("Repository.save() 예외는 그대로 전파")
+        void shouldPropagateException_WhenRepositorySaveFails() {
+            // given
+            User domain = UserFixture.create();
+            UserJpaEntity entity = UserJpaEntityFixture.create();
+            RuntimeException repoException = new RuntimeException("DB constraint violation");
+
+            given(mapper.toEntity(domain)).willReturn(entity);
+            given(repository.save(entity)).willThrow(repoException);
+
+            // when & then
+            assertThatThrownBy(() -> sut.persist(domain)).isSameAs(repoException);
         }
     }
 }

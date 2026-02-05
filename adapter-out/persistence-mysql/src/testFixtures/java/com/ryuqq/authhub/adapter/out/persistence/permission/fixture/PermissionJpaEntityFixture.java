@@ -25,6 +25,7 @@ public final class PermissionJpaEntityFixture {
     public static PermissionJpaEntity create() {
         return PermissionJpaEntity.of(
                 DEFAULT_PERMISSION_ID,
+                null,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -39,6 +40,7 @@ public final class PermissionJpaEntityFixture {
     public static PermissionJpaEntity createSystemPermission() {
         return PermissionJpaEntity.of(
                 DEFAULT_PERMISSION_ID,
+                null,
                 "system:manage",
                 "system",
                 "manage",
@@ -53,6 +55,7 @@ public final class PermissionJpaEntityFixture {
     public static PermissionJpaEntity createDeleted() {
         return PermissionJpaEntity.of(
                 DEFAULT_PERMISSION_ID,
+                null,
                 DEFAULT_PERMISSION_KEY,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,
@@ -67,6 +70,7 @@ public final class PermissionJpaEntityFixture {
     public static PermissionJpaEntity createWithResourceAndAction(String resource, String action) {
         return PermissionJpaEntity.of(
                 DEFAULT_PERMISSION_ID,
+                null,
                 resource + ":" + action,
                 resource,
                 action,
@@ -81,6 +85,7 @@ public final class PermissionJpaEntityFixture {
     public static PermissionJpaEntity createWithId(Long permissionId) {
         return PermissionJpaEntity.of(
                 permissionId,
+                null,
                 DEFAULT_PERMISSION_KEY + permissionId,
                 DEFAULT_RESOURCE,
                 DEFAULT_ACTION,

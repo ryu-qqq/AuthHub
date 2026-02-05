@@ -6,6 +6,7 @@ import com.ryuqq.authhub.domain.role.exception.DuplicateRoleNameException;
 import com.ryuqq.authhub.domain.role.exception.RoleNotFoundException;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Set;
@@ -55,16 +56,17 @@ public class RoleValidator {
     }
 
     /**
-     * 역할 이름 중복 검증 (테넌트 범위 내)
+     * 역할 이름 중복 검증 (테넌트 + 서비스 범위 내)
      *
-     * <p>tenantId가 null이면 Global 역할 내에서 중복 검증.
+     * <p>동일 tenantId + serviceId 조합 내에서 중복 검증.
      *
      * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
      * @param name 검증할 역할 이름
      * @throws DuplicateRoleNameException 중복 시
      */
-    public void validateNameNotDuplicated(TenantId tenantId, RoleName name) {
-        if (readManager.existsByTenantIdAndName(tenantId, name)) {
+    public void validateNameNotDuplicated(TenantId tenantId, ServiceId serviceId, RoleName name) {
+        if (readManager.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name)) {
             throw new DuplicateRoleNameException(name);
         }
     }

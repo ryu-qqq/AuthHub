@@ -1,5 +1,6 @@
 package com.ryuqq.authhub.sdk.api;
 
+import com.ryuqq.authhub.sdk.model.auth.ChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.auth.LoginRequest;
 import com.ryuqq.authhub.sdk.model.auth.LoginResponse;
 import com.ryuqq.authhub.sdk.model.auth.LogoutRequest;
@@ -65,4 +66,14 @@ public interface AuthApi {
      * @return 수정된 사용자 ID
      */
     ApiResponse<UserIdResponse> updateUser(String userId, UpdateUserRequest request);
+
+    /**
+     * 비밀번호를 변경합니다.
+     *
+     * <p>현재 비밀번호를 검증한 후 새 비밀번호로 변경합니다.
+     *
+     * @param userId 사용자 ID
+     * @param request 비밀번호 변경 요청 (currentPassword, newPassword)
+     */
+    void changePassword(String userId, ChangePasswordRequest request);
 }

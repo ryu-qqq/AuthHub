@@ -9,6 +9,7 @@ import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.user.id.UserId;
 import com.ryuqq.authhub.domain.userrole.aggregate.UserRole;
 import com.ryuqq.authhub.domain.userrole.fixture.UserRoleFixture;
+import com.ryuqq.authhub.domain.userrole.query.criteria.UserRoleSearchCriteria;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -96,6 +97,112 @@ class UserRoleReadManagerTest {
             // then
             assertThat(result).hasSize(1);
             then(queryPort).should().findAllByUserId(userId);
+        }
+    }
+
+    @Nested
+    @DisplayName("existsByRoleId 메서드")
+    class ExistsByRoleId {
+
+        @Test
+        @DisplayName("역할이 사용 중이면 true 반환")
+        void shouldReturnTrue_WhenRoleInUse() {
+            // given
+            RoleId roleId = UserRoleFixture.defaultRoleId();
+
+            given(queryPort.existsByRoleId(roleId)).willReturn(true);
+
+            // when
+            boolean result = sut.existsByRoleId(roleId);
+
+            // then
+            assertThat(result).isTrue();
+            then(queryPort).should().existsByRoleId(roleId);
+        }
+
+        @Test
+        @DisplayName("역할이 사용 중이 아니면 false 반환")
+        void shouldReturnFalse_WhenRoleNotInUse() {
+            // given
+            RoleId roleId = UserRoleFixture.defaultRoleId();
+
+            given(queryPort.existsByRoleId(roleId)).willReturn(false);
+
+            // when
+            boolean result = sut.existsByRoleId(roleId);
+
+            // then
+            assertThat(result).isFalse();
+            then(queryPort).should().existsByRoleId(roleId);
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllBySearchCriteria 메서드")
+    class FindAllBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Criteria에 맞는 UserRole 목록 반환")
+        void shouldReturnUserRoles_MatchingCriteria() {
+            // given
+            UserId userId = UserRoleFixture.defaultUserId();
+            UserRoleSearchCriteria criteria = UserRoleSearchCriteria.ofUserId(userId, 0, 10);
+            List<UserRole> expected = List.of(UserRoleFixture.create());
+
+            given(queryPort.findAllBySearchCriteria(criteria)).willReturn(expected);
+
+            // when
+            List<UserRole> result = sut.findAllBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).hasSize(1);
+            then(queryPort).should().findAllBySearchCriteria(criteria);
+        }
+    }
+
+    @Nested
+    @DisplayName("countBySearchCriteria 메서드")
+    class CountBySearchCriteria {
+
+        @Test
+        @DisplayName("성공: Criteria에 맞는 개수 반환")
+        void shouldReturnCount_MatchingCriteria() {
+            // given
+            UserId userId = UserRoleFixture.defaultUserId();
+            UserRoleSearchCriteria criteria = UserRoleSearchCriteria.ofUserId(userId, 0, 10);
+
+            given(queryPort.countBySearchCriteria(criteria)).willReturn(5L);
+
+            // when
+            long result = sut.countBySearchCriteria(criteria);
+
+            // then
+            assertThat(result).isEqualTo(5L);
+            then(queryPort).should().countBySearchCriteria(criteria);
+        }
+    }
+
+    @Nested
+    @DisplayName("findAssignedRoleIds 메서드")
+    class FindAssignedRoleIds {
+
+        @Test
+        @DisplayName("성공: 사용자에게 이미 할당된 역할 ID 목록 반환")
+        void shouldReturnAssignedRoleIds_ForUserAndRoleIds() {
+            // given
+            UserId userId = UserRoleFixture.defaultUserId();
+            List<RoleId> roleIds = List.of(UserRoleFixture.defaultRoleId());
+            List<RoleId> assignedIds = List.of(UserRoleFixture.defaultRoleId());
+
+            given(queryPort.findAssignedRoleIds(userId, roleIds)).willReturn(assignedIds);
+
+            // when
+            List<RoleId> result = sut.findAssignedRoleIds(userId, roleIds);
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(UserRoleFixture.defaultRoleId());
+            then(queryPort).should().findAssignedRoleIds(userId, roleIds);
         }
     }
 }

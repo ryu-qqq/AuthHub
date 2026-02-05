@@ -50,4 +50,7 @@ public final class InternalApiEndpoints {
 
     /** 사용자 권한 조회 */
     public static final String USER_PERMISSIONS = "/{userId}/permissions";
+
+    /** 사용자 등록 (생성 + 역할 할당) */
+    public static final String USERS_REGISTER = "/register";
 }

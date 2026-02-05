@@ -1,6 +1,7 @@
 package com.ryuqq.authhub.adapter.out.persistence.role.entity;
 
 import com.ryuqq.authhub.adapter.out.persistence.common.entity.SoftDeletableEntity;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 
 /**
@@ -43,7 +45,13 @@ import java.time.Instant;
  * @since 1.0.0
  */
 @Entity
-@Table(name = "roles")
+@Table(
+        name = "roles",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uk_role_tenant_service_name",
+                    columnNames = {"tenant_id", "service_id", "name"})
+        })
 public class RoleJpaEntity extends SoftDeletableEntity {
 
     /** 역할 ID - Auto Increment (Primary Key) */
@@ -56,8 +64,12 @@ public class RoleJpaEntity extends SoftDeletableEntity {
     @Column(name = "tenant_id", length = 36)
     private String tenantId;
 
-    /** 역할 이름 (예: SUPER_ADMIN, 유니크) */
-    @Column(name = "name", nullable = false, length = 50, unique = true)
+    /** 서비스 ID FK (null이면 서비스 무관) */
+    @Column(name = "service_id")
+    private Long serviceId;
+
+    /** 역할 이름 (예: SUPER_ADMIN) */
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
     /** 표시 이름 (예: "슈퍼 관리자") */
@@ -72,6 +84,11 @@ public class RoleJpaEntity extends SoftDeletableEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
     private RoleType type;
+
+    /** 역할 범위 (GLOBAL, SERVICE, TENANT, TENANT_SERVICE) */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "scope", nullable = false, length = 20)
+    private RoleScope scope;
 
     /**
      * JPA 기본 생성자 (protected)
@@ -98,20 +115,24 @@ public class RoleJpaEntity extends SoftDeletableEntity {
     private RoleJpaEntity(
             Long roleId,
             String tenantId,
+            Long serviceId,
             String name,
             String displayName,
             String description,
             RoleType type,
+            RoleScope scope,
             Instant createdAt,
             Instant updatedAt,
             Instant deletedAt) {
         super(createdAt, updatedAt, deletedAt);
         this.roleId = roleId;
         this.tenantId = tenantId;
+        this.serviceId = serviceId;
         this.name = name;
         this.displayName = displayName;
         this.description = description;
         this.type = type;
+        this.scope = scope;
     }
 
     /**
@@ -133,20 +154,24 @@ public class RoleJpaEntity extends SoftDeletableEntity {
     public static RoleJpaEntity of(
             Long roleId,
             String tenantId,
+            Long serviceId,
             String name,
             String displayName,
             String description,
             RoleType type,
+            RoleScope scope,
             Instant createdAt,
             Instant updatedAt,
             Instant deletedAt) {
         return new RoleJpaEntity(
                 roleId,
                 tenantId,
+                serviceId,
                 name,
                 displayName,
                 description,
                 type,
+                scope,
                 createdAt,
                 updatedAt,
                 deletedAt);
@@ -160,6 +185,10 @@ public class RoleJpaEntity extends SoftDeletableEntity {
 
     public String getTenantId() {
         return tenantId;
+    }
+
+    public Long getServiceId() {
+        return serviceId;
     }
 
     public String getName() {
@@ -176,5 +205,9 @@ public class RoleJpaEntity extends SoftDeletableEntity {
 
     public RoleType getType() {
         return type;
+    }
+
+    public RoleScope getScope() {
+        return scope;
     }
 }

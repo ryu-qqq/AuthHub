@@ -47,6 +47,7 @@ class PermissionEndpointRepositoryIntegrationTest extends RepositoryTestBase {
         PermissionJpaEntity permission =
                 PermissionJpaEntity.of(
                         null,
+                        null,
                         "user:read",
                         "user",
                         "read",

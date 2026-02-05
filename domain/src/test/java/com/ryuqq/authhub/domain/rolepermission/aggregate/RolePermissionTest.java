@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.rolepermission.fixture.RolePermissionFixture;
+import com.ryuqq.authhub.domain.rolepermission.id.RolePermissionId;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,6 +46,32 @@ class RolePermissionTest {
             assertThat(rolePermission.permissionIdValue()).isEqualTo(permissionId.value());
             assertThat(rolePermission.isNew()).isTrue();
             assertThat(rolePermission.createdAt()).isEqualTo(NOW);
+        }
+    }
+
+    @Nested
+    @DisplayName("RolePermission reconstitute 테스트")
+    class ReconstituteTests {
+
+        @Test
+        @DisplayName("reconstitute()로 기존 RolePermission을 재구성한다")
+        void shouldReconstituteExistingRolePermission() {
+            // given
+            RolePermissionId id = RolePermissionId.of(1L);
+            RoleId roleId = RoleId.of(1L);
+            PermissionId permissionId = PermissionId.of(1L);
+            Instant createdAt = NOW;
+
+            // when
+            RolePermission rolePermission =
+                    RolePermission.reconstitute(id, roleId, permissionId, createdAt);
+
+            // then
+            assertThat(rolePermission.rolePermissionIdValue()).isEqualTo(1L);
+            assertThat(rolePermission.isNew()).isFalse();
+            assertThat(rolePermission.createdAt()).isEqualTo(createdAt);
+            assertThat(rolePermission.roleIdValue()).isEqualTo(roleId.value());
+            assertThat(rolePermission.permissionIdValue()).isEqualTo(permissionId.value());
         }
     }
 
@@ -140,6 +167,58 @@ class RolePermissionTest {
 
             // then
             assertThat(rolePermission1).isNotEqualTo(rolePermission2);
+        }
+
+        @Test
+        @DisplayName("ID가 없어도 같은 roleId와 permissionId이면 동등하다")
+        void shouldBeEqualWhenSameBusinessKeyRegardlessOfId() {
+            // given
+            RolePermission withId = RolePermissionFixture.create();
+            RolePermission withoutId = RolePermissionFixture.createNew();
+
+            // then - equals()는 한쪽이라도 ID가 null이면 business key(roleId + permissionId)로 비교
+            assertThat(withId).isEqualTo(withoutId);
+        }
+
+        @Test
+        @DisplayName("null과의 비교는 false를 반환한다")
+        void shouldNotBeEqualWhenComparedWithNull() {
+            // given
+            RolePermission rolePermission = RolePermissionFixture.create();
+
+            // then
+            assertThat(rolePermission.equals(null)).isFalse();
+        }
+
+        @Test
+        @DisplayName("다른 타입 객체와의 비교는 false를 반환한다")
+        void shouldNotBeEqualWhenComparedWithDifferentType() {
+            // given
+            RolePermission rolePermission = RolePermissionFixture.create();
+
+            // then
+            assertThat(rolePermission.equals("not a RolePermission")).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("RolePermission toString 테스트")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("toString()은 객체 정보를 포함한 문자열을 반환한다")
+        void toStringShouldReturnStringWithObjectInfo() {
+            // given
+            RolePermission rolePermission = RolePermissionFixture.create();
+
+            // when
+            String toString = rolePermission.toString();
+
+            // then
+            assertThat(toString).contains("RolePermission");
+            assertThat(toString).contains("rolePermissionId");
+            assertThat(toString).contains("roleId");
+            assertThat(toString).contains("permissionId");
         }
     }
 }

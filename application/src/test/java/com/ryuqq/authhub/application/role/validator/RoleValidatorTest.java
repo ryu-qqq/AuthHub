@@ -13,6 +13,7 @@ import com.ryuqq.authhub.domain.role.exception.RoleNotFoundException;
 import com.ryuqq.authhub.domain.role.fixture.RoleFixture;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,12 +97,14 @@ class RoleValidatorTest {
         void shouldNotThrow_WhenNameIsNotDuplicated() {
             // given
             TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
             RoleName name = RoleName.of("UNIQUE_ROLE");
 
-            given(readManager.existsByTenantIdAndName(tenantId, name)).willReturn(false);
+            given(readManager.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .willReturn(false);
 
             // when & then
-            assertThatCode(() -> sut.validateNameNotDuplicated(tenantId, name))
+            assertThatCode(() -> sut.validateNameNotDuplicated(tenantId, serviceId, name))
                     .doesNotThrowAnyException();
         }
 
@@ -110,12 +113,14 @@ class RoleValidatorTest {
         void shouldThrowException_WhenNameIsDuplicated() {
             // given
             TenantId tenantId = RoleFixture.defaultTenantId();
+            ServiceId serviceId = null;
             RoleName name = RoleName.of("DUPLICATE_ROLE");
 
-            given(readManager.existsByTenantIdAndName(tenantId, name)).willReturn(true);
+            given(readManager.existsByTenantIdAndServiceIdAndName(tenantId, serviceId, name))
+                    .willReturn(true);
 
             // when & then
-            assertThatThrownBy(() -> sut.validateNameNotDuplicated(tenantId, name))
+            assertThatThrownBy(() -> sut.validateNameNotDuplicated(tenantId, serviceId, name))
                     .isInstanceOf(DuplicateRoleNameException.class);
         }
     }

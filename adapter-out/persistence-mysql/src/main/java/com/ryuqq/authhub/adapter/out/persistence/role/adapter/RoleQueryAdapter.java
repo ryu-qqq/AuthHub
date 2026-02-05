@@ -7,6 +7,7 @@ import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.query.criteria.RoleSearchCriteria;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.util.List;
 import java.util.Optional;
@@ -30,8 +31,8 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>findById() - ID로 단건 조회
  *   <li>existsById() - ID 존재 여부 확인
- *   <li>existsByTenantIdAndName() - 테넌트 내 역할 이름 존재 여부 확인
- *   <li>findByTenantIdAndName() - 테넌트 내 역할 이름으로 단건 조회
+ *   <li>existsByTenantIdAndServiceIdAndName() - 테넌트 + 서비스 범위 내 역할 이름 존재 여부 확인
+ *   <li>findByTenantIdAndServiceIdAndName() - 테넌트 + 서비스 범위 내 역할 이름으로 단건 조회
  *   <li>findAllBySearchCriteria() - 조건 검색
  *   <li>countBySearchCriteria() - 조건 검색 개수
  *   <li>findAllByIds() - ID 목록으로 다건 조회
@@ -90,33 +91,42 @@ public class RoleQueryAdapter implements RoleQueryPort {
     }
 
     /**
-     * 테넌트 내 역할 이름으로 존재 여부 확인
+     * 테넌트 + 서비스 범위 내 역할 이름으로 존재 여부 확인
      *
      * <p>tenantId가 null이면 Global 역할 내에서 중복 확인합니다.
      *
      * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
      * @param name 역할 이름
      * @return 존재 여부
      */
     @Override
-    public boolean existsByTenantIdAndName(TenantId tenantId, RoleName name) {
+    public boolean existsByTenantIdAndServiceIdAndName(
+            TenantId tenantId, ServiceId serviceId, RoleName name) {
         String tenantIdValue = tenantId != null ? tenantId.value() : null;
-        return repository.existsByTenantIdAndName(tenantIdValue, name.value());
+        Long serviceIdValue = serviceId != null ? serviceId.value() : null;
+        return repository.existsByTenantIdAndServiceIdAndName(
+                tenantIdValue, serviceIdValue, name.value());
     }
 
     /**
-     * 테넌트 내 역할 이름으로 Role 조회
+     * 테넌트 + 서비스 범위 내 역할 이름으로 Role 조회
      *
      * <p>tenantId가 null이면 Global 역할 내에서 조회합니다.
      *
      * @param tenantId 테넌트 ID (null이면 Global)
+     * @param serviceId 서비스 ID (null이면 서비스 무관)
      * @param name 역할 이름
      * @return Optional<Role>
      */
     @Override
-    public Optional<Role> findByTenantIdAndName(TenantId tenantId, RoleName name) {
+    public Optional<Role> findByTenantIdAndServiceIdAndName(
+            TenantId tenantId, ServiceId serviceId, RoleName name) {
         String tenantIdValue = tenantId != null ? tenantId.value() : null;
-        return repository.findByTenantIdAndName(tenantIdValue, name.value()).map(mapper::toDomain);
+        Long serviceIdValue = serviceId != null ? serviceId.value() : null;
+        return repository
+                .findByTenantIdAndServiceIdAndName(tenantIdValue, serviceIdValue, name.value())
+                .map(mapper::toDomain);
     }
 
     /**

@@ -12,6 +12,7 @@ import com.ryuqq.authhub.domain.permission.exception.DuplicatePermissionKeyExcep
 import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException;
 import com.ryuqq.authhub.domain.permission.fixture.PermissionFixture;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -93,12 +94,14 @@ class PermissionValidatorTest {
         @DisplayName("성공: 권한 키가 중복되지 않으면 예외 없음")
         void shouldNotThrow_WhenKeyIsNotDuplicated() {
             // given
+            ServiceId serviceId = null;
             String permissionKey = "user:read";
 
-            given(readManager.existsByPermissionKey(permissionKey)).willReturn(false);
+            given(readManager.existsByServiceIdAndPermissionKey(serviceId, permissionKey))
+                    .willReturn(false);
 
             // when & then
-            assertThatCode(() -> sut.validateKeyNotDuplicated(permissionKey))
+            assertThatCode(() -> sut.validateKeyNotDuplicated(serviceId, permissionKey))
                     .doesNotThrowAnyException();
         }
 
@@ -106,12 +109,14 @@ class PermissionValidatorTest {
         @DisplayName("실패: 권한 키가 중복되면 DuplicatePermissionKeyException 발생")
         void shouldThrowException_WhenKeyIsDuplicated() {
             // given
+            ServiceId serviceId = null;
             String permissionKey = "user:read";
 
-            given(readManager.existsByPermissionKey(permissionKey)).willReturn(true);
+            given(readManager.existsByServiceIdAndPermissionKey(serviceId, permissionKey))
+                    .willReturn(true);
 
             // when & then
-            assertThatThrownBy(() -> sut.validateKeyNotDuplicated(permissionKey))
+            assertThatThrownBy(() -> sut.validateKeyNotDuplicated(serviceId, permissionKey))
                     .isInstanceOf(DuplicatePermissionKeyException.class);
         }
     }

@@ -5,7 +5,9 @@ import com.ryuqq.authhub.domain.role.exception.SystemRoleNotDeletableException;
 import com.ryuqq.authhub.domain.role.exception.SystemRoleNotModifiableException;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.time.Instant;
 import java.util.Objects;
@@ -56,10 +58,12 @@ public final class Role {
 
     private final RoleId roleId;
     private final TenantId tenantId;
+    private final ServiceId serviceId;
     private final RoleName name;
     private String displayName;
     private String description;
     private final RoleType type;
+    private final RoleScope scope;
     private DeletionStatus deletionStatus;
     private final Instant createdAt;
     private Instant updatedAt;
@@ -67,19 +71,23 @@ public final class Role {
     private Role(
             RoleId roleId,
             TenantId tenantId,
+            ServiceId serviceId,
             RoleName name,
             String displayName,
             String description,
             RoleType type,
+            RoleScope scope,
             DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
         this.roleId = roleId;
         this.tenantId = tenantId;
+        this.serviceId = serviceId;
         this.name = name;
         this.displayName = displayName;
         this.description = description;
         this.type = type;
+        this.scope = scope;
         this.deletionStatus = deletionStatus != null ? deletionStatus : DeletionStatus.active();
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -103,10 +111,12 @@ public final class Role {
         return new Role(
                 null,
                 null,
+                null,
                 name,
                 displayName,
                 description,
                 RoleType.SYSTEM,
+                RoleScope.GLOBAL,
                 DeletionStatus.active(),
                 now,
                 now);
@@ -128,10 +138,12 @@ public final class Role {
         return new Role(
                 null,
                 null,
+                null,
                 name,
                 displayName,
                 description,
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 DeletionStatus.active(),
                 now,
                 now);
@@ -154,22 +166,24 @@ public final class Role {
         return new Role(
                 null,
                 tenantId,
+                null,
                 name,
                 displayName,
                 description,
                 RoleType.CUSTOM,
+                RoleScope.TENANT,
                 DeletionStatus.active(),
                 now,
                 now);
     }
 
     /**
-     * 통합 역할 생성 (역할 유형과 테넌트 범위를 Role이 내부적으로 판단)
+     * 통합 역할 생성 (역할 유형과 범위를 Role이 내부적으로 판단)
      *
-     * <p>isSystem이 true면 SYSTEM 역할 (Global), tenantId가 null이면 Global CUSTOM, tenantId가 있으면 Tenant
-     * CUSTOM.
+     * <p>isSystem이 true면 SYSTEM 역할 (Global), 아니면 tenantId/serviceId 조합으로 scope 결정.
      *
-     * @param tenantId 테넌트 ID (null이면 Global)
+     * @param tenantId 테넌트 ID (null이면 Global 또는 Service 범위)
+     * @param serviceId 서비스 ID (null이면 Global 또는 Tenant 범위)
      * @param name 역할 이름
      * @param displayName 표시 이름
      * @param description 역할 설명
@@ -179,19 +193,23 @@ public final class Role {
      */
     public static Role create(
             TenantId tenantId,
+            ServiceId serviceId,
             RoleName name,
             String displayName,
             String description,
             boolean isSystem,
             Instant now) {
         RoleType type = isSystem ? RoleType.SYSTEM : RoleType.CUSTOM;
+        RoleScope scope = resolveScope(tenantId, serviceId);
         return new Role(
                 null,
                 tenantId,
+                serviceId,
                 name,
                 displayName,
                 description,
                 type,
+                scope,
                 DeletionStatus.active(),
                 now,
                 now);
@@ -214,20 +232,24 @@ public final class Role {
     public static Role reconstitute(
             RoleId roleId,
             TenantId tenantId,
+            ServiceId serviceId,
             RoleName name,
             String displayName,
             String description,
             RoleType type,
+            RoleScope scope,
             DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
         return new Role(
                 roleId,
                 tenantId,
+                serviceId,
                 name,
                 displayName,
                 description,
                 type,
+                scope,
                 deletionStatus,
                 createdAt,
                 updatedAt);
@@ -301,6 +323,24 @@ public final class Role {
      */
     public String tenantIdValue() {
         return tenantId != null ? tenantId.value() : null;
+    }
+
+    /**
+     * 서비스 ID 값 반환
+     *
+     * @return 서비스 ID (Long) 또는 null
+     */
+    public Long serviceIdValue() {
+        return serviceId != null ? serviceId.value() : null;
+    }
+
+    /**
+     * 역할 범위 값 반환
+     *
+     * @return 역할 범위 문자열 (GLOBAL, SERVICE, TENANT, TENANT_SERVICE)
+     */
+    public String scopeValue() {
+        return scope.name();
     }
 
     /**
@@ -387,19 +427,28 @@ public final class Role {
     /**
      * Global 역할 여부 확인
      *
-     * @return tenantId가 null이면 true (Global)
+     * @return scope가 GLOBAL이면 true
      */
     public boolean isGlobal() {
-        return tenantId == null;
+        return scope.isGlobal();
     }
 
     /**
-     * 테넌트 전용 역할 여부 확인
+     * 테넌트 범위를 포함하는 역할 여부 확인
      *
-     * @return tenantId가 있으면 true (테넌트 전용)
+     * @return scope가 TENANT 또는 TENANT_SERVICE이면 true
      */
     public boolean isTenantSpecific() {
-        return tenantId != null;
+        return scope.hasTenant();
+    }
+
+    /**
+     * 서비스 범위를 포함하는 역할 여부 확인
+     *
+     * @return scope가 SERVICE 또는 TENANT_SERVICE이면 true
+     */
+    public boolean isServiceSpecific() {
+        return scope.hasService();
     }
 
     // ========== Getter Methods ==========
@@ -410,6 +459,10 @@ public final class Role {
 
     public TenantId getTenantId() {
         return tenantId;
+    }
+
+    public ServiceId getServiceId() {
+        return serviceId;
     }
 
     public RoleName getName() {
@@ -426,6 +479,10 @@ public final class Role {
 
     public RoleType getType() {
         return type;
+    }
+
+    public RoleScope getScope() {
+        return scope;
     }
 
     public DeletionStatus getDeletionStatus() {
@@ -452,7 +509,9 @@ public final class Role {
         }
         Role that = (Role) o;
         if (roleId == null || that.roleId == null) {
-            return Objects.equals(name, that.name) && Objects.equals(tenantId, that.tenantId);
+            return Objects.equals(name, that.name)
+                    && Objects.equals(tenantId, that.tenantId)
+                    && Objects.equals(serviceId, that.serviceId);
         }
         return Objects.equals(roleId, that.roleId);
     }
@@ -462,7 +521,7 @@ public final class Role {
         if (roleId != null) {
             return Objects.hash(roleId);
         }
-        return Objects.hash(name, tenantId);
+        return Objects.hash(name, tenantId, serviceId);
     }
 
     @Override
@@ -475,8 +534,35 @@ public final class Role {
                 + '\''
                 + ", type="
                 + type
+                + ", scope="
+                + scope
                 + ", deleted="
                 + deletionStatus.isDeleted()
                 + '}';
+    }
+
+    // ========== Private Methods ==========
+
+    /**
+     * tenantId와 serviceId 조합으로 RoleScope 결정
+     *
+     * @param tenantId 테넌트 ID (nullable)
+     * @param serviceId 서비스 ID (nullable)
+     * @return 결정된 RoleScope
+     */
+    private static RoleScope resolveScope(TenantId tenantId, ServiceId serviceId) {
+        boolean hasTenant = tenantId != null;
+        boolean hasService = serviceId != null;
+
+        if (hasTenant && hasService) {
+            return RoleScope.TENANT_SERVICE;
+        }
+        if (hasTenant) {
+            return RoleScope.TENANT;
+        }
+        if (hasService) {
+            return RoleScope.SERVICE;
+        }
+        return RoleScope.GLOBAL;
     }
 }
