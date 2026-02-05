@@ -255,44 +255,225 @@ a:hover {
     letter-spacing: 0.5px;
 }
 
-/* HTTP Method Colors in TOC and Headers */
-#toc a[href*="get-"],
-#toc a[href*="-get"],
-#toc a[href*="search"],
-#toc a[href*="조회"] {
+/* ==============================
+   TOC - Section Group Styling
+   ============================== */
+
+/* Level 1: API Modules (인증, 셀러 관리, 배송정책, ...) */
+#toc .sectlevel1 > li > a {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--primary-dark);
+    background-color: rgba(37, 99, 235, 0.06);
+    border-left: 4px solid var(--primary-color);
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.15rem;
+    border-radius: 0 4px 4px 0;
+    letter-spacing: -0.01em;
+}
+
+#toc .sectlevel1 > li > a:hover {
+    background-color: rgba(37, 99, 235, 0.12);
+    color: var(--primary-color);
+}
+
+/* Divider between top-level sections */
+#toc .sectlevel1 > li + li {
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.35rem;
+    margin-top: 0.35rem;
+}
+
+/* First top-level item */
+#toc .sectlevel1 > li:first-child > a {
+    margin-top: 0;
+}
+
+#toc .sectlevel1 > li:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+/* "개요" section - subtle style (not an API module) */
+#toc .sectlevel1 > li:first-child > a {
+    font-weight: 600;
+    color: var(--text-muted);
+    background-color: transparent;
+    border-left: 4px solid var(--border-color);
+    font-size: 0.85rem;
+}
+
+#toc .sectlevel1 > li:first-child > a:hover {
+    color: var(--text-color);
+    background-color: rgba(100, 116, 139, 0.06);
+}
+
+/* "개요" sub-items - subtle */
+#toc .sectlevel1 > li:first-child .sectlevel2 > li > a {
+    font-weight: 400;
+    font-size: 0.775rem;
+    color: var(--text-muted);
+    border-left: none;
+    padding: 0.2rem 0.4rem;
+    opacity: 0.75;
+}
+
+#toc .sectlevel1 > li:first-child .sectlevel2 > li > a:hover {
+    opacity: 1;
+    color: var(--text-color);
+}
+
+/* Level 2: Endpoints (POST 로그인, GET 셀러 조회, ...) - default */
+#toc .sectlevel2 > li > a {
+    font-weight: 500;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.25rem 0.5rem;
+    margin-top: 0;
+    line-height: 1.4;
+    border-left: none;
+    background-color: transparent;
+}
+
+#toc .sectlevel2 > li {
+    margin: 0.1rem 0;
+}
+
+#toc .sectlevel2 > li > a:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Level 3: Sub-sections (Request Fields, Response, Path Parameters ...) */
+#toc .sectlevel3 > li > a {
+    font-weight: 400;
+    font-size: 0.725rem;
+    color: var(--text-muted);
+    padding: 0.15rem 0.4rem;
+    line-height: 1.3;
+    opacity: 0.65;
+}
+
+#toc .sectlevel3 > li {
+    margin: 0.02rem 0;
+}
+
+#toc .sectlevel3 > li > a:hover {
+    opacity: 1;
+    color: var(--text-color);
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* ==============================
+   TOC - HTTP Method Colors (Level 2 endpoints)
+   ============================== */
+
+/* GET - Green */
+#toc .sectlevel2 a[href*="get-"],
+#toc .sectlevel2 a[href*="-get"],
+#toc .sectlevel2 a[href*="search"],
+#toc .sectlevel2 a[href*="-me"],
+#toc .sectlevel2 a[href*="조회"] {
+    color: #059669;
     border-left: 3px solid #10b981;
-    padding-left: 0.75rem;
+    padding-left: 0.6rem;
 }
 
-#toc a[href*="post-"],
-#toc a[href*="-post"],
-#toc a[href*="register"],
-#toc a[href*="등록"] {
+#toc .sectlevel2 a[href*="get-"]:hover,
+#toc .sectlevel2 a[href*="-get"]:hover,
+#toc .sectlevel2 a[href*="search"]:hover,
+#toc .sectlevel2 a[href*="-me"]:hover,
+#toc .sectlevel2 a[href*="조회"]:hover {
+    color: #047857;
+    background-color: rgba(16, 185, 129, 0.08);
+}
+
+/* POST - Blue */
+#toc .sectlevel2 a[href*="register"],
+#toc .sectlevel2 a[href*="apply"],
+#toc .sectlevel2 a[href*="approve"],
+#toc .sectlevel2 a[href*="reject"],
+#toc .sectlevel2 a[href*="login"],
+#toc .sectlevel2 a[href*="logout"],
+#toc .sectlevel2 a[href*="reset"],
+#toc .sectlevel2 a[href*="bulk-"],
+#toc .sectlevel2 a[href*="등록"] {
+    color: #2563eb;
     border-left: 3px solid #3b82f6;
-    padding-left: 0.75rem;
+    padding-left: 0.6rem;
 }
 
-#toc a[href*="put-"],
-#toc a[href*="-put"],
-#toc a[href*="update"],
-#toc a[href*="수정"] {
+#toc .sectlevel2 a[href*="register"]:hover,
+#toc .sectlevel2 a[href*="apply"]:hover,
+#toc .sectlevel2 a[href*="approve"]:hover,
+#toc .sectlevel2 a[href*="reject"]:hover,
+#toc .sectlevel2 a[href*="login"]:hover,
+#toc .sectlevel2 a[href*="logout"]:hover,
+#toc .sectlevel2 a[href*="reset"]:hover,
+#toc .sectlevel2 a[href*="bulk-"]:hover,
+#toc .sectlevel2 a[href*="등록"]:hover {
+    color: #1d4ed8;
+    background-color: rgba(59, 130, 246, 0.08);
+}
+
+/* PUT - Orange */
+#toc .sectlevel2 a[href*="update-full"],
+#toc .sectlevel2 a[href*="shipping-policy-update"],
+#toc .sectlevel2 a[href*="common-code-update"],
+#toc .sectlevel2 a[href*="common-code-type-update"] {
+    color: #d97706;
     border-left: 3px solid #f59e0b;
-    padding-left: 0.75rem;
+    padding-left: 0.6rem;
 }
 
-#toc a[href*="patch-"],
-#toc a[href*="-patch"],
-#toc a[href*="change"],
-#toc a[href*="변경"] {
+#toc .sectlevel2 a[href*="update-full"]:hover,
+#toc .sectlevel2 a[href*="shipping-policy-update"]:hover,
+#toc .sectlevel2 a[href*="common-code-update"]:hover,
+#toc .sectlevel2 a[href*="common-code-type-update"]:hover {
+    color: #b45309;
+    background-color: rgba(245, 158, 11, 0.08);
+}
+
+/* PATCH - Purple */
+#toc .sectlevel2 a[href*="seller-update"],
+#toc .sectlevel2 a[href*="change"],
+#toc .sectlevel2 a[href*="변경"] {
+    color: #7c3aed;
     border-left: 3px solid #8b5cf6;
-    padding-left: 0.75rem;
+    padding-left: 0.6rem;
 }
 
-#toc a[href*="delete-"],
-#toc a[href*="-delete"],
-#toc a[href*="삭제"] {
+#toc .sectlevel2 a[href*="seller-update"]:hover,
+#toc .sectlevel2 a[href*="change"]:hover,
+#toc .sectlevel2 a[href*="변경"]:hover {
+    color: #6d28d9;
+    background-color: rgba(139, 92, 246, 0.08);
+}
+
+/* Prevent seller-update-full from matching PATCH (should be PUT) */
+#toc .sectlevel2 a[href*="seller-update-full"] {
+    color: #d97706 !important;
+    border-left-color: #f59e0b !important;
+}
+
+#toc .sectlevel2 a[href*="seller-update-full"]:hover {
+    color: #b45309 !important;
+    background-color: rgba(245, 158, 11, 0.08) !important;
+}
+
+/* DELETE - Red */
+#toc .sectlevel2 a[href*="delete"],
+#toc .sectlevel2 a[href*="삭제"] {
+    color: #dc2626;
     border-left: 3px solid #ef4444;
-    padding-left: 0.75rem;
+    padding-left: 0.6rem;
+}
+
+#toc .sectlevel2 a[href*="delete"]:hover,
+#toc .sectlevel2 a[href*="삭제"]:hover {
+    color: #b91c1c;
+    background-color: rgba(239, 68, 68, 0.08);
 }
 
 /* HTTP Method Labels in Content */
@@ -314,9 +495,11 @@ h4:has(+ .listingblock) {
 
 /* GET Method - Green */
 h3[id*="get-"]::before, h3[id*="-get"]::before,
-h3[id*="search"]::before, h3[id*="조회"]::before,
+h3[id*="search"]::before, h3[id*="-me"]::before,
+h3[id*="조회"]::before,
 h4[id*="get-"]::before, h4[id*="-get"]::before,
-h4[id*="search"]::before, h4[id*="조회"]::before {
+h4[id*="search"]::before, h4[id*="-me"]::before,
+h4[id*="조회"]::before {
     content: "GET";
     background-color: #ecfdf5;
     color: #059669;
@@ -325,9 +508,17 @@ h4[id*="search"]::before, h4[id*="조회"]::before {
 
 /* POST Method - Blue */
 h3[id*="post-"]::before, h3[id*="-post"]::before,
-h3[id*="register"]::before, h3[id*="등록"]::before,
+h3[id*="register"]::before, h3[id*="-apply"]::before,
+h3[id*="-approve"]::before, h3[id*="-reject"]::before,
+h3[id*="-login"]::before, h3[id*="-logout"]::before,
+h3[id*="reset-password"]::before, h3[id*="bulk-"]::before,
+h3[id*="등록"]::before,
 h4[id*="post-"]::before, h4[id*="-post"]::before,
-h4[id*="register"]::before, h4[id*="등록"]::before {
+h4[id*="register"]::before, h4[id*="-apply"]::before,
+h4[id*="-approve"]::before, h4[id*="-reject"]::before,
+h4[id*="-login"]::before, h4[id*="-logout"]::before,
+h4[id*="reset-password"]::before, h4[id*="bulk-"]::before,
+h4[id*="등록"]::before {
     content: "POST";
     background-color: #eff6ff;
     color: #2563eb;
@@ -365,6 +556,15 @@ h4[id*="삭제"]::before {
     background-color: #fef2f2;
     color: #dc2626;
     border: 1px solid #ef4444;
+}
+
+/* Prevent badges on update-full (should be PUT, not match PATCH update) */
+h3[id*="update-full"]::before,
+h4[id*="update-full"]::before {
+    content: "PUT" !important;
+    background-color: #fffbeb !important;
+    color: #d97706 !important;
+    border: 1px solid #f59e0b !important;
 }
 
 /* Paragraph Styling */

@@ -44,23 +44,25 @@ public final class InternalApiFixture {
 
     /** 기본 동기화 요청 */
     public static EndpointSyncApiRequest endpointSyncRequest() {
-        return new EndpointSyncApiRequest(DEFAULT_SERVICE_NAME, List.of(endpointInfoRequest()));
+        return new EndpointSyncApiRequest(
+                DEFAULT_SERVICE_NAME, null, List.of(endpointInfoRequest()));
     }
 
     /** 커스텀 서비스 이름으로 동기화 요청 */
     public static EndpointSyncApiRequest endpointSyncRequest(String serviceName) {
-        return new EndpointSyncApiRequest(serviceName, List.of(endpointInfoRequest()));
+        return new EndpointSyncApiRequest(serviceName, null, List.of(endpointInfoRequest()));
     }
 
     /** 빈 엔드포인트 목록으로 동기화 요청 */
     public static EndpointSyncApiRequest endpointSyncRequestWithEmptyEndpoints(String serviceName) {
-        return new EndpointSyncApiRequest(serviceName, List.of());
+        return new EndpointSyncApiRequest(serviceName, null, List.of());
     }
 
     /** 여러 엔드포인트로 동기화 요청 */
     public static EndpointSyncApiRequest endpointSyncRequestWithMultipleEndpoints() {
         return new EndpointSyncApiRequest(
                 DEFAULT_SERVICE_NAME,
+                null,
                 List.of(
                         endpointInfoRequest("GET", "/api/v1/products", "product:read", "상품 목록 조회"),
                         endpointInfoRequest("POST", "/api/v1/products", "product:create", "상품 생성"),
@@ -89,7 +91,7 @@ public final class InternalApiFixture {
 
     /** 기본 동기화 결과 응답 */
     public static EndpointSyncResultApiResponse endpointSyncResultResponse() {
-        return new EndpointSyncResultApiResponse(DEFAULT_SERVICE_NAME, 4, 2, 3, 1);
+        return new EndpointSyncResultApiResponse(DEFAULT_SERVICE_NAME, 4, 2, 3, 1, 0);
     }
 
     // ========== EndpointPermissionSpecApiResponse ==========

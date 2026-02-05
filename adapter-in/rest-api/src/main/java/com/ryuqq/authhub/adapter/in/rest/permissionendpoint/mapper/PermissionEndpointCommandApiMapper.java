@@ -5,6 +5,7 @@ import com.ryuqq.authhub.adapter.in.rest.permissionendpoint.dto.request.UpdatePe
 import com.ryuqq.authhub.application.permissionendpoint.dto.command.CreatePermissionEndpointCommand;
 import com.ryuqq.authhub.application.permissionendpoint.dto.command.DeletePermissionEndpointCommand;
 import com.ryuqq.authhub.application.permissionendpoint.dto.command.UpdatePermissionEndpointCommand;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,6 +60,7 @@ public class PermissionEndpointCommandApiMapper {
      * @return Application Command DTO
      */
     public DeletePermissionEndpointCommand toDeleteCommand(Long permissionEndpointId) {
+        Objects.requireNonNull(permissionEndpointId, "permissionEndpointId must not be null");
         return new DeletePermissionEndpointCommand(permissionEndpointId);
     }
 }

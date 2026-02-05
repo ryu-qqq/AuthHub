@@ -52,6 +52,7 @@ import java.util.List;
  * @since 1.0.0
  */
 public record PermissionSearchCriteria(
+        Long serviceId,
         String searchWord,
         PermissionSearchField searchField,
         List<PermissionType> types,
@@ -62,6 +63,7 @@ public record PermissionSearchCriteria(
     /**
      * 팩토리 메서드
      *
+     * @param serviceId 서비스 ID 필터 (null이면 전체)
      * @param searchWord 검색어
      * @param searchField 검색 필드 (enum)
      * @param types 권한 유형 필터 목록
@@ -73,6 +75,7 @@ public record PermissionSearchCriteria(
      * @return PermissionSearchCriteria
      */
     public static PermissionSearchCriteria of(
+            Long serviceId,
             String searchWord,
             PermissionSearchField searchField,
             List<PermissionType> types,
@@ -84,12 +87,13 @@ public record PermissionSearchCriteria(
         QueryContext<PermissionSortKey> context =
                 QueryContext.of(sortKey, sortDirection, pageRequest);
         return new PermissionSearchCriteria(
-                searchWord, searchField, types, resources, dateRange, context);
+                serviceId, searchWord, searchField, types, resources, dateRange, context);
     }
 
     /**
      * 기본 권한 조회용 팩토리 메서드
      *
+     * @param serviceId 서비스 ID 필터 (null이면 전체)
      * @param searchWord 검색어
      * @param types 권한 유형 필터 목록
      * @param dateRange 생성일시 범위
@@ -98,6 +102,7 @@ public record PermissionSearchCriteria(
      * @return PermissionSearchCriteria
      */
     public static PermissionSearchCriteria ofDefault(
+            Long serviceId,
             String searchWord,
             List<PermissionType> types,
             DateRange dateRange,
@@ -109,7 +114,22 @@ public record PermissionSearchCriteria(
                         SortDirection.DESC,
                         PageRequest.of(pageNumber, pageSize));
         return new PermissionSearchCriteria(
-                searchWord, PermissionSearchField.defaultField(), types, null, dateRange, context);
+                serviceId,
+                searchWord,
+                PermissionSearchField.defaultField(),
+                types,
+                null,
+                dateRange,
+                context);
+    }
+
+    /**
+     * 서비스 ID 필터가 존재하는지 확인
+     *
+     * @return 서비스 ID 필터가 있으면 true
+     */
+    public boolean hasServiceIdFilter() {
+        return serviceId != null;
     }
 
     /**

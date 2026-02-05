@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 
 /**
@@ -50,7 +51,13 @@ import java.time.Instant;
  * @since 1.0.0
  */
 @Entity
-@Table(name = "permissions")
+@Table(
+        name = "permissions",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uk_permission_service_key",
+                    columnNames = {"service_id", "permission_key"})
+        })
 public class PermissionJpaEntity extends SoftDeletableEntity {
 
     /** 권한 ID - Auto Increment (Primary Key) */
@@ -59,8 +66,12 @@ public class PermissionJpaEntity extends SoftDeletableEntity {
     @Column(name = "permission_id", nullable = false)
     private Long permissionId;
 
-    /** 권한 키 (resource:action 형식, 유니크) */
-    @Column(name = "permission_key", nullable = false, length = 100, unique = true)
+    /** 서비스 ID FK (null이면 서비스 무관) */
+    @Column(name = "service_id")
+    private Long serviceId;
+
+    /** 권한 키 (resource:action 형식, 서비스 내 유니크) */
+    @Column(name = "permission_key", nullable = false, length = 100)
     private String permissionKey;
 
     /** 리소스 (예: user, role, organization) */
@@ -93,6 +104,7 @@ public class PermissionJpaEntity extends SoftDeletableEntity {
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
      *
      * @param permissionId 권한 ID (PK, Long - null이면 신규)
+     * @param serviceId 서비스 ID FK (NOT NULL)
      * @param permissionKey 권한 키
      * @param resource 리소스
      * @param action 행위
@@ -104,6 +116,7 @@ public class PermissionJpaEntity extends SoftDeletableEntity {
      */
     private PermissionJpaEntity(
             Long permissionId,
+            Long serviceId,
             String permissionKey,
             String resource,
             String action,
@@ -114,6 +127,7 @@ public class PermissionJpaEntity extends SoftDeletableEntity {
             Instant deletedAt) {
         super(createdAt, updatedAt, deletedAt);
         this.permissionId = permissionId;
+        this.serviceId = serviceId;
         this.permissionKey = permissionKey;
         this.resource = resource;
         this.action = action;
@@ -127,6 +141,7 @@ public class PermissionJpaEntity extends SoftDeletableEntity {
      * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
      *
      * @param permissionId 권한 ID (PK, Long - null이면 신규)
+     * @param serviceId 서비스 ID FK (NOT NULL)
      * @param permissionKey 권한 키
      * @param resource 리소스
      * @param action 행위
@@ -139,6 +154,7 @@ public class PermissionJpaEntity extends SoftDeletableEntity {
      */
     public static PermissionJpaEntity of(
             Long permissionId,
+            Long serviceId,
             String permissionKey,
             String resource,
             String action,
@@ -149,6 +165,7 @@ public class PermissionJpaEntity extends SoftDeletableEntity {
             Instant deletedAt) {
         return new PermissionJpaEntity(
                 permissionId,
+                serviceId,
                 permissionKey,
                 resource,
                 action,
@@ -163,6 +180,10 @@ public class PermissionJpaEntity extends SoftDeletableEntity {
 
     public Long getPermissionId() {
         return permissionId;
+    }
+
+    public Long getServiceId() {
+        return serviceId;
     }
 
     public String getPermissionKey() {

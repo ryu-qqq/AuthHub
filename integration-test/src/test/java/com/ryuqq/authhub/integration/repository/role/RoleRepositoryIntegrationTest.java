@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ryuqq.authhub.adapter.out.persistence.role.entity.RoleJpaEntity;
 import com.ryuqq.authhub.adapter.out.persistence.role.fixture.RoleJpaEntityFixture;
 import com.ryuqq.authhub.adapter.out.persistence.role.repository.RoleJpaRepository;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.integration.common.base.RepositoryTestBase;
 import com.ryuqq.authhub.integration.common.tag.TestTags;
@@ -45,10 +46,12 @@ class RoleRepositoryIntegrationTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             null,
+                            null,
                             "ADMIN",
                             "관리자",
                             "시스템 관리자 역할",
                             RoleType.CUSTOM,
+                            RoleScope.GLOBAL,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             null);
@@ -76,10 +79,12 @@ class RoleRepositoryIntegrationTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             tenantId,
+                            null,
                             "TENANT_ADMIN",
                             "테넌트 관리자",
                             "테넌트 관리자 역할",
                             RoleType.CUSTOM,
+                            RoleScope.TENANT,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             null);
@@ -110,10 +115,12 @@ class RoleRepositoryIntegrationTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             null,
+                            null,
                             "VIEWER",
                             "조회자",
                             "조회 전용 역할",
                             RoleType.CUSTOM,
+                            RoleScope.GLOBAL,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             null);
@@ -151,10 +158,12 @@ class RoleRepositoryIntegrationTest extends RepositoryTestBase {
                     RoleJpaEntity.of(
                             null,
                             null,
+                            null,
                             "DELETABLE",
                             "삭제 가능 역할",
                             null,
                             RoleType.CUSTOM,
+                            RoleScope.GLOBAL,
                             RoleJpaEntityFixture.fixedTime(),
                             RoleJpaEntityFixture.fixedTime(),
                             null);

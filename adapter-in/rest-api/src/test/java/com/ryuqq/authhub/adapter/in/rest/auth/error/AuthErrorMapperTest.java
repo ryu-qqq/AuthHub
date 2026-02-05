@@ -65,5 +65,36 @@ class AuthErrorMapperTest {
             ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
             assertThat(result.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
         }
+
+        @Test
+        @DisplayName("AUTH-007을 403 Forbidden으로 매핑한다")
+        void shouldMapAuth007To403() {
+            var ex = ErrorMapperApiFixture.accessForbiddenException();
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+            assertThat(result.status()).isEqualTo(HttpStatus.FORBIDDEN);
+        }
+
+        @Test
+        @DisplayName("map() 결과에 status와 type URI가 포함된다")
+        void shouldIncludeStatusAndTypeInResult() {
+            var ex = ErrorMapperApiFixture.invalidCredentialsException();
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+
+            assertThat(result.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(result.type()).isNotNull();
+            assertThat(result.type().toString())
+                    .startsWith("https://api.authhub.com/problems/auth/");
+        }
+
+        @Test
+        @DisplayName("type URI가 AUTH 코드 기반으로 생성된다")
+        void shouldCreateTypeUriFromAuthCode() {
+            var ex = ErrorMapperApiFixture.accessForbiddenException();
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+
+            assertThat(result.type()).isNotNull();
+            assertThat(result.type().toString()).contains("auth/");
+            assertThat(result.type().toString()).contains("auth-007");
+        }
     }
 }

@@ -5,7 +5,7 @@ import com.ryuqq.authhub.sdk.model.onboarding.TenantOnboardingRequest;
 import com.ryuqq.authhub.sdk.model.onboarding.TenantOnboardingResponse;
 
 /**
- * Onboarding 관련 API 인터페이스. 테넌트 온보딩(테넌트+조직+역할+사용자 일괄 생성) 기능을 제공합니다.
+ * Onboarding 관련 API 인터페이스. 테넌트 온보딩(테넌트+조직 일괄 생성) 기능을 제공합니다.
  *
  * <p><strong>멱등키 필수:</strong>
  *

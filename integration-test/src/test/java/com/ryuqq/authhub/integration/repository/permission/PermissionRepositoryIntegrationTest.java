@@ -46,6 +46,7 @@ class PermissionRepositoryIntegrationTest extends RepositoryTestBase {
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
                             null,
+                            null,
                             "user:read",
                             "user",
                             "read",
@@ -78,6 +79,7 @@ class PermissionRepositoryIntegrationTest extends RepositoryTestBase {
             Instant now = PermissionJpaEntityFixture.fixedTime();
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
+                            null,
                             null,
                             "system:manage",
                             "system",
@@ -112,6 +114,7 @@ class PermissionRepositoryIntegrationTest extends RepositoryTestBase {
             Instant now = PermissionJpaEntityFixture.fixedTime();
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
+                            null,
                             null,
                             "user:read",
                             "user",
@@ -155,6 +158,7 @@ class PermissionRepositoryIntegrationTest extends RepositoryTestBase {
             Instant now = PermissionJpaEntityFixture.fixedTime();
             PermissionJpaEntity entity =
                     PermissionJpaEntity.of(
+                            null,
                             null,
                             "user:delete",
                             "user",

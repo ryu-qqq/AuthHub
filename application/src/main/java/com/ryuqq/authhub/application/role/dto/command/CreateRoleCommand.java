@@ -20,4 +20,9 @@ package com.ryuqq.authhub.application.role.dto.command;
  * @since 1.0.0
  */
 public record CreateRoleCommand(
-        String tenantId, String name, String displayName, String description, boolean isSystem) {}
+        String tenantId,
+        Long serviceId,
+        String name,
+        String displayName,
+        String description,
+        boolean isSystem) {}

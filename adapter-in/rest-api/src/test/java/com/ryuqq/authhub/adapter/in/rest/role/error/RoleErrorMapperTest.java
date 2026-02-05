@@ -50,6 +50,26 @@ class RoleErrorMapperTest {
         }
 
         @Test
+        @DisplayName("SystemRoleNotModifiableException을 지원한다")
+        void shouldSupportSystemRoleNotModifiableException() {
+            assertThat(mapper.supports(ErrorMapperApiFixture.systemRoleNotModifiableException()))
+                    .isTrue();
+        }
+
+        @Test
+        @DisplayName("SystemRoleNotDeletableException을 지원한다")
+        void shouldSupportSystemRoleNotDeletableException() {
+            assertThat(mapper.supports(ErrorMapperApiFixture.systemRoleNotDeletableException()))
+                    .isTrue();
+        }
+
+        @Test
+        @DisplayName("RoleInUseException을 지원한다")
+        void shouldSupportRoleInUseException() {
+            assertThat(mapper.supports(ErrorMapperApiFixture.roleInUseException())).isTrue();
+        }
+
+        @Test
         @DisplayName("다른 도메인 예외는 지원하지 않는다")
         void shouldNotSupportOtherDomainExceptions() {
             assertThat(mapper.supports(ErrorMapperApiFixture.tenantNotFoundException())).isFalse();
@@ -86,6 +106,48 @@ class RoleErrorMapperTest {
             // Then
             assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
             assertThat(result.title()).isEqualTo("Role Name Duplicate");
+        }
+
+        @Test
+        @DisplayName("SystemRoleNotModifiableException을 403 Forbidden으로 매핑한다")
+        void shouldMapSystemRoleNotModifiableTo403() {
+            // Given
+            var ex = ErrorMapperApiFixture.systemRoleNotModifiableException();
+
+            // When
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+
+            // Then
+            assertThat(result.status()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(result.title()).isEqualTo("System Role Not Modifiable");
+        }
+
+        @Test
+        @DisplayName("SystemRoleNotDeletableException을 403 Forbidden으로 매핑한다")
+        void shouldMapSystemRoleNotDeletableTo403() {
+            // Given
+            var ex = ErrorMapperApiFixture.systemRoleNotDeletableException();
+
+            // When
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+
+            // Then
+            assertThat(result.status()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(result.title()).isEqualTo("System Role Not Deletable");
+        }
+
+        @Test
+        @DisplayName("RoleInUseException을 409 Conflict로 매핑한다")
+        void shouldMapRoleInUseTo409() {
+            // Given
+            var ex = ErrorMapperApiFixture.roleInUseException();
+
+            // When
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+
+            // Then
+            assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
+            assertThat(result.title()).isEqualTo("Role In Use");
         }
     }
 }

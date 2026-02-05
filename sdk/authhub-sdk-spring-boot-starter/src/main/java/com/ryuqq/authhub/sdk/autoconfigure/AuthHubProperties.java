@@ -26,6 +26,9 @@ public class AuthHubProperties {
     /** 서비스 토큰 (머신 간 통신용). ThreadLocal 토큰이 없을 경우 fallback으로 사용됩니다. */
     private String serviceToken;
 
+    /** 서비스 코드. Role-Permission 자동 매핑 시 사용됩니다. (optional) */
+    private String serviceCode;
+
     /** 타임아웃 설정. */
     private final Timeout timeout = new Timeout();
 
@@ -46,6 +49,14 @@ public class AuthHubProperties {
 
     public void setServiceToken(String serviceToken) {
         this.serviceToken = serviceToken;
+    }
+
+    public String getServiceCode() {
+        return serviceCode;
+    }
+
+    public void setServiceCode(String serviceCode) {
+        this.serviceCode = serviceCode;
     }
 
     public Timeout getTimeout() {

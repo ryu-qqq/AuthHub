@@ -35,6 +35,7 @@ import java.util.List;
 public record RoleSearchParams(
         CommonSearchParams searchParams,
         String tenantId,
+        Long serviceId,
         String searchWord,
         String searchField,
         List<String> types) {
@@ -52,10 +53,12 @@ public record RoleSearchParams(
     public static RoleSearchParams of(
             CommonSearchParams searchParams,
             String tenantId,
+            Long serviceId,
             String searchWord,
             String searchField,
             List<String> types) {
-        return new RoleSearchParams(searchParams, tenantId, searchWord, searchField, types);
+        return new RoleSearchParams(
+                searchParams, tenantId, serviceId, searchWord, searchField, types);
     }
 
     /**
@@ -78,7 +81,7 @@ public record RoleSearchParams(
             Integer size) {
         CommonSearchParams searchParams =
                 CommonSearchParams.of(false, startDate, endDate, "createdAt", "DESC", page, size);
-        return new RoleSearchParams(searchParams, null, searchWord, null, types);
+        return new RoleSearchParams(searchParams, null, null, searchWord, null, types);
     }
 
     // ==================== Delegate Methods ====================

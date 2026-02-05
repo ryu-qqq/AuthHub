@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.ryuqq.authhub.application.common.dto.query.CommonSearchParams;
 import com.ryuqq.authhub.application.rolepermission.assembler.RolePermissionAssembler;
 import com.ryuqq.authhub.application.rolepermission.dto.query.RolePermissionSearchParams;
 import com.ryuqq.authhub.application.rolepermission.dto.response.RolePermissionPageResult;
 import com.ryuqq.authhub.application.rolepermission.factory.RolePermissionQueryFactory;
+import com.ryuqq.authhub.application.rolepermission.fixture.RolePermissionQueryFixtures;
 import com.ryuqq.authhub.application.rolepermission.manager.RolePermissionReadManager;
 import com.ryuqq.authhub.domain.rolepermission.aggregate.RolePermission;
 import com.ryuqq.authhub.domain.rolepermission.fixture.RolePermissionFixture;
@@ -63,12 +63,8 @@ class SearchRolePermissionsServiceTest {
         void shouldOrchestrate_FactoryThenManagerThenAssembler() {
             // given
             RolePermissionSearchParams params =
-                    RolePermissionSearchParams.of(
-                            CommonSearchParams.of(false, null, null, "grantedAt", "DESC", 0, 10),
-                            1L,
-                            null,
-                            null,
-                            null);
+                    RolePermissionQueryFixtures.searchParamsWithRoleId(
+                            RolePermissionQueryFixtures.defaultRoleId());
             RolePermissionSearchCriteria criteria =
                     RolePermissionSearchCriteria.ofRoleId(
                             RolePermissionFixture.defaultRoleId(), 0, 10);

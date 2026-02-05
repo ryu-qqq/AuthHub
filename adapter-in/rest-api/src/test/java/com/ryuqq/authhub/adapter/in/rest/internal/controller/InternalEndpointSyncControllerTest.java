@@ -78,6 +78,11 @@ class InternalEndpointSyncControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("serviceName")
                                                     .type(JsonFieldType.STRING)
                                                     .description("서비스 이름 (필수)"),
+                                            fieldWithPath("serviceCode")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description(
+                                                            "서비스 코드 (Role-Permission 자동 매핑용, 선택)")
+                                                    .optional(),
                                             fieldWithPath("endpoints")
                                                     .type(JsonFieldType.ARRAY)
                                                     .description("엔드포인트 목록 (필수, 비어있으면 안됨)"),
@@ -116,6 +121,9 @@ class InternalEndpointSyncControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.skippedEndpoints")
                                                     .type(JsonFieldType.NUMBER)
                                                     .description("스킵된 엔드포인트 수 (이미 존재)"),
+                                            fieldWithPath("data.mappedRolePermissions")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("자동 매핑된 Role-Permission 수"),
                                             fieldWithPath("timestamp")
                                                     .type(JsonFieldType.STRING)
                                                     .description("응답 시간"),

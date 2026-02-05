@@ -58,10 +58,12 @@ class RoleQueryControllerTest extends RestDocsTestSupport {
                     new RoleResult(
                             RoleApiFixture.defaultRoleId(),
                             RoleApiFixture.defaultTenantId(),
+                            RoleApiFixture.defaultServiceId(),
                             RoleApiFixture.defaultName(),
                             RoleApiFixture.defaultDisplayName(),
                             RoleApiFixture.defaultDescription(),
                             RoleApiFixture.defaultType(),
+                            RoleApiFixture.defaultScope(),
                             fixedTime,
                             fixedTime);
             RolePageResult pageResult = RolePageResult.of(List.of(result), 0, 20, 1L);
@@ -125,6 +127,10 @@ class RoleQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.content[].tenantId")
                                                     .type(JsonFieldType.STRING)
                                                     .description("테넌트 ID (null이면 Global)"),
+                                            fieldWithPath("data.content[].serviceId")
+                                                    .type(JsonFieldType.NUMBER)
+                                                    .description("서비스 ID")
+                                                    .optional(),
                                             fieldWithPath("data.content[].name")
                                                     .type(JsonFieldType.STRING)
                                                     .description("역할 이름"),
@@ -137,6 +143,11 @@ class RoleQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.content[].type")
                                                     .type(JsonFieldType.STRING)
                                                     .description("역할 유형 (SYSTEM, CUSTOM)"),
+                                            fieldWithPath("data.content[].scope")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description(
+                                                            "역할 범위 (GLOBAL, SERVICE, TENANT,"
+                                                                    + " TENANT_SERVICE)"),
                                             fieldWithPath("data.content[].createdAt")
                                                     .type(JsonFieldType.STRING)
                                                     .description("생성일시 (ISO 8601)"),
@@ -205,6 +216,108 @@ class RoleQueryControllerTest extends RestDocsTestSupport {
         void shouldFailWhenPageIsNegative() throws Exception {
             // when & then
             mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "-1").param("size", "20"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("빈 결과를 조회한다")
+        void shouldSearchWithEmptyResults() throws Exception {
+            // given
+            RolePageResult pageResult = RolePageResult.empty(20);
+            given(searchRolesUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "0").param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.totalElements").value(0))
+                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.size").value(20));
+        }
+
+        @Test
+        @DisplayName("마지막 페이지를 조회한다")
+        void shouldSearchLastPage() throws Exception {
+            // given
+            Instant fixedTime = RoleApiFixture.fixedTime();
+            RoleResult result =
+                    new RoleResult(
+                            RoleApiFixture.defaultRoleId(),
+                            RoleApiFixture.defaultTenantId(),
+                            RoleApiFixture.defaultServiceId(),
+                            RoleApiFixture.defaultName(),
+                            RoleApiFixture.defaultDisplayName(),
+                            RoleApiFixture.defaultDescription(),
+                            RoleApiFixture.defaultType(),
+                            RoleApiFixture.defaultScope(),
+                            fixedTime,
+                            fixedTime);
+            // 마지막 페이지: page=2, size=10, totalElements=21 -> 마지막 페이지에 1개
+            RolePageResult pageResult = RolePageResult.of(List.of(result), 2, 10, 21L);
+            given(searchRolesUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "2").param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isNotEmpty())
+                    .andExpect(jsonPath("$.data.page").value(2))
+                    .andExpect(jsonPath("$.data.size").value(10))
+                    .andExpect(jsonPath("$.data.totalElements").value(21));
+        }
+
+        @Test
+        @DisplayName("페이지 크기가 1인 경우도 정상 조회한다")
+        void shouldSearchWithSizeOne() throws Exception {
+            // given
+            Instant fixedTime = RoleApiFixture.fixedTime();
+            RoleResult result =
+                    new RoleResult(
+                            RoleApiFixture.defaultRoleId(),
+                            RoleApiFixture.defaultTenantId(),
+                            RoleApiFixture.defaultServiceId(),
+                            RoleApiFixture.defaultName(),
+                            RoleApiFixture.defaultDisplayName(),
+                            RoleApiFixture.defaultDescription(),
+                            RoleApiFixture.defaultType(),
+                            RoleApiFixture.defaultScope(),
+                            fixedTime,
+                            fixedTime);
+            RolePageResult pageResult = RolePageResult.of(List.of(result), 0, 1, 1L);
+            given(searchRolesUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "0").param("size", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(1))
+                    .andExpect(jsonPath("$.data.size").value(1))
+                    .andExpect(jsonPath("$.data.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("페이지 크기가 최대값(100)인 경우도 정상 조회한다")
+        void shouldSearchWithMaxSize() throws Exception {
+            // given
+            RolePageResult pageResult = RolePageResult.empty(100);
+            given(searchRolesUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "0").param("size", "100"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.size").value(100));
+        }
+
+        @Test
+        @DisplayName("페이지 크기가 0이면 400 Bad Request")
+        void shouldFailWhenSizeIsZero() throws Exception {
+            // when & then
+            mockMvc.perform(get(RoleApiEndpoints.ROLES).param("page", "0").param("size", "0"))
                     .andExpect(status().isBadRequest());
         }
     }

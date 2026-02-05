@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.out.persistence.role.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
@@ -48,10 +49,12 @@ class RoleJpaEntityTest {
                     RoleJpaEntity.of(
                             ROLE_ID,
                             TENANT_ID,
+                            null,
                             NAME,
                             DISPLAY_NAME,
                             DESCRIPTION,
                             TYPE,
+                            RoleScope.TENANT,
                             CREATED_AT,
                             UPDATED_AT,
                             null);
@@ -76,10 +79,12 @@ class RoleJpaEntityTest {
                     RoleJpaEntity.of(
                             ROLE_ID,
                             TENANT_ID,
+                            null,
                             NAME,
                             DISPLAY_NAME,
                             DESCRIPTION,
                             TYPE,
+                            RoleScope.TENANT,
                             CREATED_AT,
                             UPDATED_AT,
                             null);
@@ -100,10 +105,12 @@ class RoleJpaEntityTest {
                     RoleJpaEntity.of(
                             ROLE_ID,
                             TENANT_ID,
+                            null,
                             NAME,
                             DISPLAY_NAME,
                             DESCRIPTION,
                             TYPE,
+                            RoleScope.TENANT,
                             CREATED_AT,
                             UPDATED_AT,
                             deletedAt);
@@ -122,10 +129,12 @@ class RoleJpaEntityTest {
                     RoleJpaEntity.of(
                             ROLE_ID,
                             null,
+                            null,
                             NAME,
                             DISPLAY_NAME,
                             DESCRIPTION,
                             TYPE,
+                            RoleScope.GLOBAL,
                             CREATED_AT,
                             UPDATED_AT,
                             null);
@@ -147,10 +156,12 @@ class RoleJpaEntityTest {
                     RoleJpaEntity.of(
                             ROLE_ID,
                             null,
+                            null,
                             NAME,
                             DISPLAY_NAME,
                             DESCRIPTION,
                             RoleType.SYSTEM,
+                            RoleScope.GLOBAL,
                             CREATED_AT,
                             UPDATED_AT,
                             null);
@@ -167,10 +178,12 @@ class RoleJpaEntityTest {
                     RoleJpaEntity.of(
                             ROLE_ID,
                             null,
+                            null,
                             NAME,
                             DISPLAY_NAME,
                             DESCRIPTION,
                             RoleType.CUSTOM,
+                            RoleScope.GLOBAL,
                             CREATED_AT,
                             UPDATED_AT,
                             null);
@@ -192,10 +205,12 @@ class RoleJpaEntityTest {
                     RoleJpaEntity.of(
                             ROLE_ID,
                             TENANT_ID,
+                            null,
                             NAME,
                             DISPLAY_NAME,
                             DESCRIPTION,
                             TYPE,
+                            RoleScope.TENANT,
                             CREATED_AT,
                             UPDATED_AT,
                             null);
@@ -212,10 +227,12 @@ class RoleJpaEntityTest {
                     RoleJpaEntity.of(
                             ROLE_ID,
                             TENANT_ID,
+                            null,
                             NAME,
                             DISPLAY_NAME,
                             DESCRIPTION,
                             TYPE,
+                            RoleScope.TENANT,
                             CREATED_AT,
                             UPDATED_AT,
                             null);

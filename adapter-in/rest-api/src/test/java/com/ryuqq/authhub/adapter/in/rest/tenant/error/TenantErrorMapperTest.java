@@ -87,5 +87,23 @@ class TenantErrorMapperTest {
             assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
             assertThat(result.title()).isEqualTo("Tenant Name Duplicate");
         }
+
+        @Test
+        @DisplayName("미지원 예외는 default 브랜치로 400 Bad Request로 매핑한다")
+        void shouldMapUnsupportedExceptionTo400() {
+            // Given
+            // supports()는 false를 반환하지만, map()이 호출되면 default 브랜치 실행
+            // 실제로는 supports()가 false이면 map()이 호출되지 않지만,
+            // switch default 브랜치 테스트를 위해 직접 호출
+            var ex = ErrorMapperApiFixture.roleNotFoundException();
+
+            // When
+            ErrorMapper.MappedError result = mapper.map(ex, Locale.KOREA);
+
+            // Then
+            assertThat(result.status()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(result.title()).isEqualTo("Tenant Error");
+            assertThat(result.type().toString()).contains("/errors/tenant");
+        }
     }
 }

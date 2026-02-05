@@ -48,6 +48,7 @@ import java.util.List;
  */
 public record RoleSearchCriteria(
         TenantId tenantId,
+        Long serviceId,
         String searchWord,
         RoleSearchField searchField,
         List<RoleType> types,
@@ -69,6 +70,7 @@ public record RoleSearchCriteria(
      */
     public static RoleSearchCriteria of(
             TenantId tenantId,
+            Long serviceId,
             String searchWord,
             RoleSearchField searchField,
             List<RoleType> types,
@@ -77,7 +79,8 @@ public record RoleSearchCriteria(
             SortDirection sortDirection,
             PageRequest pageRequest) {
         QueryContext<RoleSortKey> context = QueryContext.of(sortKey, sortDirection, pageRequest);
-        return new RoleSearchCriteria(tenantId, searchWord, searchField, types, dateRange, context);
+        return new RoleSearchCriteria(
+                tenantId, serviceId, searchWord, searchField, types, dateRange, context);
     }
 
     /**
@@ -102,7 +105,7 @@ public record RoleSearchCriteria(
                         SortDirection.DESC,
                         PageRequest.of(pageNumber, pageSize));
         return new RoleSearchCriteria(
-                null, searchWord, RoleSearchField.defaultField(), types, dateRange, context);
+                null, null, searchWord, RoleSearchField.defaultField(), types, dateRange, context);
     }
 
     /**
@@ -129,7 +132,13 @@ public record RoleSearchCriteria(
                         SortDirection.DESC,
                         PageRequest.of(pageNumber, pageSize));
         return new RoleSearchCriteria(
-                tenantId, searchWord, RoleSearchField.defaultField(), types, dateRange, context);
+                tenantId,
+                null,
+                searchWord,
+                RoleSearchField.defaultField(),
+                types,
+                dateRange,
+                context);
     }
 
     /**
@@ -148,6 +157,15 @@ public record RoleSearchCriteria(
      */
     public boolean isGlobalOnly() {
         return tenantId == null;
+    }
+
+    /**
+     * 서비스 ID 필터가 존재하는지 확인
+     *
+     * @return 서비스 ID가 있으면 true
+     */
+    public boolean hasServiceIdFilter() {
+        return serviceId != null;
     }
 
     /**

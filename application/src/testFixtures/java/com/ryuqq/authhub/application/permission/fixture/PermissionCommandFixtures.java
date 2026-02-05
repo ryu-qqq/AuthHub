@@ -35,25 +35,25 @@ public final class PermissionCommandFixtures {
     /** 기본 생성 Command 반환 (커스텀 권한) */
     public static CreatePermissionCommand createCommand() {
         return new CreatePermissionCommand(
-                DEFAULT_RESOURCE, DEFAULT_ACTION, DEFAULT_DESCRIPTION, false);
+                null, DEFAULT_RESOURCE, DEFAULT_ACTION, DEFAULT_DESCRIPTION, false);
     }
 
     /** 지정된 리소스/액션으로 생성 Command 반환 */
     public static CreatePermissionCommand createCommand(String resource, String action) {
         return new CreatePermissionCommand(
-                resource, action, resource + " " + action + " 권한", false);
+                null, resource, action, resource + " " + action + " 권한", false);
     }
 
     /** 시스템 권한 생성 Command 반환 */
     public static CreatePermissionCommand createSystemCommand() {
         return new CreatePermissionCommand(
-                DEFAULT_RESOURCE, DEFAULT_ACTION, DEFAULT_DESCRIPTION, true);
+                null, DEFAULT_RESOURCE, DEFAULT_ACTION, DEFAULT_DESCRIPTION, true);
     }
 
     /** 모든 값을 지정하여 생성 Command 반환 */
     public static CreatePermissionCommand createCommand(
             String resource, String action, String description, boolean isSystem) {
-        return new CreatePermissionCommand(resource, action, description, isSystem);
+        return new CreatePermissionCommand(null, resource, action, description, isSystem);
     }
 
     // ==================== UpdatePermissionCommand ====================

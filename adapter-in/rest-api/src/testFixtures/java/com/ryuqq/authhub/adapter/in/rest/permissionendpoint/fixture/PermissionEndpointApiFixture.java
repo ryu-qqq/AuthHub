@@ -63,6 +63,42 @@ public final class PermissionEndpointApiFixture {
                 DEFAULT_IS_PUBLIC);
     }
 
+    /** 최대 길이 serviceName으로 생성 요청 (경계값 테스트용) */
+    public static CreatePermissionEndpointApiRequest
+            createPermissionEndpointRequestWithMaxLengthServiceName(String serviceName) {
+        return new CreatePermissionEndpointApiRequest(
+                DEFAULT_PERMISSION_ID,
+                serviceName,
+                DEFAULT_URL_PATTERN,
+                DEFAULT_HTTP_METHOD,
+                DEFAULT_DESCRIPTION,
+                DEFAULT_IS_PUBLIC);
+    }
+
+    /** 최대 길이 urlPattern으로 생성 요청 (경계값 테스트용) */
+    public static CreatePermissionEndpointApiRequest
+            createPermissionEndpointRequestWithMaxLengthUrlPattern(String urlPattern) {
+        return new CreatePermissionEndpointApiRequest(
+                DEFAULT_PERMISSION_ID,
+                DEFAULT_SERVICE_NAME,
+                urlPattern,
+                DEFAULT_HTTP_METHOD,
+                DEFAULT_DESCRIPTION,
+                DEFAULT_IS_PUBLIC);
+    }
+
+    /** 최대 길이 description으로 생성 요청 (경계값 테스트용) */
+    public static CreatePermissionEndpointApiRequest
+            createPermissionEndpointRequestWithMaxLengthDescription(String description) {
+        return new CreatePermissionEndpointApiRequest(
+                DEFAULT_PERMISSION_ID,
+                DEFAULT_SERVICE_NAME,
+                DEFAULT_URL_PATTERN,
+                DEFAULT_HTTP_METHOD,
+                description,
+                DEFAULT_IS_PUBLIC);
+    }
+
     // ========== UpdatePermissionEndpointApiRequest ==========
 
     /** 기본 수정 요청 */

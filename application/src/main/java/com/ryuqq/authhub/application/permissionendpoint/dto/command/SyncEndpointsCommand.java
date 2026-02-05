@@ -8,11 +8,18 @@ import java.util.List;
  * <p>다른 서비스에서 엔드포인트를 동기화할 때 사용합니다.
  *
  * @param serviceName 서비스 이름 (예: "authhub", "marketplace")
+ * @param serviceCode 서비스 코드 (Role-Permission 자동 매핑용, nullable)
  * @param endpoints 엔드포인트 정보 목록
  * @author development-team
  * @since 1.0.0
  */
-public record SyncEndpointsCommand(String serviceName, List<EndpointSyncItem> endpoints) {
+public record SyncEndpointsCommand(
+        String serviceName, String serviceCode, List<EndpointSyncItem> endpoints) {
+
+    /** serviceCode 없는 하위 호환 생성자 */
+    public SyncEndpointsCommand(String serviceName, List<EndpointSyncItem> endpoints) {
+        this(serviceName, null, endpoints);
+    }
 
     /**
      * EndpointSyncItem - 개별 엔드포인트 동기화 정보

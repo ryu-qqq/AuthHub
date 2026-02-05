@@ -2,6 +2,7 @@ package com.ryuqq.authhub.sdk.client.internal;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ryuqq.authhub.sdk.api.AuthApi;
+import com.ryuqq.authhub.sdk.model.auth.ChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.auth.LoginRequest;
 import com.ryuqq.authhub.sdk.model.auth.LoginResponse;
 import com.ryuqq.authhub.sdk.model.auth.LogoutRequest;
@@ -61,5 +62,11 @@ final class DefaultAuthApi implements AuthApi {
     public ApiResponse<UserIdResponse> updateUser(String userId, UpdateUserRequest request) {
         String path = USERS_PATH + "/" + userId;
         return httpClient.put(path, request, new TypeReference<ApiResponse<UserIdResponse>>() {});
+    }
+
+    @Override
+    public void changePassword(String userId, ChangePasswordRequest request) {
+        String path = USERS_PATH + "/" + userId + "/password";
+        httpClient.put(path, request, new TypeReference<ApiResponse<Void>>() {});
     }
 }

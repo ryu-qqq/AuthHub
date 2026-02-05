@@ -69,7 +69,7 @@ class InternalOnboardingControllerTest extends RestDocsTestSupport {
                                     .header(IDEMPOTENCY_KEY_HEADER, idempotencyKey)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(
                             jsonPath("$.data.tenantId")

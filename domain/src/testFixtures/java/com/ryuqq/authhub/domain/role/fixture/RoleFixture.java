@@ -4,6 +4,7 @@ import com.ryuqq.authhub.domain.common.vo.DeletionStatus;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.id.RoleId;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.role.vo.RoleScope;
 import com.ryuqq.authhub.domain.role.vo.RoleType;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import java.time.Instant;
@@ -30,10 +31,12 @@ public final class RoleFixture {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_ID),
                 null,
+                null,
                 RoleName.of(DEFAULT_ROLE_NAME),
                 DEFAULT_DISPLAY_NAME,
                 DEFAULT_DESCRIPTION,
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
@@ -44,10 +47,12 @@ public final class RoleFixture {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_ID),
                 null,
+                null,
                 RoleName.of("SUPER_ADMIN"),
                 "슈퍼 관리자",
                 "시스템 전체 관리 권한",
                 RoleType.SYSTEM,
+                RoleScope.GLOBAL,
                 DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
@@ -58,10 +63,12 @@ public final class RoleFixture {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_ID),
                 null,
+                null,
                 RoleName.of(name),
                 name + " 표시명",
                 name + " 설명",
                 RoleType.SYSTEM,
+                RoleScope.GLOBAL,
                 DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
@@ -72,10 +79,12 @@ public final class RoleFixture {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_ID),
                 null,
+                null,
                 RoleName.of("CUSTOM_ROLE"),
                 "커스텀 역할",
                 "사용자 정의 역할",
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
@@ -86,10 +95,12 @@ public final class RoleFixture {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_ID),
                 null,
+                null,
                 RoleName.of(name),
                 name + " 표시명",
                 name + " 설명",
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
@@ -100,10 +111,12 @@ public final class RoleFixture {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_ID),
                 TenantId.of(DEFAULT_TENANT_ID),
+                null,
                 RoleName.of("TENANT_CUSTOM_ROLE"),
                 "테넌트 커스텀 역할",
                 "특정 테넌트 전용 역할",
                 RoleType.CUSTOM,
+                RoleScope.TENANT,
                 DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
@@ -114,10 +127,12 @@ public final class RoleFixture {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_ID),
                 TenantId.of(tenantId),
+                null,
                 RoleName.of("TENANT_CUSTOM_ROLE"),
                 "테넌트 커스텀 역할",
                 "특정 테넌트 전용 역할",
                 RoleType.CUSTOM,
+                RoleScope.TENANT,
                 DeletionStatus.active(),
                 FIXED_TIME,
                 FIXED_TIME);
@@ -150,10 +165,12 @@ public final class RoleFixture {
         return Role.reconstitute(
                 RoleId.of(DEFAULT_ROLE_ID),
                 null,
+                null,
                 RoleName.of(DEFAULT_ROLE_NAME),
                 DEFAULT_DISPLAY_NAME,
                 DEFAULT_DESCRIPTION,
                 RoleType.CUSTOM,
+                RoleScope.GLOBAL,
                 DeletionStatus.deletedAt(FIXED_TIME),
                 FIXED_TIME,
                 FIXED_TIME);

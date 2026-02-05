@@ -36,23 +36,28 @@ public final class RoleCommandFixtures {
     /** 기본 생성 Command 반환 (Global 커스텀 역할) */
     public static CreateRoleCommand createCommand() {
         return new CreateRoleCommand(
-                null, DEFAULT_NAME, DEFAULT_DISPLAY_NAME, DEFAULT_DESCRIPTION, false);
+                null, null, DEFAULT_NAME, DEFAULT_DISPLAY_NAME, DEFAULT_DESCRIPTION, false);
     }
 
     /** 지정된 이름으로 생성 Command 반환 */
     public static CreateRoleCommand createCommandWithName(String name) {
-        return new CreateRoleCommand(null, name, name + " 표시명", name + " 설명", false);
+        return new CreateRoleCommand(null, null, name, name + " 표시명", name + " 설명", false);
     }
 
     /** 테넌트 역할 생성 Command 반환 */
     public static CreateRoleCommand createTenantCommand() {
         return new CreateRoleCommand(
-                DEFAULT_TENANT_ID, DEFAULT_NAME, DEFAULT_DISPLAY_NAME, DEFAULT_DESCRIPTION, false);
+                DEFAULT_TENANT_ID,
+                null,
+                DEFAULT_NAME,
+                DEFAULT_DISPLAY_NAME,
+                DEFAULT_DESCRIPTION,
+                false);
     }
 
     /** 시스템 역할 생성 Command 반환 */
     public static CreateRoleCommand createSystemCommand() {
-        return new CreateRoleCommand(null, "SUPER_ADMIN", "슈퍼 관리자", "시스템 전체 관리 권한", true);
+        return new CreateRoleCommand(null, null, "SUPER_ADMIN", "슈퍼 관리자", "시스템 전체 관리 권한", true);
     }
 
     // ==================== UpdateRoleCommand ====================

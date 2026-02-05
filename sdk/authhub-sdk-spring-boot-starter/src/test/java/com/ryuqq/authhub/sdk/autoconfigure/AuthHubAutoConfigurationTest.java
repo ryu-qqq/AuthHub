@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.authhub.sdk.api.AuthApi;
 import com.ryuqq.authhub.sdk.api.OnboardingApi;
+import com.ryuqq.authhub.sdk.api.UserApi;
 import com.ryuqq.authhub.sdk.auth.StaticTokenResolver;
 import com.ryuqq.authhub.sdk.auth.TokenResolver;
 import com.ryuqq.authhub.sdk.client.AuthHubClient;
@@ -128,6 +129,11 @@ class AuthHubAutoConfigurationTest {
 
                         @Override
                         public OnboardingApi onboarding() {
+                            return null;
+                        }
+
+                        @Override
+                        public UserApi user() {
                             return null;
                         }
                     };

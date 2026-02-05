@@ -2,6 +2,7 @@ package com.ryuqq.authhub.adapter.in.rest.token.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
@@ -24,6 +25,8 @@ import com.ryuqq.authhub.application.token.dto.response.TokenResponse;
 import com.ryuqq.authhub.application.token.port.in.command.LoginUseCase;
 import com.ryuqq.authhub.application.token.port.in.command.LogoutUseCase;
 import com.ryuqq.authhub.application.token.port.in.command.RefreshTokenUseCase;
+import com.ryuqq.authhub.domain.token.exception.InvalidCredentialsException;
+import com.ryuqq.authhub.domain.token.exception.InvalidRefreshTokenException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -145,6 +148,45 @@ class TokenCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("잘못된 자격증명으로 로그인하면 401 Unauthorized")
+        void shouldFailWhenCredentialsAreInvalid() throws Exception {
+            // given
+            LoginApiRequest request = TokenApiFixture.loginRequest();
+            willThrow(new InvalidCredentialsException()).given(loginUseCase).execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(TokenApiEndpoints.BASE + TokenApiEndpoints.LOGIN)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(401));
+        }
+
+        @Test
+        @DisplayName("null request body면 400 Bad Request")
+        void shouldFailWhenRequestBodyIsNull() throws Exception {
+            // when & then
+            mockMvc.perform(
+                            post(TokenApiEndpoints.BASE + TokenApiEndpoints.LOGIN)
+                                    .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("잘못된 JSON 형식이면 400 Bad Request")
+        void shouldFailWhenJsonIsInvalid() throws Exception {
+            // when & then
+            mockMvc.perform(
+                            post(TokenApiEndpoints.BASE + TokenApiEndpoints.LOGIN)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content("{invalid json}"))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     @Nested
@@ -222,6 +264,34 @@ class TokenCommandControllerTest extends RestDocsTestSupport {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("만료되거나 무효한 리프레시 토큰이면 401 Unauthorized")
+        void shouldFailWhenRefreshTokenIsInvalid() throws Exception {
+            // given
+            RefreshTokenApiRequest request = TokenApiFixture.refreshTokenRequest();
+            willThrow(new InvalidRefreshTokenException()).given(refreshTokenUseCase).execute(any());
+
+            // when & then
+            mockMvc.perform(
+                            post(TokenApiEndpoints.BASE + TokenApiEndpoints.REFRESH)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.type").exists())
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.status").value(401));
+        }
+
+        @Test
+        @DisplayName("null request body면 400 Bad Request")
+        void shouldFailWhenRequestBodyIsNull() throws Exception {
+            // when & then
+            mockMvc.perform(
+                            post(TokenApiEndpoints.BASE + TokenApiEndpoints.REFRESH)
+                                    .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     @Nested
@@ -275,6 +345,16 @@ class TokenCommandControllerTest extends RestDocsTestSupport {
                             post(TokenApiEndpoints.BASE + TokenApiEndpoints.LOGOUT)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("null request body면 400 Bad Request")
+        void shouldFailWhenRequestBodyIsNull() throws Exception {
+            // when & then
+            mockMvc.perform(
+                            post(TokenApiEndpoints.BASE + TokenApiEndpoints.LOGOUT)
+                                    .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
     }

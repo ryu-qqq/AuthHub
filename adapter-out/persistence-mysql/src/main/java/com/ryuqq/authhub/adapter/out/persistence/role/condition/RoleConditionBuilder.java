@@ -72,6 +72,11 @@ public class RoleConditionBuilder {
         // 테넌트 필터
         builder.and(tenantCondition(criteria));
 
+        // 서비스 ID 필터
+        if (criteria.hasServiceIdFilter()) {
+            builder.and(serviceIdEquals(criteria.serviceId()));
+        }
+
         // 검색어 + 검색 필드 조건
         builder.and(searchByField(criteria.searchField(), criteria.searchWord()));
 
@@ -190,6 +195,18 @@ public class RoleConditionBuilder {
         return tenantId != null
                 ? roleJpaEntity.tenantId.eq(tenantId)
                 : roleJpaEntity.tenantId.isNull();
+    }
+
+    /**
+     * 서비스 ID 일치 조건
+     *
+     * @param serviceId 서비스 ID (Long, null이면 IS NULL 조건)
+     * @return BooleanExpression
+     */
+    public BooleanExpression serviceIdEquals(Long serviceId) {
+        return serviceId != null
+                ? roleJpaEntity.serviceId.eq(serviceId)
+                : roleJpaEntity.serviceId.isNull();
     }
 
     /**

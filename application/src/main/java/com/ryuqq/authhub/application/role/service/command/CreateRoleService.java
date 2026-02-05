@@ -7,6 +7,7 @@ import com.ryuqq.authhub.application.role.port.in.command.CreateRoleUseCase;
 import com.ryuqq.authhub.application.role.validator.RoleValidator;
 import com.ryuqq.authhub.domain.role.aggregate.Role;
 import com.ryuqq.authhub.domain.role.vo.RoleName;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import com.ryuqq.authhub.domain.tenant.id.TenantId;
 import org.springframework.stereotype.Service;
 
@@ -44,10 +45,11 @@ public class CreateRoleService implements CreateRoleUseCase {
 
     @Override
     public Long execute(CreateRoleCommand command) {
-        // 1. Validator: 역할 이름 중복 검증 (테넌트 범위 내)
+        // 1. Validator: 역할 이름 중복 검증 (테넌트 + 서비스 범위 내)
         TenantId tenantId = TenantId.fromNullable(command.tenantId());
+        ServiceId serviceId = ServiceId.fromNullable(command.serviceId());
         RoleName roleName = RoleName.of(command.name());
-        validator.validateNameNotDuplicated(tenantId, roleName);
+        validator.validateNameNotDuplicated(tenantId, serviceId, roleName);
 
         // 2. Factory: Command → Domain 생성
         Role role = commandFactory.create(command);

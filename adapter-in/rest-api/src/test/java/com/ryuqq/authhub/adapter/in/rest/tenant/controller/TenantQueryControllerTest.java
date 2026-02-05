@@ -192,5 +192,54 @@ class TenantQueryControllerTest extends RestDocsTestSupport {
             mockMvc.perform(get(TenantApiEndpoints.TENANTS).param("page", "-1").param("size", "20"))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("빈 결과 조회 시 빈 배열을 반환한다")
+        void shouldReturnEmptyArrayWhenNoResults() throws Exception {
+            // given
+            TenantPageResult pageResult = TenantPageResult.empty(20);
+            given(searchTenantsByOffsetUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(get(TenantApiEndpoints.TENANTS).param("page", "0").param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(0))
+                    .andExpect(jsonPath("$.data.totalElements").value(0));
+        }
+
+        @Test
+        @DisplayName("null 파라미터로 조회 시 기본값으로 처리한다")
+        void shouldHandleNullParameters() throws Exception {
+            // given
+            TenantPageResult pageResult = TenantPageResult.empty(20);
+            given(searchTenantsByOffsetUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(get(TenantApiEndpoints.TENANTS))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray());
+        }
+
+        @Test
+        @DisplayName("날짜 범위 경계값(startDate = endDate)으로 조회한다")
+        void shouldSearchWithSameStartAndEndDate() throws Exception {
+            // given
+            TenantPageResult pageResult = TenantPageResult.empty(20);
+            given(searchTenantsByOffsetUseCase.execute(any())).willReturn(pageResult);
+
+            // when & then
+            mockMvc.perform(
+                            get(TenantApiEndpoints.TENANTS)
+                                    .param("startDate", "2024-01-01")
+                                    .param("endDate", "2024-01-01")
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray());
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.ryuqq.authhub.domain.permission.aggregate.Permission;
 import com.ryuqq.authhub.domain.permission.exception.PermissionNotFoundException;
 import com.ryuqq.authhub.domain.permission.id.PermissionId;
 import com.ryuqq.authhub.domain.permission.query.criteria.PermissionSearchCriteria;
+import com.ryuqq.authhub.domain.service.id.ServiceId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -63,29 +64,32 @@ public class PermissionReadManager {
     }
 
     /**
-     * permissionKey로 Permission 존재 여부 확인 (Global 전역)
+     * 서비스 내 permissionKey 존재 여부 확인
      *
-     * <p>tenantId와 관계없이 전역적으로 permissionKey 존재 여부를 확인합니다.
+     * <p>동일 서비스 내에서 permissionKey 중복을 확인합니다.
      *
+     * @param serviceId 서비스 ID
      * @param permissionKey 권한 키
      * @return 존재 여부
      */
     @Transactional(readOnly = true)
-    public boolean existsByPermissionKey(String permissionKey) {
-        return queryPort.existsByPermissionKey(permissionKey);
+    public boolean existsByServiceIdAndPermissionKey(ServiceId serviceId, String permissionKey) {
+        return queryPort.existsByServiceIdAndPermissionKey(serviceId, permissionKey);
     }
 
     /**
-     * permissionKey로 Permission 조회 (Optional)
+     * 서비스 내 permissionKey로 Permission 조회 (Optional)
      *
      * <p>존재하지 않는 경우 빈 Optional 반환합니다.
      *
+     * @param serviceId 서비스 ID
      * @param permissionKey 권한 키 (예: "user:read")
      * @return Permission Domain (Optional)
      */
     @Transactional(readOnly = true)
-    public Optional<Permission> findByPermissionKeyOptional(String permissionKey) {
-        return queryPort.findByPermissionKey(permissionKey);
+    public Optional<Permission> findByServiceIdAndPermissionKeyOptional(
+            ServiceId serviceId, String permissionKey) {
+        return queryPort.findByServiceIdAndPermissionKey(serviceId, permissionKey);
     }
 
     /**
