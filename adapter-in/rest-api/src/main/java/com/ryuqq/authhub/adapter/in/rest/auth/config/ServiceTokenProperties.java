@@ -1,7 +1,6 @@
 package com.ryuqq.authhub.adapter.in.rest.auth.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * 서비스 토큰 인증 Properties
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component;
  * @author development-team
  * @since 1.0.0
  */
-@Component
 @ConfigurationProperties(prefix = "security.service-token")
 public class ServiceTokenProperties {
 
