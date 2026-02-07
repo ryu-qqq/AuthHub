@@ -96,16 +96,16 @@ public class SecurityConfig {
                 // 엔드포인트 권한 설정
                 .authorizeHttpRequests(this::configureAuthorization);
 
-        // 서비스 토큰 필터 등록 (활성화된 경우 Gateway 필터 앞에 추가)
+        // Gateway 인증 필터 추가 (X-* 헤더 기반) - 먼저 등록하여 order 확보
+        http.addFilterBefore(
+                gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // 서비스 토큰 필터 등록 (활성화된 경우 Gateway 필터 앞에 배치)
         if (serviceTokenProperties.isEnabled()) {
             log.info("[SECURITY] ServiceTokenAuthenticationFilter enabled");
             http.addFilterBefore(
                     serviceTokenAuthenticationFilter(), GatewayAuthenticationFilter.class);
         }
-
-        // Gateway 인증 필터 추가 (X-* 헤더 기반)
-        http.addFilterBefore(
-                gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
