@@ -3,6 +3,9 @@ package com.ryuqq.authhub.adapter.in.rest.auth.config;
 import com.ryuqq.authhub.adapter.in.rest.auth.filter.GatewayAuthenticationFilter;
 import com.ryuqq.authhub.adapter.in.rest.auth.handler.SecurityExceptionHandler;
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.SecurityPaths;
+import com.ryuqq.authhub.sdk.filter.ServiceTokenAuthenticationFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +39,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * <ul>
  *   <li>PUBLIC: 인증 불필요 (로그인, 헬스체크, OAuth2)
  *   <li>DOCS: 인증 불필요 (API 문서 - Swagger, REST Docs)
+ *   <li>INTERNAL: 서비스 토큰 인증 (ServiceTokenAuthenticationFilter가 검증)
  *   <li>AUTHENTICATED: 인증된 사용자 + @PreAuthorize 권한 검사 (관리 API)
  * </ul>
  *
@@ -54,16 +58,21 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
     private final CorsProperties corsProperties;
+    private final ServiceTokenProperties serviceTokenProperties;
     private final GatewayAuthenticationFilter gatewayAuthenticationFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
 
     @Autowired
     public SecurityConfig(
             CorsProperties corsProperties,
+            ServiceTokenProperties serviceTokenProperties,
             GatewayAuthenticationFilter gatewayAuthenticationFilter,
             SecurityExceptionHandler securityExceptionHandler) {
         this.corsProperties = corsProperties;
+        this.serviceTokenProperties = serviceTokenProperties;
         this.gatewayAuthenticationFilter = gatewayAuthenticationFilter;
         this.securityExceptionHandler = securityExceptionHandler;
     }
@@ -85,12 +94,32 @@ public class SecurityConfig {
                                         .authenticationEntryPoint(securityExceptionHandler)
                                         .accessDeniedHandler(securityExceptionHandler))
                 // 엔드포인트 권한 설정
-                .authorizeHttpRequests(this::configureAuthorization)
-                // Gateway 인증 필터 추가 (X-* 헤더 기반)
-                .addFilterBefore(
-                        gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authorizeHttpRequests(this::configureAuthorization);
+
+        // 서비스 토큰 필터 등록 (활성화된 경우 Gateway 필터 앞에 추가)
+        if (serviceTokenProperties.isEnabled()) {
+            log.info("[SECURITY] ServiceTokenAuthenticationFilter enabled");
+            http.addFilterBefore(
+                    serviceTokenAuthenticationFilter(), GatewayAuthenticationFilter.class);
+        }
+
+        // Gateway 인증 필터 추가 (X-* 헤더 기반)
+        http.addFilterBefore(
+                gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * 서비스 토큰 인증 필터
+     *
+     * <p>Internal API 경로에 대해 X-Service-Name, X-Service-Token 헤더를 검증합니다. 설정된 시크릿과 토큰이 일치하면 인증을
+     * 허용합니다.
+     */
+    @Bean
+    public ServiceTokenAuthenticationFilter serviceTokenAuthenticationFilter() {
+        String secret = serviceTokenProperties.getSecret();
+        return new ServiceTokenAuthenticationFilter((serviceName, token) -> secret.equals(token));
     }
 
     /**
@@ -107,6 +136,9 @@ public class SecurityConfig {
 
         // DOCS 엔드포인트 설정 (공개 - API 문서 접근)
         auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).permitAll();
+
+        // INTERNAL 엔드포인트 설정 (ServiceTokenAuthenticationFilter가 토큰 검증)
+        auth.requestMatchers(SecurityPaths.Internal.PATTERNS.toArray(String[]::new)).permitAll();
 
         // 그 외 모든 요청은 인증 필요 + @PreAuthorize로 세부 권한 검사
         auth.anyRequest().authenticated();
