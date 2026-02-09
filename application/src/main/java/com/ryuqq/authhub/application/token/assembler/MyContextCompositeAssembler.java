@@ -47,6 +47,7 @@ public class MyContextCompositeAssembler {
                 userContext.tenantName(),
                 userContext.organizationId(),
                 userContext.organizationName(),
+                userContext.phoneNumber(),
                 roles,
                 permissions);
     }

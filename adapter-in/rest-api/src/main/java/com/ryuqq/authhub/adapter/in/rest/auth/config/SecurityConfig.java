@@ -4,9 +4,12 @@ import com.ryuqq.authhub.adapter.in.rest.auth.filter.GatewayAuthenticationFilter
 import com.ryuqq.authhub.adapter.in.rest.auth.handler.SecurityExceptionHandler;
 import com.ryuqq.authhub.adapter.in.rest.auth.paths.SecurityPaths;
 import com.ryuqq.authhub.sdk.filter.ServiceTokenAuthenticationFilter;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -56,6 +59,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+@EnableConfigurationProperties(ServiceTokenProperties.class)
 public class SecurityConfig {
 
     private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
@@ -105,6 +109,10 @@ public class SecurityConfig {
             log.info("[SECURITY] ServiceTokenAuthenticationFilter enabled");
             http.addFilterBefore(
                     serviceTokenAuthenticationFilter(), GatewayAuthenticationFilter.class);
+        } else {
+            log.info(
+                    "[SECURITY] ServiceTokenAuthenticationFilter disabled"
+                            + " — internal endpoints require standard auth");
         }
 
         return http.build();
@@ -116,10 +124,19 @@ public class SecurityConfig {
      * <p>Internal API 경로에 대해 X-Service-Name, X-Service-Token 헤더를 검증합니다. 설정된 시크릿과 토큰이 일치하면 인증을
      * 허용합니다.
      */
-    @Bean
-    public ServiceTokenAuthenticationFilter serviceTokenAuthenticationFilter() {
+    private ServiceTokenAuthenticationFilter serviceTokenAuthenticationFilter() {
         String secret = serviceTokenProperties.getSecret();
-        return new ServiceTokenAuthenticationFilter((serviceName, token) -> secret.equals(token));
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "security.service-token.secret is required when enabled=true");
+        }
+        return new ServiceTokenAuthenticationFilter(
+                (serviceName, token) ->
+                        MessageDigest.isEqual(
+                                secret.getBytes(StandardCharsets.UTF_8),
+                                token != null
+                                        ? token.getBytes(StandardCharsets.UTF_8)
+                                        : new byte[0]));
     }
 
     /**
@@ -137,8 +154,11 @@ public class SecurityConfig {
         // DOCS 엔드포인트 설정 (공개 - API 문서 접근)
         auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).permitAll();
 
-        // INTERNAL 엔드포인트 설정 (ServiceTokenAuthenticationFilter가 토큰 검증)
-        auth.requestMatchers(SecurityPaths.Internal.PATTERNS.toArray(String[]::new)).permitAll();
+        // INTERNAL 엔드포인트 설정 (서비스 토큰 필터 활성화 시에만 permitAll — 비활성화 시 authenticated)
+        if (serviceTokenProperties.isEnabled()) {
+            auth.requestMatchers(SecurityPaths.Internal.PATTERNS.toArray(String[]::new))
+                    .permitAll();
+        }
 
         // 그 외 모든 요청은 인증 필요 + @PreAuthorize로 세부 권한 검사
         auth.anyRequest().authenticated();

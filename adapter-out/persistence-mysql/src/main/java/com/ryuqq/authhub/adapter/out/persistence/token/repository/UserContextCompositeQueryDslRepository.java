@@ -68,7 +68,8 @@ public class UserContextCompositeQueryDslRepository {
                                         tenantJpaEntity.tenantId,
                                         tenantJpaEntity.name,
                                         organizationJpaEntity.organizationId,
-                                        organizationJpaEntity.name))
+                                        organizationJpaEntity.name,
+                                        userJpaEntity.phoneNumber))
                         .from(userJpaEntity)
                         .join(organizationJpaEntity)
                         .on(userJpaEntity.organizationId.eq(organizationJpaEntity.organizationId))

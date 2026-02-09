@@ -12,6 +12,7 @@ package com.ryuqq.authhub.adapter.out.persistence.token.dto;
  * @param tenantName 테넌트 이름
  * @param organizationId 조직 ID
  * @param organizationName 조직 이름
+ * @param phoneNumber 전화번호 (null 가능)
  * @author development-team
  * @since 1.0.0
  */
@@ -22,4 +23,5 @@ public record UserContextProjection(
         String tenantId,
         String tenantName,
         String organizationId,
-        String organizationName) {}
+        String organizationName,
+        String phoneNumber) {}

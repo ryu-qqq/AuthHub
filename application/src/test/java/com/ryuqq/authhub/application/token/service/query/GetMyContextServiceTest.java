@@ -64,6 +64,7 @@ class GetMyContextServiceTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-456")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             RolesAndPermissionsComposite rolesAndPermissions =
@@ -80,6 +81,7 @@ class GetMyContextServiceTest {
                             "Test Tenant",
                             "org-456",
                             "Test Organization",
+                            "010-1234-5678",
                             List.of(new MyContextResponse.RoleInfo(null, "ADMIN")),
                             List.of("user:read"));
 

@@ -12,6 +12,7 @@ package com.ryuqq.authhub.application.token.dto.composite;
  * @param tenantName 테넌트 이름
  * @param organizationId 조직 ID
  * @param organizationName 조직 이름
+ * @param phoneNumber 전화번호 (null 가능)
  * @author development-team
  * @since 1.0.0
  */
@@ -22,7 +23,8 @@ public record UserContextComposite(
         String tenantId,
         String tenantName,
         String organizationId,
-        String organizationName) {
+        String organizationName,
+        String phoneNumber) {
 
     /**
      * Builder 패턴으로 UserContextComposite 생성
@@ -42,6 +44,7 @@ public record UserContextComposite(
         private String tenantName;
         private String organizationId;
         private String organizationName;
+        private String phoneNumber;
 
         private UserContextCompositeBuilder() {}
 
@@ -80,9 +83,21 @@ public record UserContextComposite(
             return this;
         }
 
+        public UserContextCompositeBuilder phoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
+            return this;
+        }
+
         public UserContextComposite build() {
             return new UserContextComposite(
-                    userId, email, name, tenantId, tenantName, organizationId, organizationName);
+                    userId,
+                    email,
+                    name,
+                    tenantId,
+                    tenantName,
+                    organizationId,
+                    organizationName,
+                    phoneNumber);
         }
     }
 }

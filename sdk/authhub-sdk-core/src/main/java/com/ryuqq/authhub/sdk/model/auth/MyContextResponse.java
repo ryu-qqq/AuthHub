@@ -8,6 +8,7 @@ import java.util.List;
  * @param userId 사용자 ID (UUIDv7 문자열)
  * @param email 이메일
  * @param name 사용자 이름
+ * @param phoneNumber 전화번호 (null 가능)
  * @param tenant 테넌트 정보
  * @param organization 조직 정보
  * @param roles 역할 목록
@@ -17,6 +18,7 @@ public record MyContextResponse(
         String userId,
         String email,
         String name,
+        String phoneNumber,
         TenantInfo tenant,
         OrganizationInfo organization,
         List<RoleInfo> roles,
