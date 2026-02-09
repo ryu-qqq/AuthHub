@@ -14,6 +14,7 @@ import java.util.List;
  * @param tenantName 테넌트 이름
  * @param organizationId 조직 ID
  * @param organizationName 조직 이름
+ * @param phoneNumber 전화번호 (null 가능)
  * @param roles 역할 목록
  * @param permissions 권한 키 목록
  * @author development-team
@@ -27,6 +28,7 @@ public record MyContextResponse(
         String tenantName,
         String organizationId,
         String organizationName,
+        String phoneNumber,
         List<RoleInfo> roles,
         List<String> permissions) {
 

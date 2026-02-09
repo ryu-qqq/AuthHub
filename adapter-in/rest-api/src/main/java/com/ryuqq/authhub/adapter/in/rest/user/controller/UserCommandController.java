@@ -2,9 +2,9 @@ package com.ryuqq.authhub.adapter.in.rest.user.controller;
 
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.UserApiEndpoints;
-import com.ryuqq.authhub.adapter.in.rest.user.dto.command.ChangePasswordApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.user.dto.command.CreateUserApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.user.dto.command.UpdateUserApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.request.ChangePasswordApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.request.CreateUserApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.request.UpdateUserApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserIdApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.mapper.UserCommandApiMapper;
 import com.ryuqq.authhub.application.user.dto.command.ChangePasswordCommand;

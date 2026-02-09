@@ -63,6 +63,7 @@ class MyContextReadFacadeTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-456")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             RolesAndPermissionsComposite rolesAndPermissions =
@@ -114,6 +115,7 @@ class MyContextReadFacadeTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-456")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             RolesAndPermissionsComposite emptyRolesAndPermissions =

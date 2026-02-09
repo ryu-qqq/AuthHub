@@ -212,6 +212,7 @@ class TokenApiMapperTest {
                             "Test Tenant",
                             "org-456",
                             "Test Organization",
+                            "010-1234-5678",
                             List.of(role1, role2),
                             List.of("user:read", "user:write"));
 
@@ -248,6 +249,7 @@ class TokenApiMapperTest {
                             "Test Tenant",
                             "org-456",
                             "Test Organization",
+                            null,
                             List.of(),
                             List.of());
 
@@ -281,6 +283,7 @@ class TokenApiMapperTest {
                             "Test Tenant",
                             "org-456",
                             "Test Organization",
+                            "010-1234-5678",
                             roles,
                             permissions);
 

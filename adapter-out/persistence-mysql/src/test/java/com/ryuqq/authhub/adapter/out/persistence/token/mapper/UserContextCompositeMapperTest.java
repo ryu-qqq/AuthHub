@@ -43,7 +43,8 @@ class UserContextCompositeMapperTest {
                             "tenant-456",
                             "Test Tenant",
                             "org-789",
-                            "Test Organization");
+                            "Test Organization",
+                            "010-1234-5678");
 
             // when
             UserContextComposite result = sut.toComposite(projection);
@@ -56,6 +57,7 @@ class UserContextCompositeMapperTest {
             assertThat(result.tenantName()).isEqualTo("Test Tenant");
             assertThat(result.organizationId()).isEqualTo("org-789");
             assertThat(result.organizationName()).isEqualTo("Test Organization");
+            assertThat(result.phoneNumber()).isEqualTo("010-1234-5678");
         }
 
         @Test
@@ -70,7 +72,8 @@ class UserContextCompositeMapperTest {
                             "019450eb-4f1e-7000-8000-000000000002",
                             "Company Tenant",
                             "019450eb-4f1e-7000-8000-000000000003",
-                            "Engineering Org");
+                            "Engineering Org",
+                            "010-9876-5432");
 
             // when
             UserContextComposite result = sut.toComposite(projection);
@@ -83,6 +86,7 @@ class UserContextCompositeMapperTest {
             assertThat(result.tenantName()).isEqualTo("Company Tenant");
             assertThat(result.organizationId()).isEqualTo("019450eb-4f1e-7000-8000-000000000003");
             assertThat(result.organizationName()).isEqualTo("Engineering Org");
+            assertThat(result.phoneNumber()).isEqualTo("010-9876-5432");
         }
     }
 }

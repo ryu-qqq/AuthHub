@@ -160,7 +160,7 @@ class UserQueryControllerTest extends RestDocsTestSupport {
             mockMvc.perform(
                             get(UserApiEndpoints.USERS)
                                     .param("organizationId", UserApiFixture.defaultOrganizationId())
-                                    .param("status", "ACTIVE")
+                                    .param("statuses", "ACTIVE")
                                     .param("page", "0")
                                     .param("size", "20"))
                     .andExpect(status().isOk())
@@ -178,12 +178,23 @@ class UserQueryControllerTest extends RestDocsTestSupport {
                                                     .description("소속 조직 ID (선택)")
                                                     .optional(),
                                             parameterWithName("searchWord")
-                                                    .description("검색어 - 식별자 또는 전화번호 (선택)")
+                                                    .description("검색어 (선택)")
                                                     .optional(),
-                                            parameterWithName("status")
+                                            parameterWithName("searchField")
+                                                    .description(
+                                                            "검색 필드 - IDENTIFIER, PHONE_NUMBER"
+                                                                    + " (선택)")
+                                                    .optional(),
+                                            parameterWithName("statuses")
                                                     .description(
                                                             "상태 필터 - ACTIVE, INACTIVE, SUSPENDED"
-                                                                    + " (선택)")
+                                                                    + " (복수 선택 가능, 선택)")
+                                                    .optional(),
+                                            parameterWithName("startDate")
+                                                    .description("조회 시작일 (선택)")
+                                                    .optional(),
+                                            parameterWithName("endDate")
+                                                    .description("조회 종료일 (선택)")
                                                     .optional(),
                                             parameterWithName("page")
                                                     .description("페이지 번호 (0부터 시작, 기본값: 0)")
@@ -272,7 +283,7 @@ class UserQueryControllerTest extends RestDocsTestSupport {
             mockMvc.perform(
                             get(UserApiEndpoints.USERS)
                                     .param("organizationId", UserApiFixture.defaultOrganizationId())
-                                    .param("status", "ACTIVE"))
+                                    .param("statuses", "ACTIVE"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
@@ -302,7 +313,7 @@ class UserQueryControllerTest extends RestDocsTestSupport {
             mockMvc.perform(
                             get(UserApiEndpoints.USERS)
                                     .param("organizationId", UserApiFixture.defaultOrganizationId())
-                                    .param("status", "ACTIVE")
+                                    .param("statuses", "ACTIVE")
                                     .param("page", "0")
                                     .param("size", "20"))
                     .andExpect(status().isOk())

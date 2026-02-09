@@ -1,8 +1,8 @@
 package com.ryuqq.authhub.adapter.in.rest.user.fixture;
 
-import com.ryuqq.authhub.adapter.in.rest.user.dto.command.ChangePasswordApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.user.dto.command.CreateUserApiRequest;
-import com.ryuqq.authhub.adapter.in.rest.user.dto.command.UpdateUserApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.request.ChangePasswordApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.request.CreateUserApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.request.UpdateUserApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserIdApiResponse;
 import java.time.Instant;

@@ -76,7 +76,8 @@ class UserContextCompositeQueryDslRepositoryTest {
                             "tenant-123",
                             "Test Tenant",
                             "org-456",
-                            "Test Organization");
+                            "Test Organization",
+                            "010-1234-5678");
 
             given(queryFactory.select(any(Expression.class))).willReturn(compositeQuery);
             given(compositeQuery.from(userJpaEntity)).willReturn(compositeQuery);

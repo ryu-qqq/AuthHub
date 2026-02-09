@@ -47,6 +47,7 @@ class MyContextCompositeAssemblerTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-789")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             RolesAndPermissionsComposite rolesAndPermissions =
@@ -66,6 +67,7 @@ class MyContextCompositeAssemblerTest {
             assertThat(result.tenantName()).isEqualTo("Test Tenant");
             assertThat(result.organizationId()).isEqualTo("org-789");
             assertThat(result.organizationName()).isEqualTo("Test Organization");
+            assertThat(result.phoneNumber()).isEqualTo("010-1234-5678");
         }
 
         @Test
@@ -81,6 +83,7 @@ class MyContextCompositeAssemblerTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-789")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             RolesAndPermissionsComposite rolesAndPermissions =
@@ -111,6 +114,7 @@ class MyContextCompositeAssemblerTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-789")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             RolesAndPermissionsComposite rolesAndPermissions =
@@ -141,6 +145,7 @@ class MyContextCompositeAssemblerTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-789")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             RolesAndPermissionsComposite rolesAndPermissions = RolesAndPermissionsComposite.empty();
