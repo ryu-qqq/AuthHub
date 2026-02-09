@@ -57,6 +57,7 @@ class UserContextCompositeReadManagerTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-456")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             given(queryPort.findUserContextByUserId(userId)).willReturn(Optional.of(expected));

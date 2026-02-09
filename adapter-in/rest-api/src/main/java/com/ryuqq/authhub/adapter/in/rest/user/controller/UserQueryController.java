@@ -3,6 +3,7 @@ package com.ryuqq.authhub.adapter.in.rest.user.controller;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.UserApiEndpoints;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.request.SearchUsersOffsetApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.user.dto.response.UserApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.user.mapper.UserQueryApiMapper;
 import com.ryuqq.authhub.application.user.dto.query.UserSearchParams;
@@ -10,18 +11,17 @@ import com.ryuqq.authhub.application.user.dto.response.UserPageResult;
 import com.ryuqq.authhub.application.user.dto.response.UserResult;
 import com.ryuqq.authhub.application.user.port.in.query.GetUserUseCase;
 import com.ryuqq.authhub.application.user.port.in.query.SearchUsersUseCase;
-import com.ryuqq.authhub.domain.common.vo.PageMeta;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -102,18 +102,16 @@ public class UserQueryController {
     }
 
     /**
-     * User 목록 조회 API
+     * User 복합 조건 조회 API (Offset 기반)
      *
-     * <p>검색 조건에 따라 사용자 목록을 조회합니다.
+     * <p>조직, 검색어, 상태, 생성일시 범위 필터를 지원하여 사용자 목록을 Offset 기반으로 조회합니다.
      *
-     * @param organizationId 소속 조직 ID (선택)
-     * @param identifier 식별자 검색 (선택)
-     * @param status 상태 필터 (선택)
-     * @param page 페이지 번호 (0부터 시작)
-     * @param size 페이지 크기
+     * @param request 조회 요청 DTO (Offset 기반, 필터 포함)
      * @return 사용자 목록 (페이징)
      */
-    @Operation(summary = "사용자 목록 조회", description = "검색 조건에 따라 사용자 목록을 조회합니다.")
+    @Operation(
+            summary = "사용자 복합 조건 조회",
+            description = "조직, 검색어, 상태, 생성일시 범위 필터를 지원하여 사용자 목록을 Offset 기반으로 조회합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -121,36 +119,13 @@ public class UserQueryController {
     })
     @PreAuthorize("@access.hasPermission('user', 'read')")
     @GetMapping
-    public ResponseEntity<ApiResponse<PageApiResponse<UserApiResponse>>> search(
-            @Parameter(description = "소속 조직 ID") @RequestParam(required = false)
-                    String organizationId,
-            @Parameter(description = "검색어 (식별자 또는 전화번호)") @RequestParam(required = false)
-                    String searchWord,
-            @Parameter(description = "상태 필터 (ACTIVE, INACTIVE, SUSPENDED)")
-                    @RequestParam(required = false)
-                    String status,
-            @Parameter(description = "페이지 번호 (0부터 시작)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") int size) {
+    public ResponseEntity<ApiResponse<PageApiResponse<UserApiResponse>>> searchUsersByOffset(
+            @Valid @ModelAttribute SearchUsersOffsetApiRequest request) {
 
-        UserSearchParams params =
-                UserSearchParams.ofOrganization(
-                        organizationId,
-                        searchWord,
-                        status != null ? List.of(status) : null,
-                        null,
-                        null,
-                        page,
-                        size);
-        UserPageResult result = searchUsersUseCase.execute(params);
-        PageMeta pageMeta = result.pageMeta();
+        UserSearchParams params = mapper.toSearchParams(request);
+        UserPageResult pageResult = searchUsersUseCase.execute(params);
+        PageApiResponse<UserApiResponse> response = mapper.toPageResponse(pageResult);
 
-        PageApiResponse<UserApiResponse> apiResponse =
-                PageApiResponse.of(
-                        result.content().stream().map(mapper::toApiResponse).toList(),
-                        pageMeta.page(),
-                        pageMeta.size(),
-                        pageMeta.totalElements());
-
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.ofSuccess(response));
     }
 }

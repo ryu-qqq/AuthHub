@@ -32,6 +32,7 @@ public class TestUseCaseConfig {
                         "Test Tenant",
                         "test-org-id",
                         "Test Organization",
+                        "010-1234-5678",
                         List.of(),
                         List.of());
     }

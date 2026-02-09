@@ -108,6 +108,7 @@ public class TokenApiMapper {
                 response.userId(),
                 response.email(),
                 response.name(),
+                response.phoneNumber(),
                 tenant,
                 organization,
                 roles,

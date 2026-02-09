@@ -23,6 +23,7 @@ public record MyContextApiResponse(
         @Schema(description = "사용자 ID") String userId,
         @Schema(description = "이메일") String email,
         @Schema(description = "사용자 이름") String name,
+        @Schema(description = "전화번호") String phoneNumber,
         @Schema(description = "테넌트 정보") TenantInfo tenant,
         @Schema(description = "조직 정보") OrganizationInfo organization,
         @Schema(description = "역할 목록") List<RoleInfo> roles,

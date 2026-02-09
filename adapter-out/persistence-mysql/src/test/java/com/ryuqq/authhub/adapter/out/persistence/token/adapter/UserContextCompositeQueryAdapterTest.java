@@ -57,7 +57,8 @@ class UserContextCompositeQueryAdapterTest {
                             "tenant-123",
                             "Test Tenant",
                             "org-456",
-                            "Test Organization");
+                            "Test Organization",
+                            "010-1234-5678");
 
             UserContextComposite expectedComposite =
                     UserContextComposite.builder()
@@ -68,6 +69,7 @@ class UserContextCompositeQueryAdapterTest {
                             .tenantName("Test Tenant")
                             .organizationId("org-456")
                             .organizationName("Test Organization")
+                            .phoneNumber("010-1234-5678")
                             .build();
 
             given(repository.findUserContextByUserId(userId.value()))

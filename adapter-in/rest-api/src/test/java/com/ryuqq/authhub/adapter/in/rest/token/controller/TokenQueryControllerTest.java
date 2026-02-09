@@ -192,6 +192,7 @@ class TokenQueryControllerTest extends RestDocsTestSupport {
                             "Test Tenant",
                             "org-456",
                             "Test Organization",
+                            "010-1234-5678",
                             List.of(new MyContextResponse.RoleInfo("role-1", "ADMIN")),
                             List.of("user:read", "user:write"));
 
@@ -231,6 +232,10 @@ class TokenQueryControllerTest extends RestDocsTestSupport {
                                             fieldWithPath("data.name")
                                                     .type(JsonFieldType.STRING)
                                                     .description("사용자 이름"),
+                                            fieldWithPath("data.phoneNumber")
+                                                    .type(JsonFieldType.STRING)
+                                                    .description("전화번호")
+                                                    .optional(),
                                             fieldWithPath("data.tenant")
                                                     .type(JsonFieldType.OBJECT)
                                                     .description("테넌트 정보"),
@@ -293,6 +298,7 @@ class TokenQueryControllerTest extends RestDocsTestSupport {
                             "Test Tenant",
                             "org-456",
                             "Test Organization",
+                            null,
                             List.of(),
                             List.of());
 
@@ -348,6 +354,7 @@ class TokenQueryControllerTest extends RestDocsTestSupport {
                             "Test Tenant",
                             "org-456",
                             "Test Organization",
+                            "010-9876-5432",
                             roles,
                             permissions);
 

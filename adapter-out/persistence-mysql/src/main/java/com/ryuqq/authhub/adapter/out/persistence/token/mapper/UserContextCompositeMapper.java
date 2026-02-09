@@ -36,6 +36,7 @@ public class UserContextCompositeMapper {
                 .tenantName(projection.tenantName())
                 .organizationId(projection.organizationId())
                 .organizationName(projection.organizationName())
+                .phoneNumber(projection.phoneNumber())
                 .build();
     }
 }
