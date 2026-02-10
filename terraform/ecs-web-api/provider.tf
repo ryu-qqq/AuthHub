@@ -70,7 +70,7 @@ variable "web_api_memory" {
 variable "web_api_desired_count" {
   description = "Desired count for web-api service"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "image_tag" {
