@@ -6,6 +6,7 @@ import com.ryuqq.authhub.sdk.model.common.ApiResponse;
 import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
 import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
 import com.ryuqq.authhub.sdk.model.internal.TenantConfig;
+import com.ryuqq.authhub.sdk.model.internal.UserContext;
 import com.ryuqq.authhub.sdk.model.internal.UserPermissions;
 
 /**
@@ -19,6 +20,7 @@ final class DefaultInternalApi implements InternalApi {
     private static final String JWKS_PATH = "/api/v1/auth/jwks";
     private static final String TENANT_CONFIG_PATH = "/api/v1/internal/tenants/%s/config";
     private static final String USER_PERMISSIONS_PATH = "/api/v1/internal/users/%s/permissions";
+    private static final String USER_CONTEXT_PATH = "/api/v1/internal/users/%s/context";
 
     private final ServiceTokenHttpClientSupport httpClient;
 
@@ -50,5 +52,12 @@ final class DefaultInternalApi implements InternalApi {
         return httpClient.get(
                 String.format(USER_PERMISSIONS_PATH, userId),
                 new TypeReference<ApiResponse<UserPermissions>>() {});
+    }
+
+    @Override
+    public ApiResponse<UserContext> getUserContext(String userId) {
+        return httpClient.get(
+                String.format(USER_CONTEXT_PATH, userId),
+                new TypeReference<ApiResponse<UserContext>>() {});
     }
 }

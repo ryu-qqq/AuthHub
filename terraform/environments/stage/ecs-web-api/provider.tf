@@ -107,9 +107,14 @@ data "aws_secretsmanager_secret" "jwt_rsa" {
 }
 
 # ========================================
-# RDS Configuration (Stage MySQL)
+# RDS Configuration (Stage MySQL via RDS Proxy)
 # ========================================
-# Stage RDS: staging-shared-mysql.cfacertspqbw.ap-northeast-2.rds.amazonaws.com
+# RDS Proxy endpoint from SSM Parameter Store
+data "aws_ssm_parameter" "rds_proxy_endpoint" {
+  name = "/shared/stage/rds/proxy-endpoint"
+}
+
+# AuthHub-specific Secrets Manager secret (using shared MySQL auth credentials)
 data "aws_secretsmanager_secret" "rds" {
   name = "stage-shared-mysql-auth"
 }
@@ -155,9 +160,10 @@ locals {
   vpc_id          = data.aws_ssm_parameter.vpc_id.value
   private_subnets = split(",", data.aws_ssm_parameter.private_subnets.value)
 
-  # RDS Configuration (Stage MySQL)
+  # RDS Configuration (Stage MySQL via RDS Proxy)
+  # Using RDS Proxy for connection pooling and failover resilience
   rds_credentials       = jsondecode(data.aws_secretsmanager_secret_version.rds.secret_string)
-  rds_host              = "staging-shared-mysql.cfacertspqbw.ap-northeast-2.rds.amazonaws.com"
+  rds_host              = data.aws_ssm_parameter.rds_proxy_endpoint.value
   rds_port              = "3306"
   rds_dbname            = "auth"
   rds_username          = local.rds_credentials.username

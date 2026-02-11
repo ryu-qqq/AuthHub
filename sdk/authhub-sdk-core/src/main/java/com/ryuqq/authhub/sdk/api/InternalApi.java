@@ -4,6 +4,7 @@ import com.ryuqq.authhub.sdk.model.common.ApiResponse;
 import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
 import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
 import com.ryuqq.authhub.sdk.model.internal.TenantConfig;
+import com.ryuqq.authhub.sdk.model.internal.UserContext;
 import com.ryuqq.authhub.sdk.model.internal.UserPermissions;
 
 /**
@@ -50,4 +51,14 @@ public interface InternalApi {
      * @return 사용자 역할/권한 정보
      */
     ApiResponse<UserPermissions> getUserPermissions(String userId);
+
+    /**
+     * 사용자 컨텍스트 조회 (사용자 전체 정보 조회용).
+     *
+     * <p>내부 서비스가 사용자의 전체 컨텍스트(테넌트, 조직, 역할, 권한 등)를 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 사용자 컨텍스트 정보
+     */
+    ApiResponse<UserContext> getUserContext(String userId);
 }

@@ -384,7 +384,8 @@ module "ecs_service" {
     # RS256 RSA Keys (loaded from Secrets Manager)
     { name = "SECURITY_JWT_RSA_PRIVATE_KEY_CONTENT", valueFrom = "${data.aws_secretsmanager_secret.jwt_rsa.arn}:private_key::" },
     { name = "SECURITY_JWT_RSA_PUBLIC_KEY_CONTENT", valueFrom = "${data.aws_secretsmanager_secret.jwt_rsa.arn}:public_key::" },
-    # Service Token Secret (for n8n/CI-CD internal API)
+    # Service Token Secret (SSM: /authhub/security/service-token-secret)
+    # Required by SecurityConfig.ServiceTokenAuthenticationFilter (v2.0.5+)
     { name = "SECURITY_SERVICE_TOKEN_SECRET", valueFrom = data.aws_ssm_parameter.service_token_secret.arn }
   ]
 
@@ -411,7 +412,7 @@ module "ecs_service" {
   # Auto Scaling
   enable_autoscaling        = true
   autoscaling_min_capacity  = 2
-  autoscaling_max_capacity  = 10
+  autoscaling_max_capacity  = 2
   autoscaling_target_cpu    = 70
   autoscaling_target_memory = 80
 
