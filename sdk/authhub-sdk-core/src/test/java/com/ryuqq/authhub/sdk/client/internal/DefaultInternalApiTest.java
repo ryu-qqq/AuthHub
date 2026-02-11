@@ -11,6 +11,7 @@ import com.ryuqq.authhub.sdk.model.common.ApiResponse;
 import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
 import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
 import com.ryuqq.authhub.sdk.model.internal.TenantConfig;
+import com.ryuqq.authhub.sdk.model.internal.UserContext;
 import com.ryuqq.authhub.sdk.model.internal.UserPermissions;
 import java.time.Instant;
 import java.util.List;
@@ -195,6 +196,72 @@ class DefaultInternalApiTest {
 
             // when
             sut.getUserPermissions(userId);
+
+            // then
+            then(httpClient).should().get(eq(expectedPath), any(TypeReference.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserContext 메서드")
+    class GetUserContext {
+
+        @Test
+        @DisplayName("올바른 경로로 GET 요청을 보낸다")
+        @SuppressWarnings("unchecked")
+        void shouldCallGetWithCorrectPath() {
+            // given
+            String userId = "test-user-id";
+            String expectedPath = String.format("/api/v1/internal/users/%s/context", userId);
+            UserContext userContext =
+                    new UserContext(
+                            userId,
+                            "test@example.com",
+                            "테스트 사용자",
+                            "010-1234-5678",
+                            new UserContext.TenantInfo("tenant-001", "테스트 테넌트"),
+                            new UserContext.OrganizationInfo("org-001", "테스트 조직"),
+                            List.of(new UserContext.RoleInfo("role-001", "ADMIN")),
+                            List.of("user:read", "user:write"));
+            ApiResponse<UserContext> mockResponse =
+                    new ApiResponse<>(true, userContext, null, null);
+            given(httpClient.get(eq(expectedPath), any(TypeReference.class)))
+                    .willReturn(mockResponse);
+
+            // when
+            ApiResponse<UserContext> result = sut.getUserContext(userId);
+
+            // then
+            then(httpClient).should().get(eq(expectedPath), any(TypeReference.class));
+            assertThat(result).isNotNull();
+            assertThat(result.success()).isTrue();
+            assertThat(result.data().userId()).isEqualTo(userId);
+        }
+
+        @Test
+        @DisplayName("다른 userId로 호출하면 다른 경로가 사용된다")
+        @SuppressWarnings("unchecked")
+        void shouldUseDifferentPathForDifferentUserId() {
+            // given
+            String userId = "another-user-789";
+            String expectedPath = String.format("/api/v1/internal/users/%s/context", userId);
+            UserContext userContext =
+                    new UserContext(
+                            userId,
+                            "another@example.com",
+                            "다른 사용자",
+                            null,
+                            new UserContext.TenantInfo("tenant-002", "다른 테넌트"),
+                            new UserContext.OrganizationInfo("org-002", "다른 조직"),
+                            List.of(),
+                            List.of());
+            ApiResponse<UserContext> mockResponse =
+                    new ApiResponse<>(true, userContext, null, null);
+            given(httpClient.get(eq(expectedPath), any(TypeReference.class)))
+                    .willReturn(mockResponse);
+
+            // when
+            sut.getUserContext(userId);
 
             // then
             then(httpClient).should().get(eq(expectedPath), any(TypeReference.class));
