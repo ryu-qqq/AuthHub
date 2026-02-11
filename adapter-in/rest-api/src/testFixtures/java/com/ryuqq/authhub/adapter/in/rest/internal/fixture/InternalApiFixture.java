@@ -8,7 +8,9 @@ import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.EndpointPermissio
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.EndpointSyncResultApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.OnboardingResultApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.TenantConfigApiResponse;
+import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.UserContextApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.UserPermissionsApiResponse;
+import com.ryuqq.authhub.application.token.dto.response.MyContextResponse;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -246,6 +248,55 @@ public final class InternalApiFixture {
 
     public static Set<String> defaultPermissions() {
         return DEFAULT_PERMISSIONS;
+    }
+
+    // ========== MyContextResponse (Application Layer) ==========
+
+    private static final String DEFAULT_EMAIL = "test@example.com";
+    private static final String DEFAULT_NAME = "테스트 사용자";
+    private static final String DEFAULT_PHONE_NUMBER = "010-1234-5678";
+    private static final String DEFAULT_ORG_ID = "org-001";
+    private static final String DEFAULT_ROLE_ID_ADMIN = "role-001";
+    private static final String DEFAULT_ROLE_ID_USER = "role-002";
+    private static final String DEFAULT_ROLE_NAME_ADMIN = "ADMIN";
+    private static final String DEFAULT_ROLE_NAME_USER = "USER";
+
+    /** 기본 MyContextResponse 생성 */
+    public static MyContextResponse createMyContextResponse(String userId) {
+        return new MyContextResponse(
+                userId,
+                DEFAULT_EMAIL,
+                DEFAULT_NAME,
+                DEFAULT_TENANT_ID,
+                DEFAULT_TENANT_NAME,
+                DEFAULT_ORG_ID,
+                DEFAULT_ORG_NAME,
+                DEFAULT_PHONE_NUMBER,
+                List.of(
+                        new MyContextResponse.RoleInfo(
+                                DEFAULT_ROLE_ID_ADMIN, DEFAULT_ROLE_NAME_ADMIN),
+                        new MyContextResponse.RoleInfo(
+                                DEFAULT_ROLE_ID_USER, DEFAULT_ROLE_NAME_USER)),
+                List.of("user:read", "user:write"));
+    }
+
+    // ========== UserContextApiResponse ==========
+
+    /** 기본 사용자 컨텍스트 응답 */
+    public static UserContextApiResponse userContextResponse() {
+        return new UserContextApiResponse(
+                DEFAULT_USER_ID,
+                DEFAULT_EMAIL,
+                DEFAULT_NAME,
+                DEFAULT_PHONE_NUMBER,
+                new UserContextApiResponse.TenantInfo(DEFAULT_TENANT_ID, DEFAULT_TENANT_NAME),
+                new UserContextApiResponse.OrganizationInfo(DEFAULT_ORG_ID, DEFAULT_ORG_NAME),
+                List.of(
+                        new UserContextApiResponse.RoleInfo(
+                                DEFAULT_ROLE_ID_ADMIN, DEFAULT_ROLE_NAME_ADMIN),
+                        new UserContextApiResponse.RoleInfo(
+                                DEFAULT_ROLE_ID_USER, DEFAULT_ROLE_NAME_USER)),
+                List.of("user:read", "user:write"));
     }
 
     // ========== UserPermissionsApiResponse ==========
