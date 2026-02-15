@@ -5,7 +5,7 @@
 # web-api 단일 컴포넌트 배포
 # ============================================================================
 
-name: Build and Deploy to ECS
+name: Build and Deploy
 
 on:
   workflow_dispatch:  # 수동 트리거 허용
@@ -47,10 +47,9 @@ jobs:
           cache: 'gradle'
 
       - name: Run tests
-        # 통합 테스트는 외부 의존성(Redis, DB 등) 필요하므로 CI 환경에서 제외
         run: |
           chmod +x gradlew
-          ./gradlew clean test -x integration-test:test -x jacocoTestCoverageVerification --no-daemon
+          ./gradlew clean test -x jacocoTestCoverageVerification --no-daemon
 
   # ============================================================================
   # 빌드 Job
