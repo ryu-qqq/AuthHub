@@ -28,7 +28,18 @@ jobs:
   test:
     name: Test & Quality Check
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -70,18 +81,21 @@ jobs:
         run: ./gradlew checkNoLombok --no-daemon
 
       # ----------------------------------------------------------------------
-      # 테스트 실행 (단위 + ArchUnit)
-      # 통합 테스트는 외부 의존성(Redis, DB 등) 필요하므로 CI에서 제외
-      # 통합 테스트는 로컬 또는 별도 파이프라인에서 실행
+      # 테스트 실행 (단위 + ArchUnit + 통합)
+      # Redis 서비스 컨테이너 사용하여 통합 테스트 포함
       # ----------------------------------------------------------------------
       - name: Run Tests
-        run: ./gradlew test -x integration-test:test --no-daemon
+        env:
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
+          CI: true
+        run: ./gradlew test --no-daemon
 
       # ----------------------------------------------------------------------
       # JaCoCo 커버리지 검증
       # ----------------------------------------------------------------------
       - name: Verify Code Coverage
-        run: ./gradlew jacocoTestCoverageVerification -x integration-test:test -x integration-test:jacocoTestCoverageVerification --no-daemon
+        run: ./gradlew jacocoTestCoverageVerification --no-daemon
 
       # ----------------------------------------------------------------------
       # 테스트 리포트 업로드
@@ -170,7 +184,7 @@ jobs:
           echo "- ✅ PMD (Law of Demeter)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Spotless (코드 포맷)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Lombok 금지 검증" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 단위 테스트 + ArchUnit" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 단위 테스트 + ArchUnit + 통합 테스트" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ JaCoCo 커버리지" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
