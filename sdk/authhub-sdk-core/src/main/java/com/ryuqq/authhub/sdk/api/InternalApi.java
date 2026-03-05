@@ -1,8 +1,8 @@
 package com.ryuqq.authhub.sdk.api;
 
-import com.ryuqq.authhub.sdk.model.auth.ChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.common.ApiResponse;
 import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
+import com.ryuqq.authhub.sdk.model.internal.ForceChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
 import com.ryuqq.authhub.sdk.model.internal.TenantConfig;
 import com.ryuqq.authhub.sdk.model.internal.UserContext;
@@ -64,12 +64,12 @@ public interface InternalApi {
     ApiResponse<UserContext> getUserContext(String userId);
 
     /**
-     * 비밀번호를 변경합니다 (서비스 간 M2M 호출용).
+     * 비밀번호를 강제 변경합니다 (서비스 간 M2M 호출용).
      *
-     * <p>서비스 토큰 인증을 사용하여 대상 사용자의 비밀번호를 변경합니다.
+     * <p>서비스 토큰 인증을 사용하여 대상 사용자의 비밀번호를 변경합니다. 현재 비밀번호 검증 없이 새 비밀번호로 변경합니다.
      *
      * @param userId 대상 사용자 ID
-     * @param request 비밀번호 변경 요청 (currentPassword, newPassword)
+     * @param request 강제 비밀번호 변경 요청 (newPassword)
      */
-    void changePassword(String userId, ChangePasswordRequest request);
+    void changePassword(String userId, ForceChangePasswordRequest request);
 }

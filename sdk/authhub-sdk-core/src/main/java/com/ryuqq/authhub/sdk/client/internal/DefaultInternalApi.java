@@ -2,9 +2,9 @@ package com.ryuqq.authhub.sdk.client.internal;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ryuqq.authhub.sdk.api.InternalApi;
-import com.ryuqq.authhub.sdk.model.auth.ChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.common.ApiResponse;
 import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
+import com.ryuqq.authhub.sdk.model.internal.ForceChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
 import com.ryuqq.authhub.sdk.model.internal.TenantConfig;
 import com.ryuqq.authhub.sdk.model.internal.UserContext;
@@ -64,7 +64,7 @@ final class DefaultInternalApi implements InternalApi {
     }
 
     @Override
-    public void changePassword(String userId, ChangePasswordRequest request) {
+    public void changePassword(String userId, ForceChangePasswordRequest request) {
         httpClient.put(
                 String.format(USER_PASSWORD_PATH, userId),
                 request,

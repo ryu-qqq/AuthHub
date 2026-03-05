@@ -7,9 +7,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.ryuqq.authhub.sdk.model.auth.ChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.common.ApiResponse;
 import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
+import com.ryuqq.authhub.sdk.model.internal.ForceChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
 import com.ryuqq.authhub.sdk.model.internal.TenantConfig;
 import com.ryuqq.authhub.sdk.model.internal.UserContext;
@@ -280,7 +280,7 @@ class DefaultInternalApiTest {
             // given
             String userId = "test-user-id";
             String expectedPath = String.format("/api/v1/internal/users/%s/password", userId);
-            ChangePasswordRequest request = new ChangePasswordRequest("oldPass123", "newPass456");
+            ForceChangePasswordRequest request = new ForceChangePasswordRequest("newPass456");
             ApiResponse<Void> mockResponse = new ApiResponse<>(true, null, null, null);
             given(httpClient.put(eq(expectedPath), eq(request), any(TypeReference.class)))
                     .willReturn(mockResponse);
@@ -299,7 +299,7 @@ class DefaultInternalApiTest {
             // given
             String userId = "another-user-999";
             String expectedPath = String.format("/api/v1/internal/users/%s/password", userId);
-            ChangePasswordRequest request = new ChangePasswordRequest("currentPw", "newPw123");
+            ForceChangePasswordRequest request = new ForceChangePasswordRequest("newPw123");
             ApiResponse<Void> mockResponse = new ApiResponse<>(true, null, null, null);
             given(httpClient.put(eq(expectedPath), eq(request), any(TypeReference.class)))
                     .willReturn(mockResponse);

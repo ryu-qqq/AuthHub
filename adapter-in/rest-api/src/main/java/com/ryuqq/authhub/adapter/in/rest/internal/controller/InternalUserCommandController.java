@@ -3,14 +3,14 @@ package com.ryuqq.authhub.adapter.in.rest.internal.controller;
 import com.ryuqq.authhub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.InternalApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.command.CreateUserWithRolesApiRequest;
+import com.ryuqq.authhub.adapter.in.rest.internal.dto.command.ForceChangePasswordApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.CreateUserWithRolesResultApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.mapper.InternalUserApiMapper;
-import com.ryuqq.authhub.adapter.in.rest.user.dto.request.ChangePasswordApiRequest;
-import com.ryuqq.authhub.application.user.dto.command.ChangePasswordCommand;
 import com.ryuqq.authhub.application.user.dto.command.CreateUserWithRolesCommand;
+import com.ryuqq.authhub.application.user.dto.command.ForceChangePasswordCommand;
 import com.ryuqq.authhub.application.user.dto.response.CreateUserWithRolesResult;
-import com.ryuqq.authhub.application.user.port.in.command.ChangePasswordUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.CreateUserWithRolesUseCase;
+import com.ryuqq.authhub.application.user.port.in.command.ForceChangePasswordUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -46,15 +46,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class InternalUserCommandController {
 
     private final CreateUserWithRolesUseCase createUserWithRolesUseCase;
-    private final ChangePasswordUseCase changePasswordUseCase;
+    private final ForceChangePasswordUseCase forceChangePasswordUseCase;
     private final InternalUserApiMapper mapper;
 
     public InternalUserCommandController(
             CreateUserWithRolesUseCase createUserWithRolesUseCase,
-            ChangePasswordUseCase changePasswordUseCase,
+            ForceChangePasswordUseCase forceChangePasswordUseCase,
             InternalUserApiMapper mapper) {
         this.createUserWithRolesUseCase = createUserWithRolesUseCase;
-        this.changePasswordUseCase = changePasswordUseCase;
+        this.forceChangePasswordUseCase = forceChangePasswordUseCase;
         this.mapper = mapper;
     }
 
@@ -107,11 +107,11 @@ public class InternalUserCommandController {
             @Parameter(description = "User ID", required = true)
                     @PathVariable(InternalApiEndpoints.PATH_USER_ID)
                     String userId,
-            @Valid @RequestBody ChangePasswordApiRequest request) {
+            @Valid @RequestBody ForceChangePasswordApiRequest request) {
 
-        ChangePasswordCommand command =
-                new ChangePasswordCommand(userId, request.currentPassword(), request.newPassword());
-        changePasswordUseCase.execute(command);
+        ForceChangePasswordCommand command =
+                new ForceChangePasswordCommand(userId, request.newPassword());
+        forceChangePasswordUseCase.execute(command);
 
         return ResponseEntity.ok(ApiResponse.ofSuccess(null));
     }

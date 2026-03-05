@@ -14,10 +14,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.ryuqq.authhub.adapter.in.rest.common.ControllerTestSecurityConfig;
 import com.ryuqq.authhub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.authhub.adapter.in.rest.internal.InternalApiEndpoints;
+import com.ryuqq.authhub.adapter.in.rest.internal.dto.command.ForceChangePasswordApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.internal.mapper.InternalUserApiMapper;
-import com.ryuqq.authhub.adapter.in.rest.user.dto.request.ChangePasswordApiRequest;
-import com.ryuqq.authhub.application.user.port.in.command.ChangePasswordUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.CreateUserWithRolesUseCase;
+import com.ryuqq.authhub.application.user.port.in.command.ForceChangePasswordUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -42,10 +42,10 @@ class InternalUserCommandControllerTest extends RestDocsTestSupport {
 
     @MockBean private CreateUserWithRolesUseCase createUserWithRolesUseCase;
 
-    @MockBean private ChangePasswordUseCase changePasswordUseCase;
+    @MockBean private ForceChangePasswordUseCase forceChangePasswordUseCase;
 
     @Nested
-    @DisplayName("PUT /api/v1/internal/users/{userId}/password - 비밀번호 변경")
+    @DisplayName("PUT /api/v1/internal/users/{userId}/password - 강제 비밀번호 변경")
     class ChangePasswordTests {
 
         @Test
@@ -53,9 +53,9 @@ class InternalUserCommandControllerTest extends RestDocsTestSupport {
         void shouldChangePasswordSuccessfully() throws Exception {
             // given
             String userId = "test-user-id";
-            ChangePasswordApiRequest request =
-                    new ChangePasswordApiRequest("currentPassword123", "newPassword456");
-            willDoNothing().given(changePasswordUseCase).execute(any());
+            ForceChangePasswordApiRequest request =
+                    new ForceChangePasswordApiRequest("newPassword456");
+            willDoNothing().given(forceChangePasswordUseCase).execute(any());
 
             // when & then
             mockMvc.perform(
@@ -74,20 +74,17 @@ class InternalUserCommandControllerTest extends RestDocsTestSupport {
                                             parameterWithName("userId")
                                                     .description("사용자 ID (UUID)")),
                                     requestFields(
-                                            fieldWithPath("currentPassword")
-                                                    .type(JsonFieldType.STRING)
-                                                    .description("현재 비밀번호"),
                                             fieldWithPath("newPassword")
                                                     .type(JsonFieldType.STRING)
                                                     .description("새 비밀번호 (8자 이상)"))));
         }
 
         @Test
-        @DisplayName("현재 비밀번호가 비어있으면 400을 반환한다")
-        void shouldReturn400WhenCurrentPasswordIsBlank() throws Exception {
+        @DisplayName("새 비밀번호가 비어있으면 400을 반환한다")
+        void shouldReturn400WhenNewPasswordIsBlank() throws Exception {
             // given
             String userId = "test-user-id";
-            String requestBody = "{\"currentPassword\": \"\", \"newPassword\": \"newPassword456\"}";
+            String requestBody = "{\"newPassword\": \"\"}";
 
             // when & then
             mockMvc.perform(
@@ -105,8 +102,7 @@ class InternalUserCommandControllerTest extends RestDocsTestSupport {
         void shouldReturn400WhenNewPasswordIsTooShort() throws Exception {
             // given
             String userId = "test-user-id";
-            String requestBody =
-                    "{\"currentPassword\": \"currentPassword123\", \"newPassword\": \"short\"}";
+            String requestBody = "{\"newPassword\": \"short\"}";
 
             // when & then
             mockMvc.perform(
