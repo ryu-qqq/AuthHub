@@ -56,4 +56,10 @@ public final class InternalApiEndpoints {
 
     /** 사용자 등록 (생성 + 역할 할당) */
     public static final String USERS_REGISTER = "/register";
+
+    /** 사용자 비밀번호 변경 */
+    public static final String USER_PASSWORD = "/{userId}/password";
+
+    /** 사용자 ID PathVariable */
+    public static final String PATH_USER_ID = "userId";
 }

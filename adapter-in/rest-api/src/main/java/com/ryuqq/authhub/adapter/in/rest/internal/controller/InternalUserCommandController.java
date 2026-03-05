@@ -5,16 +5,22 @@ import com.ryuqq.authhub.adapter.in.rest.internal.InternalApiEndpoints;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.command.CreateUserWithRolesApiRequest;
 import com.ryuqq.authhub.adapter.in.rest.internal.dto.response.CreateUserWithRolesResultApiResponse;
 import com.ryuqq.authhub.adapter.in.rest.internal.mapper.InternalUserApiMapper;
+import com.ryuqq.authhub.adapter.in.rest.user.dto.request.ChangePasswordApiRequest;
+import com.ryuqq.authhub.application.user.dto.command.ChangePasswordCommand;
 import com.ryuqq.authhub.application.user.dto.command.CreateUserWithRolesCommand;
 import com.ryuqq.authhub.application.user.dto.response.CreateUserWithRolesResult;
+import com.ryuqq.authhub.application.user.port.in.command.ChangePasswordUseCase;
 import com.ryuqq.authhub.application.user.port.in.command.CreateUserWithRolesUseCase;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,11 +46,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class InternalUserCommandController {
 
     private final CreateUserWithRolesUseCase createUserWithRolesUseCase;
+    private final ChangePasswordUseCase changePasswordUseCase;
     private final InternalUserApiMapper mapper;
 
     public InternalUserCommandController(
-            CreateUserWithRolesUseCase createUserWithRolesUseCase, InternalUserApiMapper mapper) {
+            CreateUserWithRolesUseCase createUserWithRolesUseCase,
+            ChangePasswordUseCase changePasswordUseCase,
+            InternalUserApiMapper mapper) {
         this.createUserWithRolesUseCase = createUserWithRolesUseCase;
+        this.changePasswordUseCase = changePasswordUseCase;
         this.mapper = mapper;
     }
 
@@ -69,5 +79,40 @@ public class InternalUserCommandController {
         CreateUserWithRolesResult result = createUserWithRolesUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ofSuccess(mapper.toApiResponse(result)));
+    }
+
+    /**
+     * 비밀번호 변경 (서비스 간 M2M 호출용)
+     *
+     * <p>서비스 토큰 인증으로 대상 사용자의 비밀번호를 변경합니다.
+     *
+     * @param userId 대상 사용자 ID
+     * @param request 비밀번호 변경 요청
+     * @return 성공 응답
+     */
+    @PutMapping(InternalApiEndpoints.USER_PASSWORD)
+    @Operation(summary = "비밀번호 변경", description = "서비스 간 호출로 사용자 비밀번호를 변경합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "변경 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "사용자를 찾을 수 없음")
+    })
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @Parameter(description = "User ID", required = true)
+                    @PathVariable(InternalApiEndpoints.PATH_USER_ID)
+                    String userId,
+            @Valid @RequestBody ChangePasswordApiRequest request) {
+
+        ChangePasswordCommand command =
+                new ChangePasswordCommand(userId, request.currentPassword(), request.newPassword());
+        changePasswordUseCase.execute(command);
+
+        return ResponseEntity.ok(ApiResponse.ofSuccess(null));
     }
 }
