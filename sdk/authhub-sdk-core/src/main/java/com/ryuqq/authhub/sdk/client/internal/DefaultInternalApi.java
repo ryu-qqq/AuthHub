@@ -2,6 +2,7 @@ package com.ryuqq.authhub.sdk.client.internal;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ryuqq.authhub.sdk.api.InternalApi;
+import com.ryuqq.authhub.sdk.model.auth.ChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.common.ApiResponse;
 import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
 import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
@@ -21,6 +22,7 @@ final class DefaultInternalApi implements InternalApi {
     private static final String TENANT_CONFIG_PATH = "/api/v1/internal/tenants/%s/config";
     private static final String USER_PERMISSIONS_PATH = "/api/v1/internal/users/%s/permissions";
     private static final String USER_CONTEXT_PATH = "/api/v1/internal/users/%s/context";
+    private static final String USER_PASSWORD_PATH = "/api/v1/internal/users/%s/password";
 
     private final ServiceTokenHttpClientSupport httpClient;
 
@@ -59,5 +61,13 @@ final class DefaultInternalApi implements InternalApi {
         return httpClient.get(
                 String.format(USER_CONTEXT_PATH, userId),
                 new TypeReference<ApiResponse<UserContext>>() {});
+    }
+
+    @Override
+    public void changePassword(String userId, ChangePasswordRequest request) {
+        httpClient.put(
+                String.format(USER_PASSWORD_PATH, userId),
+                request,
+                new TypeReference<ApiResponse<Void>>() {});
     }
 }

@@ -67,6 +67,23 @@ class ServiceTokenHttpClientSupport {
         return execute(request, typeReference);
     }
 
+    /** PUT 요청을 수행합니다. */
+    public <T> T put(String path, Object body, TypeReference<T> typeReference) {
+        String url = buildUrl(path);
+        String jsonBody = toJson(body);
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header(CONTENT_TYPE_HEADER, APPLICATION_JSON)
+                        .header(SERVICE_NAME_HEADER, config.serviceName())
+                        .header(SERVICE_TOKEN_HEADER, config.serviceToken())
+                        .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .timeout(config.readTimeout())
+                        .build();
+
+        return execute(request, typeReference);
+    }
+
     private <T> T execute(HttpRequest request, TypeReference<T> typeReference) {
         try {
             log.debug("Executing {} {}", request.method(), request.uri());
@@ -126,6 +143,15 @@ class ServiceTokenHttpClientSupport {
         }
         url.append(path);
         return url.toString();
+    }
+
+    private String toJson(Object object) {
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new AuthHubBadRequestException(
+                    "SERIALIZATION_ERROR", "Failed to serialize request body", e);
+        }
     }
 
     private <T> T fromJson(String json, TypeReference<T> typeReference) {

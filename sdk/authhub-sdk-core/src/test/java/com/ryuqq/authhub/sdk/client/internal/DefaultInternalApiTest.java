@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.ryuqq.authhub.sdk.model.auth.ChangePasswordRequest;
 import com.ryuqq.authhub.sdk.model.common.ApiResponse;
 import com.ryuqq.authhub.sdk.model.internal.EndpointPermissionSpecList;
 import com.ryuqq.authhub.sdk.model.internal.PublicKeys;
@@ -265,6 +266,49 @@ class DefaultInternalApiTest {
 
             // then
             then(httpClient).should().get(eq(expectedPath), any(TypeReference.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("changePassword 메서드")
+    class ChangePassword {
+
+        @Test
+        @DisplayName("올바른 경로로 PUT 요청을 보낸다")
+        @SuppressWarnings("unchecked")
+        void shouldCallPutWithCorrectPath() {
+            // given
+            String userId = "test-user-id";
+            String expectedPath = String.format("/api/v1/internal/users/%s/password", userId);
+            ChangePasswordRequest request = new ChangePasswordRequest("oldPass123", "newPass456");
+            ApiResponse<Void> mockResponse = new ApiResponse<>(true, null, null, null);
+            given(httpClient.put(eq(expectedPath), eq(request), any(TypeReference.class)))
+                    .willReturn(mockResponse);
+
+            // when
+            sut.changePassword(userId, request);
+
+            // then
+            then(httpClient).should().put(eq(expectedPath), eq(request), any(TypeReference.class));
+        }
+
+        @Test
+        @DisplayName("다른 userId로 호출하면 다른 경로가 사용된다")
+        @SuppressWarnings("unchecked")
+        void shouldUseDifferentPathForDifferentUserId() {
+            // given
+            String userId = "another-user-999";
+            String expectedPath = String.format("/api/v1/internal/users/%s/password", userId);
+            ChangePasswordRequest request = new ChangePasswordRequest("currentPw", "newPw123");
+            ApiResponse<Void> mockResponse = new ApiResponse<>(true, null, null, null);
+            given(httpClient.put(eq(expectedPath), eq(request), any(TypeReference.class)))
+                    .willReturn(mockResponse);
+
+            // when
+            sut.changePassword(userId, request);
+
+            // then
+            then(httpClient).should().put(eq(expectedPath), eq(request), any(TypeReference.class));
         }
     }
 }
